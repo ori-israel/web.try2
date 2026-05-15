@@ -1385,7 +1385,31 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+function getGeminiKey() {
+    return localStorage.getItem('gemini_api_key') || '';
+}
+
+function promptGeminiKey() {
+    const key = prompt('הכנס מפתח Gemini API:');
+    if (key && key.trim()) {
+        localStorage.setItem('gemini_api_key', key.trim());
+        return key.trim();
+    }
+    return null;
+}
+
 async function analyzeFood(base64, mimeType, correction) {
+    const apiKey = getGeminiKey() || promptGeminiKey();
+    if (!apiKey) {
+        document.getElementById('scanner-loading').classList.add('hidden');
+        document.getElementById('scanner-step-1').classList.add('hidden');
+        document.getElementById('scanner-step-2').classList.remove('hidden');
+        document.getElementById('scan-food-name').textContent = '⚠️ נדרש מפתח API';
+        document.getElementById('scan-portions').innerHTML = '';
+        scannedPortions = { protein: 0, fat: 0, carbs: 0 };
+        return;
+    }
+
     document.getElementById('scanner-step-2').classList.add('hidden');
     document.getElementById('scanner-loading').classList.remove('hidden');
 
@@ -1397,7 +1421,7 @@ async function analyzeFood(base64, mimeType, correction) {
 
     try {
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=AIzaSyBokokG5wC3IQRYBg9pHfuz25ZKD-92jMk`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1412,6 +1436,10 @@ async function analyzeFood(base64, mimeType, correction) {
             }
         );
         const data = await response.json();
+        if (data.error?.code === 400 || data.error?.code === 403) {
+            localStorage.removeItem('gemini_api_key');
+            throw new Error('invalid key');
+        }
         const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
         const jsonMatch = rawText.match(/\{[\s\S]*\}/);
         if (!jsonMatch) throw new Error('no JSON');
