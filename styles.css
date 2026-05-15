@@ -2094,35 +2094,29 @@ input[type="checkbox"] { accent-color: var(--accent); }
 .admin-error { color: #e55; }
 
 /* ══════════════════════════════════════════════════════════
-   Admin floating button + dropdown panel
+   Admin gear button in hamburger menu + dropdown panel
 ══════════════════════════════════════════════════════════ */
-#admin-fab-wrap {
-    position: fixed;
-    bottom: 24px;
-    left: 16px;
-    z-index: 9997;
-}
-#admin-fab {
-    width: 44px;
-    height: 44px;
+.admin-hamburger-btn {
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     background: #1a3a1a;
     border: 2px solid var(--main-green, #4ade80);
-    font-size: 20px;
+    font-size: 18px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 12px rgba(0,0,0,.4);
+    flex-shrink: 0;
     transition: transform 0.2s;
 }
-#admin-fab:hover { transform: scale(1.1); }
+.admin-hamburger-btn:hover { transform: scale(1.1); }
 .admin-panel-dropdown {
     display: none;
     flex-direction: column;
     gap: 8px;
     position: absolute;
-    bottom: 52px;
+    top: 54px;
     left: 0;
     background: #1a3a1a;
     border: 1px solid var(--main-green, #4ade80);
@@ -2130,6 +2124,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
     padding: 14px;
     min-width: 170px;
     box-shadow: 0 4px 20px rgba(0,0,0,.5);
+    z-index: 100;
 }
 .admin-panel-dropdown.open { display: flex; }
 .admin-panel-name {
