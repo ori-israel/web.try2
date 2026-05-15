@@ -1396,7 +1396,7 @@ async function analyzeFood(base64, mimeType, correction) {
 
     try {
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=AIzaSyASAnn8Rj9RhUlOQnfOr7XhdA8tggsYSk4`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=AIzaSyBokokG5wC3IQRYBg9pHfuz25ZKD-92jMk`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
