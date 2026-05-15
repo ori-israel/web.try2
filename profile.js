@@ -1,0 +1,175 @@
+// ============================================
+// Profile — data load/save, modal open/close
+// ============================================
+
+let isCoachUnlocked = false;
+
+// ── Data ──────────────────────────────────────
+
+(function loadProfileData() {
+    const saved = JSON.parse(localStorage.getItem('profile_data_v1'));
+    if (!saved) return;
+    const fields = [
+        'nickname', 'email', 'currentWeight', 'goalWeight', 'activityLevel',
+        'allergies', 'likedFoods', 'dislikedFoods', 'birthDate',
+        'name', 'startDate', 'height', 'gender', 'goal'
+    ];
+    fields.forEach(f => { if (saved[f] !== undefined) CLIENT[f] = saved[f]; });
+    if (saved.currentWeight) localStorage.setItem('current_weight', String(saved.currentWeight));
+})();
+
+document.addEventListener('DOMContentLoaded', function () {
+    populateProfileForm();
+});
+
+// ── Modal ────────────────────────────────────
+
+function openProfile() {
+    isCoachUnlocked = false;
+    populateProfileForm();
+    const overlay = document.getElementById('profile-overlay');
+    overlay.style.display = 'flex';
+    requestAnimationFrame(() => overlay.classList.add('open'));
+    document.querySelector('.hamburger-menu').classList.remove('open');
+}
+
+function handleProfileOverlayClick(e) {
+    if (e.target === document.getElementById('profile-overlay')) closeProfile();
+}
+
+function closeProfile() {
+    const overlay = document.getElementById('profile-overlay');
+    overlay.classList.remove('open');
+    overlay.classList.add('closing');
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        overlay.classList.remove('closing');
+    }, 300);
+}
+
+// ── Form ──────────────────────────────────────
+
+function populateProfileForm() {
+    const cw = localStorage.getItem('current_weight') || CLIENT.currentWeight || '';
+    document.getElementById('prof-nickname').value       = CLIENT.nickname       || '';
+    document.getElementById('prof-email').value          = CLIENT.email          || '';
+    document.getElementById('prof-current-weight').value = cw;
+    document.getElementById('prof-activity').value       = CLIENT.activityLevel  || 1.465;
+    document.getElementById('prof-allergies').value      = CLIENT.allergies      || '';
+    document.getElementById('prof-liked-foods').value    = CLIENT.likedFoods     || '';
+    document.getElementById('prof-disliked-foods').value = CLIENT.dislikedFoods  || '';
+
+    document.getElementById('prof-name').value          = CLIENT.name           || '';
+    document.getElementById('prof-goal-weight').value  = CLIENT.goalWeight     || '';
+    document.getElementById('prof-birth-date').value   = CLIENT.birthDate      || '';
+    document.getElementById('prof-start-date').value   = CLIENT.startDate      || '';
+    document.getElementById('prof-height').value       = CLIENT.height         || '';
+    document.getElementById('prof-gender').value       = CLIENT.gender         || 'male';
+    document.getElementById('prof-goal').value         = CLIENT.goal           || 'bulk';
+    setCoachFieldsState(false);
+}
+
+function setCoachFieldsState(editable) {
+    document.querySelectorAll('.coach-editable-field').forEach(f => { f.disabled = !editable; });
+    document.getElementById('coach-lock-section').style.display  = editable ? 'none'  : 'flex';
+    document.getElementById('coach-save-note').style.display      = editable ? 'block' : 'none';
+}
+
+// ── Coach unlock ──────────────────────────────
+
+function unlockCoachSection() {
+    const input = document.getElementById('coach-pin-input');
+    if (input.value === (CLIENT.coachPin || '1234')) {
+        isCoachUnlocked = true;
+        setCoachFieldsState(true);
+        input.value = '';
+    } else {
+        input.classList.remove('shake');
+        void input.offsetWidth;
+        input.classList.add('shake');
+        input.value = '';
+        setTimeout(() => input.classList.remove('shake'), 500);
+    }
+}
+
+// ── Save ──────────────────────────────────────
+
+function saveProfile() {
+    console.log('[saveProfile] התחלה');
+
+    const cwEl = document.getElementById('prof-current-weight');
+    console.log('[saveProfile] cwEl:', cwEl, 'value:', cwEl && cwEl.value);
+    const cw = parseFloat(cwEl && cwEl.value);
+
+    console.log('[saveProfile] קורא profile_data_v1 מ-localStorage');
+    const data = JSON.parse(localStorage.getItem('profile_data_v1')) || {};
+
+    const fields = {
+        nickname:      document.getElementById('prof-nickname'),
+        email:         document.getElementById('prof-email'),
+        activityLevel: document.getElementById('prof-activity'),
+        allergies:     document.getElementById('prof-allergies'),
+        likedFoods:    document.getElementById('prof-liked-foods'),
+        dislikedFoods: document.getElementById('prof-disliked-foods'),
+    };
+    for (const [key, el] of Object.entries(fields)) {
+        if (!el) { console.error('[saveProfile] אלמנט חסר:', key); return; }
+    }
+
+    Object.assign(data, {
+        nickname:      fields.nickname.value,
+        email:         fields.email.value,
+        currentWeight: cw || CLIENT.currentWeight,
+        activityLevel: parseFloat(fields.activityLevel.value),
+        allergies:     fields.allergies.value,
+        likedFoods:    fields.likedFoods.value,
+        dislikedFoods: fields.dislikedFoods.value,
+    });
+    console.log('[saveProfile] data לפני שמירה:', JSON.stringify(data));
+
+    if (isCoachUnlocked) {
+        Object.assign(data, {
+            name:        document.getElementById('prof-name').value,
+            goalWeight:  parseFloat(document.getElementById('prof-goal-weight').value) || CLIENT.goalWeight,
+            birthDate:   document.getElementById('prof-birth-date').value,
+            startDate:   document.getElementById('prof-start-date').value,
+            height:      parseFloat(document.getElementById('prof-height').value),
+            gender:      document.getElementById('prof-gender').value,
+            goal:        document.getElementById('prof-goal').value,
+        });
+    }
+
+    try {
+        localStorage.setItem('profile_data_v1', JSON.stringify(data));
+        console.log('[saveProfile] נשמר ב-localStorage בהצלחה');
+    } catch (e) {
+        console.error('[saveProfile] שגיאה בשמירה ל-localStorage:', e);
+        return;
+    }
+
+    Object.assign(CLIENT, data);
+
+    if (cw) {
+        localStorage.setItem('current_weight', String(cw));
+        const today = new Date().toISOString().split('T')[0];
+        const history = JSON.parse(localStorage.getItem('weight_history') || '[]');
+        const idx = history.findIndex(e => e.date === today);
+        if (idx >= 0) history[idx].weight = cw;
+        else history.push({ date: today, weight: cw });
+        localStorage.setItem('weight_history', JSON.stringify(history));
+        console.log('[saveProfile] weight_history עודכן:', history);
+    }
+
+    if (typeof generatePortionGoals === 'function') generatePortionGoals();
+    if (typeof loadSavedWeight     === 'function')  loadSavedWeight();
+    if (typeof renderWeightChart   === 'function')  renderWeightChart();
+
+    const btn = document.getElementById('prof-save-btn');
+    btn.textContent = '✓ נשמר!';
+    btn.style.background = '#22c55e';
+    setTimeout(() => {
+        btn.textContent = 'שמור שינויים';
+        btn.style.background = '';
+        closeProfile();
+    }, 1200);
+}

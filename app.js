@@ -1,0 +1,1446 @@
+function toggleHamburger(event) {
+    event.stopPropagation();
+    document.querySelector('.hamburger-menu').classList.toggle('open');
+}
+
+document.addEventListener('click', function(e) {
+    const menu = document.querySelector('.hamburger-menu');
+    if (menu && menu.classList.contains('open') && !menu.contains(e.target)) {
+        menu.classList.remove('open');
+    }
+});
+
+function toggleTheme() {
+    const html = document.documentElement;
+    const current = html.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    document.querySelector('.theme-toggle').textContent = next === 'dark' ? '☀️' : '🌙';
+    renderWeightChart();
+}
+
+(function initTheme() {
+    const saved = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    const btn = document.querySelector('.theme-toggle');
+    if (btn) btn.textContent = saved === 'dark' ? '☀️' : '🌙';
+})();
+
+    function generatePortionGoals() {
+    // 1. חישוב BMR - נוסחת Mifflin-St Jeor
+    const weight = parseFloat(localStorage.getItem('current_weight')) || CLIENT.currentWeight;
+    const ageCalc = Math.floor((new Date() - new Date(CLIENT.birthDate)) / (1000 * 60 * 60 * 24 * 365.25));
+    let bmr = (10 * weight) + (6.25 * CLIENT.height) - (5 * ageCalc);
+    bmr = CLIENT.gender === 'male' ? bmr + 5 : bmr - 161;
+
+    // 2. חישוב TDEE
+    const tdee = Math.round(bmr * CLIENT.activityLevel);
+
+    // 3. קלוריות לפי יעד
+    const totalCalories = CLIENT.goal === 'cut' ? tdee - 250 : tdee + 250;
+
+    // 4. חישוב חלבון
+    const proteinGrams = weight * CLIENT.proteinRatio;
+    const proteinCals = proteinGrams * 4;
+
+    // 5. יתרה קלורית
+    const remainingCals = totalCalories - proteinCals;
+    const carbCals = CLIENT.goal === 'cut' ? remainingCals * 0.7 : remainingCals * 0.6;
+    const fatCals = CLIENT.goal === 'cut' ? remainingCals * 0.3 : remainingCals * 0.4;
+
+    // 6. חישוב מנות
+    const pPortions = Math.round((proteinGrams / portionValues.protein) * 2) / 2;
+    const cPortions = Math.round((carbCals / 4 / portionValues.carbs) * 2) / 2;
+    const fPortions = Math.round((fatCals / 9 / portionValues.fat) * 2) / 2;
+
+    // 7. עדכון HTML
+    document.getElementById('protein-target').innerText = `/ ${pPortions}`;
+    document.getElementById('carbs-target').innerText = `/ ${cPortions}`;
+    document.getElementById('fat-target').innerText = `/ ${fPortions}`;
+
+    const goalText = CLIENT.goal === 'cut' ? 'חיטוב' : 'מסה';
+    document.getElementById('header-goal-display').innerText = `${goalText} | ${totalCalories} קק"ל`;
+    document.title = `פורטל הליווי של ${CLIENT.name}`;
+    document.querySelector('h1').innerText = `תוכנית הליווי של ${CLIENT.name}`;
+
+}
+
+   function initVideos() {
+    // עכשיו אנחנו מחפשים את כל הטבלאות עם הקלאס החדש
+    const tables = document.querySelectorAll('.workout-table');
+    
+    tables.forEach(table => {
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            // שם התרגיל נמצא בתא השני (אינדקס 1) בגלל הצ'קבוקס
+            const exerciseName = row.cells[1].innerText.trim();
+            const videoCell = row.querySelector('.video-cell');
+            const bankUrl = exerciseBank[exerciseName];
+            if (videoCell) {
+                videoCell.innerHTML = bankUrl ? `<a href="${bankUrl}" target="_blank" class="play-link">▶</a>` : `-`;
+            }
+        });
+    });
+}
+
+function showWorkout(workoutId) {
+    document.querySelectorAll('.workout-container').forEach(container => {
+        container.style.display = 'none';
+    });
+    const selected = document.getElementById('workout-' + workoutId);
+    if (selected) {
+        selected.style.display = 'block';
+    }
+    document.querySelectorAll('.workout-nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('onclick').includes(`'${workoutId}'`)) {
+            btn.classList.add('active');
+        }
+    });
+    loadPerfData();
+}
+
+    // פונקציה לניהול הצ'קליסט של האימונים
+function initWorkoutsChecklist() {
+    const checkboxes = document.querySelectorAll('.workout-checkbox');
+    const savedState = JSON.parse(localStorage.getItem('workout_progress_v3')) || {};
+    
+    checkboxes.forEach(cb => {
+        const id = cb.getAttribute('data-id');
+        if (savedState[id]) cb.checked = true;
+
+        cb.addEventListener('change', (e) => {
+            const currentState = JSON.parse(localStorage.getItem('workout_progress_v3')) || {};
+            currentState[id] = cb.checked;
+            localStorage.setItem('workout_progress_v3', JSON.stringify(currentState));
+            
+            // שולחים לפונקציית הבדיקה את האלמנט הספציפי שלחצו עליו
+            checkWorkoutCompletion(e.target);
+        });
+    });
+}
+
+function checkWorkoutCompletion(clickedCheckbox) {
+    // 1. מוצאים את המיכל הספציפי של האימון הנוכחי (A, B או C)
+    // אנחנו מחפשים את ה-div עם הקלאס workout-container
+    const workoutContainer = clickedCheckbox.closest('.workout-container');
+    
+    if (!workoutContainer) return;
+
+    // 2. מוצאים את כל הצ'קבוקסים אך ורק בתוך האימון הזה
+    const checkboxes = workoutContainer.querySelectorAll('.workout-checkbox');
+    
+    if (checkboxes.length === 0) return;
+
+    // 3. בודקים האם כל הצ'קבוקסים בתוך האימון הספציפי הזה מסומנים
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+
+    // 4. אם כולם מסומנים - מקפיצים את הודעת הסיום
+    if (allChecked) {
+        const msg = document.getElementById('workout-complete-msg');
+        if (msg) {
+            msg.style.display = 'block';
+                    const workoutLetter = workoutContainer.id.replace('workout-', '');
+                    completeWorkoutStreak(workoutLetter);
+
+        }
+    }
+}
+
+// פונקציה לסגירת הודעת הסיום
+function closeCompleteMsg() {
+    const msg = document.getElementById('workout-complete-msg');
+    if (msg) msg.style.display = 'none';
+}
+
+    // --- לוגיקה של המונים ואיפוס ---
+    let userPortions = { protein: 0, carbs: 0, fat: 0 };
+
+    function manageDailyReset() {
+        const lastReset = localStorage.getItem('last_reset_v3');
+        const now = new Date();
+        const resetTimeToday = new Date();
+        resetTimeToday.setHours(2, 0, 0, 0);
+        if (now > resetTimeToday && lastReset !== resetTimeToday.toDateString()) {
+            localStorage.removeItem('user_portions_v3');
+            localStorage.removeItem('tasks_v3');
+            localStorage.removeItem('workout_progress_v3');
+            localStorage.removeItem('ai_chat_history');
+            localStorage.setItem('last_reset_v3', resetTimeToday.toDateString());
+            location.reload();
+        }
+    }
+
+    function modifyPortion(type, amount) {
+        let current = userPortions[type] + amount;
+        if (current < 0) current = 0;
+        userPortions[type] = current;
+        document.getElementById(type + '-val').innerText = current;
+        localStorage.setItem('user_portions_v3', JSON.stringify(userPortions));
+        updatePortionProgress(type);
+        checkNutritionStreak();
+    }
+
+    function updatePortionProgress(type) {
+        const val = userPortions[type];
+        const targetText = document.getElementById(type + '-target').innerText.replace('/ ', '');
+        const target = parseFloat(targetText);
+        if (!target) return;
+        const percent = Math.min(100, Math.round((val / target) * 100));
+        const bar = document.getElementById(type + '-progress-bar');
+        const label = document.getElementById(type + '-percent');
+        if (bar) {
+            bar.style.width = percent + '%';
+            bar.classList.toggle('complete', percent >= 100);
+        }
+        if (label) {
+            label.textContent = percent + '%';
+            label.classList.toggle('complete', percent >= 100);
+        }
+    }
+
+    function updateAllPortionProgress() {
+        ['protein', 'carbs', 'fat'].forEach(updatePortionProgress);
+    }
+
+    function loadPortions() {
+        const saved = localStorage.getItem('user_portions_v3');
+        if (saved) {
+            userPortions = JSON.parse(saved);
+            document.getElementById('protein-val').innerText = userPortions.protein;
+            document.getElementById('carbs-val').innerText = userPortions.carbs;
+            document.getElementById('fat-val').innerText = userPortions.fat;
+        }
+        setTimeout(updateAllPortionProgress, 50);
+    }
+
+    function toggleTask(el) {
+        const checkbox = el.querySelector('input');
+        if (event.target !== checkbox) checkbox.checked = !checkbox.checked;
+        el.classList.toggle('done', checkbox.checked);
+        updateDailyProgress(); 
+        saveChecklist();
+    }
+
+    function updateDailyProgress() {
+        const total = document.querySelectorAll('.checklist-item').length;
+        const checked = document.querySelectorAll('.checklist-item input:checked').length;
+        const percent = total > 0 ? Math.round((checked / total) * 100) : 0;
+        const bar = document.getElementById('daily-bar');
+        if (bar) bar.style.width = percent + '%';
+        const text = document.getElementById('daily-text');
+        if (text) text.innerText = percent + '% הושלם היום';
+    }
+
+    function saveChecklist() {
+        const states = Array.from(document.querySelectorAll('.checklist-item input')).map(i => i.checked);
+        localStorage.setItem('tasks_v3', JSON.stringify(states));
+    }
+
+    function loadChecklist() {
+        const savedTasks = JSON.parse(localStorage.getItem('tasks_v3'));
+        if (savedTasks) {
+            document.querySelectorAll('.checklist-item').forEach((el, i) => {
+                const checkbox = el.querySelector('input');
+                if (checkbox && savedTasks[i] !== undefined) {
+                    checkbox.checked = savedTasks[i]; 
+                    if(savedTasks[i]) el.classList.add('done');
+                }
+            });
+            updateDailyProgress();
+        }
+    }
+
+    function openSurvey() { 
+        document.getElementById('survey-overlay').style.display = 'block';
+        document.body.style.overflow = 'hidden'; 
+    }
+    function closeSurvey() { 
+        document.getElementById('survey-overlay').style.display = 'none';
+        document.body.style.overflow = 'auto'; 
+    }
+
+    const surveyForm = document.getElementById('coaching-survey');
+    if (surveyForm) {
+        surveyForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-survey-btn');
+            btn.innerText = "שולח..."; btn.disabled = true;
+            const formData = new FormData(surveyForm);
+            try {
+                const response = await fetch("https://formspree.io/f/mjgjdeva", {
+                    method: "POST", body: formData, headers: { 'Accept': 'application/json' }
+                });
+                if (response.ok) {
+                    alert("השאלון נשלח בהצלחה!"); surveyForm.reset(); closeSurvey();
+                } else { alert("שגיאה בשליחה."); }
+            } catch (error) { alert("שגיאת תקשורת.");
+            } finally { btn.innerText = "שלח שאלון וחזור לאתר"; btn.disabled = false; }
+        });
+    }
+
+    function updateCounter() {
+        const diffInDays = Math.floor((new Date() - new Date(CLIENT.startDate)) / (1000 * 60 * 60 * 24)) + 1;
+        const counterEl = document.getElementById('day-counter');
+        if (counterEl) counterEl.innerText = diffInDays > 0 ? "יום " + diffInDays + " למסע שלך!" : "מתחילים בקרוב!";
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            window.scrollTo({top: 0, behavior: 'smooth'});
+            if (tabId === 'tab4') {
+    loadPerfData();
+    renderWeightChart();
+}
+        });
+    });
+
+    // פונקציות לפתיחה וסגירה של המחשבון
+    function openCalc() { 
+        document.getElementById('calc-overlay').style.display = 'block';
+        document.body.style.overflow = 'hidden'; 
+    }
+    function closeCalc() { 
+        document.getElementById('calc-overlay').style.display = 'none';
+        document.body.style.overflow = 'auto'; 
+    }
+
+    function calculateStats() {
+    const gender = document.querySelector('input[name="gender"]:checked').value;
+    const age = parseFloat(document.getElementById('calc-age').value);
+    const height = parseFloat(document.getElementById('calc-height').value);
+    const weight = parseFloat(document.getElementById('calc-weight').value);
+    const activityMultiplier = parseFloat(document.querySelector('input[name="activity"]:checked').value);
+
+    if (!age || !height || !weight) { 
+        alert("נא למלא את כל הנתונים"); 
+        return; 
+    }
+
+    // 1. חישוב BMI
+    const bmi = weight / ((height / 100) ** 2);
+    
+    // 2. חישוב חלבון (על פי הלוגיקה שלך)
+    let weightForProtein = bmi > 25 ? 24.9 * ((height / 100) ** 2) : weight;
+    const proteinMin = (weightForProtein * 1.8).toFixed(0);
+    const proteinMax = (weightForProtein * 2.2).toFixed(0);
+
+    // 3. חישוב BMR - נוסחת Mifflin-St Jeor
+    let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+    bmr = (gender === 'male') ? bmr + 5 : bmr - 161;
+
+    // 4. חישוב תחזוקה (TDEE) - כאן משתמשים במקדם המדויק (למשל 1.465)
+    const maintenance = Math.round(bmr * activityMultiplier);
+
+    // 5. הצגת תוצאות
+    const resultDiv = document.getElementById('calc-result');
+    resultDiv.style.display = 'block';
+    
+    document.getElementById('res-bmi').innerHTML = `<strong>BMI:</strong> ${bmi.toFixed(1)}`;
+    document.getElementById('res-protein').innerHTML = `<strong>טווח חלבון מומלץ:</strong> ${proteinMin} - ${proteinMax} גרם`;
+    document.getElementById('res-maintenance').innerHTML = `💡 <strong>קלוריות לתחזוקה:</strong> ${maintenance} קק"ל`;
+    document.getElementById('res-cut').innerHTML = `📉 <strong>ירידה במשקל (חיטוב):</strong> ${maintenance - 250} קק"ל`;
+    document.getElementById('res-bulk').innerHTML = `📈 <strong>עלייה במשקל (מסה):</strong> ${maintenance + 250} קק"ל`;
+}
+
+function buildWorkoutAccordions() {
+    if (window.innerWidth > 600) return;
+    document.querySelectorAll('.workout-table').forEach(table => {
+        const wrapper = table.closest('.table-wrapper');
+        if (!wrapper || wrapper.querySelector('.workout-accordion')) return;
+        const accordion = document.createElement('div');
+        accordion.className = 'workout-accordion';
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            const checkbox = cells[0]?.querySelector('input[type="checkbox"]');
+            const name = cells[1]?.textContent.trim();
+            const warmup = cells[2]?.textContent.trim();
+            const work = cells[3]?.textContent.trim();
+            const reps = cells[4]?.textContent.trim();
+            const weight = cells[5]?.textContent.trim();
+            const videoCell = cells[6];
+            const videoLink = videoCell?.querySelector('a');
+            const item = document.createElement('div');
+            item.className = 'workout-accord-item';
+            const isChecked = checkbox?.checked;
+            const exId = checkbox?.getAttribute('data-id') || '';
+            const savedWeights = JSON.parse(localStorage.getItem('exercise_weights') || '{}');
+            const savedWeight = savedWeights[exId] || weight || '';
+            item.innerHTML = `
+                <div class="workout-accord-header ${isChecked ? 'checked' : ''}">
+                    <input type="checkbox" class="accord-checkbox" ${isChecked ? 'checked' : ''}>
+                    <span class="accord-name">${name}</span>
+                    <span class="accord-check-icon">✓</span>
+                    <span class="accord-toggle">▾</span>
+                </div>
+                <div class="workout-accord-body">
+                    <div class="workout-accord-details">
+                        <div class="accord-detail">
+                            <span class="accord-detail-label">סטים חימום</span>
+                            <span class="accord-detail-value">${warmup}</span>
+                        </div>
+                        <div class="accord-detail">
+                            <span class="accord-detail-label">סטים עבודה</span>
+                            <span class="accord-detail-value">${work}</span>
+                        </div>
+                        <div class="accord-detail">
+                            <span class="accord-detail-label">חזרות</span>
+                            <span class="accord-detail-value">${reps}</span>
+                        </div>
+                        <div class="accord-detail weight-detail" data-ex-id="${exId}">
+                            <span class="accord-detail-label">משקל</span>
+                            <span class="accord-detail-value accord-weight-val">${savedWeight || '—'}</span>
+                        </div>
+                    </div>
+                    ${videoLink ? `<div class="accord-video-link"><a href="${videoLink.href}" target="_blank">▶ צפה בסרטון</a></div>` : ''}
+                </div>
+            `;
+            const accordCheckbox = item.querySelector('.accord-checkbox');
+            const header = item.querySelector('.workout-accord-header');
+            accordCheckbox.addEventListener('change', () => {
+                checkbox.checked = accordCheckbox.checked;
+                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                header.classList.toggle('checked', accordCheckbox.checked);
+            });
+            header.addEventListener('click', (e) => {
+                if (e.target.classList.contains('accord-checkbox')) return;
+                item.classList.toggle('open');
+            });
+            const weightCell = item.querySelector('.weight-detail');
+            weightCell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const valSpan = weightCell.querySelector('.accord-weight-val');
+                if (weightCell.querySelector('input')) return;
+                const current = valSpan.textContent === '—' ? '' : valSpan.textContent;
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.inputMode = 'decimal';
+                input.value = current;
+                input.placeholder = 'ק"ג';
+                input.className = 'accord-weight-input';
+                valSpan.replaceWith(input);
+                input.focus();
+                const saveWeight = () => {
+                    const val = input.value.trim();
+                    const newSpan = document.createElement('span');
+                    newSpan.className = 'accord-detail-value accord-weight-val';
+                    newSpan.textContent = val || '—';
+                    input.replaceWith(newSpan);
+                    const weights = JSON.parse(localStorage.getItem('exercise_weights') || '{}');
+                    if (val) { weights[exId] = val; } else { delete weights[exId]; }
+                    localStorage.setItem('exercise_weights', JSON.stringify(weights));
+                };
+                input.addEventListener('blur', saveWeight);
+                input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') input.blur(); });
+            });
+            accordion.appendChild(item);
+        });
+        wrapper.appendChild(accordion);
+    });
+}
+
+   window.onload = () => {
+    manageDailyReset();
+    updateCounter();
+    initWorkoutsFromClient();
+    initWorkoutsChecklist();
+    initVideos();
+    buildWorkoutAccordions();
+    loadPortions(); 
+    loadChecklist();
+    generatePortionGoals(); 
+    updateGoalRecommendations();
+    loadPerfData();
+    loadSavedWeight();
+    checkWeeklyReminders();
+    loadCoachingGoal();
+    updateWorkoutStreak();
+    updateNutritionStreak();
+    setTimeout(renderWeightChart, 100);
+    checkBirthday();
+};
+
+    function toggleAccordion(id) {
+        const content = document.getElementById(id);
+        const allAccordions = document.querySelectorAll('.accordion-content');
+        
+        // סגירת שאר האקורדיונים
+        allAccordions.forEach(acc => {
+            if (acc.id !== id) {
+                acc.style.display = 'none';
+            }
+        });
+
+        // פתיחה או סגירה של הנוכחי
+        if (content.style.display === 'block') {
+            content.style.display = 'none';
+        } else {
+    content.style.display = 'block';
+    if (id.startsWith('perf-')) loadPerfData();
+}
+    }
+
+    function updateGoalRecommendations() {
+    const listContainer = document.getElementById('goal-food-list');
+    const btnText = document.querySelector('.special-btn') || document.getElementById('goal-rec-btn');
+    
+    if (!listContainer || !btnText) return;
+
+    const currentGoal = CLIENT.goal;
+
+    if (currentGoal === "cut" || currentGoal === "חיטוב") {
+        btnText.innerText = "💡 מאכלים שיעזרו לכם לרדת במשקל מבלי להיות רעבים";
+        listContainer.innerHTML = `
+            <li>חזה עוף (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
+            <li>פילה הודו (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
+            <li>פילה דג לבן (160 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
+            <li>טונה במים (קופסה מסוננת ~120 גרם) = 1 חלבון</li>
+            <li>קוטג' 1% (250 גרם) = 1 חלבון</li>
+            <li>חלבון ביצה (8 יח') = 1 חלבון</li>
+            <li>יוגורט חלבון דל שומן (2 יח') = 1 חלבון</li>
+            <li>תפוח אדמה (220 גרם\u00A0<b>לפני בישול</b>) = 1 פחמימה</li>
+            <li>בטטה (220 גרם\u00A0<b>לפני בישול</b>) = 1 פחמימה</li>
+            <li>עדשים (60 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
+            <li>שעועית לבנה (60 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
+            <li>קינואה (50 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
+            <li>לחם קל (2 פרוסות) = 1 פחמימה</li>
+            <li>פריכיות דקות (6–7 יח') = 1 פחמימה</li>
+            <li>תפוח (1.5 יח') = 1 פחמימה</li>
+            <li>תותים (300 גרם) = 1 פחמימה</li>
+            <li>פופקורן ללא שמן (5–6 כוסות) = 1 פחמימה</li>
+            <li>דלעת (500 גרם\u00A0<b>לפני בישול</b>) = 1 פחמימה</li>
+            <li>פריכיות כוסמין (6 יח') = 1 פחמימה</li>
+            <li>חלב דל שומן (כוס 330 מ"ל) = 0.5 פחמימה + 0.5 חלבון</li>
+            <li>כרוב = 0 מנות (ללא הגבלה)</li>
+        `;
+    } else {
+        btnText.innerText = "💡 מאכלים שיעזרו לך להגיע ליעדי החלבון והקלוריות מבלי לאכול בכוח";
+        listContainer.innerHTML = `
+            <li>פרגיות (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
+            <li>בקר טחון 15% (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
+            <li>סלמון (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
+            <li>אורז לבן (50 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
+            <li>פסטה (50 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
+            <li>קוסקוס (50 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
+            <li>פתיתים (50 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
+            <li>שיבולת שועל (50 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
+            <li>תמר מג'הול (2 יח') = 1 פחמימה</li>
+            <li>בננה גדולה (1 יח') = 1 פחמימה</li>
+            <li>טורטייה (יחידה אחת) = 1 פחמימה</li>
+            <li>בייגל (חצי יחידה) = 1 פחמימה</li>
+            <li>גרנולה (5 כפות גדושות) = 1 פחמימה</li>
+            <li>חמאת בוטנים (כף גדושה) = 1 שומן</li>
+            <li>טחינה גולמית (כף) = 1 שומן</li>
+            <li>שמן זית (כף) = 1 שומן</li>
+            <li>אגוזי מלך (6 יח') = 1 שומן</li>
+            <li>קשיו (10–12 יח') = 1 שומן</li>
+            <li>אבוקדו (חצי יחידה) = 1 שומן</li>
+            <li>חלב 3% (כוס 330 מ"ל) = 0.5 פחמימה + 0.5 חלבון</li>
+        `;
+    }
+}
+    function toggleChapter(btn) {
+  const container = btn.parentElement;
+  const isActive = container.classList.contains('active');
+  
+  // סגירת כל הפרקים האחרים
+  document.querySelectorAll('.chapter-container').forEach(c => {
+    c.classList.remove('active');
+  });
+
+  // פתיחה/סגירה של הנוכחי
+  if (!isActive) {
+    container.classList.add('active');
+  }
+}
+
+function toggleTerm(header) {
+  const item = header.parentElement;
+  item.classList.toggle('active');
+}
+
+function filterInfo() {
+  const input = document.getElementById('infoSearch');
+  const filter = input.value.toLowerCase().trim();
+  const chapters = document.querySelectorAll('.chapter-container');
+
+  chapters.forEach(chapter => {
+    const terms = chapter.querySelectorAll('.term-item');
+    let chapterHasMatch = false;
+
+    terms.forEach(term => {
+      // שינוי קריטי: שומרים את ה-HTML המקורי לתצוגה בלבד
+      if (!term.dataset.originalHtml) {
+          term.dataset.originalHtml = term.innerHTML;
+      }
+      
+      const originalHtml = term.dataset.originalHtml;
+      // החיפוש מתבצע אך ורק על הטקסט שהמשתמש רואה בעיניים
+      const plainText = term.innerText.toLowerCase();
+
+      if (plainText.includes(filter)) {
+        term.style.display = ""; 
+        chapterHasMatch = true;
+        
+        if (filter.length > 0) {
+            // מדגישים בתוך ה-HTML המקורי, אבל רק על בסיס התאמה בטקסט הנקי
+            term.innerHTML = highlightText(originalHtml, filter);
+        } else {
+            term.innerHTML = originalHtml;
+        }
+      } else {
+        term.style.display = "none";
+      }
+    });
+
+    // ניהול נראות הפרק (Chapter)
+    if (chapterHasMatch) {
+      chapter.style.display = "";
+      if (filter.length > 0) {
+        chapter.classList.add('active');
+      }
+    } else {
+      chapter.style.display = "none";
+    }
+    
+    // ניקוי חיפוש
+    if (filter === "") {
+      chapter.classList.remove('active');
+      terms.forEach(t => {
+          if (t.dataset.originalHtml) t.innerHTML = t.dataset.originalHtml;
+      });
+    }
+  });
+}
+
+function highlightText(html, filter) {
+    if (!filter) return html;
+
+    // יוצרים אלמנט זמני כדי לעבוד על הטקסט מבלי לפגוע במקור
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+
+    // פונקציה רקורסיבית שעוברת רק על צומתי טקסט (Text Nodes)
+    const walk = (node) => {
+        if (node.nodeType === 3) { // Text node
+            const text = node.nodeValue;
+            const regex = new RegExp(`(${filter})`, 'gi');
+            if (regex.test(text)) {
+                const span = document.createElement('span');
+                span.innerHTML = text.replace(regex, '<mark style="background-color: yellow; color: black;">$1</mark>');
+                node.parentNode.replaceChild(span, node);
+            }
+        } else if (node.nodeType === 1 && node.childNodes && !['SCRIPT', 'STYLE'].includes(node.tagName)) {
+            // עוברים על הילדים של האלמנט (אבל מדלגים על סקריפטים)
+            Array.from(node.childNodes).forEach(walk);
+        }
+    };
+
+    walk(tempDiv);
+    return tempDiv.innerHTML;
+}
+
+// רשימת השאלות והתשובות המלאה - ללא מספור
+
+
+// פונקציה לבניית השאלות הנפוצות
+function initFAQ() {
+    const container = document.getElementById('faq-categories-container');
+    if (!container) return;
+
+    container.innerHTML = ''; 
+
+    faqData.forEach((item) => {
+        const chapterDiv = document.createElement('div');
+        chapterDiv.className = 'chapter-container';
+
+        chapterDiv.innerHTML = `
+            <button class="chapter-btn" onclick="toggleChapter(this)">
+                <span>❓ ${item.category}</span>
+                <span class="arrow">▼</span>
+            </button>
+            <div class="chapter-content">
+                ${item.questions.map(qObj => `
+                    <div class="term-item">
+                        <div class="term-header" onclick="toggleTerm(this)">${qObj.q}</div>
+                        <div class="term-body">${qObj.a}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        container.appendChild(chapterDiv);
+    });
+}
+
+// הפעלה בטעינת הדף
+    document.addEventListener('DOMContentLoaded', () => {
+        initFAQ();               
+        initVideos();            
+        initWorkoutsChecklist(); 
+        manageDailyReset();      
+        showWorkout('A'); 
+
+        // לוגיקה לכפתור חזרה למעלה - הכנסנו אותה לכאן כדי לוודא שהכפתור כבר קיים ב-HTML
+        const btn = document.getElementById("backToTop");
+        if (btn) {
+            btn.addEventListener("click", function() {
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            });
+        }
+    });
+
+    // הלוגיקה של ההופעה/הסתרה יכולה להישאר בחוץ
+    window.onscroll = function() {
+        const btn = document.getElementById("backToTop");
+        if (btn) {
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                btn.style.display = "block";
+            } else {
+                btn.style.display = "none";
+            }
+        }
+    };
+
+    function editWeightInline(el) {
+    if (el.querySelector('input')) return;
+    const current = el.innerText;
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.value = current;
+    input.style.cssText = 'width:70px; text-align:center; border:1px solid var(--main-green); border-radius:6px; padding:4px; font-size:22px; font-weight:bold; color:var(--dark-green);';
+    el.innerText = '';
+    el.appendChild(input);
+    el.onclick = null;
+    input.focus();
+    const save = () => {
+        const val = parseFloat(input.value.trim());
+        if (val && !isNaN(val)) {
+            el.innerText = val;
+            localStorage.setItem('current_weight', val);
+            const weightHistory = JSON.parse(localStorage.getItem('weight_history') || '[]');
+            weightHistory.push({ date: new Date().toISOString().split('T')[0], weight: val });
+            localStorage.setItem('weight_history', JSON.stringify(weightHistory));
+            const allVals = document.querySelectorAll('.weight-val');
+            const startWeight = parseFloat(allVals[0].innerText);
+            const goalWeight = parseFloat(allVals[2].innerText);
+            const percent = Math.min(100, Math.round(((startWeight - val) / (startWeight - goalWeight)) * 100));
+            document.querySelectorAll('.progress-bar')[0].style.width = percent + '%';
+            document.querySelector('.progress-text').innerText = 'עברת כבר ' + percent + '% מהדרך ליעד!';
+            generatePortionGoals();
+            showWeightUpdateToast();
+            renderWeightChart();
+        } else {
+            el.innerText = current;
+        }
+        el.onclick = () => editWeightInline(el);
+    };
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); }});
+}
+
+function loadSavedWeight() {
+    document.getElementById('start-weight-display').innerText = CLIENT.startWeight;
+    document.getElementById('goal-weight-display').innerText = CLIENT.goalWeight;
+    const savedWeight = localStorage.getItem('current_weight');
+    if (savedWeight) {
+        const el = document.getElementById('current-weight-display');
+        el.innerText = savedWeight;
+        const allVals = document.querySelectorAll('.weight-val');
+        const startWeight = parseFloat(allVals[0].innerText);
+        const goalWeight = parseFloat(allVals[2].innerText);
+        const percent = Math.min(100, Math.round(((startWeight - parseFloat(savedWeight)) / (startWeight - goalWeight)) * 100));
+        document.querySelectorAll('.progress-bar')[0].style.width = percent + '%';
+        document.querySelector('.progress-text').innerText = 'עברת כבר ' + percent + '% מהדרך ליעד!';
+    }
+}
+
+function makeEditable(td) {
+    if (td.querySelector('input')) return;
+    const current = td.innerText;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = current;
+    input.style.cssText = 'width:60px; text-align:center; border:1px solid var(--main-green); border-radius:4px; padding:2px; font-size:14px;';
+    td.innerText = '';
+    td.appendChild(input);
+    input.focus();
+    input.select();
+    input.setSelectionRange(0, input.value.length);
+    const save = () => {
+        const val = input.value.trim() || current;
+        td.innerText = val;
+        const key = 'perf_' + td.closest('tr').rowIndex + '_' + td.cellIndex;
+        localStorage.setItem(key, val);
+    };
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); });
+}
+
+function loadPerfData() {
+    const exercises = [
+        { key: 'squat', name: 'סקוואט', icon: '🦵' },
+        { key: 'bench', name: 'לחיצת חזה', icon: '🏋️' },
+        { key: 'dead', name: 'דדליפט', icon: '🔱' }
+    ];
+
+    const grid = document.getElementById('perf-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    exercises.forEach(ex => {
+        const get = (f) => localStorage.getItem('perf_' + ex.key + '_' + f) || '-';
+        const startKg = get('start_kg');
+        const startReps = get('start_reps');
+        const curKg = get('cur_kg');
+        const curReps = get('cur_reps');
+
+        let badgeHTML = '';
+        if (startKg !== '-' && curKg !== '-') {
+            const diff = parseFloat(curKg) - parseFloat(startKg);
+            if (diff > 0) badgeHTML = '<span class="perf-card-badge up">+' + diff + ' ק"ג</span>';
+            else if (diff < 0) badgeHTML = '<span class="perf-card-badge">' + diff + ' ק"ג</span>';
+        }
+
+        const card = document.createElement('div');
+        card.className = 'perf-card';
+        card.innerHTML =
+            '<div class="perf-card-header">' +
+                '<div class="perf-card-name">' + ex.icon + ' ' + ex.name + '</div>' +
+                badgeHTML +
+            '</div>' +
+            '<div class="perf-card-stats">' +
+                '<div class="perf-stat">' +
+                    '<div class="perf-stat-label">התחלה</div>' +
+                    '<div class="perf-stat-row">' +
+                        '<span class="perf-stat-val" data-key="perf_' + ex.key + '_start_kg">' + startKg + '</span>' +
+                        '<span class="perf-stat-unit">ק"ג</span>' +
+                    '</div>' +
+                    '<div class="perf-stat-reps"><span data-key="perf_' + ex.key + '_start_reps">' + startReps + '</span> חזרות</div>' +
+                '</div>' +
+                '<div class="perf-arrow">←</div>' +
+                '<div class="perf-stat">' +
+                    '<div class="perf-stat-label">נוכחי</div>' +
+                    '<div class="perf-stat-row">' +
+                        '<span class="perf-stat-val" data-key="perf_' + ex.key + '_cur_kg">' + curKg + '</span>' +
+                        '<span class="perf-stat-unit">ק"ג</span>' +
+                    '</div>' +
+                    '<div class="perf-stat-reps"><span data-key="perf_' + ex.key + '_cur_reps">' + curReps + '</span> חזרות</div>' +
+                '</div>' +
+            '</div>';
+
+        card.querySelectorAll('[data-key]').forEach(el => {
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', function() {
+                if (this.querySelector('input')) return;
+                const key = this.dataset.key;
+                const current = this.textContent;
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.value = current === '-' ? '' : current;
+                this.textContent = '';
+                this.appendChild(input);
+                input.focus();
+                const finish = () => {
+                    const val = input.value.trim();
+                    this.textContent = val || '-';
+                    if (val && val !== '-') localStorage.setItem(key, val);
+                    loadPerfData();
+                };
+                input.addEventListener('blur', finish);
+                input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); }});
+            });
+        });
+
+        grid.appendChild(card);
+    });
+
+    // משקלים בטבלאות האימונים
+    document.querySelectorAll('.workout-table tbody tr').forEach(row => {
+        const weightCell = row.cells[5];
+        if (!weightCell) return;
+        const exerciseName = row.cells[1]?.textContent.trim().replace(/\s+/g, '_');
+        if (!exerciseName) return;
+        weightCell.style.cursor = 'pointer';
+        weightCell.onclick = null;
+        weightCell.onclick = function() {
+            const wCell = this;
+            const wKey = 'workout_weight_' + exerciseName;
+            if (wCell.querySelector('input')) return;
+            const saved2 = localStorage.getItem(wKey);
+            if (saved2) wCell.innerText = saved2;
+            const current = wCell.innerText;
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.value = current || '';
+            input.style.cssText = 'width:60px; text-align:center; border:1px solid var(--main-green); border-radius:4px; padding:2px; font-size:14px;';
+            wCell.innerText = '';
+            wCell.appendChild(input);
+            input.focus();
+            input.onblur = function() {
+                const val = this.value.trim();
+                wCell.innerText = val || '';
+                if (val) {
+                    localStorage.setItem(wKey, val);
+                    console.log('saved:', wKey, val);
+                }
+            };
+            input.onkeydown = function(e) { if (e.key === 'Enter') this.blur(); };
+        };
+        const saved = localStorage.getItem('workout_weight_' + exerciseName);
+        if (saved) weightCell.innerText = saved;
+    });
+}
+
+function resetWorkout() {
+    localStorage.removeItem('workout_progress_v3');
+    document.querySelectorAll('.workout-checkbox').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.accord-checkbox').forEach(cb => {
+        cb.checked = false;
+        const header = cb.closest('.workout-accord-header');
+        if (header) header.classList.remove('checked');
+    });
+}
+
+function exportData() {
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        data[key] = localStorage.getItem(key);
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'גיבוי_נתונים_' + new Date().toLocaleDateString('he-IL').replace(/\//g, '-') + '.json';
+    a.click();
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const data = JSON.parse(e.target.result);
+        Object.keys(data).forEach(key => localStorage.setItem(key, data[key]));
+        alert('הנתונים שוחזרו בהצלחה!');
+        location.reload();
+    };
+    reader.readAsText(file);
+}
+
+function checkWeeklyReminders() {
+    const now = new Date();
+    const day = now.getDay(); // 0=ראשון, 5=שישי
+
+    // סיכום שבועי — שישי או אחרי שישי
+    const lastSummary = localStorage.getItem('last_summary_reminder');
+    const lastSummaryWeek = lastSummary ? new Date(lastSummary).getTime() : 0;
+    const daysSinceSummary = (now - lastSummaryWeek) / (1000 * 60 * 60 * 24);
+    if (daysSinceSummary >= 6) {
+        setTimeout(() => {
+            document.getElementById('weekly-summary-modal').style.display = 'block';
+        }, 1000);
+        return;
+    }
+
+    // גיבוי — ראשון או אחרי ראשון
+    const lastBackup = localStorage.getItem('last_backup_reminder');
+    const lastBackupWeek = lastBackup ? new Date(lastBackup).getTime() : 0;
+    const daysSinceBackup = (now - lastBackupWeek) / (1000 * 60 * 60 * 24);
+    if (daysSinceBackup >= 6) {
+        setTimeout(() => {
+            document.getElementById('weekly-backup-modal').style.display = 'block';
+        }, 1500);
+    }
+}
+
+function sendWeeklySummary() {
+    const weight = localStorage.getItem('current_weight') || 'לא הוזן';
+    const squatKg = localStorage.getItem('perf_squat_cur_kg') || '-';
+    const squatReps = localStorage.getItem('perf_squat_cur_reps') || '-';
+    const benchKg = localStorage.getItem('perf_bench_cur_kg') || '-';
+    const benchReps = localStorage.getItem('perf_bench_cur_reps') || '-';
+    const deadKg = localStorage.getItem('perf_dead_cur_kg') || '-';
+    const deadReps = localStorage.getItem('perf_dead_cur_reps') || '-';
+    
+    const msg = `📊 סיכום שבועי:\n⚖️ משקל נוכחי: ${weight} ק"ג\n💪 סקוואט: ${squatKg} ק"ג × ${squatReps} חזרות\n🏋️ לחיצת חזה: ${benchKg} ק"ג × ${benchReps} חזרות\n🔱 דדליפט: ${deadKg} ק"ג × ${deadReps} חזרות`;
+    
+    localStorage.setItem('last_summary_reminder', new Date().toISOString());
+    document.getElementById('weekly-summary-modal').style.display = 'none';
+    window.open('https://wa.me/972547950949?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function exportDataAndClose() {
+    exportData();
+    localStorage.setItem('last_backup_reminder', new Date().toISOString());
+    document.getElementById('weekly-backup-modal').style.display = 'none';
+}
+
+function initWorkoutsFromClient() {
+    const letters = ['A', 'B', 'C', 'D', 'E'];
+    const selector = document.getElementById('workout-selector');
+    selector.innerHTML = '';
+    
+    letters.forEach((letter, index) => {
+        const workout = CLIENT['workout' + letter];
+        if (!workout) return;
+        
+        // בניית כפתור
+        const btn = document.createElement('button');
+        btn.className = 'workout-nav-btn' + (index === 0 ? ' active' : '');
+        const dayNames = ['יום ראשון', 'יום שני', 'יום שלישי', 'יום רביעי', 'יום חמישי', 'יום שישי', 'יום שבת'];
+        const days = CLIENT.workoutDays?.[letter];
+        const dayText = days ? ' | ' + days.map(d => dayNames[d]).join(' + ') : '';
+        btn.innerText = days ? days.map(d => dayNames[d]).join(' + ') : 'אימון ' + letter;
+        btn.setAttribute('onclick', `showWorkout('${letter}')`);
+        selector.appendChild(btn);
+        
+        // בניית טבלה
+        const container = document.getElementById('workout-' + letter);
+        if (!container) return;
+        const tbody = container.querySelector('tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        workout.forEach((ex, i) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="${letter}_${i}"></td>
+                    <td>${ex.name}</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>${ex.reps}</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>`;
+        });
+        
+        // הסתרת containers שאין להם workout
+        container.style.display = index === 0 ? 'block' : 'none';
+    });
+}
+
+function showWeightUpdateToast() {
+    const toast = document.createElement('div');
+    toast.innerText = '✅ המשקל עודכן — המנות חושבו מחדש!';
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--dark-green);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        z-index: 9999;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        animation: fadeIn 0.3s ease;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+function editCoachingGoal(el) {
+    if (el.querySelector('textarea')) return;
+    const current = el.innerText;
+    const textarea = document.createElement('textarea');
+    textarea.value = current;
+    textarea.style.cssText = 'width:100%; padding:8px; border:1px solid var(--main-green); border-radius:8px; font-size:16px; font-family:inherit; resize:vertical;';
+    el.innerText = '';
+    el.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const save = () => {
+        const val = textarea.value.trim() || current;
+        el.innerText = val;
+        localStorage.setItem('coaching_goal', val);
+        el.onclick = () => editCoachingGoal(el);
+    };
+    textarea.addEventListener('blur', save);
+    textarea.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); textarea.blur(); }});
+}
+
+function loadCoachingGoal() {
+    const el = document.getElementById('coaching-goal-display');
+    if (!el) return;
+    const saved = localStorage.getItem('coaching_goal');
+    el.innerText = saved || CLIENT.coachingGoal;
+}
+
+function updateWorkoutStreak() {
+    const today = new Date();
+    const todayStr = today.toDateString();
+    
+    let streak = parseInt(localStorage.getItem('workout_streak') || '0');
+    const lastCompleted = localStorage.getItem('workout_completed_date');
+    
+    if (!lastCompleted) {
+        document.getElementById('workout-streak-count').innerText = streak;
+        return;
+    }
+
+    const lastDate = new Date(lastCompleted);
+    const daysDiff = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+
+    if (daysDiff > 2) {
+        streak = 0;
+        localStorage.setItem('workout_streak', '0');
+    }
+    
+    document.getElementById('workout-streak-count').innerText = streak;
+}
+
+function completeWorkoutStreak(letter) {
+    const today = new Date().toDateString();
+    const todayDay = new Date().getDay();
+    
+    const scheduledDays = CLIENT.workoutDays?.[letter];
+    if (!scheduledDays || !scheduledDays.includes(todayDay)) return;
+    if (localStorage.getItem('workout_completed_date') === today) return;
+    
+    localStorage.setItem('workout_completed_date', today);
+    let streak = parseInt(localStorage.getItem('workout_streak') || '0');
+    streak++;
+    localStorage.setItem('workout_streak', streak);
+    document.getElementById('workout-streak-count').innerText = streak;
+}
+
+function checkNutritionStreak() {
+    const proteinVal = userPortions.protein;
+    const carbsVal = userPortions.carbs;
+    const fatVal = userPortions.fat;
+    
+    const proteinTarget = parseFloat(document.getElementById('protein-target').innerText.replace('/ ', ''));
+    const carbsTarget = parseFloat(document.getElementById('carbs-target').innerText.replace('/ ', ''));
+    const fatTarget = parseFloat(document.getElementById('fat-target').innerText.replace('/ ', ''));
+    
+    if (proteinVal >= proteinTarget && carbsVal >= carbsTarget && fatVal >= fatTarget) {
+        completeNutritionStreak();
+    }
+}
+
+function completeNutritionStreak() {
+    const today = new Date().toDateString();
+    if (localStorage.getItem('nutrition_completed_date') === today) return;
+    
+    localStorage.setItem('nutrition_completed_date', today);
+    let streak = parseInt(localStorage.getItem('nutrition_streak') || '0');
+    streak++;
+    localStorage.setItem('nutrition_streak', streak);
+    document.getElementById('nutrition-streak-count').innerText = streak;
+}
+
+function updateNutritionStreak() {
+    const today = new Date();
+    const todayStr = today.toDateString();
+    
+    let streak = parseInt(localStorage.getItem('nutrition_streak') || '0');
+    const lastCompleted = localStorage.getItem('nutrition_completed_date');
+    
+    if (!lastCompleted) {
+        document.getElementById('nutrition-streak-count').innerText = streak;
+        return;
+    }
+
+    // אם הושלם היום — לא נוגעים בסטריק
+    if (lastCompleted === todayStr) {
+        document.getElementById('nutrition-streak-count').innerText = streak;
+        return;
+    }
+    
+    const lastDate = new Date(lastCompleted);
+    let checkDate = new Date(lastDate);
+    checkDate.setDate(checkDate.getDate() + 1);
+    
+    while (checkDate.toDateString() !== todayStr) {
+        streak = 0;
+        localStorage.setItem('nutrition_streak', '0');
+        break;
+    }
+    
+    document.getElementById('nutrition-streak-count').innerText = streak;
+}
+
+function renderWeightChart() {
+    const canvas = document.getElementById('weight-chart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = 220 * dpr;
+    canvas.style.height = '220px';
+    ctx.scale(dpr, dpr);
+
+    const W = rect.width;
+    const H = 220;
+    const pad = { top: 24, right: 16, bottom: 44, left: 42 };
+
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const colors = {
+        grid: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)',
+        label: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.5)',
+        goalLine: isDark ? '#f59e0b' : '#d97706',
+        goalLabel: isDark ? '#fbbf24' : '#b45309',
+        line: '#3b82f6',
+        lineGlow: isDark ? 'rgba(59,130,246,0.3)' : 'rgba(59,130,246,0.2)',
+        gradTop: isDark ? 'rgba(59,130,246,0.25)' : 'rgba(59,130,246,0.15)',
+        gradBot: isDark ? 'rgba(59,130,246,0)' : 'rgba(59,130,246,0)',
+        dot: '#3b82f6',
+        dotRing: isDark ? '#1a1e30' : '#ffffff',
+        empty: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.4)',
+    };
+
+    const startDate = new Date(CLIENT.startDate);
+    const endDate = new Date(CLIENT.startDate);
+    endDate.setMonth(endDate.getMonth() + 6);
+
+    const history = JSON.parse(localStorage.getItem('weight_history') || '[]');
+    const allWeights = [CLIENT.startWeight, CLIENT.goalWeight, ...history.map(p => p.weight)];
+    const dataMin = Math.min(...allWeights);
+    const dataMax = Math.max(...allWeights);
+    const yRange = Math.max(dataMax - dataMin, 10);
+    const minY = Math.floor(dataMin - yRange * 0.25);
+    const maxY = Math.ceil(dataMax + yRange * 0.25);
+
+    const toX = (dateStr) => {
+        const d = new Date(dateStr);
+        return pad.left + ((d - startDate) / (endDate - startDate)) * (W - pad.left - pad.right);
+    };
+    const toY = (weight) => {
+        return pad.top + (1 - (weight - minY) / (maxY - minY)) * (H - pad.top - pad.bottom);
+    };
+
+    ctx.clearRect(0, 0, W, H);
+    if (isDark) {
+        ctx.fillStyle = '#1e2235';
+        ctx.beginPath();
+        ctx.roundRect(0, 0, W, H, 12);
+        ctx.fill();
+    }
+
+    const step = yRange <= 15 ? 2 : yRange <= 30 ? 5 : 10;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let w = Math.ceil(minY / step) * step; w <= maxY; w += step) {
+        const y = toY(w);
+        ctx.strokeStyle = colors.grid;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(W - pad.right, y);
+        ctx.stroke();
+        ctx.fillStyle = colors.label;
+        ctx.font = '500 11px Heebo';
+        ctx.fillText(w + '', pad.left - 8, y);
+    }
+
+    const goalY = toY(CLIENT.goalWeight);
+    ctx.save();
+    ctx.strokeStyle = colors.goalLine;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(pad.left, goalY);
+    ctx.lineTo(W - pad.right, goalY);
+    ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = colors.goalLabel;
+    ctx.font = '600 10px Heebo';
+    ctx.textAlign = 'left';
+    ctx.fillText('יעד ' + CLIENT.goalWeight, pad.left + 4, goalY - 8);
+
+    const months = ['ינו', 'פבר', 'מרץ', 'אפר', 'מאי', 'יונ', 'יול', 'אוג', 'ספט', 'אוק', 'נוב', 'דצמ'];
+    ctx.fillStyle = colors.label;
+    ctx.font = '500 11px Heebo';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    for (let i = 0; i <= 6; i++) {
+        const d = new Date(CLIENT.startDate);
+        d.setMonth(d.getMonth() + i);
+        d.setDate(1);
+        const x = toX(d.toISOString().split('T')[0]);
+        ctx.fillText(months[d.getMonth()], x, H - 30);
+    }
+
+    if (history.length === 0) {
+        ctx.font = '500 14px Heebo';
+        ctx.fillStyle = colors.empty;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('עדכן משקל נוכחי כדי לראות התקדמות', W / 2, H / 2);
+        return;
+    }
+
+    const sorted = [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const points = sorted.map(p => ({ x: toX(p.date), y: toY(p.weight) }));
+
+    if (points.length > 1) {
+        const grad = ctx.createLinearGradient(0, pad.top, 0, H - pad.bottom);
+        grad.addColorStop(0, colors.gradTop);
+        grad.addColorStop(1, colors.gradBot);
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, H - pad.bottom);
+        points.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.lineTo(points[points.length - 1].x, H - pad.bottom);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+    }
+
+    if (points.length > 1) {
+        ctx.save();
+        ctx.strokeStyle = colors.lineGlow;
+        ctx.lineWidth = 6;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    ctx.strokeStyle = colors.line;
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+    ctx.stroke();
+
+    points.forEach((p, i) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = colors.dotRing;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = colors.dot;
+        ctx.fill();
+        if (i === points.length - 1) {
+            ctx.fillStyle = colors.label;
+            ctx.font = '600 11px Heebo';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(sorted[i].weight + '', p.x, p.y - 10);
+        }
+    });
+}
+
+// ─── Food Scanner ───────────────────────────────────────────────
+let scannedPortions = { protein: 0, fat: 0, carbs: 0 };
+let scannedImageBase64 = null;
+let scannedImageMime = null;
+
+function openFoodScanner() {
+    const modal = document.getElementById('food-scanner-modal');
+    modal.style.display = '';
+    modal.classList.remove('hidden');
+    document.getElementById('scanner-step-1').classList.remove('hidden');
+    document.getElementById('scanner-step-2').classList.add('hidden');
+    document.getElementById('scanner-loading').classList.add('hidden');
+    document.getElementById('food-preview').classList.add('hidden');
+    document.getElementById('scan-correction').value = '';
+    scannedImageBase64 = null;
+    scannedImageMime = null;
+    scannedPortions = { protein: 0, fat: 0, carbs: 0 };
+}
+
+function closeFoodScanner() {
+    document.getElementById('food-scanner-modal').classList.add('hidden');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('food-image-input').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            const dataUrl = ev.target.result;
+            scannedImageMime = file.type;
+            scannedImageBase64 = dataUrl.split(',')[1];
+            const preview = document.getElementById('food-preview');
+            preview.src = dataUrl;
+            preview.classList.remove('hidden');
+            analyzeFood(scannedImageBase64, scannedImageMime, '');
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    });
+});
+
+async function analyzeFood(base64, mimeType, correction) {
+    document.getElementById('scanner-step-2').classList.add('hidden');
+    document.getElementById('scanner-loading').classList.remove('hidden');
+
+    const correctionNote = correction ? `שים לב: ${correction}. ` : '';
+    const prompt = `${correctionNote}זהה את האוכל בתמונה והעריך את כמות המנות.
+החזר JSON בלבד, ללא טקסט נוסף, בפורמט הזה בדיוק:
+{"food": "שם האוכל בעברית", "protein": X, "fat": X, "carbs": X}
+כאשר X הוא מספר מנות (מנת חלבון = 27.5 גרם, מנת פחמימה = 37.5 גרם, מנת שומן = 12.5 גרם).
+עגל לחצי המנה הקרוב (0, 0.5, 1, 1.5 וכו').`;
+
+    try {
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=AIzaSyASAnn8Rj9RhUlOQnfOr7XhdA8tggsYSk4`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            { inline_data: { mime_type: mimeType, data: base64 } }
+                        ]
+                    }]
+                })
+            }
+        );
+        const data = await response.json();
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error('no JSON');
+        const result = JSON.parse(jsonMatch[0]);
+
+        scannedPortions = {
+            protein: Math.max(0, result.protein || 0),
+            fat: Math.max(0, result.fat || 0),
+            carbs: Math.max(0, result.carbs || 0)
+        };
+
+        document.getElementById('scan-food-name').textContent = `🍽️ ${result.food}`;
+        document.getElementById('scan-portions').innerHTML =
+            `<span>🥩 חלבון: <b>${scannedPortions.protein}</b></span> &nbsp;` +
+            `<span>🍚 פחמימה: <b>${scannedPortions.carbs}</b></span> &nbsp;` +
+            `<span>🥑 שומן: <b>${scannedPortions.fat}</b></span>`;
+        document.getElementById('scanner-loading').classList.add('hidden');
+        document.getElementById('scanner-step-2').classList.remove('hidden');
+    } catch (err) {
+        document.getElementById('scanner-loading').classList.add('hidden');
+        document.getElementById('scanner-step-2').classList.remove('hidden');
+        document.getElementById('scan-food-name').textContent = '⚠️ לא הצלחתי לזהות את האוכל';
+        document.getElementById('scan-portions').innerHTML = '';
+        scannedPortions = { protein: 0, fat: 0, carbs: 0 };
+    }
+}
+
+function recalculate() {
+    if (!scannedImageBase64) return;
+    const correction = document.getElementById('scan-correction').value.trim();
+    analyzeFood(scannedImageBase64, scannedImageMime, correction);
+}
+
+function addScannedPortions() {
+    ['protein', 'fat', 'carbs'].forEach(type => {
+        if (scannedPortions[type] > 0) modifyPortion(type, scannedPortions[type]);
+    });
+    closeFoodScanner();
+}
+

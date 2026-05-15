@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>פורטל ליווי אישי - תוכנית עבודה</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="top-right-logo"><img src="logo.png" alt="לוגו"></div>
+        <div class="hamburger-menu">
+            <button class="hamburger-btn" onclick="toggleHamburger(event)" title="תפריט">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="hamburger-items">
+                <a href="https://wa.me/972547950949" target="_blank" class="whatsapp-top-btn" title="שלח הודעה">
+                    <svg viewBox="0 0 448 512" width="24" height="24" fill="white">
+                        <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-5.5-2.8-23.2-8.5-44.2-27.1-16.4-14.6-27.4-32.7-30.6-38.2-3.2-5.6-.3-8.6 2.5-11.3 2.5-2.5 5.5-6.5 8.3-9.7 2.8-3.3 3.7-5.6 5.5-9.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 13.3 5.7 23.5 9.2 31.6 11.8 13.3 4.2 25.5 3.6 35.2 2.1 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/>
+                    </svg>
+                </a>
+                <a href="https://calendly.com/ori-israel555/30min" target="_blank" class="calendar-float-btn" title="קבע פגישה">
+                    📅
+                </a>
+                <button class="theme-toggle" onclick="toggleTheme()" title="מצב לילה/יום">🌙</button>
+                <button class="profile-menu-btn" onclick="openProfile()" title="פרטים אישיים">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <h1>תוכנית הליווי של [שם הלקוח]</h1>
+        <p class="sub-header" id="header-goal-display">טוען יעד...</p>
+        <div id="day-counter" class="day-counter">טוען נתונים...</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="tab1">תזונה</button>
+        <button class="tab-btn" data-tab="tab2">אימונים</button>
+        <button class="tab-btn" data-tab="tab4">מעקב ויעדים</button>
+        <button class="tab-btn" data-tab="tab5">מרכז המידע</button>
+    </div>
+
+   <div id="tab1" class="tab-content active">
+        <h2>מעקב מנות יומי</h2>
+<div style="text-align:center; margin-bottom:15px;">
+    <div id="nutrition-streak-display" style="display:inline-block; background: var(--light-green); border: 2px solid var(--main-green); border-radius:20px; padding:8px 20px; font-size:16px; font-weight:bold; color:var(--dark-green);">
+        🔥 סטריק תזונה: <span id="nutrition-streak-count">0</span> ימים
+    </div>
+</div>
+        
+        <!-- ה-Dashboard של המנות -->
+        <div class="portion-row">
+            <span>🥩 מנות חלבון:</span>
+            <div class="portion-controls">
+                <button class="portion-btn" onclick="modifyPortion('protein', -0.5)">-</button>
+                <div class="portion-val_container">
+                    <span id="protein-val">0</span> <span class="target-label" id="protein-target">/ 0</span>
+                </div>
+                <button class="portion-btn" onclick="modifyPortion('protein', 0.5)">+</button>
+            </div>
+            <div class="portion-progress">
+                <div class="portion-progress-bar" id="protein-progress-bar"></div>
+            </div>
+            <span class="portion-percent" id="protein-percent">0%</span>
+        </div>
+        <div class="portion-row">
+            <span>🍚 מנות פחמימה:</span>
+            <div class="portion-controls">
+                <button class="portion-btn" onclick="modifyPortion('carbs', -0.5)">-</button>
+                <div class="portion-val_container">
+                    <span id="carbs-val">0</span> <span class="target-label" id="carbs-target">/ 0</span>
+                </div>
+                <button class="portion-btn" onclick="modifyPortion('carbs', 0.5)">+</button>
+            </div>
+            <div class="portion-progress">
+                <div class="portion-progress-bar" id="carbs-progress-bar"></div>
+            </div>
+            <span class="portion-percent" id="carbs-percent">0%</span>
+        </div>
+        <div class="portion-row">
+            <span>🥑 מנות שומן:</span>
+            <div class="portion-controls">
+                <button class="portion-btn" onclick="modifyPortion('fat', -0.5)">-</button>
+                <div class="portion-val_container">
+                    <span id="fat-val">0</span> <span class="target-label" id="fat-target">/ 0</span>
+                </div>
+                <button class="portion-btn" onclick="modifyPortion('fat', 0.5)">+</button>
+            </div>
+            <div class="portion-progress">
+                <div class="portion-progress-bar" id="fat-progress-bar"></div>
+            </div>
+            <span class="portion-percent" id="fat-percent">0%</span>
+        </div>
+
+        <hr style="margin: 25px 0; border: 0; border-top: 1px solid #eee;">
+
+        <button class="food-scan-btn" onclick="openFoodScanner()">📷 זהה אוכל מתמונה</button>
+
+        <!-- בנק המאכלים החדש (אקורדיון) -->
+<div class="accordion-container">
+    <h3 style="text-align: center; color: var(--dark-green); margin-bottom: 15px;">🏦 בנק המאכלים</h3>
+    
+   <!-- בנק חלבון -->
+<button class="accordion-btn" onclick="toggleAccordion('bank-p')">🥩 בנק חלבון</button>
+<div id="bank-p" class="accordion-content">
+    <ul class="food-list">
+        <li>חזה עוף / הודו (150 גרם&nbsp;<b>לפני בישול</b>) = 1</li>
+        <li>פילה בקר / סינטה (150 גרם&nbsp;<b>לפני בישול</b>) = 1</li>
+        <li>דג לבן (160–170 גרם&nbsp;<b>לפני בישול</b>) = 1</li>
+        <li>טונה במים (קופסה מסוננת ~120 גרם) = 1</li>
+        <li>אבקת חלבון (סקופ גדול / ~30 גרם אבקה) = 1</li>
+        <li>קוטג' / לבנה 5% (250 גרם) = 1</li>
+        <li>חלבון ביצה (7–8 יחידות) = 1</li>
+        <li>גבינה צהובה 9% (100–120 גרם / ~5–6 פרוסות) = 1</li>
+        <li>יוגורט חלבון (2 גביעים) = 1</li>
+        <li>טופו (200–220 גרם&nbsp;<b>לפני בישול</b>) = 1</li>
+    </ul>
+</div>
+
+<!-- בנק פחמימה -->
+<button class="accordion-btn" onclick="toggleAccordion('bank-c')">🍚 בנק פחמימה</button>
+<div id="bank-c" class="accordion-content">
+    <ul class="food-list">
+        <li>אורז / פסטה / פתיתים (50 גרם&nbsp;<b>לפני בישול/יבש</b>) = 1</li>
+        <li>שיבולת שועל (60 גרם&nbsp;<b>לפני בישול/יבש</b>) = 1</li>
+        <li>תפוח אדמה / בטטה (200–220 גרם&nbsp;<b>לפני בישול/נא</b>) = 1</li>
+        <li>לחם מלא / שיפון (3 פרוסות) = 1</li>
+        <li>פריכיות אורז / כוסמין (5–6 יחידות) = 1</li>
+        <li>פיתה / טורטייה (יחידה רגילה / 1.5 קלה) = 1</li>
+        <li>בננה (1.5 יחידות) = 1</li>
+        <li>תירס (1.2 כוס גרגירים&nbsp;<b>לפני בישול</b>) = 1</li>
+    </ul>
+</div>
+
+<!-- בנק שומן -->
+<button class="accordion-btn" onclick="toggleAccordion('bank-f')">🥑 בנק שומן</button>
+<div id="bank-f" class="accordion-content">
+    <ul class="food-list">
+        <li>שמן זית / קנולה (כף) = 1</li>
+        <li>טחינה גולמית (1.5 כפות) = 1</li>
+        <li>אבוקדו (חצי יחידה) = 1</li>
+        <li>אגוזי מלך (5–6 יחידות) = 1</li>
+        <li>שקדים (12–15 יחידות) = 1</li>
+        <li>חמאת בוטנים (כף גדושה) = 1</li>
+        <li>זיתים (20–25 יחידות) = 1</li>
+    </ul>
+</div>
+
+<!-- בנק היברידי -->
+<button class="accordion-btn" onclick="toggleAccordion('bank-h')">🍲 בנק היברידי</button>
+<div id="bank-h" class="accordion-content">
+    <ul class="food-list">
+        <li>3 ביצים שלמות = 1 חלבון + 1 שומן</li>
+        <li>סלמון (150 גרם&nbsp;<b>לפני בישול</b>) = 1 חלבון + 1 שומן</li>
+        <li>עדשים יבשות (60 גרם&nbsp;<b>לפני בישול</b>) = 1 פחמימה + 0.5 חלבון</li>
+        <li>קינואה יבשה (50 גרם&nbsp;<b>לפני בישול</b>) = 1 פחמימה + 0.5 חלבון</li>
+        <li>בקר טחון (150 גרם&nbsp;<b>לפני בישול</b>, 15% שומן) = 1 חלבון + 1.5 שומן</li>
+        <li>אדממה (1.5 כוס מקולפת&nbsp;<b>לפני בישול</b>) = 0.5 פחמימה + 0.5 חלבון</li>
+        <li>חלב (330 מ"ל) = 0.5 פחמימה + 0.5 חלבון</li>
+    </ul>
+</div>
+
+    <button class="accordion-btn special-btn" onclick="toggleAccordion('bank-goal')">💡 המלצות מותאמות למטרה</button>
+    <div id="bank-goal" class="accordion-content">
+        <ul id="goal-food-list" class="food-list">
+            <!-- כאן ה-JS ישתול את המאכלים -->
+        </ul>
+    </div>
+</div>
+
+        <!-- כפתור המחשבון הועבר לסוף הטאב -->
+        <button class="calc-btn" onclick="openCalc()" style="background-color: var(--dark-green); margin-top: 25px; width: 100%;">📊 מחשבון תזונה</button>
+    </div>
+
+    <!-- המחשבון כ-Overlay עם הערכים המדויקים מהקוד הישן -->
+<div id="calc-overlay" class="overlay" style="display:none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); overflow-y: auto; padding-top: 50px;">
+    <div class="card" style="background-color: white; margin: auto; padding: 20px; width: 90%; max-width: 500px; border-radius: 15px; position: relative; direction: rtl;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--light-green); padding-bottom: 10px;">
+            <h2 style="margin:0; color: var(--dark-green); font-size: 1.2rem;">📊 מחשבון תזונה</h2>
+            <button onclick="closeCalc()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: #888;">&times;</button>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <span style="display: block; margin-bottom: 8px; font-weight: bold;">מין:</span>
+            <div style="display: flex; gap: 20px;">
+                <label><input type="radio" name="gender" value="male" checked> גבר</label>
+                <label><input type="radio" name="gender" value="female"> אישה</label>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <input type="number" id="calc-age" placeholder="גיל" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+            <input type="number" id="calc-height" placeholder="גובה (ס״מ)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+        </div>
+        <input type="number" id="calc-weight" placeholder="משקל נוכחי (ק״ג)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
+        
+        <span style="display: block; margin-bottom: 8px; font-weight: bold;">רמת פעילות גופנית:</span>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
+            <label><input type="radio" name="activity" value="1.2" checked> לא עושה פעילות גופנית בכלל</label>
+            <label><input type="radio" name="activity" value="1.375"> 1-3 אימונים בשבוע</label>
+            <label><input type="radio" name="activity" value="1.465"> 4-5 אימונים בשבוע</label>
+            <label><input type="radio" name="activity" value="1.55"> 6 אימונים בשבוע</label>
+            <label><input type="radio" name="activity" value="1.725"> פעילות אינטנסיבית יום יומית</label>
+        </div>
+
+        <button class="calc-btn" onclick="calculateStats()" style="width: 100%; background-color: var(--dark-green); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">חשב נתונים</button>
+        
+        <div id="calc-result" style="display:none; margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 10px; border-right: 4px solid var(--dark-green); line-height: 1.6;">
+            <p id="res-bmi" style="margin: 5px 0;"></p>
+            <p id="res-protein" style="margin: 5px 0;"></p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+            <p id="res-maintenance" style="margin: 5px 0;"></p>
+            <p id="res-cut" style="margin: 5px 0; color: #d9534f;"></p>
+            <p id="res-bulk" style="margin: 5px 0; color: #5cb85c;"></p>
+        </div>
+    </div>
+</div>
+
+    <div id="tab2" class="tab-content">
+
+    <!-- Workout Header Card -->
+    <div class="workout-header-card">
+        <div class="workout-header-top">
+            <h2 class="workout-title">תוכנית אימונים</h2>
+            <button onclick="resetWorkout()" class="workout-reset-btn" title="אפס אימון">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                <span>איפוס אימון</span>
+            </button>
+        </div>
+        <div class="workout-streak-row">
+            <div id="workout-streak-display" class="workout-streak-badge">
+                <span class="streak-fire">🔥</span>
+                <span class="streak-label">סטריק אימונים</span>
+                <span class="streak-number" id="workout-streak-count">0</span>
+                <span class="streak-unit">ימים</span>
+            </div>
+        </div>
+        <div id="workout-selector" class="workout-selector">
+        </div>
+    </div>
+
+   <!-- אימון A - משיכה (Pull) -->
+<div id="workout-A" class="workout-container">
+    <div class="table-wrapper">
+        <table class="workout-table">
+            <thead>
+                <tr>
+                    <th>בוצע</th>
+                    <th>תרגיל</th>
+                    <th>סטים חימום</th>
+                    <th>סטים עבודה</th>
+                    <th>חזרות</th>
+                    <th>משקל</th>
+                    <th>וידאו</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="A_lat_pulldown"></td>
+                    <td>פולי עליון</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="A_row_machine"></td>
+                    <td>חתירה במכשיר</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="A_biceps_curl"></td>
+                    <td>יד קדמית עם משקולות בעמידה</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="A_abs"></td>
+                    <td>כפיפות בטן</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>15-20</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- אימון B - דחיפה (Push) -->
+<div id="workout-B" class="workout-container" style="display: none;">
+    <div class="table-wrapper">
+        <table class="workout-table">
+            <thead>
+                <tr>
+                    <th>בוצע</th>
+                    <th>תרגיל</th>
+                    <th>סטים חימום</th>
+                    <th>סטים עבודה</th>
+                    <th>חזרות</th>
+                    <th>משקל</th>
+                    <th>וידאו</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="B_bench_press"></td>
+                    <td>לחיצת חזה עם מוט</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="B_shoulder_press"></td>
+                    <td>לחיצת כתפיים</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="B_triceps_cable"></td>
+                    <td>יד אחורית עם כבל</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="B_pushups"></td>
+                    <td>שכיבות סמיכה</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>מקסימום</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- אימון C - רגליים (Legs) -->
+<div id="workout-C" class="workout-container" style="display: none;">
+    <div class="table-wrapper">
+        <table class="workout-table">
+            <thead>
+                <tr>
+                    <th>בוצע</th>
+                    <th>תרגיל</th>
+                    <th>סטים חימום</th>
+                    <th>סטים עבודה</th>
+                    <th>חזרות</th>
+                    <th>משקל</th>
+                    <th>וידאו</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="C_squat"></td>
+                    <td>סקוואט</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="C_romanian_deadlift"></td>
+                    <td>דדליפט רומני</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="C_leg_extension"></td>
+                    <td>פשיטת ברכיים</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="C_calf_raise"></td>
+                    <td>עליות תאומים</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+
+    <div id="tab4" class="tab-content">
+        <h2>מעקב התקדמות ויעדים</h2>
+        
+        <div class="weight-card">
+            <span style="font-weight: bold; color: var(--dark-green); border-bottom: 1px solid var(--main-green); padding-bottom: 3px;">משקל גוף (ק"ג)</span>
+            <div class="weight-display">
+                <div class="weight-item">
+                    <span class="weight-label">התחלה</span>
+                    <span class="weight-val" id="start-weight-display">100</span>
+                </div>
+                <div style="font-size: 20px; color: var(--main-green); padding-top: 15px;">←</div>
+               <div class="weight-item">
+                    <span class="weight-label">נוכחי</span>
+                    <span class="weight-val" id="current-weight-display" style="cursor:pointer; text-decoration: underline dotted;" onclick="editWeightInline(this)">90</span>
+                </div>
+                <div style="font-size: 20px; color: var(--main-green); padding-top: 15px;">←</div>
+                <div class="weight-item">
+                    <span class="weight-label">יעד</span>
+                    <span class="weight-val" id="goal-weight-display">85</span>
+                </div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" style="width: 66.6%;"></div>
+            </div>
+            <span class="progress-text">עברת כבר 66% מהדרך ליעד!</span>
+        </div>
+
+        <div class="card weight-chart-card">
+    <h3 class="chart-title">📈 גרף התקדמות משקל</h3>
+    <canvas id="weight-chart"></canvas>
+</div>
+        <div class="card perf-section">
+            <h3>💪 ביצועים בחדר הכושר</h3>
+            <div class="perf-grid" id="perf-grid"></div>
+        </div>
+
+        
+       <div class="card" style="margin-top: 35px;">
+    <strong>יעד מרכזי עד לפגישה הבאה:</strong>
+    <p id="coaching-goal-display" style="margin: 5px 0; cursor:pointer; text-decoration: underline dotted;" onclick="editCoachingGoal(this)">טוען...</p>
+</div>
+
+<button class="calc-btn" onclick="openSurvey()" style="background-color: var(--dark-green); margin-top: 25px;">
+    📝 שאלון הכנה לפגישת זום
+</button>
+
+<div style="display:flex; gap:10px; margin-top:15px;">
+    <button onclick="exportData()" class="calc-btn" style="background-color: var(--dark-green); flex:1;">📥 גבה נתונים</button>
+    <button onclick="document.getElementById('importFile').click()" class="calc-btn" style="background-color: var(--dark-green); flex:1;">📤 שחזר נתונים</button>
+</div>
+<input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
+    </div>
+
+   <div id="tab5" class="tab-content">
+  <h2>מרכז המידע</h2>
+  <button onclick="openAIChat()" class="calc-btn" style="background-color: var(--dark-green); margin-bottom: 20px;">🤖 שאל את המאמן AI</button>
+  <div class="card">
+    <!-- שורת החיפוש החדשה -->
+    <div class="search-container" style="margin-bottom: 20px;">
+      <input type="text" id="infoSearch" placeholder="חפש מושג (למשל: חלבון, כשל, קלוריות)..." onkeyup="filterInfo()">
+    </div>
+
+    <div class="info-center">
+      <!-- פרק 1 -->
+      <div class="chapter-container">
+        <button class="chapter-btn" onclick="toggleChapter(this)">
+          <span>💪 פרק 1: הבסיס – איך הגוף עובד</span>
+          <span class="arrow">▼</span>
+        </button>
+        <div class="chapter-content">
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">איך שרירים גדלים?</div>
+            <div class="term-body">כשמאמנים שריר עם משקולות או כל סוג של התנגדות, השריר מתאמץ מאוד ונוצרים בו נזקים קטנים מאוד בסיבי השריר. זה תהליך טבעי שקורה כשמעמיסים על השריר. בזמן המנוחה, הגוף מתקן את הנזקים האלה ובונה את סיבי השריר קצת יותר חזקים ועבים ממה שהם היו קודם. הוא עושה זאת כדי שבפעם הבאה שהשריר יתמודד עם אותו עומס יהיה לו קל יותר. כשחוזרים על התהליך הזה שוב ושוב לאורך זמן, השרירים מתחזקים וגדלים בהדרגה.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">איך בונים שריר בפועל?</div>
+            <div class="term-body">כדי לבנות שריר צריך לשלב שלושה דברים עיקריים. הראשון הוא אימון שמאתגר את השרירים, בדרך כלל באמצעות משקולות או תרגילי התנגדות. השני הוא תזונה מתאימה, במיוחד צריכת מספיק קלוריות וחלבון שעוזר לגוף לבנות ולתקן את השרירים אחרי האימון. השלישי הוא מנוחה והתאוששות, כולל שינה מספקת. בזמן המנוחה הגוף מבצע את תהליך הבנייה עצמו. כאשר שלושת הדברים האלה קורים באופן קבוע לאורך זמן אימון, תזונה ומנוחה השרירים יכולים לגדול ולהתחזק.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">קלוריות (Calories)</div>
+            <div class="term-body">קלוריה היא יחידת אנרגיה שהגוף משתמש בה לתפקוד יומיומי, אימון ותהליכים פנימיים. כל המזון שנאכל מתורגם בסוף לאנרגיה (קלוריות).</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">מאזן קלורי</div>
+            <div class="term-body">היחס בין קלוריות שנכנסות לגוף לבין קלוריות שנשרפות. זה הבסיס לשינוי במשקל הגוף.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">עודף קלורי (Caloric Surplus)</div>
+            <div class="term-body">מצב שבו צורכים יותר קלוריות ממה שהגוף שורף. זה עוזר לבניית שריר כי יש לגוף “חומרי בנייה” זמינים.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">גירעון קלורי (Caloric Deficit)</div>
+            <div class="term-body">מצב שבו צורכים פחות קלוריות ממה שהגוף שורף. זה מה שמוביל לירידה במשקל ושומן.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">תחזוקה קלורית (Maintenance)</div>
+            <div class="term-body">מצב שבו צורכים בערך את כמות הקלוריות שהגוף שורף. המשקל נשאר יציב.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">צריכת חלבון יומית</div>
+            <div class="term-body">צריכת חלבון יומית היא כמות החלבון שאדם אוכל במהלך היום. חלבון חשוב מאוד למי שמתאמן, כי הוא מספק לגוף את החומרים הדרושים לבנייה ולתיקון של סיבי השריר אחרי אימון. בלי מספיק חלבון בתזונה, הגוף מתקשה לבנות שריר חדש גם אם האימונים טובים. הדרך לדעת מהי צריכת החלבון היומית המומלצת לבניית מסת שריר היא להכפיל את משקל הגוף ב־1.8–2.2. לדוגמה, אם מישהו שוקל 50 קילו ומכפיל את משקל הגוף ב־1.8, התוצאה תהיה 90, כלומר מומלץ לצרוך כ־90 גרם חלבון ביום.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- פרק 2 -->
+      <div class="chapter-container">
+        <button class="chapter-btn" onclick="toggleChapter(this)">
+          <span>🏋️ פרק 2: יסודות האימון</span>
+          <span class="arrow">▼</span>
+        </button>
+        <div class="chapter-content">
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">חזרות (Reps)</div>
+            <div class="term-body">חזרה היא ביצוע אחד של תרגיל, למשל ירידה ועלייה בסקוואט נחשבת לחזרה אחת. כשאומרים “10 חזרות”, הכוונה היא לבצע את התנועה הזאת 10 פעמים ברצף.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">סט (Set)</div>
+            <div class="term-body">סט הוא קבוצה של חזרות שמבצעים ברצף. לדוגמה, ביצוע של 10 חזרות, מנוחה ואז שוב 10—נחשב ל־2 סטים.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">טווח חזרות</div>
+            <div class="term-body">זה מספר החזרות שמבצעים בכל סט.<br>טווח נמוך (1–5) ← יותר כוח<br>טווח בינוני (6–12) ← אידיאלי לשריר<br>טווח גבוה (12+) ← סיבולת ושריפה</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">מנוחה בין סטים</div>
+            <div class="term-body">הזמן שנחים בין סט לסט. מנוחה קצרה יותר מעייפת יותר את השריר, מנוחה ארוכה מאפשרת להרים יותר משקל. לרוב נרצה לנוח בין דקה אחת ל5 דקות, נמשיך לסט הבא רק כשנרגיש מוכנים גופנית ואחרי שנסדיר את הנשימה ולא לפני.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">טכניקה נכונה</div>
+            <div class="term-body">ביצוע התרגיל בצורה מדויקת ובטוחה. טכניקה טובה שומרת על הגוף מפציעות וגם מבטיחה שהשריר הנכון באמת עובד.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">טווח תנועה מלא</div>
+            <div class="term-body">טווח תנועה מלא אומר לבצע את התרגיל לאורך כל התנועה האפשרית של המפרק. כלומר, להגיע גם למצב שבו השריר נמתח וגם למצב שבו הוא מתכווץ עד הסוף. עבודה בטווח תנועה מלא בדרך כלל מפעילה את השריר בצורה טובה יותר ועוזרת לפתח כוח ושליטה בתנועה.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">קשר מוח-שריר (Mind-Muscle Connection)</div>
+            <div class="term-body">היכולת להרגיש ולשלוט בשריר שעובד בזמן התרגיל. כשיש קשר טוב, ניתן להפעיל את השריר בצורה יעילה יותר ולא “לגנוב” עם שרירים אחרים.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">תרגילים מורכבים (Compound)</div>
+            <div class="term-body">תרגילים שמערבים כמה מפרקים וכמה קבוצות שרירים יחד, כמו סקוואט או לחיצת חזה. תרגילים כאלה מאפשרים להרים יותר משקל ולפתח כוח כללי.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">תרגילי בידוד (Isolation)</div>
+            <div class="term-body">תרגילים שמתמקדים בשריר אחד עיקרי, כמו כפיפת מרפק ליד קדמית. הם עוזרים לדייק ולעבוד על שרירים ספציפיים.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- פרק 3 -->
+      <div class="chapter-container">
+        <button class="chapter-btn" onclick="toggleChapter(this)">
+          <span>📈 פרק 3: איך מתאמנים נכון ומתקדמים</span>
+          <span class="arrow">▼</span>
+        </button>
+        <div class="chapter-content">
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">סט חימום</div>
+            <div class="term-body">חימום הוא שלב בתחילת האימון שבו מבצעים סטים קלים יותר לפני הסטים הקשים. המטרה היא להכין את השרירים, המפרקים ומערכת העצבים לעומס שעומד להגיע. חימום טוב יכול לשפר את הביצועים באימון וגם להפחית את הסיכון לפציעות.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">סט עבודה</div>
+            <div class="term-body">סטים עבודה הם הסטים המרכזיים של התרגיל, שבהם משתמשים במשקל מאתגר יחסית. אלו הסטים שבהם השריר באמת עובד קשה ומקבל את הגירוי שגורם לו להתחזק ולגדול. בדרך כלל מבצעים כמה סטי חימום קלים לפני שמגיעים לסטים האלה.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">משקל עבודה</div>
+            <div class="term-body">המשקל שבו משתמשים בסטים המרכזיים של התרגיל. זה משקל שמאתגר את השריר אבל עדיין מאפשר לשמור על טכניקה נכונה.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">עצימות (Intensity)</div>
+            <div class="term-body">עצימות מתייחסת לכמה כבד המשקל ביחס ליכולת. משקל כבד יותר = עצימות גבוהה יותר. זה לא כמה מזיעים, אלא כמה קשה לשריר להתמודד עם המשקל.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">נפח אימון (Volume)</div>
+            <div class="term-body">נפח אימון הוא כמות העבודה הכוללת שמבצעים. בדרך כלל מחשבים אותו לפי סטים × חזרות × משקל. ככל שהנפח גבוה יותר (במידה נכונה), כך הגירוי לשריר גדול יותר.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">זמן תחת מתח (Time Under Tension)</div>
+            <div class="term-body">כמה זמן השריר נמצא בעבודה במהלך הסט. תנועה איטית ומבוקרת מגדילה את הזמן הזה ויכולה להעלות את הגירוי לשריר.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">שלב קונצנטרי ואקסצנטרי</div>
+            <div class="term-body">קונצנטרי זה כשהשריר מתכווץ (למשל להרים משקולת).<br>אקסצנטרי זה כשהשריר נמתח תוכ כדי שליטה (להוריד משקולת לאט).<br>שליטה בשני השלבים חשובה לבניית שריר.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">כשל שרירי</div>
+            <div class="term-body">כשל שרירי הוא הרגע במהלך סט שבו השריר כבר כל כך עייף, שלא ניתן לבצע עוד חזרה נוספת בטכניקה נכונה. גם אם מנסים, הגוף פשוט לא מצליח להרים את המשקל שוב בצורה תקינה. הרבה מתאמנים משתמשים בכשל שרירי כדי לוודא שהשריר באמת עבד קשה וקיבל גירוי חזק במהלך הסט.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">RIR – חזרות במאגר (Reps In Reserve)</div>
+            <div class="term-body">כמה חזרות “נשארו במיכל” לפני כשל. לדוגמה, אם ניתן היה לבצע עוד 2 חזרות בסוף סט, זה אומר RIR 2. זה כלי לשליטה בעומס בלי להגיע תמיד לכשל.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">עומס מתקדם / progressive overload</div>
+            <div class="term-body">עומס מתקדם הוא אחד העקרונות החשובים ביותר בבניית שריר. המשמעות היא שעם הזמן צריך להגדיל את האתגר לשרירים. אפשר לעשות זאת בדרכים שונות, כמו להעלות משקל, לבצע יותר חזרות, להוסיף סטים או לשפר את הטכניקה של התרגיל. אם האימון נשאר תמיד באותה רמת קושי, הגוף מתרגל אליו וההתקדמות נעצרת.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">תדירות אימון (Frequency)</div>
+            <div class="term-body">כמה פעם בשבוע מאמנים שריר מסוים. לרוב, 2 פעמים בשבוע לכל שריר זו נקודת פתיחה טובה.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">פיצול אימונים (Split)</div>
+            <div class="term-body">איך מחלקים את האימונים במהלך השבוע. לדוגמה: כל הגוף / עליון-תחתון / חזה-גב / רגליים-ידיים.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- פרק 4 -->
+      <div class="chapter-container">
+        <button class="chapter-btn" onclick="toggleChapter(this)">
+          <span>💤 פרק 4: התאוששות, בריאות והתקדמות לאורך זמן</span>
+          <span class="arrow">▼</span>
+        </button>
+        <div class="chapter-content">
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">התאוששות (Recovery)</div>
+            <div class="term-body">התאוששות היא התהליך שבו הגוף מתקן את עצמו אחרי אימון. זה כולל תיקון שרירים, איזון מערכות בגוף והכנה לאימון הבא. התאוששות טובה היא חלק קריטי בהתקדמות.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">איכות שינה</div>
+            <div class="term-body">לא רק כמה שעות ישנים, אלא גם כמה השינה עמוקה ורציפה. שינה איכותית חשובה להתאוששות, בניית שריר ואיזון הורמונלי.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">DOMS – כאבי שרירים מאוחרים</div>
+            <div class="term-body">DOMS הם כאבי שרירים שמופיעים בדרך כלל יום עד שלושה ימים אחרי אימון. זה קורה במיוחד אחרי אימון קשה, תרגיל חדש, או עומס שהשריר לא רגיל אליו. הכאב נובע מהנזקים הקטנים שנוצרים בסיבי השריר בזמן האימון ומהתהליך שבו הגוף מתקן אותם.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">אימון יתר (Overtraining)</div>
+            <div class="term-body">מצב שבו מתאמנים יותר מדי בלי מספיק מנוחה. זה יכול להוביל לעייפות, ירידה בביצועים, ואפילו פציעות.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">NEAT (פעילות יומיומית לא ספורטיבית)</div>
+            <div class="term-body">כל התנועה היומיומית שלא נחשבת לאימון, הליכה, עמידה, תזוזה במהלך היום. זה יכול להשפיע מאוד על שריפת הקלוריות.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">צפיפות קלורית</div>
+            <div class="term-body">כמה קלוריות יש בכמות מסוימת של מזון. מזונות עם צפיפות קלורית נמוכה (כמו ירקות) מאפשרים לאכול נפח גדול עם פחות קלוריות.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- שאלות נפוצות -->
+       <hr style="border: 0; height: 1px; background: #eee; margin: 4px 0;">
+      <h3 style="color: var(--dark-green); margin-bottom: 20px; padding-right: 10px;">שאלות נפוצות</h3>
+      <div id="faq-categories-container">
+          <!-- כאן ה-JS ישתול את השאלות באופן אוטומטי -->
+      </div>
+
+    </div> <!-- סגירה של info-center -->
+  </div> <!-- סגירה של card -->
+</div> <!-- סגירה של tab5 -->
+</div> <!-- סגירה של container -->
+
+
+<div id="survey-overlay" class="overlay">
+    <div class="overlay-header">
+        <h2 style="margin:0; color: var(--dark-green);">שאלון הכנה לפגישה</h2>
+        <button class="close-btn" onclick="closeSurvey()">&times;</button>
+    </div>
+    
+    <form id="coaching-survey">
+        <label class="question-label">1. מה הניצחון הכי גדול שלך מאז הפגישה האחרונה?</label>
+        <textarea class="q-input" name="victory" rows="3" placeholder="מה עבד לך בדיוק כמו שרצית?" required></textarea>
+
+        <label class="question-label">2. מה היה המכשול הכי גדול שלך בשבועיים האחרונים ואיך התמודדת איתו?</label>
+        <textarea class="q-input" name="obstacle" rows="3" placeholder="מה היה לך הכי קשה?" required></textarea>
+
+        <label class="question-label">3. מ-1 עד 10, באיזו מידה עקבת אחרי התוכנית?</label>
+        <div class="rating-grid">
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="1">1</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="2">2</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="3">3</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="4">4</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="5">5</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="6">6</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="7">7</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="8">8</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="9">9</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="10">10</label>
+        </div>
+
+        <label class="question-label">4. מה הנושא שהיית רוצה לשים עליו דגש בפגישה הקרובה?</label>
+        <textarea class="q-input" name="focus_topic" rows="3" placeholder="במה הכי צריך את העזרה שלי כרגע?" required></textarea>
+
+        <button type="submit" id="submit-survey-btn" class="calc-btn" style="margin-top: 30px;">שליחת השאלון וחזרה לאתר</button>
+    </form>
+</div>
+
+
+<script src="client.js"></script>
+<script src="profile.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script src="ai.js"></script>
+
+
+<div id="workout-complete-msg" class="complete-modal" style="display:none;">
+    <div class="complete-content">
+        <span class="close-complete" onclick="closeCompleteMsg()">&times;</span>
+        <h2>💪 אימון מנצח!</h2>
+        <p>כל הכבוד, סיימת את כל התרגילים להיום.</p>
+        <div class="trophy-icon">🏆</div>
+    </div>
+</div>
+
+<!-- צ'אט AI -->
+<div id="ai-chat-overlay" class="overlay" style="display:none; flex-direction:column;">
+    <div class="overlay-header">
+    <h2 style="margin:0; color: var(--dark-green);">🤖 שאל את המאמן AI</h2>
+    <button onclick="resetAIChat()" style="background:none; border:2px solid var(--main-green); border-radius:8px; font-size:18px; cursor:pointer; color:var(--main-green); padding:4px 8px;">🗑️</button>
+    <button class="close-btn" onclick="closeAIChat()">&times;</button>
+</div>
+    <div id="ai-chat-messages" style="flex:1; overflow-y:auto; padding: 10px 0; display:flex; flex-direction:column;">
+    </div>
+    <p style="font-size:12px; color:#999; text-align:center; margin:10px 0 0 0;">⚠️ הסוכן עשוי לטעות — תמיד ניתן לפנות לאורי לאימות</p>
+    <div style="display:flex; align-items:center; gap:10px; padding-top:15px; border-top:1px solid #eee;">
+    <button onclick="sendAIMessage()" class="calc-btn" style="width:80px; height:48px; padding:0; margin:0; flex-shrink:0; order:1;">שלח</button>
+    <input type="text" id="ai-chat-input" placeholder="כתוב שאלה..." 
+        style="flex:1; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:16px; font-family:inherit; height:48px; order:2;"
+        onkeydown="if(event.key==='Enter') sendAIMessage()">
+</div>
+</div>
+
+<!-- מודל סיכום שבועי -->
+<div id="weekly-summary-modal" class="complete-modal" style="display:none;">
+    <div class="complete-content">
+        <h2>📊 סיכום שבועי</h2>
+        <p>הגיע הזמן לשלוח לי סיכום שבועי!</p>
+        <div style="font-size:40px; margin: 15px 0;">📲</div>
+        <button onclick="sendWeeklySummary()" class="calc-btn" style="background-color: var(--dark-green); margin-top: 10px;">שלח סיכום שבועי</button>
+    </div>
+</div>
+
+<!-- מודל גיבוי שבועי -->
+<div id="weekly-backup-modal" class="complete-modal" style="display:none;">
+    <div class="complete-content">
+        <h2>💾 גיבוי שבועי</h2>
+        <p>הגיע הזמן לגבות את הנתונים שלך!</p>
+        <div style="font-size:40px; margin: 15px 0;">🔒</div>
+        <button onclick="exportDataAndClose()" class="calc-btn" style="background-color: var(--main-green); margin-top: 10px;">גבה נתונים עכשיו</button>
+    </div>
+</div>
+
+<button id="backToTop" title="חזרה למעלה">↑</button>
+
+<!-- מסך פרטים אישיים -->
+<div id="profile-overlay" class="profile-overlay" onclick="handleProfileOverlayClick(event)">
+    <div class="profile-sheet">
+        <div class="profile-handle"></div>
+        <div class="profile-header">
+            <h2>פרטים אישיים</h2>
+            <button class="close-btn" onclick="closeProfile()">&times;</button>
+        </div>
+
+        <!-- Section 1: Client editable -->
+        <div class="profile-section-label">עריכה אישית</div>
+        <div class="profile-group">
+            <div class="profile-row">
+                <label for="prof-nickname">שם משתמש</label>
+                <input id="prof-nickname" type="text" class="profile-input" placeholder="שם">
+            </div>
+            <div class="profile-row">
+                <label for="prof-email">מייל</label>
+                <input id="prof-email" type="email" class="profile-input" placeholder="example@mail.com" dir="ltr">
+            </div>
+            <div class="profile-row">
+                <label for="prof-current-weight">משקל נוכחי</label>
+                <input id="prof-current-weight" type="number" class="profile-input" placeholder="ק״ג" step="0.1">
+            </div>
+            <div class="profile-row">
+                <label for="prof-activity">אקטיביות</label>
+                <select id="prof-activity" class="profile-input profile-select">
+                    <option value="1.2">לא פעיל</option>
+                    <option value="1.375">1–3 אימונים/שבוע</option>
+                    <option value="1.465">4–5 אימונים/שבוע</option>
+                    <option value="1.55">6 אימונים/שבוע</option>
+                    <option value="1.725">פעיל מאוד</option>
+                </select>
+            </div>
+            <div class="profile-row profile-row-textarea">
+                <label for="prof-allergies">אלרגיות/מגבלות תזונתיות (אם יש)</label>
+                <textarea id="prof-allergies" class="profile-input profile-textarea" placeholder="למשל: אגוזים, גלוטן... (לא חובה)"></textarea>
+            </div>
+            <div class="profile-row profile-row-textarea">
+                <label for="prof-liked-foods">מאכלים מועדפים</label>
+                <textarea id="prof-liked-foods" class="profile-input profile-textarea" placeholder="מאכלים שטעימים לי"></textarea>
+            </div>
+            <div class="profile-row profile-row-textarea">
+                <label for="prof-disliked-foods">מאכלים שלא ארצה לאכול</label>
+                <textarea id="prof-disliked-foods" class="profile-input profile-textarea" placeholder="מאכלים שלא טעימים לי"></textarea>
+            </div>
+        </div>
+
+        <!-- Section 2: Coach data -->
+        <div class="profile-section-label">
+            נתוני מאמן
+            <span class="coach-lock-icon">🔒</span>
+        </div>
+        <div class="profile-group">
+            <div id="coach-lock-section" class="coach-lock-banner">
+                <span>שדות אלו נערכים על ידי המאמן בלבד</span>
+                <div class="coach-pin-row">
+                    <input id="coach-pin-input" type="password" class="coach-pin-input"
+                        placeholder="קוד מאמן" maxlength="8"
+                        onkeydown="if(event.key==='Enter') unlockCoachSection()">
+                    <button class="coach-pin-btn" onclick="unlockCoachSection()">פתח</button>
+                </div>
+            </div>
+            <div id="coach-save-note" class="coach-save-note" style="display:none">✏️ מצב עריכת מאמן פעיל</div>
+            <div class="profile-row">
+                <label for="prof-name">שם מלא</label>
+                <input id="prof-name" type="text" class="profile-input coach-editable-field" disabled>
+            </div>
+            <div class="profile-row">
+                <label for="prof-goal-weight">משקל יעד</label>
+                <input id="prof-goal-weight" type="number" class="profile-input coach-editable-field" disabled step="0.1">
+            </div>
+            <div class="profile-row">
+                <label for="prof-birth-date">תאריך לידה</label>
+                <input id="prof-birth-date" type="date" class="profile-input coach-editable-field" disabled dir="ltr">
+            </div>
+            <div class="profile-row">
+                <label for="prof-start-date">התחלת ליווי</label>
+                <input id="prof-start-date" type="date" class="profile-input coach-editable-field" disabled dir="ltr">
+            </div>
+            <div class="profile-row">
+                <label for="prof-height">גובה (ס״מ)</label>
+                <input id="prof-height" type="number" class="profile-input coach-editable-field" disabled>
+            </div>
+            <div class="profile-row">
+                <label for="prof-gender">מין</label>
+                <select id="prof-gender" class="profile-input profile-select coach-editable-field" disabled>
+                    <option value="male">גבר</option>
+                    <option value="female">אישה</option>
+                </select>
+            </div>
+            <div class="profile-row">
+                <label for="prof-goal">מטרה</label>
+                <select id="prof-goal" class="profile-input profile-select coach-editable-field" disabled>
+                    <option value="bulk">מסה</option>
+                    <option value="cut">חיטוב</option>
+                </select>
+            </div>
+        </div>
+
+        <button id="prof-save-btn" class="calc-btn" onclick="saveProfile()" style="width:100%; margin-top:4px;">שמור שינויים</button>
+    </div>
+</div>
+
+<div id="birthday-modal" class="complete-modal" style="display:none;">
+    <div class="complete-content">
+        <h2>🎂 יום הולדת שמח!</h2>
+        <p id="birthday-msg"></p>
+        <div style="font-size:50px; margin: 15px 0;">🎉</div>
+        <button onclick="document.getElementById('birthday-modal').style.display='none'"
+            class="calc-btn" style="background-color: var(--dark-green); margin-top: 10px;">תודה! 🙏</button>
+    </div>
+</div>
+
+<!-- Food Scanner Modal -->
+<div id="food-scanner-modal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeFoodScanner()">✕</button>
+    <h3 style="margin: 0 0 16px; text-align: center;">📷 זיהוי אוכל מתמונה</h3>
+
+    <div id="scanner-step-1">
+      <input type="file" id="food-image-input" accept="image/*" capture="environment" style="display:none">
+      <button class="scan-upload-btn" onclick="document.getElementById('food-image-input').click()">📷 צלם / העלה תמונה</button>
+      <img id="food-preview" class="hidden" alt="תצוגה מקדימה" style="width:100%; border-radius:10px; margin:12px 0;">
+    </div>
+
+    <div id="scanner-loading" class="hidden" style="text-align:center; padding:20px 0; color:#aaa;">מנתח תמונה... ⏳</div>
+
+    <div id="scanner-step-2" class="hidden">
+      <p id="scan-food-name" style="font-weight:bold; font-size:16px; margin:8px 0;"></p>
+      <div id="scan-portions" style="margin:8px 0;"></div>
+      <p class="scan-disclaimer">⚠️ הערכה בלבד – לא מדויק, נותן כיוון</p>
+      <div style="margin-top:14px;">
+        <label style="font-size:13px; color:#aaa;">תיקון זיהוי (אופציונלי):</label>
+        <input type="text" id="scan-correction" placeholder="למשל: זה רגל עוף, לא חזה עוף" class="scan-input">
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="scan-action-btn secondary" onclick="recalculate()">🔄 חשב מחדש</button>
+          <button class="scan-action-btn primary" onclick="addScannedPortions()">✅ הוסף מנות</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
