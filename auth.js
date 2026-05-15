@@ -111,14 +111,27 @@ async function _loadClientAndShowApp(userId) {
     // אם window.onload כבר רץ — נריץ ידנית את פונקציות האתחול
     if (document.readyState === 'complete') reinitApp();
 
-    // הצגת סרגל מנהל אם צריך
+    // הצגת כפתור מנהל צף אם צריך
     if (SB_IS_ADMIN) {
-        const bar    = document.getElementById('admin-bar');
+        const wrap   = document.getElementById('admin-fab-wrap');
         const nameEl = document.getElementById('admin-bar-name');
-        if (bar)    bar.style.display = 'flex';
-        if (nameEl) nameEl.textContent = `מצב מנהל — ${CLIENT.name || CLIENT.nickname || 'לקוח'}`;
+        if (wrap)   wrap.style.display = 'block';
+        if (nameEl) nameEl.textContent = CLIENT.name || CLIENT.nickname || 'לקוח';
     }
 }
+
+function toggleAdminPanel() {
+    const panel = document.getElementById('admin-panel');
+    if (panel) panel.classList.toggle('open');
+}
+
+// סגירת הפאנל בלחיצה מחוץ אליו
+document.addEventListener('click', e => {
+    const wrap = document.getElementById('admin-fab-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+        document.getElementById('admin-panel')?.classList.remove('open');
+    }
+});
 
 // ── Login form handlers ──────────────────────────────────────
 
@@ -190,13 +203,13 @@ async function renderAdminPanel() {
 }
 
 async function adminViewClient(clientId) {
-    document.getElementById('admin-bar').style.display = 'none';
+    document.getElementById('admin-fab-wrap').style.display = 'none';
     _clearUserLocalStorage();
     await _loadClientAndShowApp(clientId);
 }
 
 function adminBackToList() {
-    document.getElementById('admin-bar').style.display = 'none';
+    document.getElementById('admin-fab-wrap').style.display = 'none';
     _clearUserLocalStorage();
     SB_VIEW_ID = null;
     _resolveAuthReady = () => {}; // שיחה נוספת לא תשפיע

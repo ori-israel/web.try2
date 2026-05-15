@@ -2094,26 +2094,69 @@ input[type="checkbox"] { accent-color: var(--accent); }
 .admin-error { color: #e55; }
 
 /* ══════════════════════════════════════════════════════════
-   Admin bar (top stripe when admin views a client)
+   Admin floating button + dropdown panel
 ══════════════════════════════════════════════════════════ */
-#admin-bar ~ #app-container .container,
-body:has(#admin-bar[style*="flex"]) .container {
-    margin-top: 44px;
+#admin-fab-wrap {
+    position: fixed;
+    bottom: 24px;
+    left: 16px;
+    z-index: 9997;
 }
-.admin-bar-btn {
-    padding: 5px 12px;
-    background: rgba(255,255,255,.1);
+#admin-fab {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #1a3a1a;
+    border: 2px solid var(--main-green, #4ade80);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,.4);
+    transition: transform 0.2s;
+}
+#admin-fab:hover { transform: scale(1.1); }
+.admin-panel-dropdown {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    position: absolute;
+    bottom: 52px;
+    left: 0;
+    background: #1a3a1a;
+    border: 1px solid var(--main-green, #4ade80);
+    border-radius: 14px;
+    padding: 14px;
+    min-width: 170px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.5);
+}
+.admin-panel-dropdown.open { display: flex; }
+.admin-panel-name {
+    margin: 0 0 6px;
+    font-size: 12px;
+    color: #4ade80;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.admin-panel-btn {
+    padding: 9px 12px;
+    background: rgba(255,255,255,.07);
     color: #fff;
-    border: 1px solid rgba(255,255,255,.2);
-    border-radius: 8px;
-    font-size: 13px;
+    border: none;
+    border-radius: 9px;
+    font-size: 14px;
     font-family: inherit;
     cursor: pointer;
+    text-align: right;
     transition: background 0.2s;
+    white-space: nowrap;
 }
-.admin-bar-btn:hover { background: rgba(255,255,255,.2); }
-.admin-bar-btn.danger { color: #f87; border-color: #f87; }
-.admin-bar-btn.danger:hover { background: rgba(255,136,119,.15); }
+.admin-panel-btn:hover  { background: rgba(255,255,255,.15); }
+.admin-panel-btn.danger { color: #f87; }
+.admin-panel-btn.danger:hover { background: rgba(255,136,119,.15); }
 
 /* ══════════════════════════════════════════════════════════
    Logout button in hamburger menu

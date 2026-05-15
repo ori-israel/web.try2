@@ -43,13 +43,14 @@
     </div>
 </div>
 
-<!-- ══ Admin bar (מוצג בראש העמוד כשמנהל צופה בלקוח) ════ -->
-<div id="admin-bar" style="display:none; position:fixed; top:0; right:0; left:0; z-index:9997; background:#1a3a1a; border-bottom:2px solid var(--main-green,#4ade80); padding:8px 16px; align-items:center; justify-content:space-between; gap:12px;">
-    <span id="admin-bar-name" style="color:#4ade80; font-size:14px; font-weight:bold;">מצב מנהל</span>
-    <div style="display:flex; gap:8px;">
-        <button onclick="openWorkoutEditor()" class="admin-bar-btn">✏️ ערוך תוכנית</button>
-        <button onclick="adminBackToList()"   class="admin-bar-btn">↩ החלף לקוח</button>
-        <button onclick="doLogout()"          class="admin-bar-btn danger">התנתק</button>
+<!-- ══ Admin floating button + panel ════════════════════ -->
+<div id="admin-fab-wrap" style="display:none;">
+    <button id="admin-fab" onclick="toggleAdminPanel()" title="תפריט מנהל">⚙️</button>
+    <div id="admin-panel" class="admin-panel-dropdown">
+        <p id="admin-bar-name" class="admin-panel-name">מצב מנהל</p>
+        <button onclick="openWorkoutEditor(); toggleAdminPanel()" class="admin-panel-btn">✏️ ערוך תוכנית</button>
+        <button onclick="adminBackToList()"                       class="admin-panel-btn">↩ החלף לקוח</button>
+        <button onclick="doLogout()"                              class="admin-panel-btn danger">התנתק</button>
     </div>
 </div>
 
