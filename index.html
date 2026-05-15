@@ -887,19 +887,25 @@
 
     <div id="scanner-step-1">
       <input type="file" id="food-image-input" accept="image/*" capture="environment" style="display:none">
-      <button class="scan-upload-btn" onclick="document.getElementById('food-image-input').click()">📷 צלם / העלה תמונה</button>
+      <input type="file" id="food-gallery-input" accept="image/*" style="display:none">
+      <div style="display:flex; gap:10px;">
+        <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-image-input').click()">📷 צלם תמונה</button>
+        <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-gallery-input').click()">🖼️ העלה מגלריה</button>
+      </div>
       <img id="food-preview" class="hidden" alt="תצוגה מקדימה" style="width:100%; border-radius:10px; margin:12px 0;">
     </div>
 
     <div id="scanner-loading" class="hidden" style="text-align:center; padding:20px 0; color:#aaa;">מנתח תמונה... ⏳</div>
 
     <div id="scanner-step-2" class="hidden">
-      <p id="scan-food-name" style="font-weight:bold; font-size:16px; margin:8px 0;"></p>
+      <p style="font-size:12px; color:#aaa; margin:0 0 4px;">זוהה:</p>
+      <p id="scan-food-name" style="font-weight:bold; font-size:18px; margin:0 0 12px;"></p>
+      <hr style="border:none; border-top:1px solid #2a2a2a; margin:0 0 12px;">
       <div id="scan-portions" style="margin:8px 0;"></div>
       <p class="scan-disclaimer">⚠️ הערכה בלבד – לא מדויק, נותן כיוון</p>
       <div style="margin-top:14px;">
         <label style="font-size:13px; color:#aaa;">תיקון זיהוי (אופציונלי):</label>
-        <input type="text" id="scan-correction" placeholder="למשל: זה רגל עוף, לא חזה עוף" class="scan-input">
+        <input type="text" id="scan-correction" placeholder="תקן את הזיהוי אם שגוי" class="scan-input">
         <div style="display:flex; gap:8px; margin-top:10px;">
           <button class="scan-action-btn secondary" onclick="recalculate()">🔄 חשב מחדש</button>
           <button class="scan-action-btn primary" onclick="addScannedPortions()">✅ הוסף מנות</button>

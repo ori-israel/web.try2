@@ -1357,21 +1357,28 @@ function closeFoodScanner() {
     document.getElementById('food-scanner-modal').classList.add('hidden');
 }
 
+function handleFoodImageFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+        const dataUrl = ev.target.result;
+        scannedImageMime = file.type;
+        scannedImageBase64 = dataUrl.split(',')[1];
+        const preview = document.getElementById('food-preview');
+        preview.src = dataUrl;
+        preview.classList.remove('hidden');
+        analyzeFood(scannedImageBase64, scannedImageMime, '');
+    };
+    reader.readAsDataURL(file);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('food-image-input').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-            const dataUrl = ev.target.result;
-            scannedImageMime = file.type;
-            scannedImageBase64 = dataUrl.split(',')[1];
-            const preview = document.getElementById('food-preview');
-            preview.src = dataUrl;
-            preview.classList.remove('hidden');
-            analyzeFood(scannedImageBase64, scannedImageMime, '');
-        };
-        reader.readAsDataURL(file);
+        handleFoodImageFile(e.target.files[0]);
+        e.target.value = '';
+    });
+    document.getElementById('food-gallery-input').addEventListener('change', function(e) {
+        handleFoodImageFile(e.target.files[0]);
         e.target.value = '';
     });
 });
