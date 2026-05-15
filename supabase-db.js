@@ -52,7 +52,8 @@ async function sbUpsertProfile(userId, updates) {
     );
     const { error } = await db
         .from('profiles')
-        .upsert({ id: userId, ...clean, updated_at: new Date().toISOString() });
+        .update({ ...clean, updated_at: new Date().toISOString() })
+        .eq('id', userId);
     if (error) throw error;
 }
 
@@ -304,7 +305,7 @@ async function syncProfileNow(data) {
             disliked_foods: data.dislikedFoods,
             coaching_goal:  data.coachingGoal,
         });
-    } catch (e) { console.warn('[SB] profile sync:', e.message); }
+    } catch (e) { console.error('[SB] profile sync failed:', e.message); }
 }
 
 async function syncWeightNow(date, weight) {
