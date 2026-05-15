@@ -20,6 +20,8 @@ let isCoachUnlocked = false;
 
 document.addEventListener('DOMContentLoaded', function () {
     populateProfileForm();
+    document.getElementById('coach-pin-input')
+        ?.addEventListener('keyup', e => { if (e.key === 'Enter') unlockCoachSection(); });
 });
 
 // ── Modal ────────────────────────────────────
@@ -87,7 +89,6 @@ function unlockCoachSection() {
         input.classList.remove('shake');
         void input.offsetWidth;
         input.classList.add('shake');
-        input.value = '';
         setTimeout(() => input.classList.remove('shake'), 500);
     }
 }
