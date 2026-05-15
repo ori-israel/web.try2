@@ -62,7 +62,6 @@ function reinitApp() {
     if (typeof initFAQ                === 'function') initFAQ();
     setTimeout(() => {
         if (typeof renderWeightChart    === 'function') renderWeightChart();
-        if (typeof checkWeeklyReminders === 'function') checkWeeklyReminders();
         if (typeof checkBirthday        === 'function') checkBirthday();
     }, 150);
 }

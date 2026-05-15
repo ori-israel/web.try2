@@ -461,7 +461,6 @@ function buildWorkoutAccordions() {
     updateGoalRecommendations();
     loadPerfData();
     loadSavedWeight();
-    checkWeeklyReminders();
     loadCoachingGoal();
     updateWorkoutStreak();
     updateNutritionStreak();
@@ -919,79 +918,6 @@ function resetWorkout() {
     });
 }
 
-function exportData() {
-    const data = {};
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        data[key] = localStorage.getItem(key);
-    }
-    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'גיבוי_נתונים_' + new Date().toLocaleDateString('he-IL').replace(/\//g, '-') + '.json';
-    a.click();
-}
-
-function importData(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const data = JSON.parse(e.target.result);
-        Object.keys(data).forEach(key => localStorage.setItem(key, data[key]));
-        alert('הנתונים שוחזרו בהצלחה!');
-        location.reload();
-    };
-    reader.readAsText(file);
-}
-
-function checkWeeklyReminders() {
-    const now = new Date();
-    const day = now.getDay(); // 0=ראשון, 5=שישי
-
-    // סיכום שבועי — שישי או אחרי שישי
-    const lastSummary = localStorage.getItem('last_summary_reminder');
-    const lastSummaryWeek = lastSummary ? new Date(lastSummary).getTime() : 0;
-    const daysSinceSummary = (now - lastSummaryWeek) / (1000 * 60 * 60 * 24);
-    if (daysSinceSummary >= 6) {
-        setTimeout(() => {
-            document.getElementById('weekly-summary-modal').style.display = 'block';
-        }, 1000);
-        return;
-    }
-
-    // גיבוי — ראשון או אחרי ראשון
-    const lastBackup = localStorage.getItem('last_backup_reminder');
-    const lastBackupWeek = lastBackup ? new Date(lastBackup).getTime() : 0;
-    const daysSinceBackup = (now - lastBackupWeek) / (1000 * 60 * 60 * 24);
-    if (daysSinceBackup >= 6) {
-        setTimeout(() => {
-            document.getElementById('weekly-backup-modal').style.display = 'block';
-        }, 1500);
-    }
-}
-
-function sendWeeklySummary() {
-    const weight = localStorage.getItem('current_weight') || 'לא הוזן';
-    const squatKg = localStorage.getItem('perf_squat_cur_kg') || '-';
-    const squatReps = localStorage.getItem('perf_squat_cur_reps') || '-';
-    const benchKg = localStorage.getItem('perf_bench_cur_kg') || '-';
-    const benchReps = localStorage.getItem('perf_bench_cur_reps') || '-';
-    const deadKg = localStorage.getItem('perf_dead_cur_kg') || '-';
-    const deadReps = localStorage.getItem('perf_dead_cur_reps') || '-';
-    
-    const msg = `📊 סיכום שבועי:\n⚖️ משקל נוכחי: ${weight} ק"ג\n💪 סקוואט: ${squatKg} ק"ג × ${squatReps} חזרות\n🏋️ לחיצת חזה: ${benchKg} ק"ג × ${benchReps} חזרות\n🔱 דדליפט: ${deadKg} ק"ג × ${deadReps} חזרות`;
-    
-    localStorage.setItem('last_summary_reminder', new Date().toISOString());
-    document.getElementById('weekly-summary-modal').style.display = 'none';
-    window.open('https://wa.me/972547950949?text=' + encodeURIComponent(msg), '_blank');
-}
-
-function exportDataAndClose() {
-    exportData();
-    localStorage.setItem('last_backup_reminder', new Date().toISOString());
-    document.getElementById('weekly-backup-modal').style.display = 'none';
-}
 
 function initWorkoutsFromClient() {
     const letters = ['A', 'B', 'C', 'D', 'E'];
