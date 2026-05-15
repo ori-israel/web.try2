@@ -856,7 +856,8 @@
                 <div class="coach-pin-row">
                     <input id="coach-pin-input" type="password" class="coach-pin-input"
                         placeholder="קוד מאמן" maxlength="8"
-                        autocomplete="new-password">
+                        autocomplete="new-password"
+                        onkeydown="if(event.key==='Enter') unlockCoachSection()">
                     <button class="coach-pin-btn" onclick="unlockCoachSection()">פתח</button>
                 </div>
             </div>

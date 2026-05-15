@@ -20,8 +20,6 @@ let isCoachUnlocked = false;
 
 document.addEventListener('DOMContentLoaded', function () {
     populateProfileForm();
-    document.getElementById('coach-pin-input')
-        ?.addEventListener('keyup', e => { if (e.key === 'Enter') unlockCoachSection(); });
 });
 
 // ── Modal ────────────────────────────────────
@@ -81,7 +79,7 @@ function setCoachFieldsState(editable) {
 
 function unlockCoachSection() {
     const input = document.getElementById('coach-pin-input');
-    if (CLIENT.coachPin && input.value === CLIENT.coachPin) {
+    if (input.value === CLIENT.coachPin) {
         isCoachUnlocked = true;
         setCoachFieldsState(true);
         input.value = '';
@@ -89,6 +87,7 @@ function unlockCoachSection() {
         input.classList.remove('shake');
         void input.offsetWidth;
         input.classList.add('shake');
+        input.value = '';
         setTimeout(() => input.classList.remove('shake'), 500);
     }
 }
