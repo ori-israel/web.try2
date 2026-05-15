@@ -1336,6 +1336,7 @@ function renderWeightChart() {
 
 // ─── Food Scanner ───────────────────────────────────────────────
 let scannedPortions = { protein: 0, fat: 0, carbs: 0 };
+let scannedGrams = { protein: 0, fat: 0, carbs: 0 };
 let scannedImageBase64 = null;
 let scannedImageMime = null;
 
@@ -1416,17 +1417,24 @@ async function analyzeFood(base64, mimeType, correction) {
         const result = JSON.parse(jsonMatch[0]);
 
         const round = v => Math.round(v * 2) / 2;
+        scannedGrams = {
+            protein: Math.round(result.protein_g || 0),
+            fat:     Math.round(result.fat_g     || 0),
+            carbs:   Math.round(result.carbs_g   || 0)
+        };
         scannedPortions = {
-            protein: round(Math.max(0, (result.protein_g || 0) / 27.5)),
-            fat:     round(Math.max(0, (result.fat_g     || 0) / 12.5)),
-            carbs:   round(Math.max(0, (result.carbs_g   || 0) / 37.5))
+            protein: round(Math.max(0, scannedGrams.protein / 27.5)),
+            fat:     round(Math.max(0, scannedGrams.fat     / 12.5)),
+            carbs:   round(Math.max(0, scannedGrams.carbs   / 37.5))
         };
 
         document.getElementById('scan-food-name').textContent = `🍽️ ${result.food}`;
         document.getElementById('scan-portions').innerHTML =
-            `<span>🥩 חלבון: <b>${scannedPortions.protein}</b></span> &nbsp;` +
-            `<span>🍚 פחמימה: <b>${scannedPortions.carbs}</b></span> &nbsp;` +
-            `<span>🥑 שומן: <b>${scannedPortions.fat}</b></span>`;
+            `<div style="display:flex; flex-direction:column; gap:6px;">` +
+            `<div>🥩 חלבון: <b>${scannedPortions.protein} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.protein}g)</span></div>` +
+            `<div>🍚 פחמימה: <b>${scannedPortions.carbs} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.carbs}g)</span></div>` +
+            `<div>🥑 שומן: <b>${scannedPortions.fat} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span></div>` +
+            `</div>`;
         document.getElementById('scanner-loading').classList.add('hidden');
         document.getElementById('scanner-step-1').classList.add('hidden');
         document.getElementById('scanner-step-2').classList.remove('hidden');
