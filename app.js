@@ -1388,11 +1388,10 @@ async function analyzeFood(base64, mimeType, correction) {
     document.getElementById('scanner-loading').classList.remove('hidden');
 
     const correctionNote = correction ? `שים לב: ${correction}. ` : '';
-    const prompt = `${correctionNote}זהה את האוכל בתמונה והעריך את כמות המנות.
+    const prompt = `${correctionNote}זהה את האוכל בתמונה והעריך את כמות הגרמים של כל רכיב תזונתי.
 החזר JSON בלבד, ללא טקסט נוסף, בפורמט הזה בדיוק:
-{"food": "שם האוכל בעברית", "protein": X, "fat": X, "carbs": X}
-כאשר X הוא מספר מנות (מנת חלבון = 27.5 גרם, מנת פחמימה = 37.5 גרם, מנת שומן = 12.5 גרם).
-עגל לחצי המנה הקרוב (0, 0.5, 1, 1.5 וכו').`;
+{"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X}
+כאשר X הוא מספר גרמים (מספר עשרוני מותר).`;
 
     try {
         const response = await fetch(
@@ -1416,10 +1415,11 @@ async function analyzeFood(base64, mimeType, correction) {
         if (!jsonMatch) throw new Error('no JSON');
         const result = JSON.parse(jsonMatch[0]);
 
+        const round = v => Math.round(v * 2) / 2;
         scannedPortions = {
-            protein: Math.max(0, result.protein || 0),
-            fat: Math.max(0, result.fat || 0),
-            carbs: Math.max(0, result.carbs || 0)
+            protein: round(Math.max(0, (result.protein_g || 0) / 27.5)),
+            fat:     round(Math.max(0, (result.fat_g     || 0) / 12.5)),
+            carbs:   round(Math.max(0, (result.carbs_g   || 0) / 37.5))
         };
 
         document.getElementById('scan-food-name').textContent = `🍽️ ${result.food}`;
