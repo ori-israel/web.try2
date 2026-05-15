@@ -2240,3 +2240,18 @@ body:has(#admin-bar[style*="flex"]) .container {
 }
 .we-save-btn:hover { opacity: 0.88; }
 .we-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.admin-self-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--dark-green, #2d5a27);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-family: inherit;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+.admin-self-btn:hover { opacity: 0.85; }
