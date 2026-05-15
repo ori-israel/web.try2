@@ -204,7 +204,7 @@ async function loadUserIntoApp(userId) {
             likedFoods:    profile.liked_foods    || '',
             dislikedFoods: profile.disliked_foods || '',
             coachingGoal:  profile.coaching_goal  || '',
-            coachPin:      profile.coach_pin      || '1234',
+            coachPin:      profile.coach_pin      || null,
         };
         Object.assign(CLIENT, p);
         localStorage.setItem('profile_data_v1', JSON.stringify(p));

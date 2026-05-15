@@ -79,7 +79,7 @@ function setCoachFieldsState(editable) {
 
 function unlockCoachSection() {
     const input = document.getElementById('coach-pin-input');
-    if (input.value === (CLIENT.coachPin || '1234')) {
+    if (CLIENT.coachPin && input.value === CLIENT.coachPin) {
         isCoachUnlocked = true;
         setCoachFieldsState(true);
         input.value = '';
