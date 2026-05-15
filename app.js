@@ -1428,9 +1428,11 @@ async function analyzeFood(base64, mimeType, correction) {
             `<span>🍚 פחמימה: <b>${scannedPortions.carbs}</b></span> &nbsp;` +
             `<span>🥑 שומן: <b>${scannedPortions.fat}</b></span>`;
         document.getElementById('scanner-loading').classList.add('hidden');
+        document.getElementById('scanner-step-1').classList.add('hidden');
         document.getElementById('scanner-step-2').classList.remove('hidden');
     } catch (err) {
         document.getElementById('scanner-loading').classList.add('hidden');
+        document.getElementById('scanner-step-1').classList.add('hidden');
         document.getElementById('scanner-step-2').classList.remove('hidden');
         document.getElementById('scan-food-name').textContent = '⚠️ לא הצלחתי לזהות את האוכל';
         document.getElementById('scan-portions').innerHTML = '';
@@ -1445,9 +1447,15 @@ function recalculate() {
 }
 
 function addScannedPortions() {
-    ['protein', 'fat', 'carbs'].forEach(type => {
-        if (scannedPortions[type] > 0) modifyPortion(type, scannedPortions[type]);
-    });
+    const added = [];
+    if (scannedPortions.protein > 0) { modifyPortion('protein', scannedPortions.protein); added.push(`חלבון +${scannedPortions.protein}`); }
+    if (scannedPortions.fat > 0)     { modifyPortion('fat', scannedPortions.fat);          added.push(`שומן +${scannedPortions.fat}`); }
+    if (scannedPortions.carbs > 0)   { modifyPortion('carbs', scannedPortions.carbs);      added.push(`פחמימה +${scannedPortions.carbs}`); }
     closeFoodScanner();
+    const toast = document.createElement('div');
+    toast.innerText = added.length ? '✅ נוסף: ' + added.join(' | ') : '⚠️ לא נוספו מנות';
+    toast.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--dark-green);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:9999;box-shadow:0 4px 15px rgba(0,0,0,0.2);animation:fadeIn 0.3s ease;white-space:nowrap;`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
 }
 
