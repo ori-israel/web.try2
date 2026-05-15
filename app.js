@@ -1111,6 +1111,7 @@ function updateNutritionStreak() {
 function renderWeightChart() {
     const canvas = document.getElementById('weight-chart');
     if (!canvas) return;
+    if (!CLIENT.startDate || isNaN(new Date(CLIENT.startDate).getTime())) return;
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
 
@@ -1143,7 +1144,8 @@ function renderWeightChart() {
     const endDate = new Date(CLIENT.startDate);
     endDate.setMonth(endDate.getMonth() + 6);
 
-    const history = JSON.parse(localStorage.getItem('weight_history') || '[]');
+    const history = JSON.parse(localStorage.getItem('weight_history') || '[]')
+        .filter(p => p.date && !isNaN(new Date(p.date).getTime()));
     const allWeights = [CLIENT.startWeight, CLIENT.goalWeight, ...history.map(p => p.weight)];
     const dataMin = Math.min(...allWeights);
     const dataMax = Math.max(...allWeights);
@@ -1205,6 +1207,7 @@ function renderWeightChart() {
     ctx.textBaseline = 'top';
     for (let i = 0; i <= 6; i++) {
         const d = new Date(CLIENT.startDate);
+        if (!CLIENT.startDate || isNaN(d.getTime())) return;
         d.setMonth(d.getMonth() + i);
         d.setDate(1);
         const x = toX(d.toISOString().split('T')[0]);
