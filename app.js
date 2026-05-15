@@ -1337,6 +1337,7 @@ function renderWeightChart() {
 // ─── Food Scanner ───────────────────────────────────────────────
 let scannedPortions = { protein: 0, fat: 0, carbs: 0 };
 let scannedGrams = { protein: 0, fat: 0, carbs: 0 };
+let scannedItems = [];
 let scannedImageBase64 = null;
 let scannedImageMime = null;
 
@@ -1391,8 +1392,8 @@ async function analyzeFood(base64, mimeType, correction) {
     const correctionNote = correction ? `שים לב: ${correction}. ` : '';
     const prompt = `${correctionNote}זהה את האוכל בתמונה והעריך את כמות הגרמים של כל רכיב תזונתי.
 החזר JSON בלבד, ללא טקסט נוסף, בפורמט הזה בדיוק:
-{"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X}
-כאשר X הוא מספר גרמים (מספר עשרוני מותר).`;
+{"food": "שם האוכל הכולל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם מאכל", "grams": X}, ...]}
+כאשר X הוא מספר גרמים (מספר עשרוני מותר). items הוא רשימת כל המאכלים שזוהו בתמונה עם כמותם בגרמים.`;
 
     try {
         const response = await fetch(
@@ -1427,6 +1428,7 @@ async function analyzeFood(base64, mimeType, correction) {
             fat:     round(Math.max(0, scannedGrams.fat     / 12.5)),
             carbs:   round(Math.max(0, scannedGrams.carbs   / 37.5))
         };
+        scannedItems = Array.isArray(result.items) ? result.items : [];
 
         document.getElementById('scan-food-name').textContent = `🍽️ ${result.food}`;
         document.getElementById('scan-portions').innerHTML =
@@ -1435,6 +1437,16 @@ async function analyzeFood(base64, mimeType, correction) {
             `<div>🍚 פחמימה: <b>${scannedPortions.carbs} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.carbs}g)</span></div>` +
             `<div>🥑 שומן: <b>${scannedPortions.fat} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span></div>` +
             `</div>`;
+
+        const detailsBtn = document.getElementById('scan-details-btn');
+        const detailsBox = document.getElementById('scan-details-box');
+        if (scannedItems.length > 0) {
+            detailsBtn.classList.remove('hidden');
+            detailsBox.innerHTML = scannedItems.map(item => `<div>${item.name} — ${Math.round(item.grams)}g</div>`).join('');
+        } else {
+            detailsBtn.classList.add('hidden');
+        }
+        detailsBox.classList.add('hidden');
         document.getElementById('scanner-loading').classList.add('hidden');
         document.getElementById('scanner-step-1').classList.add('hidden');
         document.getElementById('scanner-step-2').classList.remove('hidden');
@@ -1446,6 +1458,13 @@ async function analyzeFood(base64, mimeType, correction) {
         document.getElementById('scan-portions').innerHTML = '';
         scannedPortions = { protein: 0, fat: 0, carbs: 0 };
     }
+}
+
+function toggleScanDetails() {
+    const box = document.getElementById('scan-details-box');
+    const btn = document.getElementById('scan-details-btn');
+    const open = box.classList.toggle('hidden');
+    btn.textContent = open ? '▼ פרטים נוספים' : '▲ הסתר פרטים';
 }
 
 function recalculate() {
