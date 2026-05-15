@@ -138,6 +138,19 @@ alter table public.streaks enable row level security;
 create policy "streaks_all" on public.streaks
   for all using (auth.uid() = user_id or public.is_admin());
 
+-- ── GRANT הרשאות ────────────────────────────────────────────
+
+grant usage on schema public to authenticated;
+
+grant select, insert, update, delete on public.profiles           to authenticated;
+grant select, insert, update, delete on public.daily_nutrition     to authenticated;
+grant select, insert, update, delete on public.weight_history      to authenticated;
+grant select, insert, update, delete on public.workout_progress    to authenticated;
+grant select, insert, update, delete on public.performance_metrics to authenticated;
+grant select, insert, update, delete on public.streaks             to authenticated;
+
+grant execute on function public.is_admin() to authenticated;
+
 -- ── Trigger: יצירת פרופיל אוטומטית עם רישום ────────────────
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer as $$
