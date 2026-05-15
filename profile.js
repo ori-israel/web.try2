@@ -158,7 +158,12 @@ function saveProfile() {
         else history.push({ date: today, weight: cw });
         localStorage.setItem('weight_history', JSON.stringify(history));
         console.log('[saveProfile] weight_history עודכן:', history);
+        // Supabase sync
+        if (typeof syncWeightNow === 'function') syncWeightNow(today, cw);
     }
+
+    // Supabase sync
+    if (typeof syncProfileNow === 'function') syncProfileNow(data);
 
     if (typeof generatePortionGoals === 'function') generatePortionGoals();
     if (typeof loadSavedWeight     === 'function')  loadSavedWeight();

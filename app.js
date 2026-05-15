@@ -17,6 +17,7 @@ function toggleTheme() {
     html.setAttribute('data-theme', next);
     localStorage.setItem('theme', next);
     document.querySelector('.theme-toggle').textContent = next === 'dark' ? '☀️' : '🌙';
+    if (typeof syncThemeNow === 'function') syncThemeNow(next);
     renderWeightChart();
 }
 
@@ -114,8 +115,7 @@ function initWorkoutsChecklist() {
             const currentState = JSON.parse(localStorage.getItem('workout_progress_v3')) || {};
             currentState[id] = cb.checked;
             localStorage.setItem('workout_progress_v3', JSON.stringify(currentState));
-            
-            // שולחים לפונקציית הבדיקה את האלמנט הספציפי שלחצו עליו
+            if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
             checkWorkoutCompletion(e.target);
         });
     });
@@ -180,6 +180,7 @@ function closeCompleteMsg() {
         localStorage.setItem('user_portions_v3', JSON.stringify(userPortions));
         updatePortionProgress(type);
         checkNutritionStreak();
+        if (typeof scheduleSyncNutrition === 'function') scheduleSyncNutrition();
     }
 
     function updatePortionProgress(type) {
@@ -445,16 +446,18 @@ function buildWorkoutAccordions() {
     });
 }
 
-   window.onload = () => {
+   window.onload = async () => {
+    // ממתין לאימות Supabase לפני אתחול האפליקציה
+    if (window._authReady) await window._authReady;
     manageDailyReset();
     updateCounter();
     initWorkoutsFromClient();
     initWorkoutsChecklist();
     initVideos();
     buildWorkoutAccordions();
-    loadPortions(); 
+    loadPortions();
     loadChecklist();
-    generatePortionGoals(); 
+    generatePortionGoals();
     updateGoalRecommendations();
     loadPerfData();
     loadSavedWeight();
@@ -723,9 +726,11 @@ function initFAQ() {
         if (val && !isNaN(val)) {
             el.innerText = val;
             localStorage.setItem('current_weight', val);
+            const _wDate = new Date().toISOString().split('T')[0];
             const weightHistory = JSON.parse(localStorage.getItem('weight_history') || '[]');
-            weightHistory.push({ date: new Date().toISOString().split('T')[0], weight: val });
+            weightHistory.push({ date: _wDate, weight: val });
             localStorage.setItem('weight_history', JSON.stringify(weightHistory));
+            if (typeof syncWeightNow === 'function') syncWeightNow(_wDate, val);
             const allVals = document.querySelectorAll('.weight-val');
             const startWeight = parseFloat(allVals[0].innerText);
             const goalWeight = parseFloat(allVals[2].innerText);
@@ -849,7 +854,14 @@ function loadPerfData() {
                 const finish = () => {
                     const val = input.value.trim();
                     this.textContent = val || '-';
-                    if (val && val !== '-') localStorage.setItem(key, val);
+                    if (val && val !== '-') {
+                        localStorage.setItem(key, val);
+                        // key מורכב מ- perf_EXERCISE_FIELD — מסנכרן לאחר שמירה
+                        const parts = key.split('_'); // ['perf', ex, field...]
+                        if (parts.length >= 3 && typeof syncPerformanceNow === 'function') {
+                            syncPerformanceNow(parts[1]);
+                        }
+                    }
                     loadPerfData();
                 };
                 input.addEventListener('blur', finish);
@@ -1061,6 +1073,7 @@ function editCoachingGoal(el) {
         el.innerText = val;
         localStorage.setItem('coaching_goal', val);
         el.onclick = () => editCoachingGoal(el);
+        if (typeof syncCoachingGoalNow === 'function') syncCoachingGoalNow(val);
     };
     textarea.addEventListener('blur', save);
     textarea.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); textarea.blur(); }});
@@ -1109,6 +1122,7 @@ function completeWorkoutStreak(letter) {
     streak++;
     localStorage.setItem('workout_streak', streak);
     document.getElementById('workout-streak-count').innerText = streak;
+    if (typeof syncStreaksNow === 'function') syncStreaksNow();
 }
 
 function checkNutritionStreak() {
@@ -1134,6 +1148,7 @@ function completeNutritionStreak() {
     streak++;
     localStorage.setItem('nutrition_streak', streak);
     document.getElementById('nutrition-streak-count').innerText = streak;
+    if (typeof syncStreaksNow === 'function') syncStreaksNow();
 }
 
 function updateNutritionStreak() {

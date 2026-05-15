@@ -1,0 +1,386 @@
+// ============================================================
+// supabase-db.js — Supabase client + כל פעולות ה-DB
+// ============================================================
+
+const SUPABASE_URL      = 'https://ebfyrswzqawqznydovbx.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViZnlyc3d6cWF3cXpueWRvdmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NjExMDYsImV4cCI6MjA5NDQzNzEwNn0.jVN2qlhdqHieRgmx5C9EVQxCumidePUwQkqAQV8mhrA';
+
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── מצב session גלובלי ─────────────────────────────────────
+let SB_USER     = null;   // משתמש מחובר
+let SB_VIEW_ID  = null;   // ID הלקוח הנצפה (מנהל יכול לצפות באחר)
+let SB_IS_ADMIN = false;
+
+function getActiveUserId() {
+    return SB_VIEW_ID || (SB_USER && SB_USER.id) || null;
+}
+
+// ── Auth ────────────────────────────────────────────────────
+
+async function sbSignIn(email, password) {
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data;
+}
+
+async function sbSignOut() {
+    const { error } = await db.auth.signOut();
+    if (error) throw error;
+}
+
+async function sbGetSession() {
+    const { data: { session } } = await db.auth.getSession();
+    return session;
+}
+
+// ── Profile ─────────────────────────────────────────────────
+
+async function sbFetchProfile(userId) {
+    const { data, error } = await db
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+}
+
+async function sbUpsertProfile(userId, updates) {
+    const clean = Object.fromEntries(
+        Object.entries(updates).filter(([, v]) => v !== undefined)
+    );
+    const { error } = await db
+        .from('profiles')
+        .upsert({ id: userId, ...clean, updated_at: new Date().toISOString() });
+    if (error) throw error;
+}
+
+// ── תזונה יומית ─────────────────────────────────────────────
+
+async function sbFetchTodayNutrition(userId) {
+    const today = new Date().toISOString().split('T')[0];
+    const { data, error } = await db
+        .from('daily_nutrition')
+        .select('protein, carbs, fat')
+        .eq('user_id', userId)
+        .eq('date', today)
+        .maybeSingle();
+    if (error) throw error;
+    return data;
+}
+
+async function sbSaveNutrition(userId, protein, carbs, fat) {
+    const today = new Date().toISOString().split('T')[0];
+    const { error } = await db.from('daily_nutrition').upsert(
+        { user_id: userId, date: today, protein, carbs, fat, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id,date' }
+    );
+    if (error) throw error;
+}
+
+// ── היסטוריית משקל ──────────────────────────────────────────
+
+async function sbFetchWeightHistory(userId) {
+    const { data, error } = await db
+        .from('weight_history')
+        .select('date, weight')
+        .eq('user_id', userId)
+        .order('date', { ascending: true });
+    if (error) throw error;
+    return data || [];
+}
+
+async function sbSaveWeight(userId, date, weight) {
+    const { error } = await db.from('weight_history').upsert(
+        { user_id: userId, date, weight },
+        { onConflict: 'user_id,date' }
+    );
+    if (error) throw error;
+}
+
+// ── התקדמות אימונים ─────────────────────────────────────────
+
+async function sbFetchTodayWorkout(userId) {
+    const today = new Date().toISOString().split('T')[0];
+    const { data, error } = await db
+        .from('workout_progress')
+        .select('exercises, tasks, exercise_weights')
+        .eq('user_id', userId)
+        .eq('date', today)
+        .maybeSingle();
+    if (error) throw error;
+    return data;
+}
+
+async function sbSaveWorkoutProgress(userId, exercises, tasks, exercise_weights) {
+    const today = new Date().toISOString().split('T')[0];
+    const { error } = await db.from('workout_progress').upsert(
+        { user_id: userId, date: today, exercises, tasks, exercise_weights, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id,date' }
+    );
+    if (error) throw error;
+}
+
+// ── מדדי ביצועים ────────────────────────────────────────────
+
+async function sbFetchPerformance(userId) {
+    const { data, error } = await db
+        .from('performance_metrics')
+        .select('exercise, start_kg, start_reps, current_kg, current_reps')
+        .eq('user_id', userId);
+    if (error) throw error;
+    return data || [];
+}
+
+async function sbSavePerformance(userId, exercise, fields) {
+    const { error } = await db.from('performance_metrics').upsert(
+        { user_id: userId, exercise, ...fields, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id,exercise' }
+    );
+    if (error) throw error;
+}
+
+// ── רצפים ───────────────────────────────────────────────────
+
+async function sbFetchStreaks(userId) {
+    const { data, error } = await db
+        .from('streaks')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+    if (error) throw error;
+    return data;
+}
+
+async function sbSaveStreaks(userId, fields) {
+    const { error } = await db.from('streaks').upsert(
+        { user_id: userId, ...fields, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id' }
+    );
+    if (error) throw error;
+}
+
+// ── Admin: רשימת כל הלקוחות ─────────────────────────────────
+
+async function sbFetchAllClients() {
+    const { data, error } = await db
+        .from('profiles')
+        .select('id, name, nickname, email, is_admin, created_at')
+        .order('created_at', { ascending: true });
+    if (error) throw error;
+    return (data || []).filter(u => !u.is_admin);
+}
+
+// ── טעינת כל נתוני משתמש → localStorage + CLIENT ───────────
+
+async function loadUserIntoApp(userId) {
+    const [profile, todayNutrition, weightHist, todayWorkout, performance, streaks] = await Promise.all([
+        sbFetchProfile(userId),
+        sbFetchTodayNutrition(userId),
+        sbFetchWeightHistory(userId),
+        sbFetchTodayWorkout(userId),
+        sbFetchPerformance(userId),
+        sbFetchStreaks(userId)
+    ]);
+
+    // ── Profile ────────────────────────────────────────────
+    if (profile) {
+        const p = {
+            nickname:      profile.nickname      || '',
+            name:          profile.name          || '',
+            email:         profile.email         || '',
+            currentWeight: profile.current_weight || profile.start_weight || 70,
+            goalWeight:    profile.goal_weight    || 73,
+            startWeight:   profile.start_weight   || 63,
+            height:        profile.height         || 170,
+            birthDate:     profile.birth_date     || '',
+            startDate:     profile.start_date     || '',
+            gender:        profile.gender         || 'male',
+            goal:          profile.goal           || 'bulk',
+            activityLevel: profile.activity_level || 1.465,
+            proteinRatio:  profile.protein_ratio  || 2.0,
+            allergies:     profile.allergies      || '',
+            likedFoods:    profile.liked_foods    || '',
+            dislikedFoods: profile.disliked_foods || '',
+            coachingGoal:  profile.coaching_goal  || '',
+            coachPin:      profile.coach_pin      || '1234',
+        };
+        Object.assign(CLIENT, p);
+        localStorage.setItem('profile_data_v1', JSON.stringify(p));
+        localStorage.setItem('current_weight', String(p.currentWeight));
+
+        if (profile.workout_a  && profile.workout_a.length)  CLIENT.workoutA    = profile.workout_a;
+        if (profile.workout_b  && profile.workout_b.length)  CLIENT.workoutB    = profile.workout_b;
+        if (profile.workout_c  && profile.workout_c.length)  CLIENT.workoutC    = profile.workout_c;
+        if (profile.workout_days)                             CLIENT.workoutDays = profile.workout_days;
+        if (profile.portion_values) {
+            portionValues.protein = profile.portion_values.protein ?? portionValues.protein;
+            portionValues.carbs   = profile.portion_values.carbs   ?? portionValues.carbs;
+            portionValues.fat     = profile.portion_values.fat     ?? portionValues.fat;
+        }
+        if (profile.gemini_api_key) localStorage.setItem('gemini_api_key', profile.gemini_api_key);
+        if (profile.theme)          localStorage.setItem('theme', profile.theme);
+        if (profile.coaching_goal)  localStorage.setItem('coaching_goal', profile.coaching_goal);
+    }
+
+    // ── תזונה יומית ───────────────────────────────────────
+    const portions = todayNutrition
+        ? { protein: todayNutrition.protein || 0, carbs: todayNutrition.carbs || 0, fat: todayNutrition.fat || 0 }
+        : { protein: 0, carbs: 0, fat: 0 };
+    localStorage.setItem('user_portions_v3', JSON.stringify(portions));
+
+    // ── היסטוריית משקל ────────────────────────────────────
+    if (weightHist && weightHist.length) {
+        localStorage.setItem('weight_history', JSON.stringify(weightHist));
+    }
+
+    // ── התקדמות אימון יומי ────────────────────────────────
+    if (todayWorkout) {
+        if (todayWorkout.exercises)        localStorage.setItem('workout_progress_v3', JSON.stringify(todayWorkout.exercises));
+        if (todayWorkout.tasks)            localStorage.setItem('tasks_v3',            JSON.stringify(todayWorkout.tasks));
+        if (todayWorkout.exercise_weights) localStorage.setItem('exercise_weights',    JSON.stringify(todayWorkout.exercise_weights));
+    }
+
+    // ── מדדי ביצועים ──────────────────────────────────────
+    if (performance) {
+        performance.forEach(p => {
+            if (p.start_kg    != null) localStorage.setItem(`perf_${p.exercise}_start_kg`,  String(p.start_kg));
+            if (p.start_reps  != null) localStorage.setItem(`perf_${p.exercise}_start_reps`, String(p.start_reps));
+            if (p.current_kg  != null) localStorage.setItem(`perf_${p.exercise}_cur_kg`,    String(p.current_kg));
+            if (p.current_reps!= null) localStorage.setItem(`perf_${p.exercise}_cur_reps`,  String(p.current_reps));
+        });
+    }
+
+    // ── רצפים ─────────────────────────────────────────────
+    if (streaks) {
+        localStorage.setItem('workout_streak',   String(streaks.workout_streak   || 0));
+        localStorage.setItem('nutrition_streak',  String(streaks.nutrition_streak || 0));
+        if (streaks.workout_completed_date)   localStorage.setItem('workout_completed_date',   streaks.workout_completed_date);
+        if (streaks.nutrition_completed_date) localStorage.setItem('nutrition_completed_date', streaks.nutrition_completed_date);
+    }
+}
+
+// ── Sync helpers (נקראים מ-app.js ו-profile.js) ─────────────
+
+let _nutritionSyncTimer = null;
+function scheduleSyncNutrition() {
+    clearTimeout(_nutritionSyncTimer);
+    _nutritionSyncTimer = setTimeout(async () => {
+        const uid = getActiveUserId();
+        if (!uid) return;
+        try {
+            const p = JSON.parse(localStorage.getItem('user_portions_v3') || '{}');
+            await sbSaveNutrition(uid, p.protein || 0, p.carbs || 0, p.fat || 0);
+        } catch (e) { console.warn('[SB] nutrition sync:', e.message); }
+    }, 1500);
+}
+
+async function syncProfileNow(data) {
+    const uid = getActiveUserId();
+    if (!uid) return;
+    try {
+        await sbUpsertProfile(uid, {
+            nickname:       data.nickname,
+            name:           data.name,
+            email:          data.email,
+            current_weight: data.currentWeight,
+            goal_weight:    data.goalWeight,
+            height:         data.height,
+            birth_date:     data.birthDate  || null,
+            start_date:     data.startDate  || null,
+            gender:         data.gender,
+            goal:           data.goal,
+            activity_level: data.activityLevel,
+            protein_ratio:  data.proteinRatio,
+            allergies:      data.allergies,
+            liked_foods:    data.likedFoods,
+            disliked_foods: data.dislikedFoods,
+            coaching_goal:  data.coachingGoal,
+        });
+    } catch (e) { console.warn('[SB] profile sync:', e.message); }
+}
+
+async function syncWeightNow(date, weight) {
+    const uid = getActiveUserId();
+    if (!uid) return;
+    try { await sbSaveWeight(uid, date, weight); }
+    catch (e) { console.warn('[SB] weight sync:', e.message); }
+}
+
+async function syncStreaksNow() {
+    const uid = getActiveUserId();
+    if (!uid) return;
+    try {
+        await sbSaveStreaks(uid, {
+            workout_streak:           parseInt(localStorage.getItem('workout_streak')   || '0'),
+            nutrition_streak:         parseInt(localStorage.getItem('nutrition_streak') || '0'),
+            workout_completed_date:   localStorage.getItem('workout_completed_date')    || null,
+            nutrition_completed_date: localStorage.getItem('nutrition_completed_date')  || null,
+        });
+    } catch (e) { console.warn('[SB] streaks sync:', e.message); }
+}
+
+let _workoutSyncTimer = null;
+function scheduleSyncWorkoutProgress() {
+    clearTimeout(_workoutSyncTimer);
+    _workoutSyncTimer = setTimeout(async () => {
+        const uid = getActiveUserId();
+        if (!uid) return;
+        try {
+            await sbSaveWorkoutProgress(
+                uid,
+                JSON.parse(localStorage.getItem('workout_progress_v3') || '{}'),
+                JSON.parse(localStorage.getItem('tasks_v3')            || '[]'),
+                JSON.parse(localStorage.getItem('exercise_weights')    || '{}')
+            );
+        } catch (e) { console.warn('[SB] workout sync:', e.message); }
+    }, 1500);
+}
+
+async function syncPerformanceNow(exercise) {
+    const uid = getActiveUserId();
+    if (!uid) return;
+    try {
+        await sbSavePerformance(uid, exercise, {
+            start_kg:     parseFloat(localStorage.getItem(`perf_${exercise}_start_kg`))   || null,
+            start_reps:   parseInt(localStorage.getItem(`perf_${exercise}_start_reps`))   || null,
+            current_kg:   parseFloat(localStorage.getItem(`perf_${exercise}_cur_kg`))     || null,
+            current_reps: parseInt(localStorage.getItem(`perf_${exercise}_cur_reps`))     || null,
+        });
+    } catch (e) { console.warn('[SB] performance sync:', e.message); }
+}
+
+async function syncWorkoutPlanNow() {
+    const uid = getActiveUserId();
+    if (!uid) return;
+    try {
+        await sbUpsertProfile(uid, {
+            workout_a:    CLIENT.workoutA,
+            workout_b:    CLIENT.workoutB,
+            workout_c:    CLIENT.workoutC,
+            workout_days: CLIENT.workoutDays,
+        });
+    } catch (e) { console.warn('[SB] workout plan sync:', e.message); }
+}
+
+async function syncThemeNow(theme) {
+    const uid = getActiveUserId();
+    if (!uid) return;
+    try { await sbUpsertProfile(uid, { theme }); }
+    catch (e) { console.warn('[SB] theme sync:', e.message); }
+}
+
+async function syncCoachingGoalNow(goal) {
+    const uid = getActiveUserId();
+    if (!uid) return;
+    try { await sbUpsertProfile(uid, { coaching_goal: goal }); }
+    catch (e) { console.warn('[SB] coaching goal sync:', e.message); }
+}
+
+async function syncGeminiKeyNow(key) {
+    const uid = getActiveUserId();
+    if (!uid) return;
+    try { await sbUpsertProfile(uid, { gemini_api_key: key }); }
+    catch (e) { console.warn('[SB] gemini key sync:', e.message); }
+}
