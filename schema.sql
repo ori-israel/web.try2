@@ -38,23 +38,21 @@ create table public.profiles (
 
 alter table public.profiles enable row level security;
 
--- משתמש רואה את הפרופיל שלו
-create policy "users_select_own_profile" on public.profiles
-  for select using (auth.uid() = id);
-
-create policy "users_update_own_profile" on public.profiles
-  for update using (auth.uid() = id);
-
--- מאמן (admin) רואה ויכול לערוך את כל הפרופילים
-create policy "admin_select_all_profiles" on public.profiles
-  for select using (
-    exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+-- פונקציית עזר: בדיקת admin ללא לולאה (security definer עוקף RLS)
+create or replace function public.is_admin()
+returns boolean language sql security definer stable as $$
+  select coalesce(
+    (select is_admin from public.profiles where id = auth.uid()),
+    false
   );
+$$;
 
-create policy "admin_update_all_profiles" on public.profiles
-  for update using (
-    exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
-  );
+-- משתמש רואה את שלו; מנהל רואה הכל
+create policy "profiles_select" on public.profiles
+  for select using (auth.uid() = id or public.is_admin());
+
+create policy "profiles_update" on public.profiles
+  for update using (auth.uid() = id or public.is_admin());
 
 -- ── daily_nutrition (מעקב מנות יומי) ───────────────────────
 create table public.daily_nutrition (
@@ -71,13 +69,8 @@ create table public.daily_nutrition (
 
 alter table public.daily_nutrition enable row level security;
 
-create policy "users_all_own_nutrition" on public.daily_nutrition
-  for all using (auth.uid() = user_id);
-
-create policy "admin_select_all_nutrition" on public.daily_nutrition
-  for select using (
-    exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
-  );
+create policy "nutrition_all" on public.daily_nutrition
+  for all using (auth.uid() = user_id or public.is_admin());
 
 -- ── weight_history (היסטוריית משקל) ────────────────────────
 create table public.weight_history (
@@ -91,13 +84,8 @@ create table public.weight_history (
 
 alter table public.weight_history enable row level security;
 
-create policy "users_all_own_weight" on public.weight_history
-  for all using (auth.uid() = user_id);
-
-create policy "admin_select_all_weight" on public.weight_history
-  for select using (
-    exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
-  );
+create policy "weight_all" on public.weight_history
+  for all using (auth.uid() = user_id or public.is_admin());
 
 -- ── workout_progress (התקדמות אימונים יומית) ───────────────
 create table public.workout_progress (
@@ -113,13 +101,8 @@ create table public.workout_progress (
 
 alter table public.workout_progress enable row level security;
 
-create policy "users_all_own_workout" on public.workout_progress
-  for all using (auth.uid() = user_id);
-
-create policy "admin_select_all_workout" on public.workout_progress
-  for select using (
-    exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
-  );
+create policy "workout_all" on public.workout_progress
+  for all using (auth.uid() = user_id or public.is_admin());
 
 -- ── performance_metrics (ביצועים — סקוואט / לחיצה / דדליפט) ─
 create table public.performance_metrics (
@@ -136,13 +119,8 @@ create table public.performance_metrics (
 
 alter table public.performance_metrics enable row level security;
 
-create policy "users_all_own_performance" on public.performance_metrics
-  for all using (auth.uid() = user_id);
-
-create policy "admin_select_all_performance" on public.performance_metrics
-  for select using (
-    exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
-  );
+create policy "performance_all" on public.performance_metrics
+  for all using (auth.uid() = user_id or public.is_admin());
 
 -- ── streaks (רצפים) ─────────────────────────────────────────
 create table public.streaks (
@@ -157,13 +135,8 @@ create table public.streaks (
 
 alter table public.streaks enable row level security;
 
-create policy "users_all_own_streaks" on public.streaks
-  for all using (auth.uid() = user_id);
-
-create policy "admin_select_all_streaks" on public.streaks
-  for select using (
-    exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
-  );
+create policy "streaks_all" on public.streaks
+  for all using (auth.uid() = user_id or public.is_admin());
 
 -- ── Trigger: יצירת פרופיל אוטומטית עם רישום ────────────────
 create or replace function public.handle_new_user()
