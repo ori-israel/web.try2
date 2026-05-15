@@ -259,6 +259,12 @@ async function loadUserIntoApp(userId) {
         if (streaks.workout_completed_date)   localStorage.setItem('workout_completed_date',   streaks.workout_completed_date);
         if (streaks.nutrition_completed_date) localStorage.setItem('nutrition_completed_date', streaks.nutrition_completed_date);
     }
+
+    // ── מונע ש-manageDailyReset יפעיל location.reload() ─────
+    // הפונקציה מחפשת את המפתח הזה; אם הוא חסר היא מרעננת את הדף
+    const _resetTime = new Date();
+    _resetTime.setHours(2, 0, 0, 0);
+    localStorage.setItem('last_reset_v3', _resetTime.toDateString());
 }
 
 // ── Sync helpers (נקראים מ-app.js ו-profile.js) ─────────────
