@@ -187,6 +187,7 @@ function checkWorkoutCompletion(clickedCheckbox) {
     if (checkboxes.length === 0) return;
 
     const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    console.log('allChecked result:', allChecked, Array.from(document.querySelectorAll(`[data-id^="${letter}_"]`)).map(cb => cb.checked));
 
     if (allChecked) {
         const msg = document.getElementById('workout-complete-msg');
