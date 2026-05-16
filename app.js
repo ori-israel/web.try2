@@ -844,6 +844,7 @@ function makeEditable(td) {
 // ── יומן ביצועי אימון ───────────────────────────────────────
 
 let journalSelectedDate = null;
+let journalAutoSaveTimer = null;
 
 // auth.js reinitApp() still calls loadPerfData() — keep as alias so admin view works
 function loadPerfData() { initWorkoutJournal(); }
@@ -895,12 +896,12 @@ async function renderJournalForDate(dateStr) {
 
     let html = `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
-            <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMax ? '.35' : '1'}">←</button>
+            <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMin ? '.35' : '1'}">←</button>
             <div style="text-align:center;flex:1;">
                 <div style="font-size:15px;font-weight:bold;line-height:1.4;color:var(--text-primary);">${journalFormatDate(dateStr)}</div>
                 ${!isToday ? `<button onclick="journalGoToday()" style="margin-top:5px;background:transparent;border:1px solid var(--main-green);color:var(--main-green);border-radius:12px;padding:3px 12px;font-size:12px;cursor:pointer;">חזרה להיום</button>` : ''}
             </div>
-            <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMin ? '.35' : '1'}">→</button>
+            <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMax ? '.35' : '1'}">→</button>
         </div>`;
 
     const workoutLetter = getWorkoutLetterForDate(dateStr);
@@ -929,7 +930,8 @@ async function renderJournalForDate(dateStr) {
         console.error('Journal load error:', err);
     }
 
-    html += `<div style="font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:14px;">אימון ${workoutLetter}</div>`;
+    html += `<div style="font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:4px;">אימון ${workoutLetter}</div>`;
+    html += `<div style="font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:12px;">הזן את המשקל והחזרות של הסט הטוב ביותר שלך בכל תרגיל</div>`;
     html += '<div id="journal-exercises">';
 
     exercises.forEach(ex => {
@@ -960,10 +962,16 @@ async function renderJournalForDate(dateStr) {
     });
 
     html += '</div>';
-    html += `<button onclick="saveJournalEntries('${dateStr}','${workoutLetter}')" style="width:100%;padding:12px;background:var(--main-green);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:4px;">שמור</button>`;
-    html += '<div id="journal-save-msg" style="text-align:center;margin-top:8px;font-size:13px;min-height:20px;"></div>';
+    html += '<div id="journal-save-msg" style="text-align:center;margin-top:8px;font-size:13px;min-height:20px;color:var(--main-green);"></div>';
 
     container.innerHTML = html;
+
+    container.querySelectorAll('.journal-weight-input, .journal-reps-input').forEach(input => {
+        input.addEventListener('input', () => {
+            clearTimeout(journalAutoSaveTimer);
+            journalAutoSaveTimer = setTimeout(() => autoSaveJournalEntries(dateStr, workoutLetter), 1000);
+        });
+    });
 }
 
 function journalPrevDay() {
@@ -990,6 +998,30 @@ function journalNextDay() {
 function journalGoToday() {
     journalSelectedDate = new Date().toISOString().split('T')[0];
     renderJournalForDate(journalSelectedDate);
+}
+
+async function autoSaveJournalEntries(dateStr, workoutLetter) {
+    const userId = getActiveUserId();
+    const entries = [];
+    document.querySelectorAll('.journal-weight-input').forEach(wi => {
+        const exerciseName = wi.dataset.exercise;
+        const ri = document.querySelector(`.journal-reps-input[data-exercise="${CSS.escape(exerciseName)}"]`);
+        const weight = parseFloat(wi.value);
+        const reps = parseInt(ri?.value);
+        if (!isNaN(weight) && weight >= 0 && !isNaN(reps) && reps >= 0) {
+            entries.push({ exercise_name: exerciseName, workout_letter: workoutLetter, weight_kg: weight, reps });
+        }
+    });
+    try {
+        await sbSaveWorkoutPerformanceLog(userId, dateStr, entries);
+        const msg = document.getElementById('journal-save-msg');
+        if (msg) {
+            msg.textContent = 'נשמר ✓';
+            setTimeout(() => { if (msg) msg.textContent = ''; }, 2000);
+        }
+    } catch (err) {
+        console.error('Journal auto-save error:', err);
+    }
 }
 
 async function saveJournalEntries(dateStr, workoutLetter) {
