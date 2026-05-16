@@ -177,28 +177,21 @@ function initWorkoutsChecklist() {
 }
 
 function checkWorkoutCompletion(clickedCheckbox) {
-    // 1. מוצאים את המיכל הספציפי של האימון הנוכחי (A, B או C)
-    // אנחנו מחפשים את ה-div עם הקלאס workout-container
     const workoutContainer = clickedCheckbox.closest('.workout-container');
-    
     if (!workoutContainer) return;
 
-    // 2. מוצאים את כל הצ'קבוקסים אך ורק בתוך האימון הזה
     const checkboxes = workoutContainer.querySelectorAll('.workout-checkbox');
-    
     if (checkboxes.length === 0) return;
 
-    // 3. בודקים האם כל הצ'קבוקסים בתוך האימון הספציפי הזה מסומנים
     const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    console.log('checkWorkoutCompletion called', clickedCheckbox, allChecked);
 
-    // 4. אם כולם מסומנים - מקפיצים את הודעת הסיום
     if (allChecked) {
         const msg = document.getElementById('workout-complete-msg');
         if (msg) {
             msg.style.display = 'block';
-                    const workoutLetter = workoutContainer.id.replace('workout-', '');
-                    completeWorkoutStreak(workoutLetter);
-
+            const workoutLetter = workoutContainer.id.replace('workout-', '');
+            completeWorkoutStreak(workoutLetter);
         }
     }
 }
@@ -459,6 +452,7 @@ function buildWorkoutAccordions() {
             const accordCheckbox = item.querySelector('.accord-checkbox');
             const header = item.querySelector('.workout-accord-header');
             accordCheckbox.addEventListener('change', () => {
+                console.log('accordion change fired', accordCheckbox.checked);
                 checkbox.checked = accordCheckbox.checked;
                 checkbox.dispatchEvent(new Event('change', { bubbles: true }));
                 header.classList.toggle('checked', accordCheckbox.checked);
