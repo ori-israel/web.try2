@@ -180,10 +180,10 @@ function initWorkoutsChecklist() {
 
 function checkWorkoutCompletion(clickedCheckbox) {
     console.log('checkWorkoutCompletion called', clickedCheckbox);
-    const workoutContainer = clickedCheckbox.closest('.workout-container');
-    if (!workoutContainer) return;
-
-    const checkboxes = workoutContainer.querySelectorAll('.workout-checkbox');
+    const id = clickedCheckbox.getAttribute('data-id');
+    if (!id) return;
+    const letter = id.split('_')[0];
+    const checkboxes = document.querySelectorAll(`.workout-checkbox[data-id^="${letter}_"]`);
     if (checkboxes.length === 0) return;
 
     const allChecked = Array.from(checkboxes).every(cb => cb.checked);
@@ -192,8 +192,7 @@ function checkWorkoutCompletion(clickedCheckbox) {
         const msg = document.getElementById('workout-complete-msg');
         if (msg) {
             msg.style.display = 'block';
-            const workoutLetter = workoutContainer.id.replace('workout-', '');
-            completeWorkoutStreak(workoutLetter);
+            completeWorkoutStreak(letter);
         }
     }
 }
@@ -461,7 +460,7 @@ function buildWorkoutAccordions() {
                 localStorage.setItem('workout_progress_v3', JSON.stringify(currentState));
                 if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
                 header.classList.toggle('checked', accordCheckbox.checked);
-                setTimeout(() => checkWorkoutCompletion(checkbox), 0);
+                checkWorkoutCompletion(checkbox);
             });
             header.addEventListener('click', (e) => {
                 if (e.target.classList.contains('accord-checkbox')) return;
