@@ -902,13 +902,13 @@ async function renderJournalForDate(dateStr) {
 
     let html = `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
-            <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMax ? '.35' : '1'}">יום הבא</button>
+            <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMin ? '.35' : '1'}">יום קודם</button>
             <div style="text-align:center;flex:1;position:relative;">
                 <button onclick="toggleJournalCal()" style="font-size:15px;font-weight:bold;color:var(--text-primary);background:transparent;border:none;border-bottom:2px solid #5b7cfa;cursor:pointer;padding:4px 8px;">${journalFormatDate(dateStr)}</button>
                 <div id="journal-calendar" style="display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);z-index:1000;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:12px;min-width:280px;box-shadow:0 4px 20px rgba(0,0,0,0.2);"></div>
                 ${!isToday ? `<button onclick="journalGoToday()" style="background:#5b7cfa;color:#ffffff;border:none;border-radius:20px;padding:8px 20px;font-size:14px;font-weight:bold;cursor:pointer;display:block;margin:6px auto 0;box-shadow:0 2px 6px rgba(0,0,0,0.3);">חזרה להיום</button>` : ''}
             </div>
-            <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMin ? '.35' : '1'}">יום קודם</button>
+            <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMax ? '.35' : '1'}">יום הבא</button>
         </div>`;
 
     const workoutLetter = getWorkoutLetterForDate(dateStr);
@@ -956,13 +956,13 @@ async function renderJournalForDate(dateStr) {
                         <span>משקל (ק"ג):</span>
                         <input type="number" class="journal-weight-input" data-exercise="${ex.name}"
                                value="${saved.weight_kg ?? ''}" min="0" step="0.5"
-                               style="width:80px;padding:8px;border:2px solid #888;border-radius:8px;background:#ffffff;color:#000000;font-size:16px;text-align:center;">
+                               style="width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:16px;text-align:center;">
                     </label>
                     <label style="font-size:13px;display:flex;align-items:center;gap:6px;color:var(--text-primary);">
                         <span>חזרות:</span>
                         <input type="number" class="journal-reps-input" data-exercise="${ex.name}"
                                value="${saved.reps ?? ''}" min="0" step="1"
-                               style="width:80px;padding:8px;border:2px solid #888;border-radius:8px;background:#ffffff;color:#000000;font-size:16px;text-align:center;">
+                               style="width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:16px;text-align:center;">
                     </label>
                 </div>
                 ${lastHtml}
