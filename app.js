@@ -183,7 +183,7 @@ function checkWorkoutCompletion(clickedCheckbox) {
     const id = clickedCheckbox.getAttribute('data-id');
     if (!id) return;
     const letter = id.split('_')[0];
-    const checkboxes = document.querySelectorAll(`.workout-checkbox[data-id^="${letter}_"]`);
+    const checkboxes = document.querySelectorAll(`[data-id^="${letter}_"]`);
     if (checkboxes.length === 0) return;
 
     const allChecked = Array.from(checkboxes).every(cb => cb.checked);
@@ -454,16 +454,15 @@ function buildWorkoutAccordions() {
             const accordCheckbox = item.querySelector('.accord-checkbox');
             const header = item.querySelector('.workout-accord-header');
             accordCheckbox.addEventListener('change', () => {
-                checkbox.checked = accordCheckbox.checked;
-                console.log('set checkbox', checkbox.dataset.id, checkbox.checked);
-                console.log('same element?', checkbox === document.querySelector('[data-id="' + checkbox.dataset.id + '"]'));
                 const id = checkbox.getAttribute('data-id');
+                const freshCb = document.querySelector(`.workout-checkbox[data-id="${id}"]`);
+                if (freshCb) freshCb.checked = accordCheckbox.checked;
                 const currentState = JSON.parse(localStorage.getItem('workout_progress_v3')) || {};
-                currentState[id] = checkbox.checked;
+                currentState[id] = accordCheckbox.checked;
                 localStorage.setItem('workout_progress_v3', JSON.stringify(currentState));
                 if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
                 header.classList.toggle('checked', accordCheckbox.checked);
-                checkWorkoutCompletion(checkbox);
+                checkWorkoutCompletion(freshCb || checkbox);
             });
             header.addEventListener('click', (e) => {
                 if (e.target.classList.contains('accord-checkbox')) return;
