@@ -896,12 +896,14 @@ async function renderJournalForDate(dateStr) {
 
     let html = `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
-            <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMax ? '.35' : '1'}">יום הבא →</button>
+            <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMax ? '.35' : '1'}">יום הבא</button>
             <div style="text-align:center;flex:1;">
-                <div style="font-size:15px;font-weight:bold;line-height:1.4;color:var(--text-primary);">${journalFormatDate(dateStr)}</div>
+                <input type="date" value="${dateStr}" min="${startDate}" max="${maxDate}"
+                       onchange="journalSelectedDate=this.value;renderJournalForDate(this.value)"
+                       style="font-size:15px;font-weight:bold;color:var(--text-primary);background:transparent;border:none;border-bottom:2px solid #5b7cfa;cursor:pointer;text-align:center;padding:4px 8px;direction:ltr;">
                 ${!isToday ? `<button onclick="journalGoToday()" style="background:#5b7cfa;color:#ffffff;border:none;border-radius:20px;padding:8px 20px;font-size:14px;font-weight:bold;cursor:pointer;display:block;margin:6px auto 0;box-shadow:0 2px 6px rgba(0,0,0,0.3);">חזרה להיום</button>` : ''}
             </div>
-            <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMin ? '.35' : '1'}">← יום קודם</button>
+            <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMin ? '.35' : '1'}">יום קודם</button>
         </div>`;
 
     const workoutLetter = getWorkoutLetterForDate(dateStr);
