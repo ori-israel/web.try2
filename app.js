@@ -892,16 +892,16 @@ async function renderJournalForDate(dateStr) {
     const atMin = dateStr <= startDate;
     const atMax = dateStr >= maxDate;
 
-    const navBtnStyle = 'background:#5b7cfa;color:#ffffff;border:none;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
+    const navBtnStyle = 'background:#5b7cfa;color:#ffffff;border:none;border-radius:20px;padding:8px 14px;font-size:13px;font-weight:bold;cursor:pointer;';
 
     let html = `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
-            <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMax ? '.35' : '1'}">→</button>
+            <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMax ? '.35' : '1'}">יום הבא →</button>
             <div style="text-align:center;flex:1;">
                 <div style="font-size:15px;font-weight:bold;line-height:1.4;color:var(--text-primary);">${journalFormatDate(dateStr)}</div>
-                ${!isToday ? `<button onclick="journalGoToday()" style="background:#2d7a3a;color:#ffffff;border:none;border-radius:20px;padding:8px 20px;font-size:14px;font-weight:bold;cursor:pointer;display:block;margin:6px auto 0;box-shadow:0 2px 6px rgba(0,0,0,0.3);">חזרה להיום</button>` : ''}
+                ${!isToday ? `<button onclick="journalGoToday()" style="background:#5b7cfa;color:#ffffff;border:none;border-radius:20px;padding:8px 20px;font-size:14px;font-weight:bold;cursor:pointer;display:block;margin:6px auto 0;box-shadow:0 2px 6px rgba(0,0,0,0.3);">חזרה להיום</button>` : ''}
             </div>
-            <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMin ? '.35' : '1'}">←</button>
+            <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMin ? '.35' : '1'}">← יום קודם</button>
         </div>`;
 
     const workoutLetter = getWorkoutLetterForDate(dateStr);
