@@ -11,7 +11,7 @@
     --text-primary: #1a1a2e;
     --text-secondary: #6b7280;
     --text-muted: #9ca3af;
-    --border: #e5e7eb;
+    --border: #d1d5db;
     --border-light: #f1f3f5;
     --accent: #3b82f6;
     --accent-dark: #2563eb;
@@ -31,7 +31,7 @@
     --portion-border: var(--border);
     --tag-bg: rgba(59, 130, 246, 0.08);
     --tag-text: var(--accent);
-    --input-bg: #f8f9fb;
+    --input-bg: #f0f2f5;
     --input-border: #e5e7eb;
     --streak-bg: rgba(59, 130, 246, 0.06);
     --streak-border: var(--accent);
