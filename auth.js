@@ -291,7 +291,7 @@ function _rerenderWorkoutSections() {
     });
 }
 
-function _weRowHtml(letter, i, name = '', reps = '10-15', warmupSets = 0, workSets = 3) {
+function _weRowHtml(letter, i, name = '', reps = '10-15', warmupSets = 1, workSets = 2) {
     return `
         <div class="we-row">
             <input class="we-input we-col-name" type="text" value="${name}" placeholder="שם תרגיל" data-field="name" data-workout="${letter}" data-idx="${i}">

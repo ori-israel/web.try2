@@ -923,22 +923,23 @@ function initWorkoutsFromClient() {
     const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
     const selector = document.getElementById('workout-selector');
     selector.innerHTML = '';
-    
-    letters.forEach((letter, index) => {
+
+    const dayNames = ['יום ראשון', 'יום שני', 'יום שלישי', 'יום רביעי', 'יום חמישי', 'יום שישי', 'יום שבת'];
+    let firstLetter = null;
+
+    letters.forEach(letter => {
         const workout = CLIENT['workout' + letter];
-        if (!workout) return;
-        
-        // בניית כפתור
+        if (!workout || !workout.length) return;
+
+        if (!firstLetter) firstLetter = letter;
+
         const btn = document.createElement('button');
-        btn.className = 'workout-nav-btn' + (index === 0 ? ' active' : '');
-        const dayNames = ['יום ראשון', 'יום שני', 'יום שלישי', 'יום רביעי', 'יום חמישי', 'יום שישי', 'יום שבת'];
+        btn.className = 'workout-nav-btn';
         const days = CLIENT.workoutDays?.[letter];
-        const dayText = days ? ' | ' + days.map(d => dayNames[d]).join(' + ') : '';
-        btn.innerText = days ? days.map(d => dayNames[d]).join(' + ') : 'אימון ' + letter;
+        btn.innerText = days && days.length ? days.map(d => dayNames[d]).join(' + ') : 'אימון ' + letter;
         btn.setAttribute('onclick', `showWorkout('${letter}')`);
         selector.appendChild(btn);
-        
-        // בניית טבלה
+
         const container = document.getElementById('workout-' + letter);
         if (!container) return;
         const tbody = container.querySelector('tbody');
@@ -949,17 +950,18 @@ function initWorkoutsFromClient() {
                 <tr>
                     <td><input type="checkbox" class="workout-checkbox" data-id="${letter}_${i}"></td>
                     <td>${ex.name}</td>
-                    <td>1</td>
-                    <td>2</td>
+                    <td>${ex.warmupSets ?? 1}</td>
+                    <td>${ex.workSets ?? 2}</td>
                     <td>${ex.reps}</td>
                     <td></td>
                     <td class="video-cell"></td>
                 </tr>`;
         });
-        
-        // הסתרת containers שאין להם workout
-        container.style.display = index === 0 ? 'block' : 'none';
+
+        container.style.display = 'none';
     });
+
+    if (firstLetter) showWorkout(firstLetter);
 }
 
 function showWeightUpdateToast() {
