@@ -292,6 +292,7 @@ async function syncProfileNow(data) {
             name:           data.name,
             email:          data.email,
             current_weight: data.currentWeight,
+            start_weight:   data.startWeight,
             goal_weight:    data.goalWeight,
             height:         data.height,
             birth_date:     data.birthDate  || null,

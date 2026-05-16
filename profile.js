@@ -10,7 +10,7 @@ let isCoachUnlocked = false;
     const saved = JSON.parse(localStorage.getItem('profile_data_v1'));
     if (!saved) return;
     const fields = [
-        'nickname', 'email', 'currentWeight', 'goalWeight', 'activityLevel',
+        'nickname', 'email', 'currentWeight', 'startWeight', 'goalWeight', 'activityLevel',
         'allergies', 'likedFoods', 'dislikedFoods', 'birthDate',
         'name', 'startDate', 'height', 'gender', 'goal'
     ];
@@ -60,6 +60,7 @@ function populateProfileForm() {
     document.getElementById('prof-disliked-foods').value = CLIENT.dislikedFoods  || '';
 
     document.getElementById('prof-name').value          = CLIENT.name           || '';
+    document.getElementById('prof-start-weight').value = CLIENT.startWeight    || '';
     document.getElementById('prof-goal-weight').value  = CLIENT.goalWeight     || '';
     document.getElementById('prof-birth-date').value   = CLIENT.birthDate      || '';
     document.getElementById('prof-start-date').value   = CLIENT.startDate      || '';
@@ -130,6 +131,7 @@ function saveProfile() {
     if (isCoachUnlocked) {
         Object.assign(data, {
             name:        document.getElementById('prof-name').value,
+            startWeight: parseFloat(document.getElementById('prof-start-weight').value) || CLIENT.startWeight,
             goalWeight:  parseFloat(document.getElementById('prof-goal-weight').value) || CLIENT.goalWeight,
             birthDate:   document.getElementById('prof-birth-date').value,
             startDate:   document.getElementById('prof-start-date').value,
