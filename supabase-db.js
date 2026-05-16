@@ -225,7 +225,6 @@ async function loadUserIntoApp(userId) {
             portionValues.carbs   = profile.portion_values.carbs   ?? portionValues.carbs;
             portionValues.fat     = profile.portion_values.fat     ?? portionValues.fat;
         }
-        if (profile.gemini_api_key) localStorage.setItem('gemini_api_key', profile.gemini_api_key);
         if (profile.theme)          localStorage.setItem('theme', profile.theme);
         if (profile.coaching_goal)  localStorage.setItem('coaching_goal', profile.coaching_goal);
     }

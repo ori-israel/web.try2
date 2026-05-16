@@ -1387,31 +1387,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function getGeminiKey() {
-    return localStorage.getItem('gemini_api_key') || '';
-}
-
-async function promptGeminiKey() {
-    const key = await showPrompt('הכנס מפתח Gemini API:');
-    if (key && key.trim()) {
-        localStorage.setItem('gemini_api_key', key.trim());
-        return key.trim();
-    }
-    return null;
-}
-
 async function analyzeFood(base64, mimeType, correction) {
-    const apiKey = getGeminiKey() || await promptGeminiKey();
-    if (!apiKey) {
-        document.getElementById('scanner-loading').classList.add('hidden');
-        document.getElementById('scanner-step-1').classList.add('hidden');
-        document.getElementById('scanner-step-2').classList.remove('hidden');
-        document.getElementById('scan-food-name').textContent = '⚠️ נדרש מפתח API';
-        document.getElementById('scan-portions').innerHTML = '';
-        scannedPortions = { protein: 0, fat: 0, carbs: 0 };
-        return;
-    }
-
     document.getElementById('scanner-step-2').classList.add('hidden');
     document.getElementById('scanner-loading').classList.remove('hidden');
 
@@ -1422,26 +1398,23 @@ async function analyzeFood(base64, mimeType, correction) {
 כאשר X הוא מספר גרמים (מספר עשרוני מותר). items הוא רשימת כל המאכלים שזוהו בתמונה עם כמותם בגרמים.`;
 
     try {
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+        const response = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'gemini-2.5-flash-lite',
+                payload: {
                     contents: [{
                         parts: [
                             { text: prompt },
                             { inline_data: { mime_type: mimeType, data: base64 } }
                         ]
                     }]
-                })
-            }
-        );
+                }
+            })
+        });
         const data = await response.json();
-        if (data.error?.code === 400 || data.error?.code === 403) {
-            localStorage.removeItem('gemini_api_key');
-            throw new Error('invalid key');
-        }
+        if (!response.ok) throw new Error(data.error || 'gemini error');
         const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
         const jsonMatch = rawText.match(/\{[\s\S]*\}/);
         if (!jsonMatch) throw new Error('no JSON');
