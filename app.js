@@ -454,6 +454,7 @@ function buildWorkoutAccordions() {
             const header = item.querySelector('.workout-accord-header');
             accordCheckbox.addEventListener('change', () => {
                 checkbox.checked = accordCheckbox.checked;
+                console.log('set checkbox', checkbox.dataset.id, checkbox.checked);
                 const id = checkbox.getAttribute('data-id');
                 const currentState = JSON.parse(localStorage.getItem('workout_progress_v3')) || {};
                 currentState[id] = checkbox.checked;
