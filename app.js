@@ -508,7 +508,6 @@ function buildWorkoutAccordions() {
     manageDailyReset();
     updateCounter();
     initWorkoutsFromClient();
-    initWorkoutsChecklist();
     initVideos();
     buildWorkoutAccordions();
     loadPortions();
@@ -738,9 +737,8 @@ function initFAQ() {
 
 // הפעלה בטעינת הדף
     document.addEventListener('DOMContentLoaded', () => {
-        initFAQ();               
-        initVideos();            
-        initWorkoutsChecklist(); 
+        initFAQ();
+        initVideos();
         manageDailyReset();      
         showWorkout('A'); 
 
@@ -1018,6 +1016,7 @@ function initWorkoutsFromClient() {
     });
 
     if (firstLetter) showWorkout(firstLetter);
+    initWorkoutsChecklist();
 }
 
 function showWeightUpdateToast() {
