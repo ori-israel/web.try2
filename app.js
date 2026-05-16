@@ -1417,10 +1417,14 @@ async function analyzeFood(base64, mimeType, correction) {
     mimeType = compressed.mimeType;
 
     const correctionNote = correction ? `שים לב: ${correction}. ` : '';
-    const prompt = `${correctionNote}זהה את האוכל בתמונה והעריך את כמות הגרמים של כל רכיב תזונתי.
-החזר JSON בלבד, ללא טקסט נוסף, בפורמט הזה בדיוק:
-{"food": "שם האוכל הכולל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם מאכל", "grams": X}, ...]}
-כאשר X הוא מספר גרמים (מספר עשרוני מותר). items הוא רשימת כל המאכלים שזוהו בתמונה עם כמותם בגרמים.`;
+    const prompt = `${correctionNote}זהה את האוכל בתמונה והעריך כמויות בגרמים בצורה מדויקת ככל האפשר.
+הנחיות:
+- העריך לפי גודל המנה הנראה בתמונה ביחס לצלחת/כלי
+- השתמש בערכי מאגר USDA לחישוב מאקרו לפי גרמים
+- אם לא ניתן לזהות בוודאות — העריך טווח ובחר את האמצע
+- items חייב לכלול כל רכיב בנפרד (לדוגמה: אורז, חזה עוף, שמן)
+החזר JSON בלבד, ללא טקסט נוסף:
+{"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם מאכל", "grams": X}, ...]}`;
 
     try {
         const response = await fetch('/api/gemini', {
