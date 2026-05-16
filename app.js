@@ -993,6 +993,8 @@ function initJournalCal(selectedDate, startDate, maxDate) {
     journalCalViewYear = d.getFullYear();
     journalCalViewMonth = d.getMonth();
     renderJournalCalGrid(selectedDate);
+    const calEl = document.getElementById('journal-calendar');
+    if (calEl) calEl.addEventListener('click', e => e.stopPropagation());
     if (journalCalOutsideHandler) document.removeEventListener('click', journalCalOutsideHandler);
     journalCalOutsideHandler = (e) => {
         const cal = document.getElementById('journal-calendar');
@@ -1028,9 +1030,9 @@ function renderJournalCalGrid(selectedDate) {
     const navStyle = 'background:#5b7cfa;color:#ffffff;border:none;border-radius:8px;padding:4px 10px;font-size:14px;font-weight:bold;cursor:pointer;';
     const disStyle = navStyle + 'opacity:0.35;cursor:default;';
     let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <button onclick="journalCalNextMonth('${selectedDate}')" style="${canNext ? navStyle : disStyle}" ${canNext ? '' : 'disabled'}>›</button>
-        <span style="font-weight:bold;font-size:14px;color:var(--text-primary);">${monthNames[month]} ${year}</span>
         <button onclick="journalCalPrevMonth('${selectedDate}')" style="${canPrev ? navStyle : disStyle}" ${canPrev ? '' : 'disabled'}>‹</button>
+        <span style="font-weight:bold;font-size:14px;color:var(--text-primary);">${monthNames[month]} ${year}</span>
+        <button onclick="journalCalNextMonth('${selectedDate}')" style="${canNext ? navStyle : disStyle}" ${canNext ? '' : 'disabled'}>›</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
         ${dayNames.map(d => `<div style="text-align:center;font-size:12px;font-weight:bold;color:var(--text-secondary);padding:3px 0;">${d}</div>`).join('')}
