@@ -166,6 +166,7 @@ function initWorkoutsChecklist() {
     });
 
     document.addEventListener('change', (e) => {
+        console.log('document change event target:', e.target, e.target.className);
         if (!e.target.classList.contains('workout-checkbox')) return;
         const cb = e.target;
         const id = cb.getAttribute('data-id');
