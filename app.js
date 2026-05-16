@@ -1045,12 +1045,13 @@ function renderJournalCalGrid(selectedDate) {
         const disabled = ds < journalCalStart || ds > journalCalMax;
         const isSelected = ds === selectedDate;
         const isToday = ds === today;
-        let bg = 'transparent', color = 'var(--text-primary)', cursor = 'pointer';
-        if (isSelected) { bg = 'var(--main-green)'; color = '#ffffff'; }
+        let bg = 'transparent', color = 'var(--text-primary)', cursor = 'pointer', border = 'none';
+        if (isToday && isSelected) { bg = '#5b7cfa'; color = '#ffffff'; border = '2px solid var(--main-green)'; }
+        else if (isSelected) { bg = 'var(--main-green)'; color = '#ffffff'; }
         else if (isToday) { bg = '#5b7cfa'; color = '#ffffff'; }
         if (disabled) { color = 'var(--text-secondary)'; cursor = 'default'; }
         html += `<div onclick="${disabled ? '' : `journalCalSelect('${ds}')`}"
-            style="text-align:center;padding:5px 2px;border-radius:6px;font-size:13px;background:${bg};color:${color};cursor:${cursor};opacity:${disabled ? '0.35' : '1'};">${day}</div>`;
+            style="text-align:center;padding:5px 2px;border-radius:6px;font-size:13px;background:${bg};color:${color};cursor:${cursor};opacity:${disabled ? '0.35' : '1'};border:${border};box-sizing:border-box;">${day}</div>`;
     }
     html += '</div>';
     cal.innerHTML = html;
