@@ -1041,32 +1041,16 @@ function showWeightUpdateToast() {
     setTimeout(() => toast.remove(), 3000);
 }
 
-function editCoachingGoal(el) {
-    if (el.querySelector('textarea')) return;
-    const current = el.innerText;
-    const textarea = document.createElement('textarea');
-    textarea.value = current;
-    textarea.style.cssText = 'width:100%; padding:8px; border:1px solid var(--main-green); border-radius:8px; font-size:16px; font-family:inherit; resize:vertical;';
-    el.innerText = '';
-    el.appendChild(textarea);
-    textarea.focus();
-    textarea.select();
-    const save = () => {
-        const val = textarea.value.trim() || current;
-        el.innerText = val;
-        localStorage.setItem('coaching_goal', val);
-        el.onclick = () => editCoachingGoal(el);
-        if (typeof syncCoachingGoalNow === 'function') syncCoachingGoalNow(val);
-    };
-    textarea.addEventListener('blur', save);
-    textarea.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); textarea.blur(); }});
-}
-
 function loadCoachingGoal() {
     const el = document.getElementById('coaching-goal-display');
     if (!el) return;
     const saved = localStorage.getItem('coaching_goal');
-    el.innerText = saved || CLIENT.coachingGoal;
+    el.value = saved || CLIENT.coachingGoal || '';
+    el.addEventListener('input', () => {
+        const val = el.value.trim();
+        localStorage.setItem('coaching_goal', val);
+        if (typeof syncCoachingGoalNow === 'function') syncCoachingGoalNow(val);
+    });
 }
 
 function updateWorkoutStreak() {
