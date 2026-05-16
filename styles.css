@@ -2234,8 +2234,14 @@ input[type="checkbox"] { accent-color: var(--accent); }
 }
 .we-row { margin-bottom: 6px; }
 .we-col-name { flex: 1 1 0; min-width: 0; }
-.we-col-reps { flex: 0 0 72px; width: 72px; }
+.we-col-sets { flex: 0 0 44px; width: 44px; text-align: center; }
+.we-col-reps { flex: 0 0 64px; width: 64px; }
 .we-col-del  { flex: 0 0 32px; width: 32px; }
+.we-sets { padding: 7px 4px; text-align: center; }
+/* hide browser spin arrows on sets inputs */
+.we-sets::-webkit-inner-spin-button,
+.we-sets::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.we-sets { -moz-appearance: textfield; }
 .we-input {
     width: 100%;
     padding: 7px 10px;

@@ -276,11 +276,13 @@ function _rerenderWorkoutSections() {
             <div class="we-list">
                 <div class="we-header-row">
                     <span class="we-col-name">שם תרגיל</span>
+                    <span class="we-col-sets">ח׳</span>
+                    <span class="we-col-sets">ע׳</span>
                     <span class="we-col-reps">חזרות</span>
                     <span class="we-col-del"></span>
                 </div>
                 <div id="we-body-${letter}">
-                    ${workout.map((ex, i) => _weRowHtml(letter, i, ex.name, ex.reps)).join('')}
+                    ${workout.map((ex, i) => _weRowHtml(letter, i, ex.name, ex.reps, ex.warmupSets, ex.workSets)).join('')}
                 </div>
             </div>
             <button class="we-add-btn" onclick="weAddRow('${letter}')">+ הוסף תרגיל</button>
@@ -289,10 +291,12 @@ function _rerenderWorkoutSections() {
     });
 }
 
-function _weRowHtml(letter, i, name = '', reps = '10-15') {
+function _weRowHtml(letter, i, name = '', reps = '10-15', warmupSets = 0, workSets = 3) {
     return `
         <div class="we-row">
             <input class="we-input we-col-name" type="text" value="${name}" placeholder="שם תרגיל" data-field="name" data-workout="${letter}" data-idx="${i}">
+            <input class="we-input we-sets we-col-sets" type="number" min="0" max="9" value="${warmupSets}" data-field="warmupSets" data-workout="${letter}" data-idx="${i}">
+            <input class="we-input we-sets we-col-sets" type="number" min="0" max="9" value="${workSets}" data-field="workSets" data-workout="${letter}" data-idx="${i}">
             <input class="we-input we-reps we-col-reps" type="text" value="${reps}" placeholder="10-15" data-field="reps" data-workout="${letter}" data-idx="${i}">
             <button class="we-del-btn we-col-del" onclick="weDeleteRow('${letter}', this)">✕</button>
         </div>`;
@@ -320,10 +324,17 @@ async function saveWorkoutPlan() {
             const tbody     = document.getElementById(`we-body-${letter}`);
             const exercises = [];
             tbody.querySelectorAll('.we-row').forEach(row => {
-                const nameEl = row.querySelector('[data-field="name"]');
-                const repsEl = row.querySelector('[data-field="reps"]');
+                const nameEl      = row.querySelector('[data-field="name"]');
+                const repsEl      = row.querySelector('[data-field="reps"]');
+                const warmupEl    = row.querySelector('[data-field="warmupSets"]');
+                const workEl      = row.querySelector('[data-field="workSets"]');
                 if (nameEl?.value.trim()) {
-                    exercises.push({ name: nameEl.value.trim(), reps: repsEl?.value.trim() || '10-15' });
+                    exercises.push({
+                        name:       nameEl.value.trim(),
+                        reps:       repsEl?.value.trim() || '10-15',
+                        warmupSets: parseInt(warmupEl?.value) || 0,
+                        workSets:   parseInt(workEl?.value)   || 3,
+                    });
                 }
             });
             CLIENT['workout' + letter] = exercises;
