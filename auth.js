@@ -273,12 +273,16 @@ function _rerenderWorkoutSections() {
                     `).join('')}
                 </div>
             </div>
-            <table class="we-table">
-                <thead><tr><th>שם תרגיל</th><th>חזרות</th><th></th></tr></thead>
-                <tbody id="we-body-${letter}">
+            <div class="we-list">
+                <div class="we-header-row">
+                    <span class="we-col-name">שם תרגיל</span>
+                    <span class="we-col-reps">חזרות</span>
+                    <span class="we-col-del"></span>
+                </div>
+                <div id="we-body-${letter}">
                     ${workout.map((ex, i) => _weRowHtml(letter, i, ex.name, ex.reps)).join('')}
-                </tbody>
-            </table>
+                </div>
+            </div>
             <button class="we-add-btn" onclick="weAddRow('${letter}')">+ הוסף תרגיל</button>
         `;
         sectionsEl.appendChild(section);
@@ -287,21 +291,21 @@ function _rerenderWorkoutSections() {
 
 function _weRowHtml(letter, i, name = '', reps = '10-15') {
     return `
-        <tr>
-            <td><input class="we-input" type="text" value="${name}" placeholder="שם תרגיל" data-field="name" data-workout="${letter}" data-idx="${i}"></td>
-            <td><input class="we-input we-reps" type="text" value="${reps}" placeholder="10-15" data-field="reps" data-workout="${letter}" data-idx="${i}"></td>
-            <td><button class="we-del-btn" onclick="weDeleteRow('${letter}', this)">✕</button></td>
-        </tr>`;
+        <div class="we-row">
+            <input class="we-input we-col-name" type="text" value="${name}" placeholder="שם תרגיל" data-field="name" data-workout="${letter}" data-idx="${i}">
+            <input class="we-input we-reps we-col-reps" type="text" value="${reps}" placeholder="10-15" data-field="reps" data-workout="${letter}" data-idx="${i}">
+            <button class="we-del-btn we-col-del" onclick="weDeleteRow('${letter}', this)">✕</button>
+        </div>`;
 }
 
 function weAddRow(letter) {
-    const tbody = document.getElementById(`we-body-${letter}`);
-    const i     = tbody.querySelectorAll('tr').length;
-    tbody.insertAdjacentHTML('beforeend', _weRowHtml(letter, i));
+    const body = document.getElementById(`we-body-${letter}`);
+    const i    = body.querySelectorAll('.we-row').length;
+    body.insertAdjacentHTML('beforeend', _weRowHtml(letter, i));
 }
 
 function weDeleteRow(letter, btn) {
-    btn.closest('tr').remove();
+    btn.closest('.we-row').remove();
 }
 
 async function saveWorkoutPlan() {
@@ -315,7 +319,7 @@ async function saveWorkoutPlan() {
         _weLetters().forEach(letter => {
             const tbody     = document.getElementById(`we-body-${letter}`);
             const exercises = [];
-            tbody.querySelectorAll('tr').forEach(row => {
+            tbody.querySelectorAll('.we-row').forEach(row => {
                 const nameEl = row.querySelector('[data-field="name"]');
                 const repsEl = row.querySelector('[data-field="reps"]');
                 if (nameEl?.value.trim()) {
