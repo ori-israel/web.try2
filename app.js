@@ -845,6 +845,12 @@ function makeEditable(td) {
 
 let journalSelectedDate = null;
 let journalAutoSaveTimer = null;
+let journalCalOpen = false;
+let journalCalViewYear = null;
+let journalCalViewMonth = null;
+let journalCalStart = null;
+let journalCalMax = null;
+let journalCalOutsideHandler = null;
 
 // auth.js reinitApp() still calls loadPerfData() — keep as alias so admin view works
 function loadPerfData() { initWorkoutJournal(); }
@@ -897,10 +903,9 @@ async function renderJournalForDate(dateStr) {
     let html = `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
             <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMax ? '.35' : '1'}">יום הבא</button>
-            <div style="text-align:center;flex:1;">
-                <input type="date" value="${dateStr}" min="${startDate}" max="${maxDate}"
-                       onchange="journalSelectedDate=this.value;renderJournalForDate(this.value)"
-                       style="font-size:15px;font-weight:bold;color:var(--text-primary);background:transparent;border:none;border-bottom:2px solid #5b7cfa;cursor:pointer;text-align:center;padding:4px 8px;direction:ltr;">
+            <div style="text-align:center;flex:1;position:relative;">
+                <button onclick="toggleJournalCal()" style="font-size:15px;font-weight:bold;color:var(--text-primary);background:transparent;border:none;border-bottom:2px solid #5b7cfa;cursor:pointer;padding:4px 8px;">${journalFormatDate(dateStr)}</button>
+                <div id="journal-calendar" style="display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);z-index:1000;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:12px;min-width:280px;box-shadow:0 4px 20px rgba(0,0,0,0.2);"></div>
                 ${!isToday ? `<button onclick="journalGoToday()" style="background:#5b7cfa;color:#ffffff;border:none;border-radius:20px;padding:8px 20px;font-size:14px;font-weight:bold;cursor:pointer;display:block;margin:6px auto 0;box-shadow:0 2px 6px rgba(0,0,0,0.3);">חזרה להיום</button>` : ''}
             </div>
             <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMin ? '.35' : '1'}">יום קודם</button>
@@ -911,6 +916,7 @@ async function renderJournalForDate(dateStr) {
 
     if (!workoutLetter || !exercises.length) {
         container.innerHTML = html + '<div style="text-align:center;padding:18px 0;color:var(--text-secondary);font-size:15px;">אין אימון מתוכנן היום</div>';
+        initJournalCal(dateStr, startDate, maxDate);
         return;
     }
 
@@ -974,6 +980,98 @@ async function renderJournalForDate(dateStr) {
             journalAutoSaveTimer = setTimeout(() => autoSaveJournalEntries(dateStr, workoutLetter), 1000);
         });
     });
+    initJournalCal(dateStr, startDate, maxDate);
+}
+
+// ── Calendar picker ──────────────────────────────────────────
+
+function initJournalCal(selectedDate, startDate, maxDate) {
+    journalCalStart = startDate;
+    journalCalMax = maxDate;
+    journalCalOpen = false;
+    const d = new Date(selectedDate + 'T12:00:00');
+    journalCalViewYear = d.getFullYear();
+    journalCalViewMonth = d.getMonth();
+    renderJournalCalGrid(selectedDate);
+    if (journalCalOutsideHandler) document.removeEventListener('click', journalCalOutsideHandler);
+    journalCalOutsideHandler = (e) => {
+        const cal = document.getElementById('journal-calendar');
+        const btn = cal && cal.previousElementSibling;
+        if (cal && !cal.contains(e.target) && e.target !== btn) {
+            cal.style.display = 'none';
+            journalCalOpen = false;
+        }
+    };
+    document.addEventListener('click', journalCalOutsideHandler);
+}
+
+function toggleJournalCal() {
+    const cal = document.getElementById('journal-calendar');
+    if (!cal) return;
+    journalCalOpen = !journalCalOpen;
+    cal.style.display = journalCalOpen ? 'block' : 'none';
+}
+
+function renderJournalCalGrid(selectedDate) {
+    const cal = document.getElementById('journal-calendar');
+    if (!cal) return;
+    const year = journalCalViewYear;
+    const month = journalCalViewMonth;
+    const today = new Date().toISOString().split('T')[0];
+    const monthNames = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+    const dayNames = ['א','ב','ג','ד','ה','ו','ש'];
+    const firstOfMonth = `${year}-${String(month+1).padStart(2,'0')}-01`;
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const lastOfMonth = `${year}-${String(month+1).padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}`;
+    const canPrev = firstOfMonth > journalCalStart;
+    const canNext = lastOfMonth < journalCalMax;
+    const navStyle = 'background:#5b7cfa;color:#ffffff;border:none;border-radius:8px;padding:4px 10px;font-size:14px;font-weight:bold;cursor:pointer;';
+    const disStyle = navStyle + 'opacity:0.35;cursor:default;';
+    let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <button onclick="journalCalNextMonth('${selectedDate}')" style="${canNext ? navStyle : disStyle}" ${canNext ? '' : 'disabled'}>›</button>
+        <span style="font-weight:bold;font-size:14px;color:var(--text-primary);">${monthNames[month]} ${year}</span>
+        <button onclick="journalCalPrevMonth('${selectedDate}')" style="${canPrev ? navStyle : disStyle}" ${canPrev ? '' : 'disabled'}>‹</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
+        ${dayNames.map(d => `<div style="text-align:center;font-size:12px;font-weight:bold;color:var(--text-secondary);padding:3px 0;">${d}</div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">`;
+    const firstDayOfWeek = new Date(year, month, 1).getDay();
+    for (let i = 0; i < firstDayOfWeek; i++) html += '<div></div>';
+    for (let day = 1; day <= daysInMonth; day++) {
+        const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const disabled = ds < journalCalStart || ds > journalCalMax;
+        const isSelected = ds === selectedDate;
+        const isToday = ds === today;
+        let bg = 'transparent', color = 'var(--text-primary)', cursor = 'pointer';
+        if (isSelected) { bg = 'var(--main-green)'; color = '#ffffff'; }
+        else if (isToday) { bg = '#5b7cfa'; color = '#ffffff'; }
+        if (disabled) { color = 'var(--text-secondary)'; cursor = 'default'; }
+        html += `<div onclick="${disabled ? '' : `journalCalSelect('${ds}')`}"
+            style="text-align:center;padding:5px 2px;border-radius:6px;font-size:13px;background:${bg};color:${color};cursor:${cursor};opacity:${disabled ? '0.35' : '1'};">${day}</div>`;
+    }
+    html += '</div>';
+    cal.innerHTML = html;
+}
+
+function journalCalPrevMonth(selectedDate) {
+    if (journalCalViewMonth === 0) { journalCalViewMonth = 11; journalCalViewYear--; }
+    else journalCalViewMonth--;
+    renderJournalCalGrid(selectedDate);
+}
+
+function journalCalNextMonth(selectedDate) {
+    if (journalCalViewMonth === 11) { journalCalViewMonth = 0; journalCalViewYear++; }
+    else journalCalViewMonth++;
+    renderJournalCalGrid(selectedDate);
+}
+
+function journalCalSelect(dateStr) {
+    const cal = document.getElementById('journal-calendar');
+    if (cal) cal.style.display = 'none';
+    journalCalOpen = false;
+    journalSelectedDate = dateStr;
+    renderJournalForDate(dateStr);
 }
 
 function journalPrevDay() {
