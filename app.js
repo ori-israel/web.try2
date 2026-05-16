@@ -892,14 +892,14 @@ async function renderJournalForDate(dateStr) {
     const atMin = dateStr <= startDate;
     const atMax = dateStr >= maxDate;
 
-    const navBtnStyle = 'background:#2d7a3a;color:#ffffff;border:none;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
+    const navBtnStyle = 'background:#5b7cfa;color:#ffffff;border:none;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
 
     let html = `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
             <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMax ? '.35' : '1'}">→</button>
             <div style="text-align:center;flex:1;">
                 <div style="font-size:15px;font-weight:bold;line-height:1.4;color:var(--text-primary);">${journalFormatDate(dateStr)}</div>
-                ${!isToday ? `<button onclick="journalGoToday()" style="margin-top:5px;background:transparent;border:1px solid var(--main-green);color:var(--main-green);border-radius:12px;padding:3px 12px;font-size:12px;cursor:pointer;">חזרה להיום</button>` : ''}
+                ${!isToday ? `<button onclick="journalGoToday()" style="background:var(--main-green);color:#ffffff;border:none;border-radius:12px;padding:6px 16px;font-size:13px;cursor:pointer;font-weight:bold;margin-top:6px;">חזרה להיום</button>` : ''}
             </div>
             <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMin ? '.35' : '1'}">←</button>
         </div>`;
