@@ -845,6 +845,9 @@ function makeEditable(td) {
 
 let journalSelectedDate = null;
 
+// auth.js reinitApp() still calls loadPerfData() — keep as alias so admin view works
+function loadPerfData() { initWorkoutJournal(); }
+
 function initWorkoutJournal() {
     if (!journalSelectedDate) {
         journalSelectedDate = new Date().toISOString().split('T')[0];
