@@ -946,13 +946,13 @@ async function renderJournalForDate(dateStr) {
                         <span>משקל (ק"ג):</span>
                         <input type="number" class="journal-weight-input" data-exercise="${ex.name}"
                                value="${saved.weight_kg ?? ''}" min="0" step="0.5"
-                               style="width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:16px;text-align:center;">
+                               style="width:80px;padding:8px;border:2px solid #888;border-radius:8px;background:#ffffff;color:#000000;font-size:16px;text-align:center;">
                     </label>
                     <label style="font-size:13px;display:flex;align-items:center;gap:6px;color:var(--text-primary);">
                         <span>חזרות:</span>
                         <input type="number" class="journal-reps-input" data-exercise="${ex.name}"
                                value="${saved.reps ?? ''}" min="0" step="1"
-                               style="width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:16px;text-align:center;">
+                               style="width:80px;padding:8px;border:2px solid #888;border-radius:8px;background:#ffffff;color:#000000;font-size:16px;text-align:center;">
                     </label>
                 </div>
                 ${lastHtml}
