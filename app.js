@@ -436,6 +436,7 @@ function buildWorkoutAccordions() {
                     const weights = JSON.parse(localStorage.getItem('exercise_weights') || '{}');
                     if (val) { weights[exId] = val; } else { delete weights[exId]; }
                     localStorage.setItem('exercise_weights', JSON.stringify(weights));
+                    if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
                 };
                 input.addEventListener('blur', saveWeight);
                 input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') input.blur(); });
