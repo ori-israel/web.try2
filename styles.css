@@ -2216,7 +2216,9 @@ input[type="checkbox"] { accent-color: var(--accent); }
     cursor: pointer;
 }
 .we-day-label input { accent-color: var(--main-green, #4ade80); }
-.we-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.we-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; table-layout: fixed; }
+.we-table th:nth-child(2) { width: 80px; }
+.we-table th:nth-child(3) { width: 36px; }
 .we-table th {
     text-align: right;
     font-size: 12px;
@@ -2239,7 +2241,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
 }
 [data-theme="light"] .we-input { background: #f4f4f4; color: #111; border-color: #ddd; }
 .we-input:focus { outline: none; border-color: var(--main-green, #4ade80); }
-.we-reps { max-width: 90px; }
+.we-reps { max-width: 100%; }
 .we-del-btn {
     background: none;
     border: none;
