@@ -391,8 +391,7 @@ function buildWorkoutAccordions() {
             const work = cells[3]?.textContent.trim();
             const reps = cells[4]?.textContent.trim();
             const weight = cells[5]?.textContent.trim();
-            const videoCell = cells[6];
-            const videoLink = videoCell?.querySelector('a');
+            const bankUrl = exerciseBank[name];
             const item = document.createElement('div');
             item.className = 'workout-accord-item';
             const isChecked = checkbox?.checked;
@@ -425,7 +424,7 @@ function buildWorkoutAccordions() {
                             <span class="accord-detail-value accord-weight-val">${savedWeight || '—'}</span>
                         </div>
                     </div>
-                    ${videoLink ? `<div class="accord-video-link"><button class="accord-video-btn" onclick="openVideoModal('${videoLink.href}')">▶ צפה בסרטון</button></div>` : ''}
+                    ${bankUrl ? `<div class="accord-video-link"><button class="accord-video-btn" onclick="openVideoModal('${bankUrl}')">▶ צפה בסרטון</button></div>` : ''}
                 </div>
             `;
             const accordCheckbox = item.querySelector('.accord-checkbox');
