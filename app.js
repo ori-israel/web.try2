@@ -159,24 +159,26 @@ function showWorkout(workoutId) {
 
     // פונקציה לניהול הצ'קליסט של האימונים
 function initWorkoutsChecklist() {
-    const checkboxes = document.querySelectorAll('.workout-checkbox');
     const savedState = JSON.parse(localStorage.getItem('workout_progress_v3')) || {};
-    
-    checkboxes.forEach(cb => {
+    document.querySelectorAll('.workout-checkbox').forEach(cb => {
         const id = cb.getAttribute('data-id');
         if (savedState[id]) cb.checked = true;
+    });
 
-        cb.addEventListener('change', (e) => {
-            const currentState = JSON.parse(localStorage.getItem('workout_progress_v3')) || {};
-            currentState[id] = cb.checked;
-            localStorage.setItem('workout_progress_v3', JSON.stringify(currentState));
-            if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
-            checkWorkoutCompletion(e.target);
-        });
+    document.addEventListener('change', (e) => {
+        if (!e.target.classList.contains('workout-checkbox')) return;
+        const cb = e.target;
+        const id = cb.getAttribute('data-id');
+        const currentState = JSON.parse(localStorage.getItem('workout_progress_v3')) || {};
+        currentState[id] = cb.checked;
+        localStorage.setItem('workout_progress_v3', JSON.stringify(currentState));
+        if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
+        checkWorkoutCompletion(cb);
     });
 }
 
 function checkWorkoutCompletion(clickedCheckbox) {
+    console.log('checkWorkoutCompletion called', clickedCheckbox);
     const workoutContainer = clickedCheckbox.closest('.workout-container');
     if (!workoutContainer) return;
 
@@ -184,7 +186,6 @@ function checkWorkoutCompletion(clickedCheckbox) {
     if (checkboxes.length === 0) return;
 
     const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-    console.log('checkWorkoutCompletion called', clickedCheckbox, allChecked);
 
     if (allChecked) {
         const msg = document.getElementById('workout-complete-msg');
