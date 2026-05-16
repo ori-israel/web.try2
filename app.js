@@ -1110,13 +1110,26 @@ function checkNutritionStreak() {
 function completeNutritionStreak() {
     const today = new Date().toDateString();
     if (localStorage.getItem('nutrition_completed_date') === today) return;
-    
+
     localStorage.setItem('nutrition_completed_date', today);
     let streak = parseInt(localStorage.getItem('nutrition_streak') || '0');
     streak++;
     localStorage.setItem('nutrition_streak', streak);
     document.getElementById('nutrition-streak-count').innerText = streak;
     if (typeof syncStreaksNow === 'function') syncStreaksNow();
+    showNutritionComplete();
+}
+
+function showNutritionComplete() {
+    const msg = document.getElementById('nutrition-complete-msg');
+    if (!msg) return;
+    msg.style.cssText = "display:flex; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9999; align-items:center; justify-content:center;";
+    msg.onclick = (e) => { if (e.target === msg) closeNutritionComplete(); };
+}
+
+function closeNutritionComplete() {
+    const msg = document.getElementById('nutrition-complete-msg');
+    if (msg) msg.style.display = 'none';
 }
 
 function updateNutritionStreak() {
