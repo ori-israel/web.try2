@@ -226,13 +226,36 @@ function closeWorkoutEditor() {
     document.getElementById('workout-editor-modal').style.display = 'none';
 }
 
+function _weLetters() {
+    const count = parseInt(document.getElementById('we-workouts-per-week')?.value) || CLIENT.workoutsPerWeek || 3;
+    return 'ABCDEFG'.slice(0, Math.min(Math.max(count, 1), 7)).split('');
+}
+
 function _renderWorkoutEditorBody() {
     const container = document.getElementById('workout-editor-body');
     if (!container) return;
     const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
-    container.innerHTML = '';
+    const perWeek  = CLIENT.workoutsPerWeek || 3;
 
-    ['A', 'B', 'C'].forEach(letter => {
+    container.innerHTML = `
+        <div class="we-per-week-row">
+            <label for="we-workouts-per-week">מספר אימוני כוח בשבוע:</label>
+            <input id="we-workouts-per-week" type="number" min="1" max="7" value="${perWeek}" class="we-per-week-input"
+                onchange="_rerenderWorkoutSections()">
+        </div>
+        <div id="we-sections"></div>
+    `;
+
+    _rerenderWorkoutSections();
+}
+
+function _rerenderWorkoutSections() {
+    const sectionsEl = document.getElementById('we-sections');
+    if (!sectionsEl) return;
+    const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+    sectionsEl.innerHTML = '';
+
+    _weLetters().forEach(letter => {
         const workout = CLIENT['workout' + letter] || [];
         const days    = CLIENT.workoutDays?.[letter] || [];
 
@@ -258,7 +281,7 @@ function _renderWorkoutEditorBody() {
             </table>
             <button class="we-add-btn" onclick="weAddRow('${letter}')">+ הוסף תרגיל</button>
         `;
-        container.appendChild(section);
+        sectionsEl.appendChild(section);
     });
 }
 
@@ -286,7 +309,10 @@ async function saveWorkoutPlan() {
     btn.disabled    = true;
     btn.textContent = 'שומר...';
     try {
-        ['A', 'B', 'C'].forEach(letter => {
+        const perWeek = parseInt(document.getElementById('we-workouts-per-week')?.value) || 3;
+        CLIENT.workoutsPerWeek = perWeek;
+
+        _weLetters().forEach(letter => {
             const tbody     = document.getElementById(`we-body-${letter}`);
             const exercises = [];
             tbody.querySelectorAll('tr').forEach(row => {

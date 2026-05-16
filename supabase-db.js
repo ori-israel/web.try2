@@ -214,7 +214,12 @@ async function loadUserIntoApp(userId) {
         if (profile.workout_a  && profile.workout_a.length)  CLIENT.workoutA    = profile.workout_a;
         if (profile.workout_b  && profile.workout_b.length)  CLIENT.workoutB    = profile.workout_b;
         if (profile.workout_c  && profile.workout_c.length)  CLIENT.workoutC    = profile.workout_c;
-        if (profile.workout_days)                             CLIENT.workoutDays = profile.workout_days;
+        if (profile.workout_d  && profile.workout_d.length)  CLIENT.workoutD    = profile.workout_d;
+        if (profile.workout_e  && profile.workout_e.length)  CLIENT.workoutE    = profile.workout_e;
+        if (profile.workout_f  && profile.workout_f.length)  CLIENT.workoutF    = profile.workout_f;
+        if (profile.workout_g  && profile.workout_g.length)  CLIENT.workoutG    = profile.workout_g;
+        if (profile.workout_days)                             CLIENT.workoutDays     = profile.workout_days;
+        if (profile.workouts_per_week)                        CLIENT.workoutsPerWeek = profile.workouts_per_week;
         if (profile.portion_values) {
             portionValues.protein = profile.portion_values.protein ?? portionValues.protein;
             portionValues.carbs   = profile.portion_values.carbs   ?? portionValues.carbs;
@@ -364,10 +369,15 @@ async function syncWorkoutPlanNow() {
     if (!uid) return;
     try {
         await sbUpsertProfile(uid, {
-            workout_a:    CLIENT.workoutA,
-            workout_b:    CLIENT.workoutB,
-            workout_c:    CLIENT.workoutC,
-            workout_days: CLIENT.workoutDays,
+            workout_a:         CLIENT.workoutA,
+            workout_b:         CLIENT.workoutB,
+            workout_c:         CLIENT.workoutC,
+            workout_d:         CLIENT.workoutD || null,
+            workout_e:         CLIENT.workoutE || null,
+            workout_f:         CLIENT.workoutF || null,
+            workout_g:         CLIENT.workoutG || null,
+            workout_days:      CLIENT.workoutDays,
+            workouts_per_week: CLIENT.workoutsPerWeek || 3,
         });
     } catch (e) { console.warn('[SB] workout plan sync:', e.message); }
 }

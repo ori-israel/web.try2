@@ -2201,6 +2201,8 @@ input[type="checkbox"] { accent-color: var(--accent); }
     transition: background 0.2s;
 }
 .we-close-btn:hover { background: #333; color: #fff; }
+.we-per-week-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; font-size: 14px; font-weight: 600; }
+.we-per-week-input { width: 60px; padding: 4px 8px; border: 1px solid var(--border-color, #ccc); border-radius: 6px; font-size: 15px; text-align: center; background: var(--card-bg, #fff); color: var(--text-color, #333); }
 .we-section { margin-bottom: 28px; }
 .we-section-header { margin-bottom: 10px; }
 .we-section-title { margin: 0 0 8px; font-size: 16px; color: var(--dark-green, #2d5a27); }

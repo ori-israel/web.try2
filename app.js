@@ -920,7 +920,7 @@ function resetWorkout() {
 
 
 function initWorkoutsFromClient() {
-    const letters = ['A', 'B', 'C', 'D', 'E'];
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
     const selector = document.getElementById('workout-selector');
     selector.innerHTML = '';
     
