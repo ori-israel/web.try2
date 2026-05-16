@@ -899,7 +899,7 @@ async function renderJournalForDate(dateStr) {
             <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMax ? '.35' : '1'}">→</button>
             <div style="text-align:center;flex:1;">
                 <div style="font-size:15px;font-weight:bold;line-height:1.4;color:var(--text-primary);">${journalFormatDate(dateStr)}</div>
-                ${!isToday ? `<button onclick="journalGoToday()" style="background:var(--main-green);color:#ffffff;border:none;border-radius:12px;padding:6px 16px;font-size:13px;cursor:pointer;font-weight:bold;margin-top:6px;">חזרה להיום</button>` : ''}
+                ${!isToday ? `<button onclick="journalGoToday()" style="background:#2d7a3a;color:#ffffff;border:none;border-radius:20px;padding:8px 20px;font-size:14px;font-weight:bold;cursor:pointer;display:block;margin:6px auto 0;box-shadow:0 2px 6px rgba(0,0,0,0.3);">חזרה להיום</button>` : ''}
             </div>
             <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMin ? '.35' : '1'}">←</button>
         </div>`;
