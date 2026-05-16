@@ -461,7 +461,7 @@ function buildWorkoutAccordions() {
                 localStorage.setItem('workout_progress_v3', JSON.stringify(currentState));
                 if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
                 header.classList.toggle('checked', accordCheckbox.checked);
-                checkWorkoutCompletion(checkbox);
+                setTimeout(() => checkWorkoutCompletion(checkbox), 0);
             });
             header.addEventListener('click', (e) => {
                 if (e.target.classList.contains('accord-checkbox')) return;
