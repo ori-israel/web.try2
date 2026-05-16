@@ -454,10 +454,14 @@ function buildWorkoutAccordions() {
             const accordCheckbox = item.querySelector('.accord-checkbox');
             const header = item.querySelector('.workout-accord-header');
             accordCheckbox.addEventListener('change', () => {
-                console.log('accordion change fired', accordCheckbox.checked);
                 checkbox.checked = accordCheckbox.checked;
-                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                const id = checkbox.getAttribute('data-id');
+                const currentState = JSON.parse(localStorage.getItem('workout_progress_v3')) || {};
+                currentState[id] = checkbox.checked;
+                localStorage.setItem('workout_progress_v3', JSON.stringify(currentState));
+                if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
                 header.classList.toggle('checked', accordCheckbox.checked);
+                checkWorkoutCompletion(checkbox);
             });
             header.addEventListener('click', (e) => {
                 if (e.target.classList.contains('accord-checkbox')) return;
