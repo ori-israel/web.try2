@@ -154,7 +154,7 @@ function showWorkout(workoutId) {
             btn.classList.add('active');
         }
     });
-    loadPerfData();
+    initWorkoutTableWeights();
 }
 
     // פונקציה לניהול הצ'קליסט של האימונים
@@ -345,7 +345,7 @@ function closeCompleteMsg() {
             document.getElementById(tabId).classList.add('active');
             window.scrollTo({top: 0, behavior: 'smooth'});
             if (tabId === 'tab4') {
-    loadPerfData();
+    initWorkoutJournal();
     renderWeightChart();
 }
         });
@@ -515,7 +515,7 @@ function buildWorkoutAccordions() {
     loadChecklist();
     generatePortionGoals();
     updateGoalRecommendations();
-    loadPerfData();
+    initWorkoutJournal();
     loadSavedWeight();
     loadCoachingGoal();
     updateWorkoutStreak();
@@ -540,7 +540,7 @@ function buildWorkoutAccordions() {
             content.style.display = 'none';
         } else {
     content.style.display = 'block';
-    if (id.startsWith('perf-')) loadPerfData();
+    if (id.startsWith('perf-')) initWorkoutJournal();
 }
     }
 
@@ -841,92 +841,184 @@ function makeEditable(td) {
     input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); });
 }
 
-function loadPerfData() {
-    const exercises = [
-        { key: 'squat', name: 'סקוואט', icon: '🦵' },
-        { key: 'bench', name: 'לחיצת חזה', icon: '🏋️' },
-        { key: 'dead', name: 'דדליפט', icon: '🔱' }
-    ];
+// ── יומן ביצועי אימון ───────────────────────────────────────
 
-    const grid = document.getElementById('perf-grid');
-    if (!grid) return;
-    grid.innerHTML = '';
+let journalSelectedDate = null;
+
+function initWorkoutJournal() {
+    if (!journalSelectedDate) {
+        journalSelectedDate = new Date().toISOString().split('T')[0];
+    }
+    renderJournalForDate(journalSelectedDate);
+}
+
+function getWorkoutLetterForDate(dateStr) {
+    const dayOfWeek = new Date(dateStr + 'T12:00:00').getDay();
+    const workoutDays = CLIENT.workoutDays || {};
+    for (const [letter, days] of Object.entries(workoutDays)) {
+        if (Array.isArray(days) && days.includes(dayOfWeek)) return letter;
+    }
+    return null;
+}
+
+function getExercisesForLetter(letter) {
+    return CLIENT['workout' + letter] || [];
+}
+
+function journalFormatDate(dateStr) {
+    const d = new Date(dateStr + 'T12:00:00');
+    const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+    const months = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+    return `יום ${dayNames[d.getDay()]}, ${d.getDate()} ב${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function journalFormatShortDate(dateStr) {
+    const [y, m, day] = dateStr.split('-');
+    return `${day}/${m}/${y}`;
+}
+
+async function renderJournalForDate(dateStr) {
+    const container = document.getElementById('workout-journal-container');
+    if (!container) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const startDate = CLIENT.startDate || today;
+    const maxDate = new Date(new Date(startDate + 'T12:00:00').getTime() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const isToday = dateStr === today;
+    const atMin = dateStr <= startDate;
+    const atMax = dateStr >= maxDate;
+
+    const navBtnStyle = 'background:var(--main-green);color:white;border:none;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
+
+    let html = `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
+            <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMax ? '.35' : '1'}">←</button>
+            <div style="text-align:center;flex:1;">
+                <div style="font-size:15px;font-weight:bold;line-height:1.4;">${journalFormatDate(dateStr)}</div>
+                ${!isToday ? `<button onclick="journalGoToday()" style="margin-top:5px;background:transparent;border:1px solid var(--main-green);color:var(--main-green);border-radius:12px;padding:3px 12px;font-size:12px;cursor:pointer;">חזרה להיום</button>` : ''}
+            </div>
+            <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMin ? '.35' : '1'}">→</button>
+        </div>`;
+
+    const workoutLetter = getWorkoutLetterForDate(dateStr);
+    const exercises = workoutLetter ? getExercisesForLetter(workoutLetter) : [];
+
+    if (!workoutLetter || !exercises.length) {
+        container.innerHTML = html + '<div style="text-align:center;padding:18px 0;color:var(--text-secondary);font-size:15px;">אין אימון מתוכנן היום</div>';
+        return;
+    }
+
+    container.innerHTML = html + '<div style="text-align:center;padding:8px 0;font-size:13px;color:var(--text-secondary);">טוען...</div>';
+
+    const userId = getActiveUserId();
+    let savedEntries = {};
+    let lastEntries = {};
+
+    try {
+        const rows = await sbFetchWorkoutPerformanceLog(userId, dateStr);
+        rows.forEach(r => { savedEntries[r.exercise_name] = { weight_kg: r.weight_kg, reps: r.reps }; });
+
+        await Promise.all(exercises.map(async ex => {
+            const last = await sbFetchLastWorkoutPerformance(userId, ex.name, dateStr);
+            if (last) lastEntries[ex.name] = last;
+        }));
+    } catch (err) {
+        console.error('Journal load error:', err);
+    }
+
+    html += `<div style="font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:14px;">אימון ${workoutLetter}</div>`;
+    html += '<div id="journal-exercises">';
 
     exercises.forEach(ex => {
-        const get = (f) => localStorage.getItem('perf_' + ex.key + '_' + f) || '-';
-        const startKg = get('start_kg');
-        const startReps = get('start_reps');
-        const curKg = get('cur_kg');
-        const curReps = get('cur_reps');
-
-        let badgeHTML = '';
-        if (startKg !== '-' && curKg !== '-') {
-            const diff = parseFloat(curKg) - parseFloat(startKg);
-            if (diff > 0) badgeHTML = '<span class="perf-card-badge up">+' + diff + ' ק"ג</span>';
-            else if (diff < 0) badgeHTML = '<span class="perf-card-badge">' + diff + ' ק"ג</span>';
-        }
-
-        const card = document.createElement('div');
-        card.className = 'perf-card';
-        card.innerHTML =
-            '<div class="perf-card-header">' +
-                '<div class="perf-card-name">' + ex.icon + ' ' + ex.name + '</div>' +
-                badgeHTML +
-            '</div>' +
-            '<div class="perf-card-stats">' +
-                '<div class="perf-stat">' +
-                    '<div class="perf-stat-label">התחלה</div>' +
-                    '<div class="perf-stat-row">' +
-                        '<span class="perf-stat-val" data-key="perf_' + ex.key + '_start_kg">' + startKg + '</span>' +
-                        '<span class="perf-stat-unit">ק"ג</span>' +
-                    '</div>' +
-                    '<div class="perf-stat-reps"><span data-key="perf_' + ex.key + '_start_reps">' + startReps + '</span> חזרות</div>' +
-                '</div>' +
-                '<div class="perf-arrow">←</div>' +
-                '<div class="perf-stat">' +
-                    '<div class="perf-stat-label">נוכחי</div>' +
-                    '<div class="perf-stat-row">' +
-                        '<span class="perf-stat-val" data-key="perf_' + ex.key + '_cur_kg">' + curKg + '</span>' +
-                        '<span class="perf-stat-unit">ק"ג</span>' +
-                    '</div>' +
-                    '<div class="perf-stat-reps"><span data-key="perf_' + ex.key + '_cur_reps">' + curReps + '</span> חזרות</div>' +
-                '</div>' +
-            '</div>';
-
-        card.querySelectorAll('[data-key]').forEach(el => {
-            el.style.cursor = 'pointer';
-            el.addEventListener('click', function() {
-                if (this.querySelector('input')) return;
-                const key = this.dataset.key;
-                const current = this.textContent;
-                const input = document.createElement('input');
-                input.type = 'number';
-                input.value = current === '-' ? '' : current;
-                this.textContent = '';
-                this.appendChild(input);
-                input.focus();
-                const finish = () => {
-                    const val = input.value.trim();
-                    this.textContent = val || '-';
-                    if (val && val !== '-') {
-                        localStorage.setItem(key, val);
-                        // key מורכב מ- perf_EXERCISE_FIELD — מסנכרן לאחר שמירה
-                        const parts = key.split('_'); // ['perf', ex, field...]
-                        if (parts.length >= 3 && typeof syncPerformanceNow === 'function') {
-                            syncPerformanceNow(parts[1]);
-                        }
-                    }
-                    loadPerfData();
-                };
-                input.addEventListener('blur', finish);
-                input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); }});
-            });
-        });
-
-        grid.appendChild(card);
+        const saved = savedEntries[ex.name] || {};
+        const last = lastEntries[ex.name];
+        const lastHtml = last
+            ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:6px;direction:rtl;">אימון קודם (${journalFormatShortDate(last.date)}): ${last.weight_kg} ק"ג × ${last.reps} חזרות</div>`
+            : '';
+        html += `
+            <div style="border:1px solid var(--main-green);border-radius:10px;padding:12px 14px;margin-bottom:12px;">
+                <div style="font-weight:bold;margin-bottom:10px;direction:rtl;">${ex.name}</div>
+                <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+                    <label style="font-size:13px;display:flex;align-items:center;gap:6px;">
+                        <span>משקל (ק"ג):</span>
+                        <input type="number" class="journal-weight-input" data-exercise="${ex.name}"
+                               value="${saved.weight_kg ?? ''}" min="0" step="0.5"
+                               style="width:72px;padding:5px 8px;border:1px solid var(--main-green);border-radius:6px;background:var(--bg-card);color:var(--text-primary);font-size:15px;text-align:center;">
+                    </label>
+                    <label style="font-size:13px;display:flex;align-items:center;gap:6px;">
+                        <span>חזרות:</span>
+                        <input type="number" class="journal-reps-input" data-exercise="${ex.name}"
+                               value="${saved.reps ?? ''}" min="0" step="1"
+                               style="width:60px;padding:5px 8px;border:1px solid var(--main-green);border-radius:6px;background:var(--bg-card);color:var(--text-primary);font-size:15px;text-align:center;">
+                    </label>
+                </div>
+                ${lastHtml}
+            </div>`;
     });
 
-    // משקלים בטבלאות האימונים
+    html += '</div>';
+    html += `<button onclick="saveJournalEntries('${dateStr}','${workoutLetter}')" style="width:100%;padding:12px;background:var(--main-green);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:4px;">שמור</button>`;
+    html += '<div id="journal-save-msg" style="text-align:center;margin-top:8px;font-size:13px;min-height:20px;"></div>';
+
+    container.innerHTML = html;
+}
+
+function journalPrevDay() {
+    const d = new Date(journalSelectedDate + 'T12:00:00');
+    d.setDate(d.getDate() - 1);
+    const startDate = CLIENT.startDate || new Date().toISOString().split('T')[0];
+    const candidate = d.toISOString().split('T')[0];
+    if (candidate < startDate) return;
+    journalSelectedDate = candidate;
+    renderJournalForDate(journalSelectedDate);
+}
+
+function journalNextDay() {
+    const d = new Date(journalSelectedDate + 'T12:00:00');
+    d.setDate(d.getDate() + 1);
+    const startDate = CLIENT.startDate || new Date().toISOString().split('T')[0];
+    const maxDate = new Date(new Date(startDate + 'T12:00:00').getTime() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const candidate = d.toISOString().split('T')[0];
+    if (candidate > maxDate) return;
+    journalSelectedDate = candidate;
+    renderJournalForDate(journalSelectedDate);
+}
+
+function journalGoToday() {
+    journalSelectedDate = new Date().toISOString().split('T')[0];
+    renderJournalForDate(journalSelectedDate);
+}
+
+async function saveJournalEntries(dateStr, workoutLetter) {
+    const userId = getActiveUserId();
+    const entries = [];
+    document.querySelectorAll('.journal-weight-input').forEach(wi => {
+        const exerciseName = wi.dataset.exercise;
+        const ri = document.querySelector(`.journal-reps-input[data-exercise="${CSS.escape(exerciseName)}"]`);
+        const weight = parseFloat(wi.value);
+        const reps = parseInt(ri?.value);
+        if (!isNaN(weight) && weight >= 0 && !isNaN(reps) && reps >= 0) {
+            entries.push({ exercise_name: exerciseName, workout_letter: workoutLetter, weight_kg: weight, reps });
+        }
+    });
+    try {
+        await sbSaveWorkoutPerformanceLog(userId, dateStr, entries);
+        const msg = document.getElementById('journal-save-msg');
+        if (msg) {
+            msg.style.color = 'var(--main-green)';
+            msg.textContent = '✅ נשמר בהצלחה!';
+            setTimeout(() => { if (msg) msg.textContent = ''; }, 2500);
+        }
+    } catch (err) {
+        console.error('Journal save error:', err);
+        const msg = document.getElementById('journal-save-msg');
+        if (msg) { msg.style.color = '#e55'; msg.textContent = '❌ שגיאה בשמירה'; }
+    }
+}
+
+// ── משקלים בטבלאות האימונים ─────────────────────────────────
+
+function initWorkoutTableWeights() {
     document.querySelectorAll('.workout-table tbody tr').forEach(row => {
         const weightCell = row.cells[5];
         if (!weightCell) return;
@@ -944,17 +1036,14 @@ function loadPerfData() {
             const input = document.createElement('input');
             input.type = 'number';
             input.value = current || '';
-            input.style.cssText = 'width:60px; text-align:center; border:1px solid var(--main-green); border-radius:4px; padding:2px; font-size:14px;';
+            input.style.cssText = 'width:60px;text-align:center;border:1px solid var(--main-green);border-radius:4px;padding:2px;font-size:14px;';
             wCell.innerText = '';
             wCell.appendChild(input);
             input.focus();
             input.onblur = function() {
                 const val = this.value.trim();
                 wCell.innerText = val || '';
-                if (val) {
-                    localStorage.setItem(wKey, val);
-                    console.log('saved:', wKey, val);
-                }
+                if (val) localStorage.setItem(wKey, val);
             };
             input.onkeydown = function(e) { if (e.key === 'Enter') this.blur(); };
         };
@@ -1018,6 +1107,7 @@ function initWorkoutsFromClient() {
 
     if (firstLetter) showWorkout(firstLetter);
     initWorkoutsChecklist();
+    initWorkoutTableWeights();
 }
 
 function showWeightUpdateToast() {

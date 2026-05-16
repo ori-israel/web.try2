@@ -127,6 +127,24 @@ alter table public.performance_metrics enable row level security;
 create policy "performance_all" on public.performance_metrics
   for all using (auth.uid() = user_id or public.is_admin());
 
+-- ── יומן ביצועי אימון ───────────────────────────────────────
+create table public.workout_performance_log (
+  id             uuid default gen_random_uuid() primary key,
+  client_id      uuid references auth.users on delete cascade not null,
+  date           date not null,
+  exercise_name  text not null,
+  workout_letter text not null,
+  weight_kg      numeric,
+  reps           integer,
+  created_at     timestamptz default now(),
+  unique(client_id, date, exercise_name)
+);
+
+alter table public.workout_performance_log enable row level security;
+
+create policy "workout_perf_log_all" on public.workout_performance_log
+  for all using (auth.uid() = client_id or public.is_admin());
+
 -- ── streaks (רצפים) ─────────────────────────────────────────
 create table public.streaks (
   id                       uuid default gen_random_uuid() primary key,
@@ -153,6 +171,7 @@ grant select, insert, update, delete on public.weight_history      to authentica
 grant select, insert, update, delete on public.workout_progress    to authenticated;
 grant select, insert, update, delete on public.performance_metrics to authenticated;
 grant select, insert, update, delete on public.streaks             to authenticated;
+grant select, insert, update, delete on public.workout_performance_log to authenticated;
 
 grant execute on function public.is_admin() to authenticated;
 

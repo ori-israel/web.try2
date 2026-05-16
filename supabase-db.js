@@ -142,6 +142,52 @@ async function sbSavePerformance(userId, exercise, fields) {
     if (error) throw error;
 }
 
+// ── יומן ביצועי אימון ───────────────────────────────────────
+
+async function sbFetchWorkoutPerformanceLog(userId, date) {
+    const { data, error } = await db
+        .from('workout_performance_log')
+        .select('exercise_name, workout_letter, weight_kg, reps')
+        .eq('client_id', userId)
+        .eq('date', date);
+    if (error) throw error;
+    return data || [];
+}
+
+async function sbFetchLastWorkoutPerformance(userId, exerciseName, beforeDate) {
+    const { data, error } = await db
+        .from('workout_performance_log')
+        .select('date, weight_kg, reps')
+        .eq('client_id', userId)
+        .eq('exercise_name', exerciseName)
+        .lt('date', beforeDate)
+        .order('date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+    if (error) throw error;
+    return data;
+}
+
+async function sbSaveWorkoutPerformanceLog(userId, date, entries) {
+    const { error: delError } = await db
+        .from('workout_performance_log')
+        .delete()
+        .eq('client_id', userId)
+        .eq('date', date);
+    if (delError) throw delError;
+    if (!entries.length) return;
+    const rows = entries.map(e => ({
+        client_id: userId,
+        date,
+        exercise_name: e.exercise_name,
+        workout_letter: e.workout_letter,
+        weight_kg: e.weight_kg,
+        reps: e.reps
+    }));
+    const { error } = await db.from('workout_performance_log').insert(rows);
+    if (error) throw error;
+}
+
 // ── רצפים ───────────────────────────────────────────────────
 
 async function sbFetchStreaks(userId) {
