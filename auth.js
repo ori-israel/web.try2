@@ -155,8 +155,8 @@ async function doLogin() {
     }
 }
 
-function doLogout() {
-    if (!confirm('להתנתק?')) return;
+async function doLogout() {
+    if (!await showConfirm('להתנתק?')) return;
     _clearUserLocalStorage();
     sbSignOut().finally(() => location.reload());
 }

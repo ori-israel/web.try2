@@ -1017,6 +1017,17 @@
 <script src="app.js"></script>
 <script src="ai.js"></script>
 
+<div id="app-dialog" class="modal-overlay hidden">
+    <div class="modal-card app-dialog-card">
+        <p id="app-dialog-msg" class="app-dialog-msg"></p>
+        <input id="app-dialog-input" type="text" class="profile-input app-dialog-input-field" style="display:none">
+        <div class="app-dialog-btns">
+            <button id="app-dialog-cancel" class="app-dialog-btn secondary-btn" style="display:none"></button>
+            <button id="app-dialog-ok" class="app-dialog-btn primary-btn">אישור</button>
+        </div>
+    </div>
+</div>
+
 <div id="video-modal" class="modal-overlay hidden" onclick="closeVideoModal()">
     <div class="video-modal-box" onclick="event.stopPropagation()">
         <button class="video-modal-close" onclick="closeVideoModal()">✕</button>

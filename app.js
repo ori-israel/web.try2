@@ -1,3 +1,32 @@
+// ── Custom dialog (replaces alert / confirm / prompt) ────────
+function _appDialog({ message, withInput = false, defaultValue = '', okLabel = 'אישור', cancelLabel = null }) {
+    return new Promise(resolve => {
+        document.getElementById('app-dialog-msg').textContent = message;
+        const inputEl  = document.getElementById('app-dialog-input');
+        const cancelEl = document.getElementById('app-dialog-cancel');
+        const okEl     = document.getElementById('app-dialog-ok');
+        inputEl.style.display  = withInput    ? 'block' : 'none';
+        cancelEl.style.display = cancelLabel  ? 'inline-flex' : 'none';
+        inputEl.value      = defaultValue;
+        cancelEl.textContent = cancelLabel || '';
+        okEl.textContent     = okLabel;
+        document.getElementById('app-dialog').classList.remove('hidden');
+        if (withInput) setTimeout(() => inputEl.focus(), 50);
+
+        const done = (val) => {
+            document.getElementById('app-dialog').classList.add('hidden');
+            okEl.onclick = cancelEl.onclick = inputEl.onkeydown = null;
+            resolve(val);
+        };
+        okEl.onclick     = () => done(withInput ? (inputEl.value.trim() || null) : true);
+        cancelEl.onclick = () => done(withInput ? null : false);
+        inputEl.onkeydown = (e) => { if (e.key === 'Enter') okEl.click(); if (e.key === 'Escape') cancelEl.click(); };
+    });
+}
+function showAlert(msg)              { return _appDialog({ message: msg, okLabel: 'סגור' }); }
+function showConfirm(msg)            { return _appDialog({ message: msg, okLabel: 'כן', cancelLabel: 'לא' }); }
+function showPrompt(msg, def = '')   { return _appDialog({ message: msg, withInput: true, defaultValue: def, okLabel: 'אישור', cancelLabel: 'ביטול' }); }
+
 function toggleHamburger(event) {
     event.stopPropagation();
     document.querySelector('.hamburger-menu').classList.toggle('open');
@@ -300,9 +329,9 @@ function closeCompleteMsg() {
                     method: "POST", body: formData, headers: { 'Accept': 'application/json' }
                 });
                 if (response.ok) {
-                    alert("השאלון נשלח בהצלחה!"); surveyForm.reset(); closeSurvey();
-                } else { alert("שגיאה בשליחה."); }
-            } catch (error) { alert("שגיאת תקשורת.");
+                    await showAlert("השאלון נשלח בהצלחה!"); surveyForm.reset(); closeSurvey();
+                } else { await showAlert("שגיאה בשליחה."); }
+            } catch (error) { await showAlert("שגיאת תקשורת.");
             } finally { btn.innerText = "שלח שאלון וחזור לאתר"; btn.disabled = false; }
         });
     }
@@ -337,16 +366,16 @@ function closeCompleteMsg() {
         document.body.style.overflow = 'auto'; 
     }
 
-    function calculateStats() {
+    async function calculateStats() {
     const gender = document.querySelector('input[name="gender"]:checked').value;
     const age = parseFloat(document.getElementById('calc-age').value);
     const height = parseFloat(document.getElementById('calc-height').value);
     const weight = parseFloat(document.getElementById('calc-weight').value);
     const activityMultiplier = parseFloat(document.querySelector('input[name="activity"]:checked').value);
 
-    if (!age || !height || !weight) { 
-        alert("נא למלא את כל הנתונים"); 
-        return; 
+    if (!age || !height || !weight) {
+        await showAlert("נא למלא את כל הנתונים");
+        return;
     }
 
     // 1. חישוב BMI
@@ -1362,8 +1391,8 @@ function getGeminiKey() {
     return localStorage.getItem('gemini_api_key') || '';
 }
 
-function promptGeminiKey() {
-    const key = prompt('הכנס מפתח Gemini API:');
+async function promptGeminiKey() {
+    const key = await showPrompt('הכנס מפתח Gemini API:');
     if (key && key.trim()) {
         localStorage.setItem('gemini_api_key', key.trim());
         return key.trim();
@@ -1372,7 +1401,7 @@ function promptGeminiKey() {
 }
 
 async function analyzeFood(base64, mimeType, correction) {
-    const apiKey = getGeminiKey() || promptGeminiKey();
+    const apiKey = getGeminiKey() || await promptGeminiKey();
     if (!apiKey) {
         document.getElementById('scanner-loading').classList.add('hidden');
         document.getElementById('scanner-step-1').classList.add('hidden');
