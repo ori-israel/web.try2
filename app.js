@@ -1387,9 +1387,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+async function compressImage(base64, mimeType) {
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload = function() {
+            const MAX = 800;
+            let { width, height } = img;
+            if (width > MAX || height > MAX) {
+                if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+                else                { width = Math.round(width * MAX / height); height = MAX; }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            resolve({ base64: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
+        };
+        img.src = `data:${mimeType};base64,${base64}`;
+    });
+}
+
 async function analyzeFood(base64, mimeType, correction) {
     document.getElementById('scanner-step-2').classList.add('hidden');
     document.getElementById('scanner-loading').classList.remove('hidden');
+
+    const compressed = await compressImage(base64, mimeType);
+    base64 = compressed.base64;
+    mimeType = compressed.mimeType;
 
     const correctionNote = correction ? `שים לב: ${correction}. ` : '';
     const prompt = `${correctionNote}זהה את האוכל בתמונה והעריך את כמות הגרמים של כל רכיב תזונתי.
