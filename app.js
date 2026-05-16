@@ -894,7 +894,7 @@ async function renderJournalForDate(dateStr) {
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
             <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMax ? '.35' : '1'}">←</button>
             <div style="text-align:center;flex:1;">
-                <div style="font-size:15px;font-weight:bold;line-height:1.4;">${journalFormatDate(dateStr)}</div>
+                <div style="font-size:15px;font-weight:bold;line-height:1.4;color:var(--text-primary);">${journalFormatDate(dateStr)}</div>
                 ${!isToday ? `<button onclick="journalGoToday()" style="margin-top:5px;background:transparent;border:1px solid var(--main-green);color:var(--main-green);border-radius:12px;padding:3px 12px;font-size:12px;cursor:pointer;">חזרה להיום</button>` : ''}
             </div>
             <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMin ? '.35' : '1'}">→</button>
@@ -936,16 +936,16 @@ async function renderJournalForDate(dateStr) {
             ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:6px;direction:rtl;">אימון קודם (${journalFormatShortDate(last.date)}): ${last.weight_kg} ק"ג × ${last.reps} חזרות</div>`
             : '';
         html += `
-            <div style="border:1px solid var(--main-green);border-radius:10px;padding:12px 14px;margin-bottom:12px;">
-                <div style="font-weight:bold;margin-bottom:10px;direction:rtl;">${ex.name}</div>
+            <div style="background:var(--bg-card-alt);border:1px solid var(--main-green);border-radius:10px;padding:12px 14px;margin-bottom:12px;">
+                <div style="font-weight:bold;margin-bottom:10px;direction:rtl;color:var(--text-primary);">${ex.name}</div>
                 <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
-                    <label style="font-size:13px;display:flex;align-items:center;gap:6px;">
+                    <label style="font-size:13px;display:flex;align-items:center;gap:6px;color:var(--text-primary);">
                         <span>משקל (ק"ג):</span>
                         <input type="number" class="journal-weight-input" data-exercise="${ex.name}"
                                value="${saved.weight_kg ?? ''}" min="0" step="0.5"
                                style="width:72px;padding:5px 8px;border:1px solid var(--main-green);border-radius:6px;background:var(--bg-card);color:var(--text-primary);font-size:15px;text-align:center;">
                     </label>
-                    <label style="font-size:13px;display:flex;align-items:center;gap:6px;">
+                    <label style="font-size:13px;display:flex;align-items:center;gap:6px;color:var(--text-primary);">
                         <span>חזרות:</span>
                         <input type="number" class="journal-reps-input" data-exercise="${ex.name}"
                                value="${saved.reps ?? ''}" min="0" step="1"
