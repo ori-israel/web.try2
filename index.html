@@ -1016,5 +1016,16 @@
 <script src="data.js"></script>
 <script src="app.js"></script>
 <script src="ai.js"></script>
+
+<div id="video-modal" class="modal-overlay hidden" onclick="closeVideoModal()">
+    <div class="video-modal-box" onclick="event.stopPropagation()">
+        <button class="video-modal-close" onclick="closeVideoModal()">✕</button>
+        <div class="video-modal-iframe-wrap">
+            <iframe id="video-modal-iframe" src="" frameborder="0" allowfullscreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+            </iframe>
+        </div>
+    </div>
+</div>
 </body>
 </html>

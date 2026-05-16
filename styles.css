@@ -735,12 +735,13 @@ th {
    Play Link (Video)
    ============================================ */
 .play-link {
-    text-decoration: none;
     background: var(--gradient-btn);
     color: white;
     width: 32px;
     height: 32px;
     border-radius: 50%;
+    border: none;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -751,6 +752,43 @@ th {
 }
 
 .play-link:active { transform: scale(0.9); }
+
+/* ── Video modal ── */
+.video-modal-box {
+    position: relative;
+    width: min(560px, 94vw);
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+}
+.video-modal-close {
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    z-index: 1;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.video-modal-iframe-wrap {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+}
+.video-modal-iframe-wrap iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
 
 /* ============================================
    Buttons
@@ -1560,7 +1598,7 @@ mark {
         cursor: pointer;
     }
 
-    .accord-video-link a {
+    .accord-video-btn {
         display: inline-flex;
         align-items: center;
         gap: 6px;
@@ -1570,7 +1608,9 @@ mark {
         border-radius: 20px;
         font-size: 13px;
         font-weight: 600;
-        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
     }
 
     .table-wrapper { overflow-x: hidden; overflow: hidden; padding: 0 4px; box-sizing: border-box; }

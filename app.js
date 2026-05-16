@@ -67,19 +67,45 @@ function toggleTheme() {
 
 }
 
-   function initVideos() {
-    // עכשיו אנחנו מחפשים את כל הטבלאות עם הקלאס החדש
+function _youtubeEmbedUrl(url) {
+    try {
+        const u = new URL(url);
+        let id;
+        if (u.hostname === 'youtu.be') {
+            id = u.pathname.slice(1);
+        } else if (u.pathname.includes('/shorts/')) {
+            id = u.pathname.split('/shorts/')[1].split('?')[0];
+        } else {
+            id = u.searchParams.get('v');
+        }
+        return id ? `https://www.youtube.com/embed/${id}?autoplay=1` : null;
+    } catch { return null; }
+}
+
+function openVideoModal(url) {
+    const embedUrl = _youtubeEmbedUrl(url);
+    if (!embedUrl) return;
+    document.getElementById('video-modal-iframe').src = embedUrl;
+    document.getElementById('video-modal').classList.remove('hidden');
+}
+
+function closeVideoModal() {
+    document.getElementById('video-modal').classList.add('hidden');
+    document.getElementById('video-modal-iframe').src = '';
+}
+
+function initVideos() {
     const tables = document.querySelectorAll('.workout-table');
-    
     tables.forEach(table => {
         const rows = table.querySelectorAll('tbody tr');
         rows.forEach(row => {
-            // שם התרגיל נמצא בתא השני (אינדקס 1) בגלל הצ'קבוקס
             const exerciseName = row.cells[1].innerText.trim();
             const videoCell = row.querySelector('.video-cell');
             const bankUrl = exerciseBank[exerciseName];
             if (videoCell) {
-                videoCell.innerHTML = bankUrl ? `<a href="${bankUrl}" target="_blank" class="play-link">▶</a>` : `-`;
+                videoCell.innerHTML = bankUrl
+                    ? `<button class="play-link" onclick="openVideoModal('${bankUrl}')">▶</button>`
+                    : `-`;
             }
         });
     });
@@ -399,7 +425,7 @@ function buildWorkoutAccordions() {
                             <span class="accord-detail-value accord-weight-val">${savedWeight || '—'}</span>
                         </div>
                     </div>
-                    ${videoLink ? `<div class="accord-video-link"><a href="${videoLink.href}" target="_blank">▶ צפה בסרטון</a></div>` : ''}
+                    ${videoLink ? `<div class="accord-video-link"><button class="accord-video-btn" onclick="openVideoModal('${videoLink.href}')">▶ צפה בסרטון</button></div>` : ''}
                 </div>
             `;
             const accordCheckbox = item.querySelector('.accord-checkbox');
@@ -436,6 +462,7 @@ function buildWorkoutAccordions() {
                     const weights = JSON.parse(localStorage.getItem('exercise_weights') || '{}');
                     if (val) { weights[exId] = val; } else { delete weights[exId]; }
                     localStorage.setItem('exercise_weights', JSON.stringify(weights));
+                    console.log('[saveWeight] exId:', exId, 'val:', val, 'full weights:', weights);
                     if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
                 };
                 input.addEventListener('blur', saveWeight);
