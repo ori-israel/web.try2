@@ -365,11 +365,11 @@ function closeCompleteMsg() {
             document.getElementById(tabId).classList.add('active');
             window.scrollTo({top: 0, behavior: 'smooth'});
             if (tabId === 'tab4') {
-    initWorkoutJournal();
     renderWeightChart();
 }
             if (tabId === 'tab2') {
     initWorkoutsFromClient();
+    initWorkoutJournal();
 }
         });
     });
