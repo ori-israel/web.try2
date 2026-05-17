@@ -1,6 +1,7 @@
 // ── Custom dialog (replaces alert / confirm / prompt) ────────
 function _appDialog({ message, withInput = false, defaultValue = '', okLabel = 'אישור', cancelLabel = null, okClass = 'primary-btn' }) {
     return new Promise(resolve => {
+        const dialogEl = document.getElementById('app-dialog');
         document.getElementById('app-dialog-msg').textContent = message;
         const inputEl  = document.getElementById('app-dialog-input');
         const cancelEl = document.getElementById('app-dialog-cancel');
@@ -11,20 +12,25 @@ function _appDialog({ message, withInput = false, defaultValue = '', okLabel = '
         cancelEl.textContent = cancelLabel || '';
         okEl.textContent     = okLabel;
         okEl.className = `app-dialog-btn ${okClass}`;
-        document.getElementById('app-dialog').classList.remove('hidden');
+        dialogEl.classList.remove('hidden');
         if (withInput) setTimeout(() => inputEl.focus(), 50);
 
         const done = (val) => {
-            document.getElementById('app-dialog').classList.add('hidden');
+            dialogEl.classList.add('hidden');
+            dialogEl.removeEventListener('click', outsideClick);
             okEl.onclick = cancelEl.onclick = inputEl.onkeydown = null;
             resolve(val);
         };
+        const outsideClick = (e) => {
+            if (e.target === dialogEl) done(cancelLabel ? (withInput ? null : false) : true);
+        };
+        dialogEl.addEventListener('click', outsideClick);
         okEl.onclick     = () => done(withInput ? (inputEl.value.trim() || null) : true);
         cancelEl.onclick = () => done(withInput ? null : false);
         inputEl.onkeydown = (e) => { if (e.key === 'Enter') okEl.click(); if (e.key === 'Escape') cancelEl.click(); };
     });
 }
-function showAlert(msg)              { return _appDialog({ message: msg, okLabel: 'סגור' }); }
+function showAlert(msg)              { return _appDialog({ message: msg, okLabel: 'סגור', okClass: 'secondary-btn' }); }
 function showConfirm(msg)            { return _appDialog({ message: msg, okLabel: 'כן', cancelLabel: 'לא' }); }
 function showConfirmDanger(msg)      { return _appDialog({ message: msg, okLabel: 'כן', cancelLabel: 'לא', okClass: 'danger-btn' }); }
 function showPrompt(msg, def = '')   { return _appDialog({ message: msg, withInput: true, defaultValue: def, okLabel: 'אישור', cancelLabel: 'ביטול' }); }
