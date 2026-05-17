@@ -263,10 +263,11 @@ function _coachInitials(name, id) {
 }
 
 function _coachSparkline(scores) {
-    if (!scores.length) return '<span style="color:#555;font-size:11px">אין נתונים</span>';
-    const W = 92, H = 52, PT = 14, PB = 4, PL = 20, PR = 4;
-    const chartW = W - PL - PR;
-    const chartH = H - PT - PB;
+    if (!scores.length) return '<span style="color:#555;font-size:11px;padding:8px 0;display:block">אין נתונים</span>';
+    const VW = 240, VH = 72;
+    const PT = 20, PB = 8, PL = 10, PR = 10;
+    const chartW = VW - PL - PR;
+    const chartH = VH - PT - PB;
     const last = scores[scores.length - 1];
     const clr  = last >= 80 ? '#4ade80' : last >= 50 ? '#facc15' : '#f87171';
 
@@ -276,17 +277,17 @@ function _coachSparkline(scores) {
         s,
     }));
 
-    const gridlines = [0, 50, 100].map(v => {
-        const gy = (PT + chartH - (v / 100) * chartH).toFixed(1);
-        return `<line x1="${PL}" y1="${gy}" x2="${W - PR}" y2="${gy}" stroke="#2a2a2a" stroke-width="0.75"/>` +
-               `<text x="${PL - 3}" y="${(parseFloat(gy) + 3).toFixed(1)}" text-anchor="end" font-size="8" fill="#555">${v}</text>`;
-    }).join('');
-
+    const targetY = (PT + chartH - 0.8 * chartH).toFixed(1);
     const polyline = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-    const dots     = pts.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.5" fill="${clr}"/>`).join('');
-    const labels   = pts.map(p => `<text x="${p.x.toFixed(1)}" y="${(p.y - 5).toFixed(1)}" text-anchor="middle" font-size="9" fill="${clr}">${Math.round(p.s)}</text>`).join('');
+    const dots     = pts.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="${clr}"/>`).join('');
+    const labels   = pts.map(p => `<text x="${p.x.toFixed(1)}" y="${(p.y - 9).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="500" fill="${clr}">${Math.round(p.s)}</text>`).join('');
 
-    return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${gridlines}<polyline points="${polyline}" fill="none" stroke="${clr}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${dots}${labels}</svg>`;
+    return `<svg width="100%" viewBox="0 0 ${VW} ${VH}" style="display:block">
+        <rect x="0" y="0" width="${VW}" height="${VH}" rx="8" fill="#0f172a" opacity="0.75"/>
+        <line x1="${PL}" y1="${targetY}" x2="${VW - PR}" y2="${targetY}" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="5 4" opacity="0.55"/>
+        <polyline points="${polyline}" fill="none" stroke="${clr}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        ${dots}${labels}
+    </svg>`;
 }
 
 function _coachScoreBar(label, score) {
