@@ -1128,7 +1128,6 @@ async function autoSaveJournalEntries(dateStr, workoutLetter) {
         const prs = [];
         entries.forEach((e, i) => {
             const prev = prevBests[i];
-            console.log('PR check:', e.exercise_name, 'new:', e.weight_kg, 'prev:', prev?.weight_kg);
             if (e.weight_kg > 0 && (!prev || e.weight_kg > prev.weight_kg)) {
                 prs.push({ name: e.exercise_name, weight: e.weight_kg });
             }
