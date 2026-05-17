@@ -368,6 +368,9 @@ function closeCompleteMsg() {
     initWorkoutJournal();
     renderWeightChart();
 }
+            if (tabId === 'tab2') {
+    initWorkoutsFromClient();
+}
         });
     });
 
@@ -565,7 +568,6 @@ function buildWorkoutAccordions(targets = {}) {
     if (window._authReady) await window._authReady;
     manageDailyReset();
     updateCounter();
-    initWorkoutsFromClient();
     initVideos();
     loadPortions();
     loadChecklist();
