@@ -1116,15 +1116,43 @@ async function autoSaveJournalEntries(dateStr, workoutLetter) {
         }
     });
     try {
+        const prevBests = await Promise.all(
+            entries.map(e => sbFetchLastWorkoutPerformance(userId, e.exercise_name, dateStr).catch(() => null))
+        );
         await sbSaveWorkoutPerformanceLog(userId, dateStr, entries);
         const msg = document.getElementById('journal-save-msg');
         if (msg) {
             msg.textContent = 'נשמר ✓';
             setTimeout(() => { if (msg) msg.textContent = ''; }, 2000);
         }
+        const prs = [];
+        entries.forEach((e, i) => {
+            const prev = prevBests[i];
+            if (e.weight_kg > 0 && (!prev || e.weight_kg > prev.weight_kg)) {
+                prs.push({ name: e.exercise_name, weight: e.weight_kg });
+            }
+        });
+        if (prs.length > 0) showPRPopups(prs);
     } catch (err) {
         console.error('Journal auto-save error:', err);
     }
+}
+
+function showPRPopups(prs) {
+    let idx = 0;
+    function showNext() {
+        if (idx >= prs.length) return;
+        const pr = prs[idx++];
+        const backdrop = document.createElement('div');
+        backdrop.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5)';
+        backdrop.innerHTML = `<div style="background:var(--bg-card);border-radius:16px;padding:24px;text-align:center"><div style="font-size:2rem;font-weight:bold">🏆 שיא אישי חדש!</div><div style="font-size:1.4rem;font-weight:bold;margin-top:8px">${pr.name} — ${pr.weight}ק"ג</div></div>`;
+        document.body.appendChild(backdrop);
+        let closed = false;
+        const close = () => { if (closed) return; closed = true; backdrop.remove(); showNext(); };
+        backdrop.addEventListener('click', close);
+        setTimeout(close, 3000);
+    }
+    showNext();
 }
 
 async function saveJournalEntries(dateStr, workoutLetter) {
