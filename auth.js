@@ -475,7 +475,7 @@ async function showQuestionnaireModal(clientId) {
             <div class="qmodal-q"><strong>1. ניצחון:</strong><p>${row.q1_win || '—'}</p></div>
             <div class="qmodal-q"><strong>2. אתגר:</strong><p>${row.q2_challenge || '—'}</p></div>
             <div class="qmodal-q"><strong>3. ציון עמידה:</strong><p>${row.q3_score != null ? row.q3_score + '/10' : '—'}</p></div>
-            <div class="qmodal-q"><strong>4. נושא לפגישה:</strong><p>${row.q4_topic || '—'}</p></div>`;
+            <div class="qmodal-q"><strong>4. הערות:</strong><p>${row.q4_topic || '—'}</p></div>`;
     } catch(e) {
         body.innerHTML = '<p style="color:#f87171">שגיאה בטעינה.</p>';
         console.error('[SB] questionnaire fetch:', e.message);
