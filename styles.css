@@ -1970,6 +1970,8 @@ input[type="checkbox"] { accent-color: var(--accent); }
 .app-dialog-btn  { padding: 9px 24px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
 .primary-btn   { background: var(--dark-green, #2d5a27); color: #fff; }
 .secondary-btn { background: var(--card-bg-2, #2a2a2a); color: var(--text-secondary, #aaa); border: 1px solid var(--border-color, #333); }
+.danger-btn    { background: transparent; color: #e55; border: 1px solid #e55; }
+.danger-btn:hover { background: rgba(238,85,85,.12); }
 .modal-close {
     position: absolute;
     top: 12px;

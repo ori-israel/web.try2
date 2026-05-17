@@ -1,5 +1,5 @@
 // ── Custom dialog (replaces alert / confirm / prompt) ────────
-function _appDialog({ message, withInput = false, defaultValue = '', okLabel = 'אישור', cancelLabel = null }) {
+function _appDialog({ message, withInput = false, defaultValue = '', okLabel = 'אישור', cancelLabel = null, okClass = 'primary-btn' }) {
     return new Promise(resolve => {
         document.getElementById('app-dialog-msg').textContent = message;
         const inputEl  = document.getElementById('app-dialog-input');
@@ -10,6 +10,7 @@ function _appDialog({ message, withInput = false, defaultValue = '', okLabel = '
         inputEl.value      = defaultValue;
         cancelEl.textContent = cancelLabel || '';
         okEl.textContent     = okLabel;
+        okEl.className = `app-dialog-btn ${okClass}`;
         document.getElementById('app-dialog').classList.remove('hidden');
         if (withInput) setTimeout(() => inputEl.focus(), 50);
 
@@ -25,6 +26,7 @@ function _appDialog({ message, withInput = false, defaultValue = '', okLabel = '
 }
 function showAlert(msg)              { return _appDialog({ message: msg, okLabel: 'סגור' }); }
 function showConfirm(msg)            { return _appDialog({ message: msg, okLabel: 'כן', cancelLabel: 'לא' }); }
+function showConfirmDanger(msg)      { return _appDialog({ message: msg, okLabel: 'כן', cancelLabel: 'לא', okClass: 'danger-btn' }); }
 function showPrompt(msg, def = '')   { return _appDialog({ message: msg, withInput: true, defaultValue: def, okLabel: 'אישור', cancelLabel: 'ביטול' }); }
 
 function toggleHamburger(event) {
