@@ -1104,6 +1104,20 @@ function journalGoToday() {
     renderJournalForDate(journalSelectedDate);
 }
 
+async function fetchAllTimeBest(userId, exerciseName, beforeDate) {
+    const { data, error } = await db
+        .from('workout_performance_log')
+        .select('weight_kg, reps')
+        .eq('client_id', userId)
+        .eq('exercise_name', exerciseName)
+        .lt('date', beforeDate);
+    if (error || !data || !data.length) return null;
+    return data.reduce((best, row) => {
+        if (row.weight_kg > best.weight_kg || (row.weight_kg === best.weight_kg && row.reps > best.reps)) return row;
+        return best;
+    }, data[0]);
+}
+
 async function autoSaveJournalEntries(dateStr, workoutLetter) {
     const userId = getActiveUserId();
     const entries = [];
@@ -1118,22 +1132,19 @@ async function autoSaveJournalEntries(dateStr, workoutLetter) {
     });
     try {
         const prevBests = await Promise.all(
-            entries.map(e => sbFetchLastWorkoutPerformance(userId, e.exercise_name, dateStr).catch(() => null))
+            entries.map(e => fetchAllTimeBest(userId, e.exercise_name, dateStr).catch(() => null))
         );
-        console.log('prevBests:', prevBests);
         await sbSaveWorkoutPerformanceLog(userId, dateStr, entries);
-        console.log('newValues:', entries);
         const msg = document.getElementById('journal-save-msg');
         if (msg) {
             msg.textContent = 'נשמר ✓';
             setTimeout(() => { if (msg) msg.textContent = ''; }, 2000);
         }
         const prs = [];
-        console.log('comparing PR');
         entries.forEach((e, i) => {
             const prev = prevBests[i];
             if (e.weight_kg > 0 && (!prev || e.weight_kg > prev.weight_kg || (e.weight_kg === prev.weight_kg && e.reps > prev.reps))) {
-                prs.push({ name: e.exercise_name, weight: e.weight_kg });
+                prs.push({ name: e.exercise_name, weight: e.weight_kg, reps: e.reps });
             }
         });
         if (prs.length > 0) showPRPopups(prs);
@@ -1151,7 +1162,7 @@ function showPRPopups(prs) {
         prShownThisSession.add(pr.name);
         const backdrop = document.createElement('div');
         backdrop.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5)';
-        backdrop.innerHTML = `<div style="background:var(--bg-card);border-radius:16px;padding:24px;text-align:center"><div style="font-size:2rem;font-weight:bold">🏆 שיא אישי חדש!</div><div style="font-size:1.4rem;font-weight:bold;margin-top:8px">${pr.name} — ${pr.weight}ק"ג</div></div>`;
+        backdrop.innerHTML = `<div style="background:var(--bg-card);border-radius:12px;padding:16px 20px;text-align:center"><div style="font-size:1.3rem;font-weight:bold">🏆 שיא אישי חדש!</div><div style="font-size:1rem;font-weight:bold;margin-top:6px">${pr.name}</div><div style="font-size:0.95rem;margin-top:4px">${pr.weight}ק"ג × ${pr.reps} חזרות</div></div>`;
         document.body.appendChild(backdrop);
         let closed = false;
         const close = () => { if (closed) return; closed = true; backdrop.remove(); showNext(); };
