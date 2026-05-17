@@ -952,7 +952,7 @@ async function renderJournalForDate(dateStr) {
         html += `
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;">
                 <div style="font-weight:bold;margin-bottom:10px;direction:rtl;color:var(--text-primary);display:flex;align-items:center;justify-content:space-between;">
-                    <button class="journal-chart-btn" data-exercise="${ex.name}" style="background:none;border:none;cursor:pointer;font-size:1.1rem;padding:2px 4px;line-height:1;" title="גרף חוזק">📊</button>
+                    <button class="journal-chart-btn" data-exercise="${ex.name}" style="background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:2px 6px;font-size:14px;cursor:pointer;opacity:0.7;line-height:1;" title="גרף חוזק" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">📊</button>
                     <span>${ex.name}</span>
                 </div>
                 <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
