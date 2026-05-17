@@ -881,9 +881,9 @@ function buildStars(score0to5) {
     const rounded = Math.round(score0to5 * 2) / 2;
     let s = '';
     for (let i = 1; i <= 5; i++) {
-        if (rounded >= i) s += '⭐';
-        else if (rounded >= i - 0.5) s += '<span style="opacity:0.45">⭐</span>';
-        else s += '☆';
+        if (rounded >= i) s += '<span style="opacity:1">⭐</span>';
+        else if (rounded >= i - 0.5) s += '<span style="opacity:0.6">⭐</span>';
+        else s += '<span style="opacity:0.3">⭐</span>';
     }
     return s;
 }
