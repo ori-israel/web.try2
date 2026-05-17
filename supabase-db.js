@@ -188,6 +188,33 @@ async function sbSaveWorkoutPerformanceLog(userId, date, entries) {
     if (error) throw error;
 }
 
+async function getExerciseTargets(clientId) {
+    const { data, error } = await db
+        .from('workout_performance_log')
+        .select('exercise_name, weight_kg, reps')
+        .eq('client_id', clientId);
+    if (error) throw error;
+    if (!data || !data.length) return {};
+
+    const groups = {};
+    data.forEach(row => {
+        if (!groups[row.exercise_name]) groups[row.exercise_name] = [];
+        groups[row.exercise_name].push({ weight: row.weight_kg, reps: row.reps });
+    });
+
+    const targets = {};
+    Object.entries(groups).forEach(([name, rows]) => {
+        const peakWeight = Math.max(...rows.map(r => r.weight));
+        const peakReps = Math.max(...rows.filter(r => r.weight === peakWeight).map(r => r.reps));
+        if (peakReps < 15) {
+            targets[name] = { target_weight: peakWeight, target_reps: peakReps + 1, suggest_increase: false };
+        } else {
+            targets[name] = { target_weight: peakWeight, target_reps: 'מקס', suggest_increase: true };
+        }
+    });
+    return targets;
+}
+
 // ── רצפים ───────────────────────────────────────────────────
 
 async function sbFetchStreaks(userId) {

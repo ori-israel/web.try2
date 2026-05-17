@@ -162,7 +162,7 @@ function showWorkout(workoutId) {
             btn.classList.add('active');
         }
     });
-    initWorkoutTableWeights();
+    initWorkoutTableWeights(_exerciseTargets);
 }
 
     // פונקציה לניהול הצ'קליסט של האימונים
@@ -419,11 +419,13 @@ function closeCompleteMsg() {
     document.getElementById('res-bulk').innerHTML = `📈 <strong>עלייה במשקל (מסה):</strong> ${maintenance + 250} קק"ל`;
 }
 
-function buildWorkoutAccordions() {
+function buildWorkoutAccordions(targets = {}) {
     if (window.innerWidth > 600) return;
+    // remove stale accordions so we can rebuild with fresh targets
+    document.querySelectorAll('.workout-accordion').forEach(a => a.remove());
     document.querySelectorAll('.workout-table').forEach(table => {
         const wrapper = table.closest('.table-wrapper');
-        if (!wrapper || wrapper.querySelector('.workout-accordion')) return;
+        if (!wrapper) return;
         const accordion = document.createElement('div');
         accordion.className = 'workout-accordion';
         const rows = table.querySelectorAll('tbody tr');
@@ -433,15 +435,25 @@ function buildWorkoutAccordions() {
             const name = cells[1]?.textContent.trim();
             const warmup = cells[2]?.textContent.trim();
             const work = cells[3]?.textContent.trim();
-            const reps = cells[4]?.textContent.trim();
-            const weight = cells[5]?.textContent.trim();
             const bankUrl = exerciseBank[name];
             const item = document.createElement('div');
             item.className = 'workout-accord-item';
             const isChecked = checkbox?.checked;
             const exId = checkbox?.getAttribute('data-id') || '';
-            const savedWeights = JSON.parse(localStorage.getItem('exercise_weights') || '{}');
-            const savedWeight = savedWeights[exId] || weight || '';
+
+            const t = targets[name];
+            let weightHtml, repsDisplay;
+            if (t) {
+                weightHtml = t.suggest_increase
+                    ? `${t.target_weight} <span style="color:#22c55e;font-size:0.9em;">↑</span><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">הוסף קצת משקל</div>`
+                    : String(t.target_weight);
+                repsDisplay = String(t.target_reps);
+            } else {
+                const savedWeights = JSON.parse(localStorage.getItem('exercise_weights') || '{}');
+                weightHtml = savedWeights[exId] || '—';
+                repsDisplay = cells[4]?.textContent.trim() || '—';
+            }
+
             item.innerHTML = `
                 <div class="workout-accord-header ${isChecked ? 'checked' : ''}">
                     <input type="checkbox" class="accord-checkbox" ${isChecked ? 'checked' : ''}>
@@ -461,11 +473,11 @@ function buildWorkoutAccordions() {
                         </div>
                         <div class="accord-detail">
                             <span class="accord-detail-label">חזרות</span>
-                            <span class="accord-detail-value">${reps}</span>
+                            <span class="accord-detail-value">${repsDisplay}</span>
                         </div>
                         <div class="accord-detail weight-detail" data-ex-id="${exId}">
                             <span class="accord-detail-label">משקל</span>
-                            <span class="accord-detail-value accord-weight-val">${savedWeight || '—'}</span>
+                            <span class="accord-detail-value accord-weight-val">${weightHtml}</span>
                         </div>
                     </div>
                     ${bankUrl ? `<div class="accord-video-link"><button class="accord-video-btn" onclick="openVideoModal('${bankUrl}')">▶ צפה בסרטון</button></div>` : ''}
@@ -555,7 +567,6 @@ function buildWorkoutAccordions() {
     updateCounter();
     initWorkoutsFromClient();
     initVideos();
-    buildWorkoutAccordions();
     loadPortions();
     loadChecklist();
     generatePortionGoals();
@@ -889,6 +900,7 @@ function makeEditable(td) {
 
 // ── יומן ביצועי אימון ───────────────────────────────────────
 
+let _exerciseTargets = {};
 let journalSelectedDate = null;
 let journalAutoSaveTimer = null;
 const lastShownPR = new Map();
@@ -1548,21 +1560,20 @@ async function saveJournalEntries(dateStr, workoutLetter) {
 
 // ── משקלים בטבלאות האימונים ─────────────────────────────────
 
-function initWorkoutTableWeights() {
+function initWorkoutTableWeights(targets = {}) {
     document.querySelectorAll('.workout-table tbody tr').forEach(row => {
         const weightCell = row.cells[5];
         if (!weightCell) return;
-        const exerciseName = row.cells[1]?.textContent.trim().replace(/\s+/g, '_');
+        const exerciseName = row.cells[1]?.textContent.trim();
         if (!exerciseName) return;
+        const exKey = exerciseName.replace(/\s+/g, '_');
         weightCell.style.cursor = 'pointer';
         weightCell.onclick = null;
         weightCell.onclick = function() {
             const wCell = this;
-            const wKey = 'workout_weight_' + exerciseName;
+            const wKey = 'workout_weight_' + exKey;
             if (wCell.querySelector('input')) return;
-            const saved2 = localStorage.getItem(wKey);
-            if (saved2) wCell.innerText = saved2;
-            const current = wCell.innerText;
+            const current = wCell.innerText.replace(/[^\d.]/g, '');
             const input = document.createElement('input');
             input.type = 'number';
             input.value = current || '';
@@ -1577,8 +1588,11 @@ function initWorkoutTableWeights() {
             };
             input.onkeydown = function(e) { if (e.key === 'Enter') this.blur(); };
         };
-        const saved = localStorage.getItem('workout_weight_' + exerciseName);
-        if (saved) weightCell.innerText = saved;
+        // only fall back to localStorage when no Supabase target exists
+        if (!targets[exerciseName]) {
+            const saved = localStorage.getItem('workout_weight_' + exKey);
+            if (saved) weightCell.innerText = saved;
+        }
     });
 }
 
@@ -1593,13 +1607,20 @@ function resetWorkout() {
 }
 
 
-function initWorkoutsFromClient() {
+async function initWorkoutsFromClient() {
+    console.log('[init] function called, uid:', getActiveUserId());
     const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
     const selector = document.getElementById('workout-selector');
     selector.innerHTML = '';
 
     const dayNames = ['יום ראשון', 'יום שני', 'יום שלישי', 'יום רביעי', 'יום חמישי', 'יום שישי', 'יום שבת'];
     let firstLetter = null;
+
+    const uid = getActiveUserId();
+    if (uid) {
+        try { _exerciseTargets = await getExerciseTargets(uid); } catch(e) { console.warn('getExerciseTargets failed', e); }
+    }
+    const targets = _exerciseTargets;
 
     letters.forEach(letter => {
         const workout = CLIENT['workout' + letter];
@@ -1620,14 +1641,22 @@ function initWorkoutsFromClient() {
         if (!tbody) return;
         tbody.innerHTML = '';
         workout.forEach((ex, i) => {
+            const t = targets[ex.name];
+            const weightDisplay = t
+                ? `${t.target_weight}${t.suggest_increase ? ' <span style="color:#22c55e;font-size:0.9em;">↑</span>' : ''}`
+                : '';
+            const repsDisplay = t ? String(t.target_reps) : ex.reps;
+            const subtext = t?.suggest_increase
+                ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">הוסף קצת משקל</div>`
+                : '';
             tbody.innerHTML += `
                 <tr>
                     <td><input type="checkbox" class="workout-checkbox" data-id="${letter}_${i}"></td>
                     <td>${ex.name}</td>
                     <td>${ex.warmupSets ?? 1}</td>
                     <td>${ex.workSets ?? 2}</td>
-                    <td>${ex.reps}</td>
-                    <td></td>
+                    <td>${repsDisplay}</td>
+                    <td>${weightDisplay}${subtext}</td>
                     <td class="video-cell"></td>
                 </tr>`;
         });
@@ -1637,7 +1666,8 @@ function initWorkoutsFromClient() {
 
     if (firstLetter) showWorkout(firstLetter);
     initWorkoutsChecklist();
-    initWorkoutTableWeights();
+    initWorkoutTableWeights(targets);
+    buildWorkoutAccordions(targets);
 }
 
 function showWeightUpdateToast() {

@@ -1050,6 +1050,7 @@ mark {
 }
 
     </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 
@@ -1758,12 +1759,60 @@ mark {
 
 <script>
 
+const _SUPA_URL = 'https://ebfyrswzqawqznydovbx.supabase.co';
+const _SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViZnlyc3d6cWF3cXpueWRvdmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NjExMDYsImV4cCI6MjA5NDQzNzEwNn0.jVN2qlhdqHieRgmx5C9EVQxCumidePUwQkqAQV8mhrA';
+const _db = window.supabase.createClient(_SUPA_URL, _SUPA_KEY);
+
+async function getExerciseTargets() {
+    console.log('[targets] called with email:', CLIENT.email);
+    try {
+        const { data: profiles, error: pErr } = await _db
+            .from('profiles')
+            .select('id')
+            .eq('email', CLIENT.email)
+            .single();
+        console.log('[targets] uuid:', profiles?.id, 'error:', pErr);
+        if (pErr || !profiles) return {};
+        const uid = profiles.id;
+
+        const { data, error } = await _db
+            .from('workout_performance_log')
+            .select('exercise_name, weight_kg, reps')
+            .eq('client_id', uid);
+        console.log('[targets] rows:', data?.length, 'error:', error);
+        if (error || !data || !data.length) return {};
+
+        const groups = {};
+        data.forEach(row => {
+            if (!groups[row.exercise_name]) groups[row.exercise_name] = [];
+            groups[row.exercise_name].push({ weight: row.weight_kg, reps: row.reps });
+        });
+
+        const targets = {};
+        Object.entries(groups).forEach(([name, rows]) => {
+            const peakWeight = Math.max(...rows.map(r => r.weight));
+            const peakReps = Math.max(...rows.filter(r => r.weight === peakWeight).map(r => r.reps));
+            if (peakReps < 15) {
+                targets[name] = { target_weight: peakWeight, target_reps: peakReps + 1, suggest_increase: false };
+            } else {
+                targets[name] = { target_weight: peakWeight, target_reps: 'מקס', suggest_increase: true };
+            }
+        });
+        console.log('[targets] final map:', JSON.stringify(targets));
+        return targets;
+    } catch(e) {
+        console.warn('getExerciseTargets error:', e);
+        return {};
+    }
+}
+
 // ==========================================
 // נתוני לקוח - כאן משנים לכל לקוח חדש
 // ==========================================
 const CLIENT = {
     name: "אורי ישראל המלך",
     nickname: "אורי",
+    email: "ori.israel555@gmail.com",
     startDate: "2026-04-10",
     startWeight: 63,
     currentWeight: 68,
@@ -2137,10 +2186,10 @@ function closeCompleteMsg() {
     document.getElementById('res-bulk').innerHTML = `📈 <strong>עלייה במשקל (מסה):</strong> ${maintenance + 250} קק"ל`;
 }
 
-   window.onload = () => {
+   window.onload = async () => {
     manageDailyReset();
     updateCounter();
-    initWorkoutsFromClient();
+    await initWorkoutsFromClient();
     initWorkoutsChecklist();
     initVideos(); 
     loadPortions(); 
@@ -2707,25 +2756,27 @@ function exportDataAndClose() {
     document.getElementById('weekly-backup-modal').style.display = 'none';
 }
 
-function initWorkoutsFromClient() {
+async function initWorkoutsFromClient() {
     const letters = ['A', 'B', 'C', 'D', 'E'];
     const selector = document.getElementById('workout-selector');
     selector.innerHTML = '';
-    
+
+    const targets = await getExerciseTargets();
+    console.log('[init] targets received:', JSON.stringify(targets));
+
     letters.forEach((letter, index) => {
         const workout = CLIENT['workout' + letter];
         if (!workout) return;
-        
+
         // בניית כפתור
         const btn = document.createElement('button');
         btn.className = 'workout-nav-btn' + (index === 0 ? ' active' : '');
         const dayNames = ['יום ראשון', 'יום שני', 'יום שלישי', 'יום רביעי', 'יום חמישי', 'יום שישי', 'יום שבת'];
         const days = CLIENT.workoutDays?.[letter];
-        const dayText = days ? ' | ' + days.map(d => dayNames[d]).join(' + ') : '';
         btn.innerText = days ? days.map(d => dayNames[d]).join(' + ') : 'אימון ' + letter;
         btn.setAttribute('onclick', `showWorkout('${letter}')`);
         selector.appendChild(btn);
-        
+
         // בניית טבלה
         const container = document.getElementById('workout-' + letter);
         if (!container) return;
@@ -2733,18 +2784,25 @@ function initWorkoutsFromClient() {
         if (!tbody) return;
         tbody.innerHTML = '';
         workout.forEach((ex, i) => {
+            const t = targets[ex.name];
+            const repsDisplay = t ? String(t.target_reps) : ex.reps;
+            const weightDisplay = t
+                ? t.suggest_increase
+                    ? `${t.target_weight} <span style="color:#22c55e;font-size:0.9em;">↑</span><div style="font-size:11px;color:#888;margin-top:2px;">הוסף קצת משקל</div>`
+                    : String(t.target_weight)
+                : '—';
             tbody.innerHTML += `
                 <tr>
                     <td><input type="checkbox" class="workout-checkbox" data-id="${letter}_${i}"></td>
                     <td>${ex.name}</td>
                     <td>1</td>
                     <td>2</td>
-                    <td>${ex.reps}</td>
-                    <td></td>
+                    <td>${repsDisplay}</td>
+                    <td>${weightDisplay}</td>
                     <td class="video-cell"></td>
                 </tr>`;
         });
-        
+
         // הסתרת containers שאין להם workout
         container.style.display = index === 0 ? 'block' : 'none';
     });

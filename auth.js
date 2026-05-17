@@ -42,10 +42,11 @@ function showLoadingScreen(msg) {
 
 // ── אתחול כל פונקציות ה-app לאחר טעינת הנתונים ─────────────
 
-function reinitApp() {
+async function reinitApp() {
+    console.log('[reinitApp] called');
     if (typeof manageDailyReset       === 'function') manageDailyReset();
     if (typeof updateCounter          === 'function') updateCounter();
-    if (typeof initWorkoutsFromClient === 'function') initWorkoutsFromClient();
+    if (typeof initWorkoutsFromClient === 'function') await initWorkoutsFromClient();
     if (typeof initWorkoutsChecklist  === 'function') initWorkoutsChecklist();
     if (typeof initVideos             === 'function') initVideos();
     if (typeof buildWorkoutAccordions === 'function') buildWorkoutAccordions();
@@ -619,7 +620,7 @@ async function saveWorkoutPlan() {
         });
 
         await syncWorkoutPlanNow();
-        initWorkoutsFromClient();
+        await initWorkoutsFromClient();
         initWorkoutsChecklist();
         initVideos();
 
