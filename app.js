@@ -919,7 +919,7 @@ async function renderWeeklyScore(userId) {
             db.from('workout_performance_log').select('date')
               .eq('client_id', userId).gte('date', monStr).lte('date', sunStr),
             db.from('daily_nutrition').select('date, protein, carbs, fat')
-              .eq('user_id', userId).gte('date', monStr).lte('date', sunStr),
+              .eq('client_id', userId).gte('date', monStr).lte('date', sunStr),
             db.from('weight_history').select('date')
               .eq('user_id', userId).gte('date', monStr).lte('date', sunStr).limit(1),
         ]);
