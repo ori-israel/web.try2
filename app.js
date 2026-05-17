@@ -1160,7 +1160,7 @@ async function showStrengthChart(exerciseName, userId) {
                     backgroundColor: 'rgba(91,124,250,0.15)',
                     fill: true,
                     tension: 0.3,
-                    yAxisID: 'yWeight',
+                    yAxisID: 'y',
                 },
                 {
                     label: 'חזרות',
@@ -1169,7 +1169,7 @@ async function showStrengthChart(exerciseName, userId) {
                     backgroundColor: 'transparent',
                     borderDash: [6, 3],
                     tension: 0.3,
-                    yAxisID: 'yReps',
+                    yAxisID: 'y2',
                 }
             ]
         },
@@ -1177,8 +1177,8 @@ async function showStrengthChart(exerciseName, userId) {
             responsive: true,
             interaction: { mode: 'index', intersect: false },
             scales: {
-                yWeight: { type: 'linear', position: 'left', min: 0, max: 100, ticks: { color: '#5b7cfa' }, title: { display: true, text: 'ק"ג' } },
-                yReps: { type: 'linear', position: 'right', min: 0, max: 25, grid: { drawOnChartArea: false }, ticks: { color: '#4caf50', stepSize: 1, precision: 0 }, title: { display: true, text: 'חזרות' } }
+                y:  { type: 'linear', position: 'left',  min: 0, max: 100, ticks: { color: '#5b7cfa' }, title: { display: true, text: 'ק"ג' } },
+                y2: { type: 'linear', position: 'right', min: 0, max: 25,  grid: { drawOnChartArea: false }, ticks: { color: '#4caf50', stepSize: 1, precision: 0 }, title: { display: true, text: 'חזרות' } }
             }
         }
     });
