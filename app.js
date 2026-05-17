@@ -846,6 +846,7 @@ function makeEditable(td) {
 let journalSelectedDate = null;
 let journalAutoSaveTimer = null;
 const lastShownPR = new Map();
+const _trackingWidgetCache = {};
 let journalCalOpen = false;
 let journalCalViewYear = null;
 let journalCalViewMonth = null;
@@ -902,6 +903,8 @@ function ensureWeeklyScoreContainer() {
 }
 
 async function renderWeeklyScore(userId) {
+    const cacheKey = 'weekly_' + userId;
+    if (_trackingWidgetCache[cacheKey] && Date.now() - _trackingWidgetCache[cacheKey] < 5 * 60 * 1000) return;
     const container = ensureWeeklyScoreContainer();
     if (!container) return;
     container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-secondary);font-size:0.9rem;">טוען ציון שבועי...</div>';
@@ -951,6 +954,7 @@ async function renderWeeklyScore(userId) {
                     <div>${hasWeight ? '✅' : '⚠️'} שקילה: ${hasWeight ? 'נשקל השבוע ✓' : 'טרם נשקל השבוע'}</div>
                 </div>
             </div>`;
+        _trackingWidgetCache[cacheKey] = Date.now();
     } catch (err) {
         console.error('Weekly score error:', err);
         container.innerHTML = '';
@@ -958,6 +962,8 @@ async function renderWeeklyScore(userId) {
 }
 
 async function renderScoreHistory(userId) {
+    const cacheKey = 'history_' + userId;
+    if (_trackingWidgetCache[cacheKey] && Date.now() - _trackingWidgetCache[cacheKey] < 5 * 60 * 1000) return;
     let container = document.getElementById('score-history-container');
     if (!container) {
         const weeklyContainer = document.getElementById('weekly-score-container');
@@ -969,14 +975,12 @@ async function renderScoreHistory(userId) {
     container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-secondary);font-size:0.9rem;">טוען היסטוריה...</div>';
 
     try {
-        console.log('renderScoreHistory userId:', userId);
         const { data, error } = await db
             .from('weekly_scores')
             .select('week_start, score')
             .eq('client_id', userId)
             .order('week_start', { ascending: true });
 
-        console.log('score history response:', { data, error });
         if (error) throw error;
 
         if (!data || data.length < 2) {
@@ -1002,9 +1006,25 @@ async function renderScoreHistory(userId) {
         });
         const scores = data.map(r => r.score);
 
+        const goalLabelPlugin = {
+            id: 'goalLabel',
+            afterDraw(chart) {
+                const yScale = chart.scales.y;
+                const y = yScale.getPixelForValue(80);
+                const { ctx: c, chartArea } = chart;
+                c.save();
+                c.fillStyle = 'rgba(245,197,24,0.85)';
+                c.font = 'bold 10px sans-serif';
+                c.textAlign = 'left';
+                c.fillText('יעד', chartArea.left + 4, y - 4);
+                c.restore();
+            }
+        };
+
         const ctx = container.querySelector('#score-history-canvas').getContext('2d');
         new Chart(ctx, {
             type: 'line',
+            plugins: [goalLabelPlugin],
             data: {
                 labels,
                 datasets: [
@@ -1030,7 +1050,7 @@ async function renderScoreHistory(userId) {
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            label: ctx => ` ציון: ${ctx.parsed.y}%`
+                            label: c => ` ציון: ${c.parsed.y}%`
                         }
                     }
                 },
@@ -1042,12 +1062,13 @@ async function renderScoreHistory(userId) {
                             color: c => c.tick.value === 80 ? 'rgba(245,197,24,0.6)' : 'rgba(128,128,128,0.1)',
                             lineWidth: c => c.tick.value === 80 ? 2 : 1,
                             borderDash: c => c.tick.value === 80 ? [6, 3] : [],
-                        },
-                        },
+                        }
+                    },
                     x: { ticks: { maxRotation: 0, font: { size: 11 } } }
                 }
             }
         });
+        _trackingWidgetCache[cacheKey] = Date.now();
     } catch (err) {
         console.error('Score history error:', err);
         container.innerHTML = '';
