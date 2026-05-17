@@ -912,7 +912,7 @@ async function renderWeeklyScore(userId) {
         const proteinGoal  = Math.round((CLIENT.currentWeight || CLIENT.startWeight || 80) * (CLIENT.proteinRatio || 2));
         const calorieGoal  = 2000;
 
-        const [{ data: workoutData }, { data: nutritionData }, { data: weightData }] = await Promise.all([
+        const [{ data: workoutData }, { data: nutritionRows }, { data: weightData }] = await Promise.all([
             db.from('workout_performance_log').select('date')
               .eq('client_id', userId).gte('date', monStr).lte('date', sunStr),
             db.from('daily_nutrition').select('date, protein, carbs, fat')
@@ -921,11 +921,15 @@ async function renderWeeklyScore(userId) {
               .eq('user_id', userId).gte('date', monStr).lte('date', sunStr).limit(1),
         ]);
 
-        const workoutCount = new Set((workoutData || []).map(r => r.date)).size;
+        const workoutDates = new Set((workoutData || []).map(r => r.date));
+        console.log("workouts this week:", workoutDates, "target:", CLIENT.workoutsPerWeek);
+        console.log("nutrition rows:", nutritionRows, "proteinGoal:", proteinGoal);
+
+        const workoutCount = workoutDates.size;
         const workoutScore = Math.min(workoutCount / weeklyTarget, 1);
 
         let nutritionMet = 0;
-        (nutritionData || []).forEach(r => {
+        (nutritionRows || []).forEach(r => {
             const kcal = r.protein * 4 + r.carbs * 4 + r.fat * 9;
             if (r.protein >= proteinGoal && kcal >= calorieGoal * 0.85) nutritionMet++;
         });
