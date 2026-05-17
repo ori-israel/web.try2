@@ -1628,13 +1628,24 @@ function loadCoachingGoal() {
     });
 }
 
+function updateVacationBanner() {
+    const banner = document.getElementById('vacation-banner');
+    if (banner) banner.style.display = CLIENT.vacationMode ? 'block' : 'none';
+}
+
 function updateWorkoutStreak() {
     const today = new Date();
     const todayStr = today.toDateString();
-    
+
     let streak = parseInt(localStorage.getItem('workout_streak') || '0');
     const lastCompleted = localStorage.getItem('workout_completed_date');
-    
+
+    if (CLIENT.vacationMode) {
+        const el = document.getElementById('workout-streak-count');
+        if (el) el.innerText = streak + ' 🏖️';
+        return;
+    }
+
     if (!lastCompleted) {
         document.getElementById('workout-streak-count').innerText = streak;
         return;
@@ -1647,14 +1658,15 @@ function updateWorkoutStreak() {
         streak = 0;
         localStorage.setItem('workout_streak', '0');
     }
-    
+
     document.getElementById('workout-streak-count').innerText = streak;
 }
 
 function completeWorkoutStreak(letter) {
+    if (CLIENT.vacationMode) return;
     const today = new Date().toDateString();
     const todayDay = new Date().getDay();
-    
+
     const scheduledDays = CLIENT.workoutDays?.[letter];
     if (!scheduledDays || !scheduledDays.includes(todayDay)) return;
     if (localStorage.getItem('workout_completed_date') === today) return;
@@ -1682,6 +1694,7 @@ function checkNutritionStreak() {
 }
 
 function completeNutritionStreak() {
+    if (CLIENT.vacationMode) return;
     const today = new Date().toDateString();
     if (localStorage.getItem('nutrition_completed_date') === today) return;
 
@@ -1709,10 +1722,16 @@ function closeNutritionComplete() {
 function updateNutritionStreak() {
     const today = new Date();
     const todayStr = today.toDateString();
-    
+
     let streak = parseInt(localStorage.getItem('nutrition_streak') || '0');
     const lastCompleted = localStorage.getItem('nutrition_completed_date');
-    
+
+    if (CLIENT.vacationMode) {
+        const el = document.getElementById('nutrition-streak-count');
+        if (el) el.innerText = streak + ' 🏖️';
+        return;
+    }
+
     if (!lastCompleted) {
         document.getElementById('nutrition-streak-count').innerText = streak;
         return;

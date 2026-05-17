@@ -219,6 +219,11 @@ async function sbFetchAllClients() {
     return (data || []).filter(u => !u.is_admin);
 }
 
+async function sbSetVacationMode(clientId, value) {
+    const { error } = await db.from('profiles').update({ vacation_mode: value }).eq('id', clientId);
+    if (error) throw error;
+}
+
 async function sbFetchCoachDashData(clientIds) {
     if (!clientIds.length) return { profiles: [], scores: [], workouts: [], nutrition: [], monStr: '', prevMonStr: '' };
 
@@ -239,7 +244,7 @@ async function sbFetchCoachDashData(clientIds) {
 
     const [pRes, sRes, wRes, nRes] = await Promise.all([
         db.from('profiles')
-          .select('id, current_weight, protein_ratio, workouts_per_week')
+          .select('id, current_weight, protein_ratio, workouts_per_week, vacation_mode')
           .in('id', clientIds),
         db.from('weekly_scores')
           .select('client_id, week_start, score, workouts_score, nutrition_score, habits_score')
@@ -302,6 +307,7 @@ async function loadUserIntoApp(userId) {
             dislikedFoods: profile.disliked_foods || '',
             coachingGoal:  profile.coaching_goal  || '',
             coachPin:      profile.coach_pin      || null,
+            vacationMode:  profile.vacation_mode  || false,
         };
         Object.assign(CLIENT, p);
         localStorage.setItem('profile_data_v1', JSON.stringify(p));

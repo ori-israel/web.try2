@@ -58,6 +58,7 @@ function reinitApp() {
     if (typeof loadCoachingGoal       === 'function') loadCoachingGoal();
     if (typeof updateWorkoutStreak    === 'function') updateWorkoutStreak();
     if (typeof updateNutritionStreak  === 'function') updateNutritionStreak();
+    if (typeof updateVacationBanner   === 'function') updateVacationBanner();
     if (typeof populateProfileForm    === 'function') populateProfileForm();
     if (typeof initFAQ                === 'function') initFAQ();
     setTimeout(() => {
@@ -248,6 +249,7 @@ function _buildClientStats(client) {
         last4,
         hasWorkout,
         nutritionBadDays,
+        vacationMode:    !!(profile.vacation_mode),
     };
 }
 
@@ -288,6 +290,20 @@ function _coachScoreBar(label, score) {
     </div>`;
 }
 
+async function toggleVacationMode(clientId, current) {
+    const newVal = !current;
+    const profile = _coachDashData?.profiles.find(p => p.id === clientId);
+    if (profile) profile.vacation_mode = newVal;
+    try {
+        await sbSetVacationMode(clientId, newVal);
+    } catch (e) {
+        if (profile) profile.vacation_mode = current;
+        alert('שגיאה בעדכון מצב חופשה');
+    }
+    const list = document.getElementById('admin-client-list');
+    if (list) _renderCoachList(list);
+}
+
 function _renderUrgentMode(list) {
     list.className = 'admin-client-list';
     const items = _coachClients.map(client => {
@@ -319,6 +335,7 @@ function _renderUrgentMode(list) {
     list.innerHTML = '';
     items.filter(i => i.reason).forEach(({ client, s, name, reason, cls }) => {
         const scoreStr = s.currentScore !== null ? Math.round(s.currentScore) : '—';
+        const vac = s.vacationMode;
         const row = document.createElement('div');
         row.className = 'coach-urgent-row';
         row.innerHTML = `
@@ -331,6 +348,7 @@ function _renderUrgentMode(list) {
             </div>
             <div class="coach-urgent-right">
                 <span class="coach-urgent-score">${scoreStr}</span>
+                <button class="coach-vacation-btn${vac ? ' active' : ''}" onclick="toggleVacationMode('${client.id}', ${vac})">${vac ? '🏖️ חופשה' : 'הפעל חופשה'}</button>
                 <button class="admin-select-btn" onclick="adminViewClient('${client.id}')">כניסה ›</button>
             </div>`;
         list.appendChild(row);
@@ -355,6 +373,7 @@ function _renderOverviewMode(list) {
         const card = document.createElement('div');
         card.className = 'coach-overview-card';
         card.style.borderColor = bClr;
+        const vac = s.vacationMode;
         card.innerHTML = `
             ${_coachInitials(name, client.id)}
             <div class="coach-card-name">${name}</div>
@@ -365,7 +384,8 @@ function _renderOverviewMode(list) {
                 ${_coachScoreBar('תזונה',   s.nutritionScore)}
                 ${_coachScoreBar('הרגלים',  s.habitsScore)}
             </div>
-            <button class="admin-select-btn" style="width:100%;margin-top:10px" onclick="adminViewClient('${client.id}')">כניסה ›</button>`;
+            <button class="coach-vacation-btn${vac ? ' active' : ''}" style="width:100%;margin-top:8px" onclick="toggleVacationMode('${client.id}', ${vac})">${vac ? '🏖️ חופשה' : 'הפעל חופשה'}</button>
+            <button class="admin-select-btn" style="width:100%;margin-top:6px" onclick="adminViewClient('${client.id}')">כניסה ›</button>`;
         list.appendChild(card);
     });
 }

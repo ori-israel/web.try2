@@ -21,7 +21,7 @@ module.exports = async (req, res) => {
 
     const { data: profiles, error: profErr } = await supabase
         .from('profiles')
-        .select('id, workouts_per_week, protein_ratio, current_weight, start_weight')
+        .select('id, workouts_per_week, protein_ratio, current_weight, start_weight, vacation_mode')
         .eq('is_admin', false);
 
     if (profErr) {
@@ -33,6 +33,12 @@ module.exports = async (req, res) => {
 
     for (const profile of profiles) {
         const userId = profile.id;
+
+        if (profile.vacation_mode) {
+            console.log(`Skipping ${userId} — vacation mode active`);
+            results.push({ userId, skipped: true, reason: 'vacation' });
+            continue;
+        }
 
         // Skip if score already saved for this client + week
         const { data: existing } = await supabase
