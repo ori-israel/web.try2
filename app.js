@@ -863,6 +863,7 @@ function initWorkoutJournal() {
     renderJournalForDate(journalSelectedDate);
     const userId = getActiveUserId();
     if (userId) renderWeeklyScore(userId);
+    if (userId) renderScoreHistory(userId);
 }
 
 function getWeekRange() {
@@ -952,6 +953,90 @@ async function renderWeeklyScore(userId) {
             </div>`;
     } catch (err) {
         console.error('Weekly score error:', err);
+        container.innerHTML = '';
+    }
+}
+
+async function renderScoreHistory(userId) {
+    let container = document.getElementById('score-history-container');
+    if (!container) {
+        const weeklyContainer = document.getElementById('weekly-score-container');
+        if (!weeklyContainer) return;
+        container = document.createElement('div');
+        container.id = 'score-history-container';
+        weeklyContainer.insertAdjacentElement('afterend', container);
+    }
+    container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-secondary);font-size:0.9rem;">טוען היסטוריה...</div>';
+
+    try {
+        const { data, error } = await db
+            .from('weekly_scores')
+            .select('week_start, score')
+            .eq('client_id', userId)
+            .order('week_start', { ascending: true });
+
+        if (error) throw error;
+
+        if (!data || data.length < 2) {
+            container.innerHTML = `
+                <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;direction:rtl;">
+                    <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:8px;">📈 היסטוריית ציונים שבועיים</div>
+                    <div style="text-align:center;color:var(--text-secondary);font-size:0.88rem;padding:8px 0;">אין מספיק היסטוריה עדיין</div>
+                </div>`;
+            return;
+        }
+
+        await loadChartJs();
+
+        container.innerHTML = `
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;direction:rtl;">
+                <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:12px;">📈 היסטוריית ציונים שבועיים</div>
+                <canvas id="score-history-canvas"></canvas>
+            </div>`;
+
+        const labels = data.map(r => journalFormatShortDate(r.week_start));
+        const scores = data.map(r => r.score);
+
+        const ctx = container.querySelector('#score-history-canvas').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'ציון שבועי',
+                        data: scores,
+                        borderColor: '#f5c518',
+                        backgroundColor: 'rgba(245,197,24,0.12)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#f5c518',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    annotation: { annotations: {} }
+                },
+                scales: {
+                    y: {
+                        min: 0, max: 100,
+                        ticks: { stepSize: 20 },
+                        grid: {
+                            color: ctx => ctx.tick.value === 80 ? 'rgba(245,197,24,0.5)' : 'rgba(128,128,128,0.1)',
+                            lineWidth: ctx => ctx.tick.value === 80 ? 2 : 1,
+                            borderDash: ctx => ctx.tick.value === 80 ? [6, 3] : [],
+                        }
+                    },
+                    x: { ticks: { maxRotation: 45, font: { size: 11 } } }
+                }
+            }
+        });
+    } catch (err) {
+        console.error('Score history error:', err);
         container.innerHTML = '';
     }
 }
