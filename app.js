@@ -951,7 +951,10 @@ async function renderJournalForDate(dateStr) {
             : '';
         html += `
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;">
-                <div style="font-weight:bold;margin-bottom:10px;direction:rtl;color:var(--text-primary);">${ex.name}</div>
+                <div style="font-weight:bold;margin-bottom:10px;direction:rtl;color:var(--text-primary);display:flex;align-items:center;justify-content:space-between;">
+                    <button class="journal-chart-btn" data-exercise="${ex.name}" style="background:none;border:none;cursor:pointer;font-size:1.1rem;padding:2px 4px;line-height:1;" title="גרף חוזק">📊</button>
+                    <span>${ex.name}</span>
+                </div>
                 <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
                     <label style="font-size:13px;display:flex;align-items:center;gap:6px;color:var(--text-primary);">
                         <span>משקל (ק"ג):</span>
@@ -974,6 +977,10 @@ async function renderJournalForDate(dateStr) {
     html += '<div id="journal-save-msg" style="font-size:15px;font-weight:bold;color:var(--main-green);text-align:center;padding:8px;min-height:20px;"></div>';
 
     container.innerHTML = html;
+
+    container.querySelectorAll('.journal-chart-btn').forEach(btn => {
+        btn.addEventListener('click', () => showStrengthChart(btn.dataset.exercise, userId));
+    });
 
     container.querySelectorAll('.journal-weight-input, .journal-reps-input').forEach(input => {
         input.addEventListener('input', () => {
@@ -1103,6 +1110,78 @@ function journalNextDay() {
 function journalGoToday() {
     journalSelectedDate = new Date().toISOString().split('T')[0];
     renderJournalForDate(journalSelectedDate);
+}
+
+async function loadChartJs() {
+    if (window.Chart) return;
+    return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+    });
+}
+
+async function showStrengthChart(exerciseName, userId) {
+    await loadChartJs();
+    const { data, error } = await db
+        .from('workout_performance_log')
+        .select('date, weight_kg, reps')
+        .eq('client_id', userId)
+        .eq('exercise_name', exerciseName)
+        .order('date', { ascending: true });
+    if (error || !data || !data.length) { alert('אין נתונים להצגה'); return; }
+
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6)';
+    const modal = document.createElement('div');
+    modal.style.cssText = 'background:var(--bg-card);border-radius:16px;padding:20px;width:90%;max-width:500px;position:relative;';
+    modal.innerHTML = `
+        <button id="close-chart-btn" style="position:absolute;top:10px;left:10px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-primary);">✕</button>
+        <div style="font-weight:bold;font-size:1.1rem;text-align:center;margin-bottom:16px;direction:rtl;">${exerciseName}</div>
+        <canvas id="strength-chart-canvas"></canvas>`;
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    const close = (e) => { if (e.target === overlay || e.target.id === 'close-chart-btn') overlay.remove(); };
+    overlay.addEventListener('click', close);
+
+    const ctx = modal.querySelector('#strength-chart-canvas').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.map(r => r.date),
+            datasets: [
+                {
+                    label: 'משקל (ק"ג)',
+                    data: data.map(r => r.weight_kg),
+                    borderColor: '#5b7cfa',
+                    backgroundColor: 'rgba(91,124,250,0.15)',
+                    fill: true,
+                    tension: 0.3,
+                    yAxisID: 'yWeight',
+                },
+                {
+                    label: 'חזרות',
+                    data: data.map(r => r.reps),
+                    borderColor: '#4caf50',
+                    backgroundColor: 'transparent',
+                    borderDash: [6, 3],
+                    tension: 0.3,
+                    yAxisID: 'yReps',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                yWeight: { type: 'linear', position: 'left', ticks: { color: '#5b7cfa' }, title: { display: true, text: 'ק"ג' } },
+                yReps: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#4caf50', stepSize: 1, precision: 0 }, title: { display: true, text: 'חזרות' } }
+            }
+        }
+    });
 }
 
 async function fetchAllTimeBest(userId, exerciseName, beforeDate) {
