@@ -226,7 +226,7 @@ async function sbFetchCoachDashData(clientIds) {
     const dow    = today.getDay();
     const mon    = new Date(today);
     mon.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
-    mon.setHours(0, 0, 0, 0);
+    // No setHours — keep local time so toISOString() stays on the correct date (matches getWeekRange())
     const monStr     = mon.toISOString().slice(0, 10);
     const prevMon    = new Date(mon);
     prevMon.setDate(mon.getDate() - 7);
@@ -234,6 +234,8 @@ async function sbFetchCoachDashData(clientIds) {
     const fourAgo    = new Date(mon);
     fourAgo.setDate(mon.getDate() - 28);
     const fourAgoStr = fourAgo.toISOString().slice(0, 10);
+
+    console.log('[CoachDash] monStr:', monStr, '| prevMonStr:', prevMonStr, '| fourAgoStr:', fourAgoStr, '| clientIds:', clientIds);
 
     const [pRes, sRes, wRes, nRes] = await Promise.all([
         db.from('profiles')
@@ -253,6 +255,9 @@ async function sbFetchCoachDashData(clientIds) {
           .in('user_id', clientIds)
           .gte('date', monStr),
     ]);
+
+    console.log('[CoachDash] scores raw:', sRes.data, '| sRes.error:', sRes.error);
+    console.log('[CoachDash] workouts raw:', wRes.data?.length, '| nutrition raw:', nRes.data?.length);
 
     return {
         profiles:  pRes.data  || [],
