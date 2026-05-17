@@ -324,6 +324,18 @@ function closeCompleteMsg() {
                     method: "POST", body: formData, headers: { 'Accept': 'application/json' }
                 });
                 if (response.ok) {
+                    const uid = typeof SB_USER !== 'undefined' && SB_USER?.id;
+                    if (uid) {
+                        try {
+                            await sbSaveWeeklyQuestionnaire(
+                                uid,
+                                formData.get('victory'),
+                                formData.get('obstacle'),
+                                parseInt(formData.get('compliance_rating')) || null,
+                                formData.get('focus_topic')
+                            );
+                        } catch(e) { console.warn('[SB] questionnaire save:', e.message); }
+                    }
                     await showAlert("השאלון נשלח בהצלחה!"); surveyForm.reset(); closeSurvey();
                 } else { await showAlert("שגיאה בשליחה."); }
             } catch (error) { await showAlert("שגיאת תקשורת.");
@@ -503,6 +515,31 @@ function buildWorkoutAccordions() {
     });
 }
 
+   async function checkThursdayBanner() {
+    if (new Date().getDay() !== 4) return;
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const dismissKey = 'survey_banner_dismissed_' + todayStr;
+    if (localStorage.getItem(dismissKey)) return;
+    const uid = typeof SB_USER !== 'undefined' && SB_USER?.id;
+    if (!uid) return;
+    try {
+        const hasRow = await sbCheckThisWeekQuestionnaire(uid);
+        if (hasRow) return;
+        const banner = document.getElementById('weekly-survey-banner');
+        if (!banner) return;
+        banner.style.display = 'flex';
+        document.getElementById('weekly-survey-banner-close').onclick = () => {
+            banner.style.display = 'none';
+            localStorage.setItem(dismissKey, '1');
+        };
+        document.getElementById('weekly-survey-banner-open').onclick = () => {
+            banner.style.display = 'none';
+            localStorage.setItem(dismissKey, '1');
+            openSurvey();
+        };
+    } catch(e) { console.warn('[SB] thursday banner:', e.message); }
+}
+
    window.onload = async () => {
     // ממתין לאימות Supabase לפני אתחול האפליקציה
     if (window._authReady) await window._authReady;
@@ -522,6 +559,7 @@ function buildWorkoutAccordions() {
     updateNutritionStreak();
     setTimeout(renderWeightChart, 100);
     checkBirthday();
+    checkThursdayBanner();
 };
 
     function toggleAccordion(id) {

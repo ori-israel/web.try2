@@ -503,3 +503,45 @@ async function syncGeminiKeyNow(key) {
     try { await sbUpsertProfile(uid, { gemini_api_key: key }); }
     catch (e) { console.warn('[SB] gemini key sync:', e.message); }
 }
+
+// ── שאלון שבועי ─────────────────────────────────────────────
+
+async function sbSaveWeeklyQuestionnaire(clientId, q1, q2, q3, q4) {
+    const { error } = await db.from('weekly_questionnaire').insert({
+        client_id: clientId,
+        q1_win: q1,
+        q2_challenge: q2,
+        q3_score: q3,
+        q4_topic: q4,
+    });
+    if (error) throw error;
+}
+
+async function sbCheckThisWeekQuestionnaire(clientId) {
+    const today = new Date();
+    const dow = today.getDay();
+    const mon = new Date(today);
+    mon.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
+    const monStr = mon.toISOString().slice(0, 10);
+    const { data, error } = await db
+        .from('weekly_questionnaire')
+        .select('id')
+        .eq('client_id', clientId)
+        .gte('submitted_at', monStr)
+        .limit(1)
+        .maybeSingle();
+    if (error) throw error;
+    return !!data;
+}
+
+async function sbFetchLatestQuestionnaire(clientId) {
+    const { data, error } = await db
+        .from('weekly_questionnaire')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('submitted_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+    if (error) throw error;
+    return data;
+}

@@ -290,12 +290,28 @@ function _coachScoreBar(label, score) {
     </div>`;
 }
 
+function _showToast(msg) {
+    let toast = document.getElementById('coach-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'coach-toast';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.classList.add('visible');
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => toast.classList.remove('visible'), 3000);
+}
+
 async function toggleVacationMode(clientId, current) {
     const newVal = !current;
     const profile = _coachDashData?.profiles.find(p => p.id === clientId);
+    const client  = _coachClients?.find(c => c.id === clientId);
+    const name    = client?.name || client?.nickname || '';
     if (profile) profile.vacation_mode = newVal;
     try {
         await sbSetVacationMode(clientId, newVal);
+        _showToast(newVal ? `🏖️ מצב חופשה הופעל עבור ${name}` : `✅ מצב חופשה כובה עבור ${name}`);
     } catch (e) {
         if (profile) profile.vacation_mode = current;
         alert('שגיאה בעדכון מצב חופשה');
@@ -404,13 +420,14 @@ function _renderOverviewMode(list) {
                 <button class="coach-vac-icon${vac ? ' active' : ''}" onclick="event.stopPropagation();toggleVacationMode('${client.id}',${vac})">🏖️</button>
             </div>
             <div class="coach-card-body">
-                <div class="coach-sparkline">${_coachSparkline(s.last4)}</div>
                 <div class="coach-bars">
                     ${_coachScoreBar('אימונים', s.workoutsScore)}
                     ${_coachScoreBar('תזונה',   s.nutritionScore)}
                     ${_coachScoreBar('הרגלים',  s.habitsScore)}
                 </div>
-                <button class="admin-select-btn" style="width:100%;margin-top:10px" onclick="adminViewClient('${client.id}')">כניסה ›</button>
+                <div class="coach-sparkline">${_coachSparkline(s.last4)}</div>
+                <button class="coach-q-btn" onclick="event.stopPropagation();showQuestionnaireModal('${client.id}')">📋 שאלון אחרון</button>
+                <button class="admin-select-btn" style="width:100%;margin-top:6px" onclick="adminViewClient('${client.id}')">כניסה ›</button>
             </div>`;
         list.appendChild(card);
     });
@@ -428,6 +445,33 @@ function adminBackToList() {
     SB_VIEW_ID = null;
     _resolveAuthReady = () => {}; // שיחה נוספת לא תשפיע
     renderAdminPanel().then(() => _showOverlay('admin-overlay'));
+}
+
+// ── מודל שאלון שבועי ────────────────────────────────────────
+
+async function showQuestionnaireModal(clientId) {
+    const modal = document.getElementById('questionnaire-modal');
+    const body  = document.getElementById('qmodal-body');
+    body.innerHTML = '<p style="color:#aaa">טוען...</p>';
+    modal.classList.remove('hidden');
+    try {
+        const row = await sbFetchLatestQuestionnaire(clientId);
+        if (!row) { body.innerHTML = '<p style="color:#aaa">אין שאלון עדיין.</p>'; return; }
+        const date = new Date(row.submitted_at).toLocaleDateString('he-IL', { day:'numeric', month:'long', year:'numeric' });
+        body.innerHTML = `
+            <p class="qmodal-date">נשלח: ${date}</p>
+            <div class="qmodal-q"><strong>1. ניצחון:</strong><p>${row.q1_win || '—'}</p></div>
+            <div class="qmodal-q"><strong>2. אתגר:</strong><p>${row.q2_challenge || '—'}</p></div>
+            <div class="qmodal-q"><strong>3. ציון עמידה:</strong><p>${row.q3_score != null ? row.q3_score + '/10' : '—'}</p></div>
+            <div class="qmodal-q"><strong>4. נושא לפגישה:</strong><p>${row.q4_topic || '—'}</p></div>`;
+    } catch(e) {
+        body.innerHTML = '<p style="color:#f87171">שגיאה בטעינה.</p>';
+        console.error('[SB] questionnaire fetch:', e.message);
+    }
+}
+
+function closeQuestionnaireModal() {
+    document.getElementById('questionnaire-modal').classList.add('hidden');
 }
 
 // ── עורך תוכנית אימונים (מנהל בלבד) ────────────────────────
