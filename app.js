@@ -916,14 +916,16 @@ async function renderWeeklyScore(userId) {
         console.log("CLIENT keys:", Object.keys(CLIENT));
         console.log("nutrition query filter — user_id:", userId, "range:", monStr, "to", sunStr);
 
-        const [{ data: workoutData }, { data: nutritionRows }, { data: weightData }] = await Promise.all([
+        const [{ data: workoutData }, nutritionRes, { data: weightData }] = await Promise.all([
             db.from('workout_performance_log').select('date')
-              .eq('user_id', userId).gte('date', monStr).lte('date', sunStr),
+              .eq('client_id', userId).gte('date', monStr).lte('date', sunStr),
             db.from('daily_nutrition').select('date, protein, carbs, fat')
               .eq('user_id', userId).gte('date', monStr).lte('date', sunStr),
             db.from('weight_history').select('date')
               .eq('user_id', userId).gte('date', monStr).lte('date', sunStr).limit(1),
         ]);
+        console.log("daily_nutrition full response:", nutritionRes);
+        const nutritionRows = nutritionRes.data;
 
         const workoutDates = new Set((workoutData || []).map(r => r.date));
         console.log("workouts this week:", workoutDates, "target:", CLIENT.workoutsPerWeek);
