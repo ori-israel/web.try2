@@ -915,10 +915,10 @@ async function renderWeeklyScore(userId) {
         const [{ data: workoutData }, { data: nutritionData }, { data: weightData }] = await Promise.all([
             db.from('workout_performance_log').select('date')
               .eq('client_id', userId).gte('date', monStr).lte('date', sunStr),
-            db.from('nutrition_logs').select('date, protein, carbs, fat')
-              .eq('client_id', userId).gte('date', monStr).lte('date', sunStr),
+            db.from('daily_nutrition').select('date, protein, carbs, fat')
+              .eq('user_id', userId).gte('date', monStr).lte('date', sunStr),
             db.from('weight_history').select('date')
-              .eq('client_id', userId).gte('date', monStr).lte('date', sunStr).limit(1),
+              .eq('user_id', userId).gte('date', monStr).lte('date', sunStr).limit(1),
         ]);
 
         const workoutCount = new Set((workoutData || []).map(r => r.date)).size;
@@ -942,7 +942,7 @@ async function renderWeeklyScore(userId) {
         container.innerHTML = `
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;direction:rtl;">
                 <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:10px;">📊 ציון שבועי &nbsp;|&nbsp; ${weekLabel}</div>
-                <div style="font-size:1.5rem;text-align:center;margin-bottom:10px;">${stars}&nbsp;<span style="font-size:1.1rem;font-weight:bold;">${pct}%</span></div>
+                <div style="font-size:1.5rem;text-align:center;margin-bottom:10px;direction:ltr;">${stars}&nbsp;<span style="font-size:1.1rem;font-weight:bold;">${pct}%</span></div>
                 <div style="font-size:0.88rem;display:flex;flex-direction:column;gap:6px;color:var(--text-primary);">
                     <div>${workoutScore >= 1 ? '✅' : '⚠️'} אימונים: ${workoutCount}/${weeklyTarget} השבוע &nbsp;<span style="color:var(--text-secondary)">(${Math.round(workoutScore*100)}%)</span></div>
                     <div>${nutritionMet >= Math.ceil(7 * 0.6) ? '✅' : '⚠️'} תזונה: ${nutritionMet}/7 ימים עמדו ביעד &nbsp;<span style="color:var(--text-secondary)">(${Math.round(nutritionScore*100)}%)</span></div>
