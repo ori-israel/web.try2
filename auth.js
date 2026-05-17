@@ -292,7 +292,7 @@ function _renderUrgentMode(list) {
     list.className = 'admin-client-list';
     const items = _coachClients.map(client => {
         const s    = _buildClientStats(client);
-        const name = client.nickname || client.name || '(ללא שם)';
+        const name = client.name || client.nickname || '(ללא שם)';
         let priority = 5, reason = null, cls = '';
 
         if (s.prevScore !== null && s.currentScore !== null && (s.prevScore - s.currentScore) > 20) {
@@ -347,7 +347,7 @@ function _renderOverviewMode(list) {
 
     _coachClients.forEach(client => {
         const s     = _buildClientStats(client);
-        const name  = client.nickname || client.name || '(ללא שם)';
+        const name  = client.name || client.nickname || '(ללא שם)';
         const score = s.currentScore;
         const bClr  = score === null ? '#444' : score >= 80 ? '#4ade80' : score >= 50 ? '#facc15' : '#f87171';
         const sStr  = score !== null ? Math.round(score) : '—';
