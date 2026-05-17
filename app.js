@@ -1119,13 +1119,16 @@ async function autoSaveJournalEntries(dateStr, workoutLetter) {
         const prevBests = await Promise.all(
             entries.map(e => sbFetchLastWorkoutPerformance(userId, e.exercise_name, dateStr).catch(() => null))
         );
+        console.log('prevBests:', prevBests);
         await sbSaveWorkoutPerformanceLog(userId, dateStr, entries);
+        console.log('newValues:', entries);
         const msg = document.getElementById('journal-save-msg');
         if (msg) {
             msg.textContent = 'נשמר ✓';
             setTimeout(() => { if (msg) msg.textContent = ''; }, 2000);
         }
         const prs = [];
+        console.log('comparing PR');
         entries.forEach((e, i) => {
             const prev = prevBests[i];
             if (e.weight_kg > 0 && (!prev || e.weight_kg > prev.weight_kg)) {
