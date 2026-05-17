@@ -1,12 +1,12 @@
 const { createClient } = require('@supabase/supabase-js');
 
-exports.handler = async () => {
+module.exports = async (req, res) => {
     const supabase = createClient(
         process.env.SUPABASE_URL,
         process.env.SUPABASE_SERVICE_KEY
     );
 
-    // Week that just ended: Mon–Sun where Sun = today (function runs Sun 00:02 UTC)
+    // Week that just ended: Mon–Sun where Sun = today (cron runs Sun 00:02 UTC)
     const now = new Date();
     now.setUTCHours(0, 0, 0, 0);
     const sun = new Date(now);
@@ -26,7 +26,7 @@ exports.handler = async () => {
 
     if (profErr) {
         console.error('Error fetching profiles:', profErr);
-        return { statusCode: 500, body: JSON.stringify({ error: profErr.message }) };
+        return res.status(500).json({ error: profErr.message });
     }
 
     const results = [];
@@ -90,10 +90,10 @@ exports.handler = async () => {
         const habitsScore = (weightData && weightData.length > 0) ? 1 : 0;
 
         // Final weighted score (0–100)
-        const score            = Math.round((workoutsScore * 0.4 + nutritionScore * 0.4 + habitsScore * 0.2) * 100);
-        const workoutsScorePct = Math.round(workoutsScore  * 100);
+        const score             = Math.round((workoutsScore * 0.4 + nutritionScore * 0.4 + habitsScore * 0.2) * 100);
+        const workoutsScorePct  = Math.round(workoutsScore  * 100);
         const nutritionScorePct = Math.round(nutritionScore * 100);
-        const habitsScorePct   = Math.round(habitsScore    * 100);
+        const habitsScorePct    = Math.round(habitsScore    * 100);
 
         const { error: insertErr } = await supabase
             .from('weekly_scores')
@@ -115,8 +115,5 @@ exports.handler = async () => {
         }
     }
 
-    return {
-        statusCode: 200,
-        body: JSON.stringify({ week: weekStart, results }),
-    };
+    return res.status(200).json({ week: weekStart, results });
 };

@@ -1,8 +1,0 @@
-[build]
-  publish = "."
-
-[functions]
-  directory = "netlify/functions"
-
-[functions."save-weekly-scores"]
-  schedule = "0 2 * * 0"
