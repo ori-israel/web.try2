@@ -264,20 +264,29 @@ function _coachInitials(name, id) {
 
 function _coachSparkline(scores) {
     if (!scores.length) return '<span style="color:#555;font-size:11px">אין נתונים</span>';
-    const W = 80, H = 28, P = 3;
+    const W = 92, H = 52, PT = 14, PB = 4, PL = 20, PR = 4;
+    const chartW = W - PL - PR;
+    const chartH = H - PT - PB;
     const last = scores[scores.length - 1];
     const clr  = last >= 80 ? '#4ade80' : last >= 50 ? '#facc15' : '#f87171';
-    const pts  = scores.map((s, i) => {
-        const x = P + (i / Math.max(scores.length - 1, 1)) * (W - 2 * P);
-        const y = H - P - (s / 100) * (H - 2 * P);
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-    }).join(' ');
-    const dots = scores.map((s, i) => {
-        const x = P + (i / Math.max(scores.length - 1, 1)) * (W - 2 * P);
-        const y = H - P - (s / 100) * (H - 2 * P);
-        return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.5" fill="${clr}"/>`;
+
+    const pts = scores.map((s, i) => ({
+        x: PL + (scores.length === 1 ? chartW / 2 : (i / (scores.length - 1)) * chartW),
+        y: PT + chartH - (s / 100) * chartH,
+        s,
+    }));
+
+    const gridlines = [0, 50, 100].map(v => {
+        const gy = (PT + chartH - (v / 100) * chartH).toFixed(1);
+        return `<line x1="${PL}" y1="${gy}" x2="${W - PR}" y2="${gy}" stroke="#2a2a2a" stroke-width="0.75"/>` +
+               `<text x="${PL - 3}" y="${(parseFloat(gy) + 3).toFixed(1)}" text-anchor="end" font-size="8" fill="#555">${v}</text>`;
     }).join('');
-    return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><polyline points="${pts}" fill="none" stroke="${clr}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${dots}</svg>`;
+
+    const polyline = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    const dots     = pts.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.5" fill="${clr}"/>`).join('');
+    const labels   = pts.map(p => `<text x="${p.x.toFixed(1)}" y="${(p.y - 5).toFixed(1)}" text-anchor="middle" font-size="9" fill="${clr}">${Math.round(p.s)}</text>`).join('');
+
+    return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${gridlines}<polyline points="${polyline}" fill="none" stroke="${clr}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${dots}${labels}</svg>`;
 }
 
 function _coachScoreBar(label, score) {
