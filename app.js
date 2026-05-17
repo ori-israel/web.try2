@@ -901,6 +901,7 @@ function ensureWeeklyScoreContainer() {
 }
 
 async function renderWeeklyScore(userId) {
+    console.log("renderWeeklyScore called", userId);
     const container = ensureWeeklyScoreContainer();
     if (!container) return;
     container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-secondary);font-size:0.9rem;">טוען ציון שבועי...</div>';
