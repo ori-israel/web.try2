@@ -901,8 +901,6 @@ function ensureWeeklyScoreContainer() {
 }
 
 async function renderWeeklyScore(userId) {
-    console.log("renderWeeklyScore called", userId);
-    console.log("userId passed:", userId, "CLIENT.id:", CLIENT.id);
     const container = ensureWeeklyScoreContainer();
     if (!container) return;
     container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-secondary);font-size:0.9rem;">טוען ציון שבועי...</div>';
@@ -913,10 +911,7 @@ async function renderWeeklyScore(userId) {
         const proteinGoal  = Math.round((CLIENT.currentWeight || CLIENT.startWeight || 80) * (CLIENT.proteinRatio || 2));
         const calorieGoal  = 2000;
 
-        console.log("CLIENT keys:", Object.keys(CLIENT));
-        console.log("nutrition query filter — user_id:", userId, "range:", monStr, "to", sunStr);
-
-        const [{ data: workoutData }, nutritionRes, { data: weightData }] = await Promise.all([
+        const [{ data: workoutData }, { data: nutritionRows }, { data: weightData }] = await Promise.all([
             db.from('workout_performance_log').select('date')
               .eq('client_id', userId).gte('date', monStr).lte('date', sunStr),
             db.from('daily_nutrition').select('date, protein, carbs, fat')
@@ -924,12 +919,8 @@ async function renderWeeklyScore(userId) {
             db.from('weight_history').select('date')
               .eq('user_id', userId).gte('date', monStr).lte('date', sunStr).limit(1),
         ]);
-        console.log("daily_nutrition full response:", nutritionRes);
-        const nutritionRows = nutritionRes.data;
 
         const workoutDates = new Set((workoutData || []).map(r => r.date));
-        console.log("workouts this week:", workoutDates, "target:", CLIENT.workoutsPerWeek);
-        console.log("nutrition rows:", nutritionRows, "proteinGoal:", proteinGoal);
 
         const workoutCount = workoutDates.size;
         const workoutScore = Math.min(workoutCount / weeklyTarget, 1);
