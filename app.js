@@ -861,6 +861,98 @@ function initWorkoutJournal() {
         journalSelectedDate = new Date().toISOString().split('T')[0];
     }
     renderJournalForDate(journalSelectedDate);
+    const userId = getActiveUserId();
+    if (userId) renderWeeklyScore(userId);
+}
+
+function getWeekRange() {
+    const today = new Date();
+    const day = today.getDay();
+    const diffToMon = day === 0 ? -6 : 1 - day;
+    const mon = new Date(today);
+    mon.setDate(today.getDate() + diffToMon);
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    const fmt = d => d.toISOString().split('T')[0];
+    return { monStr: fmt(mon), sunStr: fmt(sun) };
+}
+
+function buildStars(score0to5) {
+    const rounded = Math.round(score0to5 * 2) / 2;
+    let s = '';
+    for (let i = 1; i <= 5; i++) {
+        if (rounded >= i) s += '⭐';
+        else if (rounded >= i - 0.5) s += '<span style="opacity:0.45">⭐</span>';
+        else s += '☆';
+    }
+    return s;
+}
+
+function ensureWeeklyScoreContainer() {
+    let el = document.getElementById('weekly-score-container');
+    if (!el) {
+        const journalCard = document.getElementById('workout-journal-card');
+        if (!journalCard) return null;
+        el = document.createElement('div');
+        el.id = 'weekly-score-container';
+        journalCard.insertAdjacentElement('afterend', el);
+    }
+    return el;
+}
+
+async function renderWeeklyScore(userId) {
+    const container = ensureWeeklyScoreContainer();
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-secondary);font-size:0.9rem;">טוען ציון שבועי...</div>';
+
+    const { monStr, sunStr } = getWeekRange();
+    try {
+        const profile = await sbFetchProfile(userId);
+        const weeklyTarget  = profile?.weekly_workouts || 3;
+        const proteinGoal   = profile?.protein_goal    || 150;
+        const calorieGoal   = profile?.calorie_goal    || 2000;
+
+        const [{ data: workoutData }, { data: nutritionData }, { data: weightData }] = await Promise.all([
+            db.from('workout_performance_log').select('date')
+              .eq('client_id', userId).gte('date', monStr).lte('date', sunStr),
+            db.from('nutrition_logs').select('date, protein, carbs, fat')
+              .eq('client_id', userId).gte('date', monStr).lte('date', sunStr),
+            db.from('weight_history').select('date')
+              .eq('client_id', userId).gte('date', monStr).lte('date', sunStr).limit(1),
+        ]);
+
+        const workoutCount = new Set((workoutData || []).map(r => r.date)).size;
+        const workoutScore = Math.min(workoutCount / weeklyTarget, 1);
+
+        let nutritionMet = 0;
+        (nutritionData || []).forEach(r => {
+            const kcal = r.protein * 4 + r.carbs * 4 + r.fat * 9;
+            if (r.protein >= proteinGoal && kcal >= calorieGoal * 0.85) nutritionMet++;
+        });
+        const nutritionScore = Math.min(nutritionMet / 7, 1);
+
+        const hasWeight   = weightData && weightData.length > 0;
+        const habitsScore = hasWeight ? 1 : 0;
+
+        const finalScore = workoutScore * 0.4 + nutritionScore * 0.4 + habitsScore * 0.2;
+        const pct        = Math.round(finalScore * 100);
+        const stars      = buildStars(finalScore * 5);
+        const weekLabel  = `${journalFormatShortDate(monStr)} – ${journalFormatShortDate(sunStr)}`;
+
+        container.innerHTML = `
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;direction:rtl;">
+                <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:10px;">📊 ציון שבועי &nbsp;|&nbsp; ${weekLabel}</div>
+                <div style="font-size:1.5rem;text-align:center;margin-bottom:10px;">${stars}&nbsp;<span style="font-size:1.1rem;font-weight:bold;">${pct}%</span></div>
+                <div style="font-size:0.88rem;display:flex;flex-direction:column;gap:6px;color:var(--text-primary);">
+                    <div>${workoutScore >= 1 ? '✅' : '⚠️'} אימונים: ${workoutCount}/${weeklyTarget} השבוע &nbsp;<span style="color:var(--text-secondary)">(${Math.round(workoutScore*100)}%)</span></div>
+                    <div>${nutritionMet >= Math.ceil(7 * 0.6) ? '✅' : '⚠️'} תזונה: ${nutritionMet}/7 ימים עמדו ביעד &nbsp;<span style="color:var(--text-secondary)">(${Math.round(nutritionScore*100)}%)</span></div>
+                    <div>${hasWeight ? '✅' : '⚠️'} שקילה: ${hasWeight ? 'נשקל השבוע ✓' : 'טרם נשקל השבוע'}</div>
+                </div>
+            </div>`;
+    } catch (err) {
+        console.error('Weekly score error:', err);
+        container.innerHTML = '';
+    }
 }
 
 function getWorkoutLetterForDate(dateStr) {
