@@ -969,6 +969,7 @@ async function renderScoreHistory(userId) {
     container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-secondary);font-size:0.9rem;">טוען היסטוריה...</div>';
 
     try {
+        console.log('renderScoreHistory userId:', userId);
         const { data, error } = await db
             .from('weekly_scores')
             .select('week_start, score')
