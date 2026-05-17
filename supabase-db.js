@@ -219,6 +219,51 @@ async function sbFetchAllClients() {
     return (data || []).filter(u => !u.is_admin);
 }
 
+async function sbFetchCoachDashData(clientIds) {
+    if (!clientIds.length) return { profiles: [], scores: [], workouts: [], nutrition: [], monStr: '', prevMonStr: '' };
+
+    const today  = new Date();
+    const dow    = today.getDay();
+    const mon    = new Date(today);
+    mon.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
+    mon.setHours(0, 0, 0, 0);
+    const monStr     = mon.toISOString().slice(0, 10);
+    const prevMon    = new Date(mon);
+    prevMon.setDate(mon.getDate() - 7);
+    const prevMonStr = prevMon.toISOString().slice(0, 10);
+    const fourAgo    = new Date(mon);
+    fourAgo.setDate(mon.getDate() - 28);
+    const fourAgoStr = fourAgo.toISOString().slice(0, 10);
+
+    const [pRes, sRes, wRes, nRes] = await Promise.all([
+        db.from('profiles')
+          .select('id, current_weight, protein_ratio, workouts_per_week')
+          .in('id', clientIds),
+        db.from('weekly_scores')
+          .select('client_id, week_start, score, workouts_score, nutrition_score, habits_score')
+          .in('client_id', clientIds)
+          .gte('week_start', fourAgoStr)
+          .order('week_start', { ascending: true }),
+        db.from('workout_performance_log')
+          .select('client_id, date')
+          .in('client_id', clientIds)
+          .gte('date', monStr),
+        db.from('daily_nutrition')
+          .select('user_id, date, protein, carbs, fat')
+          .in('user_id', clientIds)
+          .gte('date', monStr),
+    ]);
+
+    return {
+        profiles:  pRes.data  || [],
+        scores:    sRes.data  || [],
+        workouts:  wRes.data  || [],
+        nutrition: nRes.data  || [],
+        monStr,
+        prevMonStr,
+    };
+}
+
 // ── טעינת כל נתוני משתמש → localStorage + CLIENT ───────────
 
 async function loadUserIntoApp(userId) {

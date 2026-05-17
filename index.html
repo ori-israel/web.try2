@@ -38,7 +38,10 @@
             <button onclick="doLogout()" class="admin-logout-btn">התנתק</button>
         </div>
         <button onclick="adminViewClient(SB_USER.id)" class="admin-self-btn">כניסה לפרופיל שלי ›</button>
-        <p style="color:#aaa; margin:20px 0 10px; font-size:14px;">לקוחות:</p>
+        <div class="coach-mode-toggle">
+            <button class="coach-mode-btn active" data-mode="overview" onclick="setCoachMode('overview')">סקירה</button>
+            <button class="coach-mode-btn" data-mode="urgent" onclick="setCoachMode('urgent')">דחוף 🔴</button>
+        </div>
         <div id="admin-client-list"></div>
     </div>
 </div>

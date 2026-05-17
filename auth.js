@@ -172,33 +172,202 @@ function _clearUserLocalStorage() {
 
 // ── Admin panel ──────────────────────────────────────────────
 
+let _coachMode     = 'overview';
+let _coachClients  = null;
+let _coachDashData = null;
+
 async function renderAdminPanel() {
     const list = document.getElementById('admin-client-list');
     if (!list) return;
-    list.innerHTML = '<div class="admin-loading">טוען לקוחות...</div>';
+    list.className = 'admin-client-list';
+    list.innerHTML = '<div class="admin-loading">טוען נתונים...</div>';
+    _syncCoachToggle();
     try {
-        const clients = await sbFetchAllClients();
-        if (!clients.length) {
+        _coachClients = await sbFetchAllClients();
+        if (!_coachClients.length) {
             list.innerHTML = '<div class="admin-empty">אין לקוחות רשומים עדיין</div>';
             return;
         }
-        list.innerHTML = '';
-        clients.forEach(c => {
-            const card = document.createElement('div');
-            card.className = 'admin-client-card';
-            const displayName = c.name || c.nickname || '(ללא שם)';
-            card.innerHTML = `
-                <div class="admin-client-info">
-                    <span class="admin-client-name">${displayName}</span>
-                    <span class="admin-client-email">${c.email || ''}</span>
-                </div>
-                <button class="admin-select-btn" onclick="adminViewClient('${c.id}', '${displayName.replace(/'/g, "\\'")}')">כניסה ›</button>
-            `;
-            list.appendChild(card);
-        });
+        _coachDashData = await sbFetchCoachDashData(_coachClients.map(c => c.id));
+        _renderCoachList(list);
     } catch (err) {
         list.innerHTML = `<div class="admin-error">שגיאה: ${err.message}</div>`;
     }
+}
+
+function setCoachMode(mode) {
+    _coachMode = mode;
+    _syncCoachToggle();
+    const list = document.getElementById('admin-client-list');
+    if (list && _coachClients && _coachDashData) _renderCoachList(list);
+}
+
+function _syncCoachToggle() {
+    document.querySelectorAll('.coach-mode-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.mode === _coachMode);
+    });
+}
+
+function _renderCoachList(list) {
+    if (_coachMode === 'urgent') _renderUrgentMode(list);
+    else                         _renderOverviewMode(list);
+}
+
+function _buildClientStats(client) {
+    const { profiles, scores, workouts, nutrition, monStr, prevMonStr } = _coachDashData;
+    const profile = profiles.find(p => p.id === client.id) || {};
+
+    const clientScores = scores
+        .filter(s => s.client_id === client.id)
+        .sort((a, b) => a.week_start.localeCompare(b.week_start));
+
+    const currentWeek = clientScores.find(s => s.week_start === monStr)  || null;
+    const prevWeek    = clientScores.find(s => s.week_start === prevMonStr) || null;
+    const last4       = clientScores.slice(-4).map(s => s.score);
+
+    const hasWorkout  = workouts.some(w => w.client_id === client.id);
+
+    const weight      = profile.current_weight || 80;
+    const pRatio      = profile.protein_ratio  || 2.0;
+    const proteinGoal = Math.round(weight * pRatio);
+    const calGoal     = 2000;
+
+    const nutritionBadDays = nutrition
+        .filter(n => n.user_id === client.id)
+        .filter(n => {
+            const kcal = n.protein * 4 + n.carbs * 4 + n.fat * 9;
+            return !(n.protein >= proteinGoal && kcal >= calGoal * 0.85);
+        }).length;
+
+    return {
+        currentScore:    currentWeek?.score          ?? null,
+        prevScore:       prevWeek?.score             ?? null,
+        workoutsScore:   currentWeek?.workouts_score ?? null,
+        nutritionScore:  currentWeek?.nutrition_score ?? null,
+        habitsScore:     currentWeek?.habits_score   ?? null,
+        last4,
+        hasWorkout,
+        nutritionBadDays,
+    };
+}
+
+function _coachInitials(name, id) {
+    const COLORS = ['#4ade80','#60a5fa','#f472b6','#fb923c','#a78bfa','#34d399','#f87171','#38bdf8'];
+    const hash   = [...(id || '')].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 0);
+    const color  = COLORS[Math.abs(hash) % COLORS.length];
+    const words  = (name || '?').trim().split(/\s+/);
+    const init   = ((words[0]?.[0] || '') + (words[1]?.[0] || '')).toUpperCase() || '?';
+    return `<div class="coach-avatar" style="background:${color}">${init}</div>`;
+}
+
+function _coachSparkline(scores) {
+    if (!scores.length) return '<span style="color:#555;font-size:11px">אין נתונים</span>';
+    const W = 80, H = 28, P = 3;
+    const last = scores[scores.length - 1];
+    const clr  = last >= 80 ? '#4ade80' : last >= 50 ? '#facc15' : '#f87171';
+    const pts  = scores.map((s, i) => {
+        const x = P + (i / Math.max(scores.length - 1, 1)) * (W - 2 * P);
+        const y = H - P - (s / 100) * (H - 2 * P);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    const dots = scores.map((s, i) => {
+        const x = P + (i / Math.max(scores.length - 1, 1)) * (W - 2 * P);
+        const y = H - P - (s / 100) * (H - 2 * P);
+        return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.5" fill="${clr}"/>`;
+    }).join('');
+    return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><polyline points="${pts}" fill="none" stroke="${clr}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${dots}</svg>`;
+}
+
+function _coachScoreBar(label, score) {
+    const pct = score ?? 0;
+    const clr = pct >= 80 ? '#4ade80' : pct >= 50 ? '#facc15' : '#f87171';
+    return `<div class="coach-bar-row">
+        <span class="coach-bar-label">${label}</span>
+        <div class="coach-bar-track"><div class="coach-bar-fill" style="width:${pct}%;background:${clr}"></div></div>
+        <span class="coach-bar-pct">${Math.round(pct)}%</span>
+    </div>`;
+}
+
+function _renderUrgentMode(list) {
+    list.className = 'admin-client-list';
+    const items = _coachClients.map(client => {
+        const s    = _buildClientStats(client);
+        const name = client.nickname || client.name || '(ללא שם)';
+        let priority = 5, reason = null, cls = '';
+
+        if (s.prevScore !== null && s.currentScore !== null && (s.prevScore - s.currentScore) > 20) {
+            priority = 1; cls = 'urgent-critical';
+            reason = `ירידה של ${Math.round(s.prevScore - s.currentScore)} נק׳ מהשבוע שעבר`;
+        } else if (!s.hasWorkout) {
+            priority = 2; cls = 'urgent-warning';
+            reason = 'לא תיעד אימון השבוע';
+        } else if (s.nutritionBadDays >= 3) {
+            priority = 3; cls = 'urgent-warning';
+            reason = `תזונה מתחת ליעד ${s.nutritionBadDays} ימים השבוע`;
+        } else if (s.currentScore !== null && s.currentScore < 50) {
+            priority = 4; cls = 'urgent-low';
+            reason = `ציון נמוך: ${Math.round(s.currentScore)}`;
+        }
+        return { client, s, name, priority, reason, cls };
+    });
+
+    items.sort((a, b) => {
+        if (a.priority !== b.priority) return a.priority - b.priority;
+        return (a.s.currentScore ?? 100) - (b.s.currentScore ?? 100);
+    });
+
+    list.innerHTML = '';
+    items.filter(i => i.reason).forEach(({ client, s, name, reason, cls }) => {
+        const scoreStr = s.currentScore !== null ? Math.round(s.currentScore) : '—';
+        const row = document.createElement('div');
+        row.className = 'coach-urgent-row';
+        row.innerHTML = `
+            <div class="coach-urgent-left">
+                ${_coachInitials(name, client.id)}
+                <div class="coach-urgent-text">
+                    <span class="coach-urgent-name">${name}</span>
+                    <span class="coach-urgent-reason ${cls}">${reason}</span>
+                </div>
+            </div>
+            <div class="coach-urgent-right">
+                <span class="coach-urgent-score">${scoreStr}</span>
+                <button class="admin-select-btn" onclick="adminViewClient('${client.id}')">כניסה ›</button>
+            </div>`;
+        list.appendChild(row);
+    });
+
+    if (!list.children.length) {
+        list.innerHTML = '<div class="admin-empty">🎉 כל הלקוחות במצב תקין!</div>';
+    }
+}
+
+function _renderOverviewMode(list) {
+    list.className = 'admin-client-list coach-overview-grid';
+    list.innerHTML = '';
+
+    _coachClients.forEach(client => {
+        const s     = _buildClientStats(client);
+        const name  = client.nickname || client.name || '(ללא שם)';
+        const score = s.currentScore;
+        const bClr  = score === null ? '#444' : score >= 80 ? '#4ade80' : score >= 50 ? '#facc15' : '#f87171';
+        const sStr  = score !== null ? Math.round(score) : '—';
+
+        const card = document.createElement('div');
+        card.className = 'coach-overview-card';
+        card.style.borderColor = bClr;
+        card.innerHTML = `
+            ${_coachInitials(name, client.id)}
+            <div class="coach-card-name">${name}</div>
+            <div class="coach-card-score" style="color:${bClr}">${sStr}<span class="coach-card-score-unit">pts</span></div>
+            <div class="coach-sparkline">${_coachSparkline(s.last4)}</div>
+            <div class="coach-bars">
+                ${_coachScoreBar('אימונים', s.workoutsScore)}
+                ${_coachScoreBar('תזונה',   s.nutritionScore)}
+                ${_coachScoreBar('הרגלים',  s.habitsScore)}
+            </div>
+            <button class="admin-select-btn" style="width:100%;margin-top:10px" onclick="adminViewClient('${client.id}')">כניסה ›</button>`;
+        list.appendChild(card);
+    });
 }
 
 async function adminViewClient(clientId) {
