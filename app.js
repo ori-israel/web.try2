@@ -1132,7 +1132,7 @@ async function autoSaveJournalEntries(dateStr, workoutLetter) {
         console.log('comparing PR');
         entries.forEach((e, i) => {
             const prev = prevBests[i];
-            if (e.weight_kg > 0 && (!prev || e.weight_kg > prev.weight_kg)) {
+            if (e.weight_kg > 0 && (!prev || e.weight_kg > prev.weight_kg || (e.weight_kg === prev.weight_kg && e.reps > prev.reps))) {
                 prs.push({ name: e.exercise_name, weight: e.weight_kg });
             }
         });
