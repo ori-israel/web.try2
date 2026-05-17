@@ -975,6 +975,7 @@ async function renderScoreHistory(userId) {
             .eq('client_id', userId)
             .order('week_start', { ascending: true });
 
+        console.log('score history response:', { data, error });
         if (error) throw error;
 
         if (!data || data.length < 2) {
