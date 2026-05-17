@@ -334,7 +334,7 @@ function closeCompleteMsg() {
                                 formData.get('victory'),
                                 formData.get('obstacle'),
                                 parseInt(formData.get('compliance_rating')) || null,
-                                formData.get('focus_topic')
+                                formData.get('q4_topic')
                             );
                         } catch(e) { console.warn('[SB] questionnaire save:', e.message); }
                     }
