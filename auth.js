@@ -304,8 +304,17 @@ async function toggleVacationMode(clientId, current) {
     if (list) _renderCoachList(list);
 }
 
+function _coachSearch(query) {
+    const q = query.trim().toLowerCase();
+    document.querySelectorAll('#admin-client-list .coach-overview-card').forEach(card => {
+        card.style.display = (!q || card.dataset.name.includes(q)) ? '' : 'none';
+    });
+}
+
 function _renderUrgentMode(list) {
     list.className = 'admin-client-list';
+    const sb = document.getElementById('coach-search-bar');
+    if (sb) sb.style.display = 'none';
     const items = _coachClients.map(client => {
         const s    = _buildClientStats(client);
         const name = client.name || client.nickname || '(ללא שם)';
@@ -348,7 +357,7 @@ function _renderUrgentMode(list) {
             </div>
             <div class="coach-urgent-right">
                 <span class="coach-urgent-score">${scoreStr}</span>
-                <button class="coach-vacation-btn${vac ? ' active' : ''}" onclick="toggleVacationMode('${client.id}', ${vac})">${vac ? '🏖️ חופשה' : 'הפעל חופשה'}</button>
+                <button class="coach-vac-icon${vac ? ' active' : ''}" onclick="toggleVacationMode('${client.id}', ${vac})">🏖️</button>
                 <button class="admin-select-btn" onclick="adminViewClient('${client.id}')">כניסה ›</button>
             </div>`;
         list.appendChild(row);
@@ -360,32 +369,49 @@ function _renderUrgentMode(list) {
 }
 
 function _renderOverviewMode(list) {
-    list.className = 'admin-client-list coach-overview-grid';
+    // Search bar — insert once, reuse across re-renders
+    let sb = document.getElementById('coach-search-bar');
+    if (!sb) {
+        sb = document.createElement('div');
+        sb.id = 'coach-search-bar';
+        sb.innerHTML = '<input type="text" placeholder="חיפוש לקוח..." oninput="_coachSearch(this.value)">';
+        list.parentElement.insertBefore(sb, list);
+    }
+    sb.style.display = '';
+    const inp = sb.querySelector('input');
+    if (inp) inp.value = '';
+
+    list.className = 'admin-client-list coach-overview-list';
     list.innerHTML = '';
 
     _coachClients.forEach(client => {
-        const s     = _buildClientStats(client);
-        const name  = client.name || client.nickname || '(ללא שם)';
+        const s    = _buildClientStats(client);
+        const name = client.name || client.nickname || '(ללא שם)';
         const score = s.currentScore;
-        const bClr  = score === null ? '#444' : score >= 80 ? '#4ade80' : score >= 50 ? '#facc15' : '#f87171';
-        const sStr  = score !== null ? Math.round(score) : '—';
+        const bClr = score === null ? '#444' : score >= 80 ? '#4ade80' : score >= 50 ? '#facc15' : '#f87171';
+        const sStr = score !== null ? Math.round(score) : '—';
+        const vac  = s.vacationMode;
 
         const card = document.createElement('div');
         card.className = 'coach-overview-card';
+        card.dataset.name = name.toLowerCase();
         card.style.borderColor = bClr;
-        const vac = s.vacationMode;
         card.innerHTML = `
-            ${_coachInitials(name, client.id)}
-            <div class="coach-card-name">${name}</div>
-            <div class="coach-card-score" style="color:${bClr}">${sStr}<span class="coach-card-score-unit">pts</span></div>
-            <div class="coach-sparkline">${_coachSparkline(s.last4)}</div>
-            <div class="coach-bars">
-                ${_coachScoreBar('אימונים', s.workoutsScore)}
-                ${_coachScoreBar('תזונה',   s.nutritionScore)}
-                ${_coachScoreBar('הרגלים',  s.habitsScore)}
+            <div class="coach-card-header" onclick="this.closest('.coach-overview-card').classList.toggle('expanded')">
+                ${_coachInitials(name, client.id)}
+                <div class="coach-card-name">${name}</div>
+                <div class="coach-card-score" style="color:${bClr}">${sStr}<span class="coach-card-score-unit">pts</span></div>
+                <button class="coach-vac-icon${vac ? ' active' : ''}" onclick="event.stopPropagation();toggleVacationMode('${client.id}',${vac})">🏖️</button>
             </div>
-            <button class="coach-vacation-btn${vac ? ' active' : ''}" style="width:100%;margin-top:8px" onclick="toggleVacationMode('${client.id}', ${vac})">${vac ? '🏖️ חופשה' : 'הפעל חופשה'}</button>
-            <button class="admin-select-btn" style="width:100%;margin-top:6px" onclick="adminViewClient('${client.id}')">כניסה ›</button>`;
+            <div class="coach-card-body">
+                <div class="coach-sparkline">${_coachSparkline(s.last4)}</div>
+                <div class="coach-bars">
+                    ${_coachScoreBar('אימונים', s.workoutsScore)}
+                    ${_coachScoreBar('תזונה',   s.nutritionScore)}
+                    ${_coachScoreBar('הרגלים',  s.habitsScore)}
+                </div>
+                <button class="admin-select-btn" style="width:100%;margin-top:10px" onclick="adminViewClient('${client.id}')">כניסה ›</button>
+            </div>`;
         list.appendChild(card);
     });
 }

@@ -2447,31 +2447,59 @@ input[type="checkbox"] { accent-color: var(--accent); }
 /* ══════════════════════════════════════════════════════════
    Coach Dashboard — Overview grid
 ══════════════════════════════════════════════════════════ */
-.coach-overview-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
+/* search bar */
+#coach-search-bar { margin-bottom: 10px; }
+#coach-search-bar input {
+    width: 100%;
+    padding: 10px 14px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 10px;
+    color: var(--text-primary, #fff);
+    font-size: 14px;
+    font-family: inherit;
+    direction: rtl;
+    box-sizing: border-box;
 }
+[data-theme="light"] #coach-search-bar input { background: #f3f3f3; color: #111; border-color: #ddd; }
+#coach-search-bar input:focus { outline: none; border-color: var(--main-green, #4ade80); }
+
+/* overview list (replaces grid) */
+.coach-overview-list { display: flex; flex-direction: column; gap: 8px; }
+
 .coach-overview-card {
     background: #1a1a1a;
     border: 2px solid #444;
-    border-radius: 14px;
-    padding: 16px 14px 14px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    text-align: center;
+    border-radius: 12px;
+    overflow: hidden;
 }
 [data-theme="light"] .coach-overview-card { background: #f9f9f9; }
-.coach-card-name { font-size: 15px; font-weight: bold; color: var(--text-primary, #fff); margin-top: 2px; }
-.coach-card-score {
-    font-size: 26px;
-    font-weight: bold;
-    line-height: 1;
+
+/* collapsed header — always visible */
+.coach-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    min-height: 60px;
+    cursor: pointer;
+    user-select: none;
 }
-.coach-card-score-unit { font-size: 12px; font-weight: normal; margin-right: 2px; }
-.coach-sparkline { margin: 4px 0 2px; }
+.coach-card-header:hover { background: rgba(255,255,255,.03); }
+[data-theme="light"] .coach-card-header:hover { background: rgba(0,0,0,.03); }
+.coach-card-name { font-size: 15px; font-weight: bold; color: var(--text-primary, #fff); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.coach-card-score { font-size: 20px; font-weight: bold; line-height: 1; flex-shrink: 0; }
+.coach-card-score-unit { font-size: 11px; font-weight: normal; margin-right: 2px; }
+
+/* expanded body — hidden by default */
+.coach-card-body {
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0 14px 14px;
+}
+.coach-overview-card.expanded .coach-card-body { display: flex; }
+.coach-sparkline { margin: 2px 0; }
 
 /* ── score bars ─────────────────────────────────────────── */
 .coach-bars { width: 100%; display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
@@ -2494,25 +2522,29 @@ input[type="checkbox"] { accent-color: var(--accent); }
 .coach-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
 .coach-bar-pct { flex: 0 0 28px; text-align: left; color: #888; }
 
-/* ── vacation toggle button (coach dashboard) ─────────────── */
-.coach-vacation-btn {
-    padding: 6px 10px;
-    border: 1px solid #444;
+/* ── vacation icon button (coach dashboard) ──────────────── */
+.coach-vac-icon {
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
+    border: 1px solid #444;
     background: transparent;
-    color: #888;
-    font-size: 12px;
-    font-family: inherit;
+    font-size: 16px;
     cursor: pointer;
-    transition: background 0.18s, color 0.18s, border-color 0.18s;
-    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    opacity: 0.4;
+    transition: opacity 0.18s, background 0.18s, border-color 0.18s;
+    padding: 0;
 }
-.coach-vacation-btn.active {
-    background: rgba(251, 191, 36, 0.12);
-    color: #fbbf24;
+.coach-vac-icon.active {
+    background: rgba(251, 191, 36, 0.18);
     border-color: #fbbf24;
+    opacity: 1;
 }
-.coach-vacation-btn:not(.active):hover { border-color: #666; color: #bbb; }
+.coach-vac-icon:hover { opacity: 1; }
 
 /* ── vacation banner (client view) ───────────────────────── */
 #vacation-banner {
