@@ -996,7 +996,10 @@ async function renderScoreHistory(userId) {
                 <canvas id="score-history-canvas"></canvas>
             </div>`;
 
-        const labels = data.map(r => journalFormatShortDate(r.week_start));
+        const labels = data.map(r => {
+            const [y, m, d] = r.week_start.split('-');
+            return `${d}/${m}`;
+        });
         const scores = data.map(r => r.score);
 
         const ctx = container.querySelector('#score-history-canvas').getContext('2d');
@@ -1009,31 +1012,39 @@ async function renderScoreHistory(userId) {
                         label: 'ציון שבועי',
                         data: scores,
                         borderColor: '#f5c518',
-                        backgroundColor: 'rgba(245,197,24,0.12)',
+                        backgroundColor: 'rgba(245,197,24,0.06)',
                         fill: true,
                         tension: 0.3,
-                        pointRadius: 4,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
                         pointBackgroundColor: '#f5c518',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 1.5,
                     }
                 ]
             },
             options: {
                 responsive: true,
+                interaction: { mode: 'index', intersect: false },
                 plugins: {
                     legend: { display: false },
-                    annotation: { annotations: {} }
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ציון: ${ctx.parsed.y}%`
+                        }
+                    }
                 },
                 scales: {
                     y: {
                         min: 0, max: 100,
                         ticks: { stepSize: 20 },
                         grid: {
-                            color: ctx => ctx.tick.value === 80 ? 'rgba(245,197,24,0.5)' : 'rgba(128,128,128,0.1)',
-                            lineWidth: ctx => ctx.tick.value === 80 ? 2 : 1,
-                            borderDash: ctx => ctx.tick.value === 80 ? [6, 3] : [],
-                        }
-                    },
-                    x: { ticks: { maxRotation: 45, font: { size: 11 } } }
+                            color: c => c.tick.value === 80 ? 'rgba(245,197,24,0.6)' : 'rgba(128,128,128,0.1)',
+                            lineWidth: c => c.tick.value === 80 ? 2 : 1,
+                            borderDash: c => c.tick.value === 80 ? [6, 3] : [],
+                        },
+                        },
+                    x: { ticks: { maxRotation: 0, font: { size: 11 } } }
                 }
             }
         });
