@@ -845,6 +845,7 @@ function makeEditable(td) {
 
 let journalSelectedDate = null;
 let journalAutoSaveTimer = null;
+const prShownThisSession = new Set();
 let journalCalOpen = false;
 let journalCalViewYear = null;
 let journalCalViewMonth = null;
@@ -1146,6 +1147,8 @@ function showPRPopups(prs) {
     function showNext() {
         if (idx >= prs.length) return;
         const pr = prs[idx++];
+        if (prShownThisSession.has(pr.name)) { showNext(); return; }
+        prShownThisSession.add(pr.name);
         const backdrop = document.createElement('div');
         backdrop.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5)';
         backdrop.innerHTML = `<div style="background:var(--bg-card);border-radius:16px;padding:24px;text-align:center"><div style="font-size:2rem;font-weight:bold">🏆 שיא אישי חדש!</div><div style="font-size:1.4rem;font-weight:bold;margin-top:8px">${pr.name} — ${pr.weight}ק"ג</div></div>`;
