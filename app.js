@@ -908,6 +908,7 @@ async function renderWeeklyScore(userId) {
     const { monStr, sunStr } = getWeekRange();
     try {
         const profile = await sbFetchProfile(userId);
+        console.log('profile.weekly_workouts:', profile?.weekly_workouts);
         const weeklyTarget  = profile?.weekly_workouts || 3;
         const proteinGoal   = profile?.protein_goal    || 150;
         const calorieGoal   = profile?.calorie_goal    || 2000;
