@@ -1131,21 +1131,28 @@ async function showStrengthChart(exerciseName, userId) {
         .eq('client_id', userId)
         .eq('exercise_name', exerciseName)
         .order('date', { ascending: true });
-    if (error || !data || !data.length) { alert('אין נתונים להצגה'); return; }
-
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6)';
     const modal = document.createElement('div');
     modal.style.cssText = 'background:var(--bg-card);border-radius:16px;padding:20px;width:90%;max-width:500px;position:relative;';
-    modal.innerHTML = `
-        <button id="close-chart-btn" style="position:absolute;top:10px;left:10px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-primary);">✕</button>
-        <div style="font-weight:bold;font-size:1.1rem;text-align:center;margin-bottom:16px;direction:rtl;">${exerciseName}</div>
-        <canvas id="strength-chart-canvas"></canvas>`;
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
     const close = (e) => { if (e.target === overlay || e.target.id === 'close-chart-btn') overlay.remove(); };
     overlay.addEventListener('click', close);
+
+    if (error || !data || !data.length) {
+        modal.innerHTML = `
+            <button id="close-chart-btn" style="position:absolute;top:10px;left:10px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-primary);">✕</button>
+            <div style="font-weight:bold;font-size:1.1rem;text-align:center;margin-bottom:16px;direction:rtl;">${exerciseName}</div>
+            <div style="text-align:center;padding:24px 0;color:var(--text-secondary);font-size:0.95rem;">אין נתונים להצגה</div>`;
+        return;
+    }
+
+    modal.innerHTML = `
+        <button id="close-chart-btn" style="position:absolute;top:10px;left:10px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-primary);">✕</button>
+        <div style="font-weight:bold;font-size:1.1rem;text-align:center;margin-bottom:16px;direction:rtl;">${exerciseName}</div>
+        <canvas id="strength-chart-canvas"></canvas>`;
 
     const ctx = modal.querySelector('#strength-chart-canvas').getContext('2d');
     new Chart(ctx, {
