@@ -1133,6 +1133,11 @@ async function showStrengthChart(exerciseName, userId) {
         .order('date', { ascending: true });
     if (error || !data || !data.length) { alert('אין נתונים להצגה'); return; }
 
+    const minWeight = Math.min(...data.map(r => r.weight_kg));
+    const maxWeight = Math.max(...data.map(r => r.weight_kg));
+    const minReps   = Math.min(...data.map(r => r.reps));
+    const maxReps   = Math.max(...data.map(r => r.reps));
+
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6)';
     const modal = document.createElement('div');
@@ -1177,8 +1182,8 @@ async function showStrengthChart(exerciseName, userId) {
             responsive: true,
             interaction: { mode: 'index', intersect: false },
             scales: {
-                yWeight: { type: 'linear', position: 'left', ticks: { color: '#5b7cfa' }, title: { display: true, text: 'ק"ג' } },
-                yReps: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#4caf50', stepSize: 1, precision: 0 }, title: { display: true, text: 'חזרות' } }
+                yWeight: { type: 'linear', position: 'left', min: Math.floor(minWeight * 0.9), max: Math.ceil(maxWeight * 1.1), ticks: { color: '#5b7cfa' }, title: { display: true, text: 'ק"ג' } },
+                yReps: { type: 'linear', position: 'right', min: Math.floor(minReps * 0.9), max: Math.ceil(maxReps * 1.1), grid: { drawOnChartArea: false }, ticks: { color: '#4caf50', stepSize: 1, precision: 0 }, title: { display: true, text: 'חזרות' } }
             }
         }
     });
