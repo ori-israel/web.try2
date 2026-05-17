@@ -953,11 +953,11 @@ function buildStars(score0to5) {
 function ensureWeeklyScoreContainer() {
     let el = document.getElementById('weekly-score-container');
     if (!el) {
-        const journalCard = document.getElementById('workout-journal-card');
-        if (!journalCard) return null;
+        const anchor = document.getElementById('score-widgets-anchor');
+        if (!anchor) return null;
         el = document.createElement('div');
         el.id = 'weekly-score-container';
-        journalCard.insertAdjacentElement('afterend', el);
+        anchor.insertAdjacentElement('afterend', el);
     }
     return el;
 }
