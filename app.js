@@ -845,7 +845,7 @@ function makeEditable(td) {
 
 let journalSelectedDate = null;
 let journalAutoSaveTimer = null;
-const prShownThisSession = new Set();
+const lastShownPR = new Map();
 let journalCalOpen = false;
 let journalCalViewYear = null;
 let journalCalViewMonth = null;
@@ -1132,10 +1132,7 @@ async function autoSaveJournalEntries(dateStr, workoutLetter, changedExercise) {
         }
     });
     try {
-        const candidateEntries = entries.filter(e =>
-            e.exercise_name === changedExercise && !prShownThisSession.has(e.exercise_name)
-        );
-        candidateEntries.forEach(e => prShownThisSession.add(e.exercise_name));
+        const candidateEntries = entries.filter(e => e.exercise_name === changedExercise);
         const prevBests = await Promise.all(
             candidateEntries.map(e => fetchAllTimeBest(userId, e.exercise_name, dateStr).catch(() => null))
         );
@@ -1149,7 +1146,9 @@ async function autoSaveJournalEntries(dateStr, workoutLetter, changedExercise) {
         candidateEntries.forEach((e, i) => {
             const prev = prevBests[i];
             if (e.weight_kg > 0 && (!prev || e.weight_kg > prev.weight_kg || (e.weight_kg === prev.weight_kg && e.reps > prev.reps))) {
-                prs.push({ name: e.exercise_name, weight: e.weight_kg, reps: e.reps });
+                const lastShown = lastShownPR.get(e.exercise_name);
+                const betterThanLastShown = !lastShown || e.weight_kg > lastShown.weight_kg || (e.weight_kg === lastShown.weight_kg && e.reps > lastShown.reps);
+                if (betterThanLastShown) prs.push({ name: e.exercise_name, weight: e.weight_kg, reps: e.reps });
             }
         });
         if (prs.length > 0) showPRPopups(prs);
@@ -1163,6 +1162,7 @@ function showPRPopups(prs) {
     function showNext() {
         if (idx >= prs.length) return;
         const pr = prs[idx++];
+        lastShownPR.set(pr.name, { weight_kg: pr.weight, reps: pr.reps });
         const backdrop = document.createElement('div');
         backdrop.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5)';
         backdrop.innerHTML = `<div style="background:var(--bg-card);border-radius:14px;padding:19px 24px;text-align:center"><div style="font-size:1.55rem;font-weight:bold">🏆 שיא אישי חדש!</div><div style="font-size:1.2rem;font-weight:bold;margin-top:7px">${pr.name}</div><div style="font-size:1.15rem;margin-top:5px">${pr.weight}ק"ג × ${pr.reps} חזרות</div></div>`;
