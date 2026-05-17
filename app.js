@@ -912,6 +912,9 @@ async function renderWeeklyScore(userId) {
         const proteinGoal  = Math.round((CLIENT.currentWeight || CLIENT.startWeight || 80) * (CLIENT.proteinRatio || 2));
         const calorieGoal  = 2000;
 
+        console.log("CLIENT keys:", Object.keys(CLIENT));
+        console.log("nutrition query filter — user_id:", userId, "range:", monStr, "to", sunStr);
+
         const [{ data: workoutData }, { data: nutritionRows }, { data: weightData }] = await Promise.all([
             db.from('workout_performance_log').select('date')
               .eq('client_id', userId).gte('date', monStr).lte('date', sunStr),
