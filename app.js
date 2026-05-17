@@ -324,7 +324,7 @@ function closeCompleteMsg() {
                     method: "POST", body: formData, headers: { 'Accept': 'application/json' }
                 });
                 if (response.ok) {
-                    const uid = typeof SB_USER !== 'undefined' && SB_USER?.id;
+                    const uid = getActiveUserId();
                     if (uid) {
                         try {
                             await sbSaveWeeklyQuestionnaire(
