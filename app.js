@@ -977,8 +977,9 @@ async function renderJournalForDate(dateStr) {
 
     container.querySelectorAll('.journal-weight-input, .journal-reps-input').forEach(input => {
         input.addEventListener('input', () => {
+            const changedExercise = input.dataset.exercise;
             clearTimeout(journalAutoSaveTimer);
-            journalAutoSaveTimer = setTimeout(() => autoSaveJournalEntries(dateStr, workoutLetter), 1000);
+            journalAutoSaveTimer = setTimeout(() => autoSaveJournalEntries(dateStr, workoutLetter, changedExercise), 1000);
         });
     });
     initJournalCal(dateStr, startDate, maxDate);
@@ -1118,7 +1119,7 @@ async function fetchAllTimeBest(userId, exerciseName, beforeDate) {
     }, data[0]);
 }
 
-async function autoSaveJournalEntries(dateStr, workoutLetter) {
+async function autoSaveJournalEntries(dateStr, workoutLetter, changedExercise) {
     const userId = getActiveUserId();
     const entries = [];
     document.querySelectorAll('.journal-weight-input').forEach(wi => {
@@ -1131,7 +1132,9 @@ async function autoSaveJournalEntries(dateStr, workoutLetter) {
         }
     });
     try {
-        const candidateEntries = entries.filter(e => !prShownThisSession.has(e.exercise_name));
+        const candidateEntries = entries.filter(e =>
+            e.exercise_name === changedExercise && !prShownThisSession.has(e.exercise_name)
+        );
         candidateEntries.forEach(e => prShownThisSession.add(e.exercise_name));
         const prevBests = await Promise.all(
             candidateEntries.map(e => fetchAllTimeBest(userId, e.exercise_name, dateStr).catch(() => null))
