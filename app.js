@@ -1182,8 +1182,8 @@ async function showStrengthChart(exerciseName, userId) {
             responsive: true,
             interaction: { mode: 'index', intersect: false },
             scales: {
-                yWeight: { type: 'linear', position: 'left', min: Math.floor(minWeight * 0.9), max: Math.ceil(maxWeight * 1.1), ticks: { color: '#5b7cfa' }, title: { display: true, text: 'ק"ג' } },
-                yReps: { type: 'linear', position: 'right', min: Math.floor(minReps * 0.9), max: Math.ceil(maxReps * 1.1), grid: { drawOnChartArea: false }, ticks: { color: '#4caf50', stepSize: 1, precision: 0 }, title: { display: true, text: 'חזרות' } }
+                yWeight: { type: 'linear', position: 'left', min: Math.max(0, Math.floor(minWeight - (maxWeight - minWeight) * 0.3)), max: Math.ceil(maxWeight * 1.1), ticks: { color: '#5b7cfa' }, title: { display: true, text: 'ק"ג' } },
+                yReps: { type: 'linear', position: 'right', min: Math.max(0, Math.floor(minReps - (maxReps - minReps) * 0.3)), max: Math.ceil(maxReps * 1.1), grid: { drawOnChartArea: false }, ticks: { color: '#4caf50', stepSize: 1, precision: 0 }, title: { display: true, text: 'חזרות' } }
             }
         }
     });
