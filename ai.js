@@ -250,8 +250,9 @@ ${Object.entries(CLIENT.workoutDays || {}).map(([l, days]) =>
 4. התאריך והיום שסופקו בנתוני הלקוח הם המדויקים — אל תסתמך על הידע שלך לגבי תאריכים.
 5. תשובות קצרות וממוקדות — רק כמה משפטים. אם השאלה פשוטה, תשובה קצרה. רק אם השאלה מורכבת תרחיב.`;
 
+    const userId = getActiveUserId();
+
     try {
-        const userId = getActiveUserId();
         const { data: logs } = await db
             .from('workout_performance_log')
             .select('exercise_name, date, weight_kg, reps')
@@ -270,6 +271,27 @@ ${Object.entries(CLIENT.workoutDays || {}).map(([l, days]) =>
                 return `• ${name}: אחרון ${latest.date} — ${latest.weight_kg}ק״ג x ${latest.reps} חזרות. שיא: ${bestWeight}ק״ג`;
             });
             prompt += '\n\nנתוני ביצועי אימון אחרונים:\n' + lines.join('\n');
+        }
+    } catch (_) {}
+
+    try {
+        const { data: scoreRow } = await db.from('weekly_scores').select('week_start, score, workouts_score, nutrition_score, habits_score').eq('client_id', userId).order('week_start', { ascending: false }).limit(1).single();
+        if (scoreRow) {
+            prompt += `\n\nציון שבועי אחרון (שבוע ${scoreRow.week_start}): ${Math.round(scoreRow.score)} נקודות | אימונים: ${Math.round(scoreRow.workouts_score)} | תזונה: ${Math.round(scoreRow.nutrition_score)} | הרגלים: ${Math.round(scoreRow.habits_score)}`;
+        }
+    } catch (_) {}
+
+    try {
+        const { data: qRow } = await db.from('weekly_questionnaire').select('submitted_at, q1_win, q2_challenge, q3_score, q4_topic').eq('client_id', userId).order('submitted_at', { ascending: false }).limit(1).single();
+        if (qRow) {
+            prompt += `\n\nשאלון שבועי אחרון (${new Date(qRow.submitted_at).toLocaleDateString('he-IL')}):\n- ניצחון: ${qRow.q1_win}\n- אתגר: ${qRow.q2_challenge}\n- ציון עמידה: ${qRow.q3_score}/10\n- הערות: ${qRow.q4_topic}`;
+        }
+    } catch (_) {}
+
+    try {
+        const { data: wRows } = await db.from('weight_history').select('date, weight').eq('user_id', userId).order('date', { ascending: false }).limit(10);
+        if (wRows && wRows.length) {
+            prompt += '\n\nהיסטוריית משקל גוף (10 אחרונים):\n' + wRows.map(r => `• ${r.date}: ${r.weight} ק״ג`).join('\n');
         }
     } catch (_) {}
 
