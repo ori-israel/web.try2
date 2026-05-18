@@ -1227,7 +1227,7 @@ async function renderJournalForDate(dateStr) {
                 </div>
                 <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
                     <label style="font-size:13px;display:flex;align-items:center;gap:6px;color:var(--text-primary);">
-                        <span>משקל (ק"ג):</span>
+                        <span>משקל:</span>
                         <input type="number" class="journal-weight-input" data-exercise="${ex.name}"
                                value="${saved.weight_kg ?? ''}" min="0" step="0.5"
                                style="width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:16px;text-align:center;">
@@ -1434,7 +1434,7 @@ async function showStrengthChart(exerciseName, userId) {
             labels: data.map(r => r.date),
             datasets: [
                 {
-                    label: 'משקל (ק"ג)',
+                    label: 'משקל',
                     data: data.map(r => r.weight_kg),
                     borderColor: '#5b7cfa',
                     backgroundColor: 'rgba(91,124,250,0.15)',
