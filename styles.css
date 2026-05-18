@@ -2371,10 +2371,10 @@ input[type="checkbox"] { accent-color: var(--accent); }
 .coach-mode-btn {
     flex: 1;
     padding: 10px 0;
-    border: 1px solid #333;
+    border: 1px solid var(--border);
     border-radius: 10px;
     background: transparent;
-    color: #888;
+    color: var(--text-secondary);
     font-size: 14px;
     font-family: inherit;
     cursor: pointer;
@@ -2385,7 +2385,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
     color: #fff;
     border-color: var(--main-green, #4ade80);
 }
-.coach-mode-btn:not(.active):hover { border-color: #555; color: #ccc; }
+.coach-mode-btn:not(.active):hover { border-color: var(--border); color: var(--text-primary); }
 
 /* ── avatar ──────────────────────────────────────────────── */
 .coach-avatar {

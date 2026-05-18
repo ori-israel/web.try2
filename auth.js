@@ -284,8 +284,7 @@ function _coachSparkline(scores) {
     const dots     = pts.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="${clr}"/>`).join('');
     const labels   = pts.map(p => `<text x="${p.x.toFixed(1)}" y="${(p.y - 9).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="500" fill="${clr}">${Math.round(p.s)}</text>`).join('');
 
-    return `<svg width="100%" viewBox="0 0 ${VW} ${VH}" style="display:block">
-        <rect x="0" y="0" width="${VW}" height="${VH}" rx="8" fill="#0f172a" opacity="0.75"/>
+    return `<svg width="100%" viewBox="0 0 ${VW} ${VH}" style="display:block;background:var(--bg-card-alt);border-radius:8px;overflow:hidden;">
         <line x1="${PL}" y1="${targetY}" x2="${VW - PR - 18}" y2="${targetY}" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="5 4" opacity="0.6"/>
         <text x="${VW - PR - 2}" y="${labelY}" text-anchor="end" font-size="9" fill="#f59e0b" opacity="0.8">יעד 80</text>
         <polyline points="${polyline}" fill="none" stroke="${clr}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
