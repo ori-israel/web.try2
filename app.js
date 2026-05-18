@@ -222,12 +222,12 @@ function closeCompleteMsg() {
         const now = new Date();
         const resetTimeToday = new Date();
         resetTimeToday.setHours(2, 0, 0, 0);
-        if (now > resetTimeToday && lastReset !== resetTimeToday.toDateString()) {
+        if (now > resetTimeToday && lastReset !== resetTimeToday.toISOString().split('T')[0]) {
             localStorage.removeItem('user_portions_v3');
             localStorage.removeItem('tasks_v3');
             localStorage.removeItem('workout_progress_v3');
             localStorage.removeItem('ai_chat_history');
-            localStorage.setItem('last_reset_v3', resetTimeToday.toDateString());
+            localStorage.setItem('last_reset_v3', resetTimeToday.toISOString().split('T')[0]);
             location.reload();
         }
     }
@@ -1585,9 +1585,16 @@ function initWorkoutTableWeights(targets = {}) {
 }
 
 function resetWorkout() {
-    localStorage.removeItem('workout_progress_v3');
-    document.querySelectorAll('.workout-checkbox').forEach(cb => cb.checked = false);
-    document.querySelectorAll('.accord-checkbox').forEach(cb => {
+    const activeBtn = document.querySelector('.workout-nav-btn.active');
+    const activeLetter = activeBtn?.getAttribute('onclick')?.match(/'([A-G])'/)?.[1];
+    if (!activeLetter) return;
+
+    const progress = JSON.parse(localStorage.getItem('workout_progress_v3') || '{}');
+    Object.keys(progress).forEach(key => { if (key.startsWith(activeLetter + '_')) delete progress[key]; });
+    localStorage.setItem('workout_progress_v3', JSON.stringify(progress));
+
+    document.querySelectorAll(`[data-id^="${activeLetter}_"]`).forEach(cb => cb.checked = false);
+    document.querySelectorAll(`#workout-${activeLetter} .accord-checkbox`).forEach(cb => {
         cb.checked = false;
         const header = cb.closest('.workout-accord-header');
         if (header) header.classList.remove('checked');
