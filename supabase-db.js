@@ -209,7 +209,7 @@ async function getExerciseTargets(clientId) {
         if (peakReps < 15) {
             targets[name] = { target_weight: peakWeight, target_reps: peakReps + 1, suggest_increase: false };
         } else {
-            targets[name] = { target_weight: peakWeight, target_reps: 'מקס', suggest_increase: true };
+            targets[name] = { target_weight: peakWeight, target_reps: 'כמה שאפשר', suggest_increase: true };
         }
     });
     return targets;
