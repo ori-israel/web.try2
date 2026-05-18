@@ -220,13 +220,13 @@ function closeCompleteMsg() {
     function manageDailyReset() {
         const now = new Date();
         const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-        const lastReset = localStorage.getItem('last_reset_v3');
+        const lastReset = localStorage.getItem('last_reset_v4');
         if (lastReset === todayStr) return;
         localStorage.removeItem('user_portions_v3');
         localStorage.removeItem('tasks_v3');
         localStorage.removeItem('workout_progress_v3');
         localStorage.removeItem('ai_chat_history');
-        localStorage.setItem('last_reset_v3', todayStr);
+        localStorage.setItem('last_reset_v4', todayStr);
         location.reload();
     }
 
