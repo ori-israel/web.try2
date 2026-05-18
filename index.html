@@ -1004,8 +1004,8 @@
       <input type="file" id="food-image-input" accept="image/*" capture="environment" style="display:none">
       <input type="file" id="food-gallery-input" accept="image/*" style="display:none">
       <div style="display:flex; gap:10px;">
-        <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-image-input').click()">📷 צלם תמונה</button>
-        <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-gallery-input').click()">🖼️ העלה מגלריה</button>
+        <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-image-input').click()">צילום תמונה 📷</button>
+        <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-gallery-input').click()">העלאה מהגלריה 🖼️</button>
       </div>
       <img id="food-preview" class="hidden" alt="תצוגה מקדימה" style="width:100%; border-radius:10px; margin:12px 0;">
     </div>
@@ -1022,10 +1022,10 @@
       <p class="scan-disclaimer">⚠️ הערכה בלבד – לא מדויק, נותן כיוון</p>
       <div style="margin-top:14px;">
         <label style="font-size:13px; color:#aaa;">תיקון זיהוי (מומלץ מאוד תמיד!):</label>
-        <input type="text" id="scan-correction" placeholder="תקן את הזיהוי אם שגוי" class="scan-input">
+        <input type="text" id="scan-correction" placeholder="לתיקון הזיהוי במידה ושגוי" class="scan-input">
         <div style="display:flex; gap:8px; margin-top:10px;">
-          <button class="scan-action-btn secondary" onclick="recalculate()">🔄 חשב מחדש</button>
-          <button class="scan-action-btn primary" onclick="addScannedPortions()">✅ הוסף מנות</button>
+          <button class="scan-action-btn secondary" onclick="recalculate()">חישוב מחדש 🔄</button>
+          <button class="scan-action-btn primary" onclick="addScannedPortions()">הוספת מנות ✅</button>
         </div>
       </div>
     </div>
