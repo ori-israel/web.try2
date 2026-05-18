@@ -365,7 +365,6 @@ function closeCompleteMsg() {
             document.getElementById(tabId).classList.add('active');
             window.scrollTo({top: 0, behavior: 'smooth'});
             if (tabId === 'tab4') {
-    renderWeightChart();
 }
             if (tabId === 'tab2') {
     initWorkoutsFromClient();
@@ -1832,6 +1831,18 @@ function updateNutritionStreak() {
     }
     
     document.getElementById('nutrition-streak-count').innerText = streak;
+}
+
+function openWeightChartModal() {
+    const modal = document.getElementById('weight-chart-modal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    setTimeout(renderWeightChart, 50);
+}
+
+function closeWeightChartModal() {
+    const modal = document.getElementById('weight-chart-modal');
+    if (modal) modal.style.display = 'none';
 }
 
 function renderWeightChart() {
