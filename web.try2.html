@@ -1049,6 +1049,9 @@ mark {
     animation: typingDots 1.2s infinite;
 }
 
+    .we-autocomplete-list { position:absolute; top:100%; right:0; left:0; background:var(--bg-card); border:1px solid var(--border); border-radius:8px; z-index:999; max-height:220px; overflow-y:auto; box-shadow:var(--shadow); }
+    .we-autocomplete-item { padding:10px 14px; cursor:pointer; font-size:14px; color:var(--text-primary); text-align:right; }
+    .we-autocomplete-item:hover { background:var(--bg-card-alt); }
     </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>

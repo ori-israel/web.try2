@@ -560,12 +560,15 @@ function _rerenderWorkoutSections() {
         `;
         sectionsEl.appendChild(section);
     });
+    sectionsEl.querySelectorAll('.we-name-input').forEach(_initExerciseAutocomplete);
 }
 
 function _weRowHtml(letter, i, name = '', reps = '10-15', warmupSets = 1, workSets = 2) {
     return `
         <div class="we-row">
-            <input class="we-input we-col-name" type="text" value="${name}" placeholder="שם תרגיל" data-field="name" data-workout="${letter}" data-idx="${i}">
+            <div class="we-col-name" style="position:relative;">
+                <input class="we-input we-name-input" type="text" value="${name}" placeholder="שם תרגיל" data-field="name" data-workout="${letter}" data-idx="${i}">
+            </div>
             <input class="we-input we-sets we-col-sets" type="number" min="0" max="9" value="${warmupSets}" data-field="warmupSets" data-workout="${letter}" data-idx="${i}">
             <input class="we-input we-sets we-col-sets" type="number" min="0" max="9" value="${workSets}" data-field="workSets" data-workout="${letter}" data-idx="${i}">
             <input class="we-input we-reps we-col-reps" type="text" value="${reps}" placeholder="10-15" data-field="reps" data-workout="${letter}" data-idx="${i}">
@@ -573,10 +576,40 @@ function _weRowHtml(letter, i, name = '', reps = '10-15', warmupSets = 1, workSe
         </div>`;
 }
 
+function _initExerciseAutocomplete(input) {
+    const removeDropdown = () => {
+        const d = input.parentNode.querySelector('.we-autocomplete');
+        if (d) d.remove();
+    };
+    input.addEventListener('input', () => {
+        removeDropdown();
+        const val = input.value.trim();
+        if (!val) return;
+        const matches = Object.keys(exerciseBank).filter(n => n.includes(val)).slice(0, 8);
+        if (!matches.length) return;
+        const dropdown = document.createElement('div');
+        dropdown.className = 'we-autocomplete';
+        dropdown.style.cssText = 'position:absolute;top:100%;right:0;left:0;z-index:10001;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.2);max-height:220px;overflow-y:auto;';
+        matches.forEach(name => {
+            const item = document.createElement('div');
+            item.textContent = name;
+            item.style.cssText = 'padding:8px 12px;cursor:pointer;font-size:14px;direction:rtl;';
+            item.addEventListener('mousedown', e => { e.preventDefault(); input.value = name; removeDropdown(); });
+            item.addEventListener('mouseover', () => { item.style.background = 'var(--border)'; });
+            item.addEventListener('mouseout', () => { item.style.background = ''; });
+            dropdown.appendChild(item);
+        });
+        input.parentNode.appendChild(dropdown);
+    });
+    input.addEventListener('blur', () => setTimeout(removeDropdown, 150));
+}
+
 function weAddRow(letter) {
     const body = document.getElementById(`we-body-${letter}`);
     const i    = body.querySelectorAll('.we-row').length;
     body.insertAdjacentHTML('beforeend', _weRowHtml(letter, i));
+    const newInput = body.querySelector('.we-row:last-child .we-name-input');
+    if (newInput) _initExerciseAutocomplete(newInput);
 }
 
 function weDeleteRow(letter, btn) {
