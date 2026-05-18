@@ -1668,7 +1668,9 @@ async function initWorkoutsFromClient() {
         container.style.display = 'none';
     });
 
-    if (firstLetter) showWorkout(firstLetter);
+    const todayDay = new Date().getDay();
+    const todayLetter = Object.entries(CLIENT.workoutDays || {}).find(([, days]) => days.includes(todayDay))?.[0];
+    showWorkout(todayLetter || firstLetter);
     initWorkoutsChecklist();
     initWorkoutTableWeights(targets);
     buildWorkoutAccordions(targets);
