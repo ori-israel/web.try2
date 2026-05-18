@@ -2096,43 +2096,17 @@ input[type="checkbox"] { accent-color: var(--accent); }
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 14px;
     padding: 16px;
     margin-bottom: 10px;
     transition: border-color 0.2s;
 }
-[data-theme="light"] .admin-client-card {
-    background: var(--bg-card);
-    border-color: var(--border);
-}
-[data-theme="light"] .admin-client-email {
-    color: var(--text-secondary);
-}
-[data-theme="light"] .admin-loading,
-[data-theme="light"] .admin-empty {
-    color: var(--text-secondary);
-}
-[data-theme="light"] .admin-hamburger-btn {
-    background: var(--bg-card-alt);
-}
-[data-theme="light"] .admin-panel-dropdown {
-    background: var(--bg-card);
-    box-shadow: var(--shadow-lg);
-}
-[data-theme="light"] .admin-panel-btn {
-    background: var(--bg-card-alt);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-}
-[data-theme="light"] .admin-panel-btn:hover {
-    background: var(--input-bg);
-}
 .admin-client-card:hover { border-color: var(--main-green, #4ade80); }
 .admin-client-info { display: flex; flex-direction: column; gap: 3px; }
 .admin-client-name  { font-size: 16px; font-weight: bold; color: var(--text-primary, #fff); }
-.admin-client-email { font-size: 13px; color: #888; }
+.admin-client-email { font-size: 13px; color: var(--text-secondary); }
 .admin-select-btn {
     padding: 8px 18px;
     background: var(--dark-green, #2d5a27);
@@ -2161,7 +2135,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
 .admin-loading, .admin-empty, .admin-error {
     text-align: center;
     padding: 24px;
-    color: #888;
+    color: var(--text-secondary);
     font-size: 15px;
 }
 .admin-error { color: #e55; }
@@ -2173,7 +2147,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    background: #1a3a1a;
+    background: var(--bg-card-alt);
     border: 2px solid var(--main-green, #4ade80);
     font-size: 18px;
     cursor: pointer;
@@ -2191,7 +2165,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
     position: absolute;
     top: 54px;
     left: 0;
-    background: #1a3a1a;
+    background: var(--bg-card);
     border: 1px solid var(--main-green, #4ade80);
     border-radius: 14px;
     padding: 14px;
@@ -2211,9 +2185,9 @@ input[type="checkbox"] { accent-color: var(--accent); }
 }
 .admin-panel-btn {
     padding: 9px 12px;
-    background: rgba(255,255,255,.07);
-    color: #fff;
-    border: none;
+    background: var(--bg-card-alt);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
     border-radius: 9px;
     font-size: 14px;
     font-family: inherit;
@@ -2222,7 +2196,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
     transition: background 0.2s;
     white-space: nowrap;
 }
-.admin-panel-btn:hover  { background: rgba(255,255,255,.15); }
+.admin-panel-btn:hover  { background: var(--input-bg); }
 .admin-panel-btn.danger { color: #f87; }
 .admin-panel-btn.danger:hover { background: rgba(255,136,119,.15); }
 
