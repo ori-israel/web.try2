@@ -503,34 +503,6 @@ function buildWorkoutAccordions(targets = {}) {
                 item.classList.toggle('open');
             });
             const weightCell = item.querySelector('.weight-detail');
-            weightCell.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const valSpan = weightCell.querySelector('.accord-weight-val');
-                if (weightCell.querySelector('input')) return;
-                const current = valSpan.textContent === '—' ? '' : valSpan.textContent;
-                const input = document.createElement('input');
-                input.type = 'number';
-                input.inputMode = 'decimal';
-                input.value = current;
-                input.placeholder = 'ק"ג';
-                input.className = 'accord-weight-input';
-                valSpan.replaceWith(input);
-                input.focus();
-                const saveWeight = () => {
-                    const val = input.value.trim();
-                    const newSpan = document.createElement('span');
-                    newSpan.className = 'accord-detail-value accord-weight-val';
-                    newSpan.textContent = val || '—';
-                    input.replaceWith(newSpan);
-                    const weights = JSON.parse(localStorage.getItem('exercise_weights') || '{}');
-                    if (val) { weights[exId] = val; } else { delete weights[exId]; }
-                    localStorage.setItem('exercise_weights', JSON.stringify(weights));
-                    console.log('[saveWeight] exId:', exId, 'val:', val, 'full weights:', weights);
-                    if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
-                };
-                input.addEventListener('blur', saveWeight);
-                input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') input.blur(); });
-            });
             accordion.appendChild(item);
         });
         wrapper.appendChild(accordion);
