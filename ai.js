@@ -46,7 +46,7 @@ async function sendAIMessage() {
             body: JSON.stringify({
                 model: 'gemini-2.5-flash-lite',
                 payload: {
-                    system_instruction: { parts: [{ text: buildSystemPrompt() }] },
+                    system_instruction: { parts: [{ text: await buildSystemPrompt() }] },
                     generation_config: { response_modalities: ["TEXT"] },
                     contents: messages
                 }
@@ -183,7 +183,7 @@ function loadChatHistory() {
     });
 }
 
-function buildSystemPrompt() {
+async function buildSystemPrompt() {
     const weight = localStorage.getItem('current_weight') || CLIENT.currentWeight;
     const workoutStreak = localStorage.getItem('workout_streak') || '0';
     const nutritionStreak = localStorage.getItem('nutrition_streak') || '0';
@@ -216,7 +216,7 @@ function buildSystemPrompt() {
         : 'המתאמנת היא אישה — פנה אליה בלשון נקבה (לדוגמה: "עשית", "אכלת", "הגעת" בנקבה)';
     const activityDesc = activityLevel >= 1.725 ? 'פעילות אינטנסיבית יומיומית' : activityLevel >= 1.55 ? '6 אימונים בשבוע' : activityLevel >= 1.465 ? '4-5 אימונים בשבוע' : activityLevel >= 1.375 ? '1-3 אימונים בשבוע' : 'לא עושה פעילות';
 
-    return `אתה עוזר אישי של מאמן כושר בשם אורי ישראל. עונה בעברית בלבד, בסגנון חם וישיר.
+    let prompt = `אתה עוזר אישי של מאמן כושר בשם אורי ישראל. עונה בעברית בלבד, בסגנון חם וישיר.
 ${genderNote}.
 
 נתוני לקוח:
@@ -237,7 +237,7 @@ ${genderNote}.
 - שומן: ${document.getElementById('fat-val')?.innerText}/${document.getElementById('fat-target')?.innerText?.replace('/ ','')} מנות
 
 אימונים שבועיים:
-${Object.entries(CLIENT.workoutDays || {}).map(([l, days]) => 
+${Object.entries(CLIENT.workoutDays || {}).map(([l, days]) =>
     `${days.map(d => dayNames[d]).join('+')}: ${CLIENT['workout'+l].map(e => e.name).join(', ')}`
 ).join('\n')}
 
@@ -249,6 +249,31 @@ ${Object.entries(CLIENT.workoutDays || {}).map(([l, days]) =>
 3. תמיד עודד
 4. התאריך והיום שסופקו בנתוני הלקוח הם המדויקים — אל תסתמך על הידע שלך לגבי תאריכים.
 5. תשובות קצרות וממוקדות — רק כמה משפטים. אם השאלה פשוטה, תשובה קצרה. רק אם השאלה מורכבת תרחיב.`;
+
+    try {
+        const userId = getActiveUserId();
+        const { data: logs } = await db
+            .from('workout_performance_log')
+            .select('exercise_name, date, weight_kg, reps')
+            .eq('client_id', userId)
+            .order('date', { ascending: false });
+
+        if (logs && logs.length) {
+            const byExercise = {};
+            logs.forEach(r => {
+                if (!byExercise[r.exercise_name]) byExercise[r.exercise_name] = [];
+                byExercise[r.exercise_name].push(r);
+            });
+            const lines = Object.entries(byExercise).map(([name, rows]) => {
+                const latest = rows[0];
+                const bestWeight = Math.max(...rows.map(r => r.weight_kg));
+                return `• ${name}: אחרון ${latest.date} — ${latest.weight_kg}ק״ג x ${latest.reps} חזרות. שיא: ${bestWeight}ק״ג`;
+            });
+            prompt += '\n\nנתוני ביצועי אימון אחרונים:\n' + lines.join('\n');
+        }
+    } catch (_) {}
+
+    return prompt;
 }
 
 function checkBirthday() {
