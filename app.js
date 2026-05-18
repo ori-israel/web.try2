@@ -1679,10 +1679,10 @@ function showWeightUpdateToast() {
     toast.innerText = '✅ המשקל עודכן — המנות חושבו מחדש!';
     toast.style.cssText = `
         position: fixed;
-        bottom: 30px;
+        top: 24px;
         left: 50%;
         transform: translateX(-50%);
-        background: var(--dark-green);
+        background: var(--accent);
         color: white;
         padding: 12px 24px;
         border-radius: 25px;
