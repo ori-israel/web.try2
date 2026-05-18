@@ -275,9 +275,9 @@ ${Object.entries(CLIENT.workoutDays || {}).map(([l, days]) =>
     } catch (_) {}
 
     try {
-        const { data: scoreRow } = await db.from('weekly_scores').select('week_start, score, workouts_score, nutrition_score, habits_score').eq('client_id', userId).order('week_start', { ascending: false }).limit(1).single();
-        if (scoreRow) {
-            prompt += `\n\nציון שבועי אחרון (שבוע ${scoreRow.week_start}): ${Math.round(scoreRow.score)} נקודות | אימונים: ${Math.round(scoreRow.workouts_score)} | תזונה: ${Math.round(scoreRow.nutrition_score)} | הרגלים: ${Math.round(scoreRow.habits_score)}`;
+        const { data: scoreRows } = await db.from('weekly_scores').select('week_start, score, workouts_score, nutrition_score, habits_score').eq('client_id', userId).order('week_start', { ascending: false });
+        if (scoreRows && scoreRows.length) {
+            prompt += '\n\nהיסטוריית ציונים שבועיים:\n' + scoreRows.map(r => `• ${r.week_start}: ${Math.round(r.score)} נק׳ | אימונים: ${Math.round(r.workouts_score)} | תזונה: ${Math.round(r.nutrition_score)} | הרגלים: ${Math.round(r.habits_score)}`).join('\n');
         }
     } catch (_) {}
 
