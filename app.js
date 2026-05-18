@@ -232,7 +232,7 @@ function closeCompleteMsg() {
             localStorage.removeItem('workout_progress_v3');
             localStorage.removeItem('ai_chat_history');
             localStorage.setItem('last_reset_v3', todayStr);
-            location.reload();
+            // location.reload();
         }
     }
 
