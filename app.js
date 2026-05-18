@@ -981,7 +981,7 @@ async function renderWeeklyScore(userId) {
                 <div style="font-size:0.88rem;display:flex;flex-direction:column;gap:6px;color:var(--text-primary);">
                     <div>${workoutScore >= 1 ? '✅' : '⚠️'} אימונים: ${workoutCount}/${weeklyTarget} השבוע &nbsp;<span style="color:var(--text-secondary)">(${Math.round(workoutScore*100)}%)</span></div>
                     <div>${nutritionMet >= Math.ceil(7 * 0.6) ? '✅' : '⚠️'} תזונה: ${nutritionMet}/7 ימים עמדו ביעד &nbsp;<span style="color:var(--text-secondary)">(${Math.round(nutritionScore*100)}%)</span></div>
-                    <div>${hasWeight ? '✅' : '⚠️'} שקילה: ${hasWeight ? 'נשקל השבוע ✓' : 'טרם נשקל השבוע'}</div>
+                    <div>${hasWeight ? '✅' : '⚠️'} שקילה: ${hasWeight ? 'נשקלת השבוע ✓' : 'טרם נשקל השבוע'}</div>
                 </div>
             </div>`;
         _trackingWidgetCache[cacheKey] = Date.now();
@@ -1182,7 +1182,7 @@ async function renderJournalForDate(dateStr) {
     }
 
     html += `<div style="font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:4px;">אימון ${workoutLetter}</div>`;
-    html += `<div style="font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:12px;">הזן את המשקל והחזרות של הסט הטוב ביותר שלך בכל תרגיל</div>`;
+    html += `<div style="font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:12px;">יש להזין משקל וחזרות מהסט הטוב ביותר באימון הנוכחי</div>`;
     html += '<div id="journal-exercises">';
 
     exercises.forEach(ex => {
@@ -1211,7 +1211,7 @@ async function renderJournalForDate(dateStr) {
                                style="width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:16px;text-align:center;">
                     </label>
                     <button class="journal-save-btn" data-exercise="${ex.name}"
-                            style="padding:8px 16px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:14px;font-weight:bold;cursor:pointer;">שמור ✓</button>
+                            style="padding:8px 16px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:14px;font-weight:bold;cursor:pointer;">שמירה ✓</button>
                 </div>
                 ${lastHtml}
             </div>`;
@@ -1231,7 +1231,7 @@ async function renderJournalForDate(dateStr) {
             const exerciseName = btn.dataset.exercise;
             await autoSaveJournalEntries(dateStr, workoutLetter, exerciseName);
             btn.textContent = '✓ נשמר';
-            setTimeout(() => { btn.textContent = 'שמור ✓'; }, 2000);
+            setTimeout(() => { btn.textContent = 'שמירה ✓'; }, 2000);
         });
     });
     container.querySelectorAll('.journal-weight-input').forEach(inp => {
