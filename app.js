@@ -218,6 +218,10 @@ function closeCompleteMsg() {
     let userPortions = { protein: 0, carbs: 0, fat: 0 };
 
     function manageDailyReset() {
+        const _migrate = localStorage.getItem('last_reset_v3');
+        if (_migrate && _migrate.includes(' ')) {
+            localStorage.removeItem('last_reset_v3');
+        }
         const now = new Date();
         const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
         const lastReset = localStorage.getItem('last_reset_v3');
