@@ -1660,7 +1660,7 @@ async function initWorkoutsFromClient() {
 
 function showWeightUpdateToast() {
     const toast = document.createElement('div');
-    toast.innerText = '✅ המשקל עודכן — המנות חושבו מחדש!';
+    toast.innerText = '✅ המשקל עודכן!';
     toast.style.cssText = `
         position: fixed;
         top: 24px;
