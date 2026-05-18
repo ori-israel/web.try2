@@ -197,7 +197,7 @@ function checkWorkoutCompletion(clickedCheckbox) {
 
 
     if (allChecked) {
-        const today = new Date().toDateString();
+        const today = new Date().toISOString().split('T')[0];
         const alreadyCompleted = localStorage.getItem('workout_completed_date') === today;
         const msg = document.getElementById('workout-complete-msg');
         if (msg && !alreadyCompleted) {
@@ -1730,7 +1730,7 @@ function updateWorkoutStreak() {
 
 function completeWorkoutStreak(letter) {
     if (CLIENT.vacationMode) return;
-    const today = new Date().toDateString();
+    const today = new Date().toISOString().split('T')[0];
     const todayDay = new Date().getDay();
 
     const scheduledDays = CLIENT.workoutDays?.[letter];
