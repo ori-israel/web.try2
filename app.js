@@ -1262,6 +1262,16 @@ async function renderJournalForDate(dateStr) {
             setTimeout(() => { btn.textContent = 'שמור ✓'; }, 2000);
         });
     });
+    container.querySelectorAll('.journal-weight-input').forEach(inp => {
+        inp.addEventListener('keydown', e => {
+            if (!['0','1','2','3','4','5','6','7','8','9','.','Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+        });
+    });
+    container.querySelectorAll('.journal-reps-input').forEach(inp => {
+        inp.addEventListener('keydown', e => {
+            if (!['0','1','2','3','4','5','6','7','8','9','Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+        });
+    });
     initJournalCal(dateStr, startDate, maxDate);
 }
 
