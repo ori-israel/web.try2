@@ -1494,6 +1494,7 @@ async function autoSaveJournalEntries(dateStr, workoutLetter, changedExercise) {
             candidateEntries.map(e => fetchAllTimeBest(userId, e.exercise_name, dateStr).catch(() => null))
         );
         await sbSaveWorkoutPerformanceLog(userId, dateStr, entries);
+        initWorkoutsFromClient();
         const msg = document.getElementById('journal-save-msg');
         if (msg) {
             msg.textContent = 'נשמר ✓';
