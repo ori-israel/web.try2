@@ -2104,8 +2104,30 @@ input[type="checkbox"] { accent-color: var(--accent); }
     transition: border-color 0.2s;
 }
 [data-theme="light"] .admin-client-card {
-    background: #f9f9f9;
-    border-color: #e0e0e0;
+    background: var(--bg-card);
+    border-color: var(--border);
+}
+[data-theme="light"] .admin-client-email {
+    color: var(--text-secondary);
+}
+[data-theme="light"] .admin-loading,
+[data-theme="light"] .admin-empty {
+    color: var(--text-secondary);
+}
+[data-theme="light"] .admin-hamburger-btn {
+    background: var(--bg-card-alt);
+}
+[data-theme="light"] .admin-panel-dropdown {
+    background: var(--bg-card);
+    box-shadow: var(--shadow-lg);
+}
+[data-theme="light"] .admin-panel-btn {
+    background: var(--bg-card-alt);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+[data-theme="light"] .admin-panel-btn:hover {
+    background: var(--input-bg);
 }
 .admin-client-card:hover { border-color: var(--main-green, #4ade80); }
 .admin-client-info { display: flex; flex-direction: column; gap: 3px; }
