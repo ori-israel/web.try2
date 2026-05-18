@@ -903,7 +903,6 @@ function makeEditable(td) {
 
 let _exerciseTargets = {};
 let journalSelectedDate = null;
-let journalAutoSaveTimer = null;
 const lastShownPR = new Map();
 const _trackingWidgetCache = {};
 let journalCalOpen = false;
@@ -1239,6 +1238,8 @@ async function renderJournalForDate(dateStr) {
                                value="${saved.reps ?? ''}" min="0" step="1"
                                style="width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:16px;text-align:center;">
                     </label>
+                    <button class="journal-save-btn" data-exercise="${ex.name}"
+                            style="padding:8px 16px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:14px;font-weight:bold;cursor:pointer;">שמור ✓</button>
                 </div>
                 ${lastHtml}
             </div>`;
@@ -1253,11 +1254,12 @@ async function renderJournalForDate(dateStr) {
         btn.addEventListener('click', () => showStrengthChart(btn.dataset.exercise, userId));
     });
 
-    container.querySelectorAll('.journal-weight-input, .journal-reps-input').forEach(input => {
-        input.addEventListener('input', () => {
-            const changedExercise = input.dataset.exercise;
-            clearTimeout(journalAutoSaveTimer);
-            journalAutoSaveTimer = setTimeout(() => autoSaveJournalEntries(dateStr, workoutLetter, changedExercise), 1000);
+    container.querySelectorAll('.journal-save-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const exerciseName = btn.dataset.exercise;
+            await autoSaveJournalEntries(dateStr, workoutLetter, exerciseName);
+            btn.textContent = '✓ נשמר';
+            setTimeout(() => { btn.textContent = 'שמור ✓'; }, 2000);
         });
     });
     initJournalCal(dateStr, startDate, maxDate);
