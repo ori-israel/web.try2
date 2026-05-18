@@ -218,22 +218,16 @@ function closeCompleteMsg() {
     let userPortions = { protein: 0, carbs: 0, fat: 0 };
 
     function manageDailyReset() {
-        const _migrate = localStorage.getItem('last_reset_v3');
-        if (_migrate && _migrate.includes(' ')) {
-            localStorage.removeItem('last_reset_v3');
-        }
         const now = new Date();
         const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
         const lastReset = localStorage.getItem('last_reset_v3');
-        const resetHour = 2;
-        if (now.getHours() >= resetHour && lastReset !== todayStr) {
-            localStorage.removeItem('user_portions_v3');
-            localStorage.removeItem('tasks_v3');
-            localStorage.removeItem('workout_progress_v3');
-            localStorage.removeItem('ai_chat_history');
-            localStorage.setItem('last_reset_v3', todayStr);
-            location.reload();
-        }
+        if (lastReset === todayStr) return;
+        localStorage.removeItem('user_portions_v3');
+        localStorage.removeItem('tasks_v3');
+        localStorage.removeItem('workout_progress_v3');
+        localStorage.removeItem('ai_chat_history');
+        localStorage.setItem('last_reset_v3', todayStr);
+        location.reload();
     }
 
     function modifyPortion(type, amount) {
