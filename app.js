@@ -1,3 +1,8 @@
+function localDateStr() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
 // ── Custom dialog (replaces alert / confirm / prompt) ────────
 function _appDialog({ message, withInput = false, defaultValue = '', okLabel = 'אישור', cancelLabel = null, okClass = 'primary-btn' }) {
     return new Promise(resolve => {
@@ -197,7 +202,7 @@ function checkWorkoutCompletion(clickedCheckbox) {
 
 
     if (allChecked) {
-        const today = new Date().toISOString().split('T')[0];
+        const today = localDateStr();
         const alreadyCompleted = localStorage.getItem('workout_completed_date') === today;
         const msg = document.getElementById('workout-complete-msg');
         if (msg && !alreadyCompleted) {
@@ -810,7 +815,7 @@ function initFAQ() {
         if (val && !isNaN(val)) {
             el.innerText = val;
             localStorage.setItem('current_weight', val);
-            const _wDate = new Date().toISOString().split('T')[0];
+            const _wDate = localDateStr();
             const weightHistory = JSON.parse(localStorage.getItem('weight_history') || '[]');
             weightHistory.push({ date: _wDate, weight: val });
             localStorage.setItem('weight_history', JSON.stringify(weightHistory));
@@ -889,7 +894,7 @@ function loadPerfData() { initWorkoutJournal(); }
 
 function initWorkoutJournal() {
     if (!journalSelectedDate) {
-        journalSelectedDate = new Date().toISOString().split('T')[0];
+        journalSelectedDate = localDateStr();
     }
     renderJournalForDate(journalSelectedDate);
     const userId = getActiveUserId();
@@ -1134,7 +1139,7 @@ async function renderJournalForDate(dateStr) {
     const container = document.getElementById('workout-journal-container');
     if (!container) return;
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = localDateStr();
     const startDate = CLIENT.startDate || today;
     const maxDate = new Date(new Date(startDate + 'T12:00:00').getTime() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     const isToday = dateStr === today;
@@ -1283,7 +1288,7 @@ function renderJournalCalGrid(selectedDate) {
     if (!cal) return;
     const year = journalCalViewYear;
     const month = journalCalViewMonth;
-    const today = new Date().toISOString().split('T')[0];
+    const today = localDateStr();
     const monthNames = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
     const dayNames = ['א','ב','ג','ד','ה','ו','ש'];
     const firstOfMonth = `${year}-${String(month+1).padStart(2,'0')}-01`;
@@ -1344,7 +1349,7 @@ function journalCalSelect(dateStr) {
 function journalPrevDay() {
     const d = new Date(journalSelectedDate + 'T12:00:00');
     d.setDate(d.getDate() - 1);
-    const startDate = CLIENT.startDate || new Date().toISOString().split('T')[0];
+    const startDate = CLIENT.startDate || localDateStr();
     const candidate = d.toISOString().split('T')[0];
     if (candidate < startDate) return;
     journalSelectedDate = candidate;
@@ -1354,7 +1359,7 @@ function journalPrevDay() {
 function journalNextDay() {
     const d = new Date(journalSelectedDate + 'T12:00:00');
     d.setDate(d.getDate() + 1);
-    const startDate = CLIENT.startDate || new Date().toISOString().split('T')[0];
+    const startDate = CLIENT.startDate || localDateStr();
     const maxDate = new Date(new Date(startDate + 'T12:00:00').getTime() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     const candidate = d.toISOString().split('T')[0];
     if (candidate > maxDate) return;
@@ -1363,7 +1368,7 @@ function journalNextDay() {
 }
 
 function journalGoToday() {
-    journalSelectedDate = new Date().toISOString().split('T')[0];
+    journalSelectedDate = localDateStr();
     renderJournalForDate(journalSelectedDate);
 }
 
@@ -1736,7 +1741,7 @@ function updateWorkoutStreak() {
 
 function completeWorkoutStreak(letter) {
     if (CLIENT.vacationMode) return;
-    const today = new Date().toISOString().split('T')[0];
+    const today = localDateStr();
     const todayDay = new Date().getDay();
 
     const scheduledDays = CLIENT.workoutDays?.[letter];
@@ -1767,7 +1772,7 @@ function checkNutritionStreak() {
 
 function completeNutritionStreak() {
     if (CLIENT.vacationMode) return;
-    const today = new Date().toISOString().split('T')[0];
+    const today = localDateStr();
     if (localStorage.getItem('nutrition_completed_date') === today) return;
 
     localStorage.setItem('nutrition_completed_date', today);
