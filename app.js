@@ -1706,7 +1706,7 @@ function updateVacationBanner() {
 
 function updateWorkoutStreak() {
     const today = new Date();
-    const todayStr = today.toDateString();
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
     let streak = parseInt(localStorage.getItem('workout_streak') || '0');
     const lastCompleted = localStorage.getItem('workout_completed_date');
@@ -1723,9 +1723,10 @@ function updateWorkoutStreak() {
     }
 
     const lastDate = new Date(lastCompleted);
-    const daysDiff = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+    const lastMidnight = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
+    const daysDiff = Math.floor((todayMidnight - lastMidnight) / (1000 * 60 * 60 * 24));
 
-    if (daysDiff > 2) {
+    if (daysDiff > 1) {
         streak = 0;
         localStorage.setItem('workout_streak', '0');
     }
@@ -1766,7 +1767,7 @@ function checkNutritionStreak() {
 
 function completeNutritionStreak() {
     if (CLIENT.vacationMode) return;
-    const today = new Date().toDateString();
+    const today = new Date().toISOString().split('T')[0];
     if (localStorage.getItem('nutrition_completed_date') === today) return;
 
     localStorage.setItem('nutrition_completed_date', today);
@@ -1792,7 +1793,7 @@ function closeNutritionComplete() {
 
 function updateNutritionStreak() {
     const today = new Date();
-    const todayStr = today.toDateString();
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
     let streak = parseInt(localStorage.getItem('nutrition_streak') || '0');
     const lastCompleted = localStorage.getItem('nutrition_completed_date');
@@ -1808,22 +1809,15 @@ function updateNutritionStreak() {
         return;
     }
 
-    // אם הושלם היום — לא נוגעים בסטריק
-    if (lastCompleted === todayStr) {
-        document.getElementById('nutrition-streak-count').innerText = streak;
-        return;
-    }
-    
     const lastDate = new Date(lastCompleted);
-    let checkDate = new Date(lastDate);
-    checkDate.setDate(checkDate.getDate() + 1);
-    
-    while (checkDate.toDateString() !== todayStr) {
+    const lastMidnight = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
+    const daysDiff = Math.floor((todayMidnight - lastMidnight) / (1000 * 60 * 60 * 24));
+
+    if (daysDiff > 1) {
         streak = 0;
         localStorage.setItem('nutrition_streak', '0');
-        break;
     }
-    
+
     document.getElementById('nutrition-streak-count').innerText = streak;
 }
 
