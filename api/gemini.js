@@ -17,11 +17,16 @@ export default async function handler(req, res) {
 
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-    const geminiRes = await fetch(geminiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
+    let geminiRes;
+    for (let attempt = 0; attempt < 3; attempt++) {
+        geminiRes = await fetch(geminiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (geminiRes.status !== 503 || attempt === 2) break;
+        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+    }
 
     const data = await geminiRes.json();
     return res.status(geminiRes.status).json(data);
