@@ -148,7 +148,9 @@ async function sendMagicLink() {
     if (!email) { errorEl.textContent = 'נא להכניס אימייל'; return; }
     const { error } = await db.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
     if (error) {
-        errorEl.textContent = error.message;
+        errorEl.textContent = error.message?.toLowerCase().includes('rate limit')
+            ? 'נשלחו יותר מדי קישורים — המתן כמה דקות ונסה שוב'
+            : error.message;
     } else {
         errorEl.style.color = '#4ade80';
         errorEl.textContent = 'קישור נשלח! בדוק את המייל שלך';
