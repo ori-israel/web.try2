@@ -350,25 +350,20 @@ function closeCompleteMsg() {
             btn.innerText = "שולח..."; btn.disabled = true;
             const formData = new FormData(surveyForm);
             try {
-                const response = await fetch("https://formspree.io/f/mjgjdeva", {
-                    method: "POST", body: formData, headers: { 'Accept': 'application/json' }
-                });
-                if (response.ok) {
-                    const uid = getActiveUserId();
-                    if (uid) {
-                        try {
-                            await sbSaveWeeklyQuestionnaire(
-                                uid,
-                                formData.get('victory'),
-                                formData.get('obstacle'),
-                                parseInt(formData.get('compliance_rating')) || null,
-                                formData.get('q4_topic')
-                            );
-                        } catch(e) { console.warn('[SB] questionnaire save:', e.message); }
-                    }
-                    await showAlert("השאלון נשלח בהצלחה!"); surveyForm.reset(); closeSurvey();
-                } else { await showAlert("שגיאה בשליחה."); }
-            } catch (error) { await showAlert("שגיאת תקשורת.");
+                const uid = getActiveUserId();
+                if (uid) {
+                    await sbSaveWeeklyQuestionnaire(
+                        uid,
+                        formData.get('victory'),
+                        formData.get('obstacle'),
+                        parseInt(formData.get('compliance_rating')) || null,
+                        formData.get('q4_topic')
+                    );
+                }
+                await showAlert("השאלון נשלח בהצלחה!"); surveyForm.reset(); closeSurvey();
+            } catch (error) {
+                console.warn('[SB] questionnaire save:', error.message);
+                await showAlert("שגיאה בשליחה.");
             } finally { btn.innerText = "שלח שאלון וחזור לאתר"; btn.disabled = false; }
         });
     }
