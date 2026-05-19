@@ -19,6 +19,14 @@ async function sendAIMessage() {
     const msg = input.value.trim();
     if (!msg) return;
 
+    const _countKey = 'ai_message_count_' + localDateStr();
+    const _count = parseInt(localStorage.getItem(_countKey) || '0');
+    if (_count >= 50) {
+        addChatMessage('הגעת למגבלת ההודעות היומית (50)', 'assistant');
+        return;
+    }
+    localStorage.setItem(_countKey, _count + 1);
+
     const now = Date.now();
     if (now - (window.lastMessageTime || 0) < 6000) {
         addChatMessage('נא להמתין כמה שניות בין הודעות 🙏', 'assistant');
