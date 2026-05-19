@@ -141,6 +141,20 @@ document.addEventListener('click', e => {
 
 // ── Login form handlers ──────────────────────────────────────
 
+async function sendMagicLink() {
+    const email   = document.getElementById('login-email').value.trim();
+    const errorEl = document.getElementById('login-error');
+    errorEl.style.color = '#e55';
+    if (!email) { errorEl.textContent = 'נא להכניס אימייל'; return; }
+    const { error } = await db.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+    if (error) {
+        errorEl.textContent = error.message;
+    } else {
+        errorEl.style.color = '#4ade80';
+        errorEl.textContent = 'קישור נשלח! בדוק את המייל שלך';
+    }
+}
+
 async function doLogin() {
     const email    = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
