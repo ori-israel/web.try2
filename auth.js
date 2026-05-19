@@ -86,13 +86,7 @@ async function handleLoginSuccess(user) {
         }
     } catch (err) {
         console.error('[Auth]', err);
-        const cached = (() => { try { return JSON.parse(localStorage.getItem('profile_data_v1')); } catch { return null; } })();
-        if (cached) {
-            console.warn('[Auth] offline — loading from cached profile');
-            await _loadClientAndShowApp(user.id);
-        } else {
-            showLoginForm('שגיאה בטעינת הנתונים. נסה שוב.');
-        }
+        showLoginForm('שגיאה בטעינת הנתונים. נסה שוב.');
     }
 }
 
@@ -733,21 +727,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (err) {
         console.error('[Auth] init:', err);
-        // Offline fallback: try cached Supabase session from localStorage
-        const cachedSession = (() => {
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (k && k.startsWith('sb-') && k.endsWith('-auth-token')) {
-                    try { return JSON.parse(localStorage.getItem(k)); } catch { return null; }
-                }
-            }
-            return null;
-        })();
-        if (cachedSession?.user) {
-            console.warn('[Auth] offline — loading from cached session');
-            await handleLoginSuccess(cachedSession.user);
-        } else {
-            showLoginForm('שגיאת חיבור. בדוק אינטרנט ונסה שוב.');
-        }
+        showLoginForm('שגיאת חיבור. בדוק אינטרנט ונסה שוב.');
     }
 });
