@@ -12,7 +12,7 @@ function closeAIChat() {
     document.body.style.overflow = 'auto';
 }
 
-let aiChatHistory = JSON.parse(localStorage.getItem('ai_chat_history') || '[]');
+let aiChatHistory = JSON.parse(sessionStorage.getItem('ai_chat_history') || '[]');
 
 async function sendAIMessage() {
     const input = document.getElementById('ai-chat-input');
@@ -131,7 +131,7 @@ async function sendAIMessage() {
         }
 
         aiChatHistory.push({ role: 'assistant', content: fullText });
-        localStorage.setItem('ai_chat_history', JSON.stringify(aiChatHistory));
+        sessionStorage.setItem('ai_chat_history', JSON.stringify(aiChatHistory));
 
     } catch (err) {
         const loadingEl = document.getElementById(loadingId);
@@ -212,9 +212,9 @@ function loadChatHistory() {
 }
 
 async function buildSystemPrompt() {
-    const weight = localStorage.getItem('current_weight') || CLIENT.currentWeight;
+    const weight = sessionStorage.getItem('current_weight') || CLIENT.currentWeight;
     const workoutStreak = localStorage.getItem('workout_streak') || '0';
-    const nutritionStreak = localStorage.getItem('nutrition_streak') || '0';
+    const nutritionStreak = sessionStorage.getItem('nutrition_streak') || '0';
     const dayNumber = Math.floor((new Date() - new Date(CLIENT.startDate)) / (1000 * 60 * 60 * 24)) + 1;
     const todayDay = new Date().getDay();
     const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
@@ -342,7 +342,7 @@ if (localStorage.getItem('birthday_shown') !== todayStr) {
 
 function resetAIChat() {
     aiChatHistory = [];
-    localStorage.removeItem('ai_chat_history');
+    sessionStorage.removeItem('ai_chat_history');
     const container = document.getElementById('ai-chat-messages');
     container.innerHTML = '';
     openAIChat();

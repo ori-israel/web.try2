@@ -72,7 +72,7 @@ function toggleTheme() {
 
     function generatePortionGoals() {
     // 1. חישוב BMR - נוסחת Mifflin-St Jeor
-    const weight = parseFloat(localStorage.getItem('current_weight')) || CLIENT.currentWeight;
+    const weight = parseFloat(sessionStorage.getItem('current_weight')) || CLIENT.currentWeight;
     const ageCalc = Math.floor((new Date() - new Date(CLIENT.birthDate)) / (1000 * 60 * 60 * 24 * 365.25));
     let bmr = (10 * weight) + (6.25 * CLIENT.height) - (5 * ageCalc);
     bmr = CLIENT.gender === 'male' ? bmr + 5 : bmr - 161;
@@ -242,11 +242,11 @@ function closeCompleteMsg() {
         const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
         const lastReset = localStorage.getItem('last_reset_v4');
         if (lastReset === todayStr) return;
-        localStorage.removeItem('user_portions_v3');
+        sessionStorage.removeItem('user_portions_v3');
         localStorage.removeItem('tasks_v3');
         localStorage.removeItem('workout_progress_v3');
         localStorage.removeItem('workout_completed_date');
-        localStorage.removeItem('ai_chat_history');
+        sessionStorage.removeItem('ai_chat_history');
         localStorage.setItem('last_reset_v4', todayStr);
         location.reload();
     }
@@ -257,7 +257,7 @@ function closeCompleteMsg() {
         if (current < 0) current = 0;
         userPortions[type] = current;
         document.getElementById(type + '-val').innerText = current;
-        localStorage.setItem('user_portions_v3', JSON.stringify(userPortions));
+        sessionStorage.setItem('user_portions_v3', JSON.stringify(userPortions));
         updatePortionProgress(type);
         checkNutritionStreak();
         if (typeof scheduleSyncNutrition === 'function') scheduleSyncNutrition();
@@ -286,7 +286,7 @@ function closeCompleteMsg() {
     }
 
     function loadPortions() {
-        const saved = localStorage.getItem('user_portions_v3');
+        const saved = sessionStorage.getItem('user_portions_v3');
         if (saved) {
             userPortions = JSON.parse(saved);
             document.getElementById('protein-val').innerText = userPortions.protein;
@@ -851,11 +851,11 @@ function initFAQ() {
         const val = parseFloat(input.value.trim());
         if (val && !isNaN(val)) {
             el.innerText = val;
-            localStorage.setItem('current_weight', val);
+            sessionStorage.setItem('current_weight', val);
             const _wDate = localDateStr();
-            const weightHistory = JSON.parse(localStorage.getItem('weight_history') || '[]');
+            const weightHistory = JSON.parse(sessionStorage.getItem('weight_history') || '[]');
             weightHistory.push({ date: _wDate, weight: val });
-            localStorage.setItem('weight_history', JSON.stringify(weightHistory));
+            sessionStorage.setItem('weight_history', JSON.stringify(weightHistory));
             if (typeof syncWeightNow === 'function') syncWeightNow(_wDate, val);
             const allVals = document.querySelectorAll('.weight-val');
             const startWeight = parseFloat(allVals[0].innerText);
@@ -878,7 +878,7 @@ function initFAQ() {
 function loadSavedWeight() {
     document.getElementById('start-weight-display').innerText = CLIENT.startWeight;
     document.getElementById('goal-weight-display').innerText = CLIENT.goalWeight;
-    const savedWeight = localStorage.getItem('current_weight');
+    const savedWeight = sessionStorage.getItem('current_weight');
     if (savedWeight) {
         const el = document.getElementById('current-weight-display');
         el.innerText = savedWeight;
@@ -1812,12 +1812,12 @@ function checkNutritionStreak() {
 function completeNutritionStreak() {
     if (CLIENT.vacationMode) return;
     const today = localDateStr();
-    if (localStorage.getItem('nutrition_completed_date') === today) return;
+    if (sessionStorage.getItem('nutrition_completed_date') === today) return;
 
-    localStorage.setItem('nutrition_completed_date', today);
-    let streak = parseInt(localStorage.getItem('nutrition_streak') || '0');
+    sessionStorage.setItem('nutrition_completed_date', today);
+    let streak = parseInt(sessionStorage.getItem('nutrition_streak') || '0');
     streak++;
-    localStorage.setItem('nutrition_streak', streak);
+    sessionStorage.setItem('nutrition_streak', streak);
     document.getElementById('nutrition-streak-count').innerText = streak;
     if (typeof syncStreaksNow === 'function') syncStreaksNow();
     if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
@@ -1840,8 +1840,8 @@ function updateNutritionStreak() {
     const today = new Date();
     const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-    let streak = parseInt(localStorage.getItem('nutrition_streak') || '0');
-    const lastCompleted = localStorage.getItem('nutrition_completed_date');
+    let streak = parseInt(sessionStorage.getItem('nutrition_streak') || '0');
+    const lastCompleted = sessionStorage.getItem('nutrition_completed_date');
 
     if (CLIENT.vacationMode) {
         const el = document.getElementById('nutrition-streak-count');
@@ -1860,7 +1860,7 @@ function updateNutritionStreak() {
 
     if (daysDiff > 1) {
         streak = 0;
-        localStorage.setItem('nutrition_streak', '0');
+        sessionStorage.setItem('nutrition_streak', '0');
     }
 
     document.getElementById('nutrition-streak-count').innerText = streak;
@@ -1914,7 +1914,7 @@ function renderWeightChart() {
     const endDate = new Date(CLIENT.startDate);
     endDate.setMonth(endDate.getMonth() + 6);
 
-    const history = JSON.parse(localStorage.getItem('weight_history') || '[]')
+    const history = JSON.parse(sessionStorage.getItem('weight_history') || '[]')
         .filter(p => p.date && !isNaN(new Date(p.date).getTime()));
     const allWeights = [CLIENT.startWeight, CLIENT.goalWeight, ...history.map(p => p.weight)];
     const dataMin = Math.min(...allWeights);
