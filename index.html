@@ -836,6 +836,15 @@
 
 
 
+<div id="achievement-popup" class="complete-modal" style="display:none;">
+    <div class="complete-content">
+        <span class="close-complete" onclick="_closeAchievementPopup()">&times;</span>
+        <div style="font-size:2rem;margin-bottom:8px;">🎖️</div>
+        <h2 id="achievement-title" style="margin:0 0 10px;"></h2>
+        <p id="achievement-desc" style="margin:0;"></p>
+    </div>
+</div>
+
 <div id="workout-complete-msg" class="complete-modal" style="display:none;">
     <div class="complete-content">
         <span class="close-complete" onclick="closeCompleteMsg()">&times;</span>
@@ -1041,6 +1050,7 @@
 <script src="profile.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
+<script src="achievements.js"></script>
 <script src="ai.js"></script>
 
 <div id="app-dialog" class="modal-overlay hidden">

@@ -990,6 +990,7 @@ async function renderWeeklyScore(userId) {
                 </div>
             </div>`;
         _trackingWidgetCache[cacheKey] = Date.now();
+        if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
     } catch (err) {
         console.error('Weekly score error:', err);
         container.innerHTML = '';
@@ -1754,6 +1755,7 @@ function completeWorkoutStreak(letter) {
     localStorage.setItem('workout_streak', streak);
     document.getElementById('workout-streak-count').innerText = streak;
     if (typeof syncStreaksNow === 'function') syncStreaksNow();
+    if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
 }
 
 function checkNutritionStreak() {
@@ -1781,6 +1783,7 @@ function completeNutritionStreak() {
     localStorage.setItem('nutrition_streak', streak);
     document.getElementById('nutrition-streak-count').innerText = streak;
     if (typeof syncStreaksNow === 'function') syncStreaksNow();
+    if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
     showNutritionComplete();
 }
 
