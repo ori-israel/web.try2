@@ -188,7 +188,7 @@ function _clearUserLocalStorage() {
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (!k.startsWith('sb-')) keysToRemove.push(k);
+        if (!k.startsWith('sb-') && k !== 'workout_completed_date') keysToRemove.push(k);
     }
     keysToRemove.forEach(k => localStorage.removeItem(k));
 }
