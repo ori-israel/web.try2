@@ -62,11 +62,15 @@
 
 <div id="app-container" style="display:none;">
 <div id="vacation-banner" style="display:none;">🏖️ מצב חופשה פעיל — הציונים והרצפים מושהים</div>
-<div id="weekly-survey-banner" style="display:none;align-items:center;justify-content:space-between;gap:10px;background:#1e3a5f;color:#e2e8f0;padding:10px 16px;font-size:14px;direction:rtl;">
-    <span>📋 יש למלא את השאלון השבועי</span>
-    <div style="display:flex;gap:8px;align-items:center;">
-        <button id="weekly-survey-banner-open" style="background:#3b82f6;color:#fff;border:none;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:13px;">מלא עכשיו</button>
-        <button id="weekly-survey-banner-close" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;line-height:1;">✕</button>
+<div id="weekly-survey-banner" class="complete-modal" style="display:none;">
+    <div class="complete-content">
+        <div class="trophy-icon">📋</div>
+        <h2>שאלון שבועי</h2>
+        <p>קח 2 דקות למלא את השאלון השבועי שלך</p>
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:16px;">
+            <button id="weekly-survey-banner-open" class="calc-btn" style="flex:1;max-width:140px;">מלא עכשיו</button>
+            <button id="weekly-survey-banner-close" class="calc-btn" style="flex:1;max-width:140px;background:transparent;border:2px solid var(--main-green);color:var(--main-green);">אחר כך</button>
+        </div>
     </div>
 </div>
 <div class="container">
