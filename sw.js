@@ -32,32 +32,17 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
     if (!event.request.url.startsWith(self.location.origin)) return;
-    const url = new URL(event.request.url);
-    const isJS = url.pathname.endsWith('.js');
-
-    if (isJS) {
-        // Network-first for JS: always try fresh, fall back to cache
-        event.respondWith(
-            fetch(event.request)
-                .then(res => {
-                    const clone = res.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-                    return res;
-                })
-                .catch(() => caches.match(event.request).then(cached =>
-                    cached || new Response('', { status: 404, statusText: 'Not Found' })
-                ))
-        );
-    } else {
-        // Cache-first for HTML and CSS
-        event.respondWith(
-            caches.match(event.request).then(cached => {
-                if (cached) return cached;
-                return fetch(event.request).catch(() => {
-                    if (event.request.mode === 'navigate') return caches.match('/index.html');
-                    return new Response('', { status: 404, statusText: 'Not Found' });
-                });
+    event.respondWith(
+        fetch(event.request)
+            .then(res => {
+                const clone = res.clone();
+                caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                return res;
             })
-        );
-    }
+            .catch(() => caches.match(event.request).then(cached => {
+                if (cached) return cached;
+                if (event.request.mode === 'navigate') return caches.match('/index.html');
+                return new Response('', { status: 404, statusText: 'Not Found' });
+            }))
+    );
 });
