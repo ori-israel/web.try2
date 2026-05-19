@@ -239,6 +239,7 @@ function closeCompleteMsg() {
         localStorage.removeItem('user_portions_v3');
         localStorage.removeItem('tasks_v3');
         localStorage.removeItem('workout_progress_v3');
+        localStorage.removeItem('workout_completed_date');
         localStorage.removeItem('ai_chat_history');
         localStorage.setItem('last_reset_v4', todayStr);
         location.reload();
