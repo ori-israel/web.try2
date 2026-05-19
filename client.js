@@ -5,7 +5,7 @@ const CLIENT = {
     name: "אורי ישראל המלך",
     nickname: "אורי",
     email: "",
-    coachPin: "tal221109",
+
     startDate: "2026-04-10",
     startWeight: 63,
     currentWeight: 68,
