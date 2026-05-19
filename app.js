@@ -541,6 +541,28 @@ function buildWorkoutAccordions(targets = {}) {
     } catch(e) { console.warn('[SB] thursday banner:', e.message); }
 }
 
+window.addEventListener('offline', () => {
+    const banner = document.getElementById('offline-banner');
+    if (banner) banner.style.display = 'block';
+});
+
+window.addEventListener('online', () => {
+    const banner = document.getElementById('offline-banner');
+    if (banner) banner.style.display = 'none';
+    const toast = document.getElementById('supabase-error-toast');
+    if (toast) {
+        toast.textContent = 'התחברת מחדש ✅';
+        toast.style.background = '#22c55e';
+        toast.style.display = 'block';
+        clearTimeout(window._onlineToastTimer);
+        window._onlineToastTimer = setTimeout(() => {
+            toast.style.display = 'none';
+            toast.textContent = '⚠️ בעיית תקשורת — מנסה שוב';
+            toast.style.background = '#e55';
+        }, 3000);
+    }
+});
+
    window.onload = async () => {
     // ממתין לאימות Supabase לפני אתחול האפליקציה
     if (window._authReady) await window._authReady;

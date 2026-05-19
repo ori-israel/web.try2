@@ -1099,6 +1099,11 @@
         <div id="qmodal-body"></div>
     </div>
 </div>
+<div id="offline-banner" style="display:none; position:fixed; bottom:0; left:0; width:100%; background:#f59e0b; color:#1a1a1a; padding:10px 16px; font-size:14px; font-weight:600; z-index:9000; direction:rtl; text-align:center; box-sizing:border-box;">
+    אתה במצב offline 📵 — שינויים יסתנכרנו כשתתחבר
+</div>
+
 <div id="supabase-error-toast" style="display:none; position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:#e55; color:#fff; padding:8px 16px; border-radius:20px; font-size:14px; z-index:9998; direction:rtl; white-space:nowrap;">⚠️ בעיית תקשורת — מנסה שוב</div>
+<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }</script>
 </body>
 </html>
