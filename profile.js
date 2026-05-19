@@ -68,6 +68,43 @@ function populateProfileForm() {
     document.getElementById('prof-gender').value       = CLIENT.gender         || 'male';
     document.getElementById('prof-goal').value         = CLIENT.goal           || 'bulk';
     setCoachFieldsState(false);
+    _refreshAvatarUI(CLIENT.avatarUrl || null);
+}
+
+function _refreshAvatarUI(url) {
+    const img         = document.getElementById('avatar-preview-img');
+    const placeholder = document.getElementById('avatar-preview-placeholder');
+    const hamburgerImg = document.getElementById('hamburger-avatar');
+    const hamburgerFb  = document.getElementById('hamburger-avatar-fallback');
+    if (url) {
+        if (img)         { img.src = url; img.style.display = 'block'; }
+        if (placeholder) placeholder.style.display = 'none';
+        if (hamburgerImg){ hamburgerImg.src = url; hamburgerImg.style.display = 'block'; }
+        if (hamburgerFb) hamburgerFb.style.display = 'none';
+    } else {
+        if (img)         img.style.display = 'none';
+        if (placeholder) placeholder.style.display = '';
+        if (hamburgerImg) hamburgerImg.style.display = 'none';
+        if (hamburgerFb)  hamburgerFb.style.display = '';
+    }
+}
+
+async function handleAvatarUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const uid = getActiveUserId();
+    if (!uid) return;
+    // show immediate local preview
+    const localUrl = URL.createObjectURL(file);
+    _refreshAvatarUI(localUrl);
+    try {
+        const publicUrl = await sbUploadAvatar(uid, file);
+        CLIENT.avatarUrl = publicUrl;
+        await sbUpsertProfile(uid, { avatar_url: publicUrl });
+    } catch (e) {
+        console.warn('[Avatar] upload failed:', e.message);
+    }
+    input.value = '';
 }
 
 function setCoachFieldsState(editable) {

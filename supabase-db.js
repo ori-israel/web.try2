@@ -46,6 +46,20 @@ async function sbFetchProfile(userId) {
     return data;
 }
 
+async function sbUploadAvatar(uid, file) {
+    const { error } = await db.storage
+        .from('avatars')
+        .upload(`${uid}/avatar`, file, { upsert: true, contentType: file.type });
+    if (error) throw error;
+    const { data } = db.storage.from('avatars').getPublicUrl(`${uid}/avatar`);
+    return data.publicUrl;
+}
+
+function sbGetAvatarUrl(uid) {
+    const { data } = db.storage.from('avatars').getPublicUrl(`${uid}/avatar`);
+    return data.publicUrl;
+}
+
 async function sbUpdateLastSeen(uid) {
     const { error } = await db
         .from('profiles')
@@ -248,7 +262,7 @@ async function sbSaveStreaks(userId, fields) {
 async function sbFetchAllClients() {
     const { data, error } = await db
         .from('profiles')
-        .select('id, name, nickname, email, is_admin, created_at')
+        .select('id, name, nickname, email, is_admin, created_at, avatar_url')
         .order('created_at', { ascending: true });
     if (error) throw error;
     return (data || []).filter(u => !u.is_admin);
@@ -343,6 +357,7 @@ async function loadUserIntoApp(userId) {
             coachingGoal:  profile.coaching_goal  || '',
             coachPin:      profile.coach_pin      || null,
             vacationMode:  profile.vacation_mode  || false,
+            avatarUrl:     profile.avatar_url     || null,
         };
         Object.assign(CLIENT, p);
         localStorage.setItem('profile_data_v1', JSON.stringify(p));

@@ -432,7 +432,9 @@ function _renderOverviewMode(list) {
         card.style.borderColor = bClr;
         card.innerHTML = `
             <div class="coach-card-header" onclick="this.closest('.coach-overview-card').classList.toggle('expanded')">
-                ${_coachInitials(name, client.id)}
+                ${client.avatar_url
+                    ? `<img src="${client.avatar_url}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span style="display:none">${_coachInitials(name, client.id)}</span>`
+                    : _coachInitials(name, client.id)}
                 <div style="display:flex;flex-direction:column;flex:1;min-width:0;">
                     <div class="coach-card-name">${name}</div>
                     ${(() => {
