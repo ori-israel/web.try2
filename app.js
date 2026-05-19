@@ -209,7 +209,7 @@ function checkWorkoutCompletion(clickedCheckbox) {
         const today = localDateStr();
         const storedDate = localStorage.getItem('workout_completed_date');
         if (storedDate && storedDate !== today) localStorage.removeItem('workout_completed_date');
-        const alreadyCompleted = storedDate === today;
+        const alreadyCompleted = localStorage.getItem('workout_completed_date') === today;
         const msg = document.getElementById('workout-complete-msg');
         const isScheduledToday = CLIENT.workoutDays?.[letter]?.includes(new Date().getDay());
         console.log('[workout] allChecked:', allChecked, 'alreadyCompleted:', alreadyCompleted, 'isScheduledToday:', isScheduledToday, 'date:', today);
