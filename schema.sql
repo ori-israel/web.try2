@@ -57,7 +57,9 @@ create policy "profiles_select" on public.profiles
   for select using (auth.uid() = id or public.is_admin());
 
 create policy "profiles_update" on public.profiles
-  for update using (auth.uid() = id or public.is_admin());
+  for update using (auth.uid() = id or public.is_admin())
+  -- WITH CHECK prevents a regular user from escalating their own is_admin to true
+  with check (public.is_admin() or (auth.uid() = id and not is_admin));
 
 -- ── daily_nutrition (מעקב מנות יומי) ───────────────────────
 create table public.daily_nutrition (

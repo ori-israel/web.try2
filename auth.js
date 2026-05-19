@@ -501,6 +501,14 @@ function _renderOverviewMode(list) {
 }
 
 async function adminViewClient(clientId) {
+    // Re-verify admin status from DB on every client-view action (not just JS variable)
+    const { data: { user } } = await db.auth.getUser();
+    if (!user) return;
+    const { data: self, error } = await db.from('profiles').select('is_admin').eq('id', user.id).single();
+    if (error || !self?.is_admin) {
+        console.error('[adminViewClient] Access denied — not admin');
+        return;
+    }
     document.getElementById('admin-hamburger-btn').style.display = 'none';
     _clearUserLocalStorage();
     await _loadClientAndShowApp(clientId);
