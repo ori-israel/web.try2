@@ -191,6 +191,10 @@ function initWorkoutsChecklist() {
 }
 
 function checkWorkoutCompletion(clickedCheckbox) {
+    const storedDate = localStorage.getItem('workout_completed_date');
+    if (storedDate && storedDate !== localDateStr()) {
+        localStorage.removeItem('workout_completed_date');
+    }
 
     const id = clickedCheckbox.getAttribute('data-id');
     if (!id) return;
