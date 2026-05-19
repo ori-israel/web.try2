@@ -77,3 +77,14 @@ create policy "performance_all"
 create policy "streaks_all"
   on public.streaks for all
   using (auth.uid() = user_id or public.is_admin());
+
+drop policy if exists "workout_log_all" on public.workout_performance_log;
+drop policy if exists "weekly_questionnaire_all" on public.weekly_questionnaire;
+
+create policy "workout_log_all"
+  on public.workout_performance_log for all
+  using (auth.uid() = client_id or public.is_admin());
+
+create policy "weekly_questionnaire_all"
+  on public.weekly_questionnaire for all
+  using (auth.uid() = client_id or public.is_admin());
