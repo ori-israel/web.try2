@@ -519,8 +519,7 @@ function buildWorkoutAccordions(targets = {}) {
 
    async function checkThursdayBanner() {
     if (new Date().getDay() !== 4) return;
-    const todayStr = new Date().toISOString().slice(0, 10);
-    const dismissKey = 'survey_banner_dismissed_' + todayStr;
+    const dismissKey = 'survey_banner_dismissed_' + localDateStr();
     if (localStorage.getItem(dismissKey)) return;
     const uid = typeof SB_USER !== 'undefined' && SB_USER?.id;
     if (!uid) return;
@@ -532,7 +531,7 @@ function buildWorkoutAccordions(targets = {}) {
         banner.style.display = 'flex';
         document.getElementById('weekly-survey-banner-close').onclick = () => {
             banner.style.display = 'none';
-            localStorage.setItem(dismissKey, '1');
+            setTimeout(() => checkThursdayBanner(), 3600000);
         };
         document.getElementById('weekly-survey-banner-open').onclick = () => {
             banner.style.display = 'none';
