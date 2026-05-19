@@ -435,7 +435,8 @@ function _renderOverviewMode(list) {
                         if (!s.lastSeen) return '<span style="font-size:11px;color:#888;">כניסה אחרונה: לא ידוע</span>';
                         const days = Math.floor((Date.now() - new Date(s.lastSeen).getTime()) / 86400000);
                         const clr  = days >= 5 ? '#f87171' : days >= 2 ? '#fb923c' : '#4ade80';
-                        return `<span style="font-size:11px;color:${clr};">כניסה אחרונה: לפני ${days} ימים</span>`;
+                        const lbl  = days === 0 ? 'היום' : days === 1 ? 'אתמול' : days === 2 ? 'שלשום' : `לפני ${days} ימים`;
+                        return `<span style="font-size:11px;color:${clr};">כניסה אחרונה: ${lbl}</span>`;
                     })()}
                 </div>
                 <div class="coach-card-score" style="color:${bClr}">${sStr}<span class="coach-card-score-unit">pts</span></div>
