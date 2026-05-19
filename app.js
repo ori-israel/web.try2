@@ -531,7 +531,7 @@ function buildWorkoutAccordions(targets = {}) {
         banner.style.display = 'flex';
         document.getElementById('weekly-survey-banner-close').onclick = () => {
             banner.style.display = 'none';
-            setTimeout(() => checkThursdayBanner(), 3600000);
+            setTimeout(checkThursdayBanner, 3600000);
         };
         document.getElementById('weekly-survey-banner-open').onclick = () => {
             banner.style.display = 'none';
