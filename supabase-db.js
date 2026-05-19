@@ -429,7 +429,7 @@ async function loadUserIntoApp(userId) {
     if (streaks) {
         localStorage.setItem('workout_streak',   String(streaks.workout_streak   || 0));
         localStorage.setItem('nutrition_streak',  String(streaks.nutrition_streak || 0));
-        if (streaks.workout_completed_date)   localStorage.setItem('workout_completed_date',   streaks.workout_completed_date);
+        if (streaks.workout_completed_date && streaks.workout_completed_date === localDateStr())   localStorage.setItem('workout_completed_date',   streaks.workout_completed_date);
         if (streaks.nutrition_completed_date) localStorage.setItem('nutrition_completed_date', streaks.nutrition_completed_date);
     }
 
