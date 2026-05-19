@@ -205,7 +205,8 @@ function checkWorkoutCompletion(clickedCheckbox) {
         const today = localDateStr();
         const alreadyCompleted = localStorage.getItem('workout_completed_date') === today;
         const msg = document.getElementById('workout-complete-msg');
-        if (msg && !alreadyCompleted) {
+        const isScheduledToday = CLIENT.workoutDays?.[letter]?.includes(new Date().getDay());
+        if (msg && !alreadyCompleted && isScheduledToday) {
             msg.style.cssText = "display:flex; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9999; align-items:center; justify-content:center;";
             localStorage.setItem('workout_completed_date', today);
             msg.onclick = (e) => { if (e.target === msg) closeCompleteMsg(); };
