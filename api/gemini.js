@@ -15,7 +15,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Missing payload' });
     }
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
 
     let geminiRes;
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -28,6 +28,21 @@ export default async function handler(req, res) {
         await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
     }
 
-    const data = await geminiRes.json();
-    return res.status(geminiRes.status).json(data);
+    if (!geminiRes.ok) {
+        const errData = await geminiRes.json().catch(() => ({}));
+        return res.status(geminiRes.status).json(errData);
+    }
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    const reader = geminiRes.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        res.write(decoder.decode(value, { stream: true }));
+    }
+    res.end();
 }

@@ -32,34 +32,7 @@ async function sendAIMessage() {
 
     const loadingId = addLoadingMessage();
 
-    try {
-        const messages = aiChatHistory
-            .slice(-10)
-            .filter((m, i) => !(i === 0 && m.role === 'assistant'))
-            .map(m => ({
-                role: m.role === 'assistant' ? 'model' : 'user',
-                parts: [{ text: m.content }]
-            }));
-        const response = await fetch('/api/gemini', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                model: 'gemini-2.5-flash-lite',
-                payload: {
-                    system_instruction: { parts: [{ text: await buildSystemPrompt() }] },
-                    generation_config: { response_modalities: ["TEXT"] },
-                    contents: messages
-                }
-            })
-        });
-
-        const data = await response.json();
-        const reply = data.candidates[0].content.parts[0].text;
-
-        const loadingEl = document.getElementById(loadingId);
-if (loadingEl) {
-    loadingEl.className = '';
-    loadingEl.style.cssText = `
+    const bubbleStyle = `
         padding: 10px 15px;
         margin: 8px 0;
         border-radius: 12px 12px 12px 4px;
@@ -75,44 +48,91 @@ if (loadingEl) {
         align-items: flex-start;
         gap: 8px;
     `;
-    const icon = document.createElement('span');
-    icon.style.cssText = 'font-size: 16px; flex-shrink: 0; margin-top: 2px;';
-    icon.innerText = '🤖';
-    const textDiv = document.createElement('div');
-    textDiv.innerHTML = reply
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n/g, '<br>');
-    loadingEl.innerHTML = '';
-    loadingEl.appendChild(icon);
-    loadingEl.appendChild(textDiv);
-}
 
-        aiChatHistory.push({ role: 'assistant', content: reply });
+    try {
+        const messages = aiChatHistory
+            .slice(-10)
+            .filter((m, i) => !(i === 0 && m.role === 'assistant'))
+            .map(m => ({
+                role: m.role === 'assistant' ? 'model' : 'user',
+                parts: [{ text: m.content }]
+            }));
+
+        const response = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'gemini-2.5-flash-lite',
+                payload: {
+                    system_instruction: { parts: [{ text: await buildSystemPrompt() }] },
+                    generation_config: { response_modalities: ["TEXT"] },
+                    contents: messages
+                }
+            })
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        const loadingEl = document.getElementById(loadingId);
+        let replyTextDiv = null;
+        if (loadingEl) {
+            loadingEl.className = '';
+            loadingEl.style.cssText = bubbleStyle;
+            const icon = document.createElement('span');
+            icon.style.cssText = 'font-size: 16px; flex-shrink: 0; margin-top: 2px;';
+            icon.innerText = '🤖';
+            replyTextDiv = document.createElement('div');
+            loadingEl.innerHTML = '';
+            loadingEl.appendChild(icon);
+            loadingEl.appendChild(replyTextDiv);
+        }
+
+        let fullText = '';
+        let buffer = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const jsonStr = line.slice(6).trim();
+                if (!jsonStr || jsonStr === '[DONE]') continue;
+                try {
+                    const parsed = JSON.parse(jsonStr);
+                    const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) {
+                        fullText += text;
+                        if (replyTextDiv) replyTextDiv.textContent = fullText;
+                    }
+                } catch {}
+            }
+        }
+
+        if (replyTextDiv) {
+            replyTextDiv.innerHTML = fullText
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+        }
+
+        aiChatHistory.push({ role: 'assistant', content: fullText });
         localStorage.setItem('ai_chat_history', JSON.stringify(aiChatHistory));
 
     } catch (err) {
-    const loadingEl = document.getElementById(loadingId);
-    if (loadingEl) {
-        loadingEl.className = '';
-        loadingEl.style.cssText = `
-            padding: 10px 15px;
-            margin: 8px 0;
-            border-radius: 12px 12px 12px 4px;
-            max-width: 75%;
-            font-size: 17px;
-            line-height: 1.5;
-            background: var(--bg-card-alt);
-            border: 1px solid var(--border);
-            margin-left: 0;
-            margin-right: auto;
-            color: var(--text-primary);
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-        `;
-        loadingEl.innerHTML = '<span style="font-size:16px;">🤖</span><span>שגיאה בחיבור, נסה שוב.</span>';
+        const loadingEl = document.getElementById(loadingId);
+        if (loadingEl) {
+            loadingEl.className = '';
+            loadingEl.style.cssText = bubbleStyle;
+            loadingEl.innerHTML = '<span style="font-size:16px;">🤖</span><span>שגיאה בחיבור, נסה שוב.</span>';
+        }
     }
-}
 }
 
 function addLoadingMessage() {
