@@ -115,17 +115,38 @@ function setCoachFieldsState(editable) {
 
 // ── Coach unlock ──────────────────────────────
 
-function unlockCoachSection() {
+async function unlockCoachSection() {
     const input = document.getElementById('coach-pin-input');
-    if (input.value === CLIENT.coachPin) {
-        isCoachUnlocked = true;
-        setCoachFieldsState(true);
-        input.value = '';
-    } else {
+    const pin = input.value;
+    input.value = '';
+
+    try {
+        const { data: { session } } = await db.auth.getSession();
+        if (!session) throw new Error('no session');
+
+        const resp = await fetch('/api/verify-pin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ pin }),
+        });
+        const { ok } = await resp.json();
+
+        if (ok) {
+            isCoachUnlocked = true;
+            setCoachFieldsState(true);
+        } else {
+            input.classList.remove('shake');
+            void input.offsetWidth;
+            input.classList.add('shake');
+            setTimeout(() => input.classList.remove('shake'), 500);
+        }
+    } catch {
         input.classList.remove('shake');
         void input.offsetWidth;
         input.classList.add('shake');
-        input.value = '';
         setTimeout(() => input.classList.remove('shake'), 500);
     }
 }
