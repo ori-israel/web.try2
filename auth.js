@@ -185,10 +185,15 @@ async function doLogout() {
 }
 
 function _clearUserLocalStorage() {
+    const _n = new Date();
+    const todayStr = `${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,'0')}-${String(_n.getDate()).padStart(2,'0')}`;
+    const workoutDate = localStorage.getItem('workout_completed_date');
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (!k.startsWith('sb-') && k !== 'workout_completed_date') keysToRemove.push(k);
+        if (k.startsWith('sb-')) continue;
+        if (k === 'workout_completed_date' && workoutDate === todayStr) continue;
+        keysToRemove.push(k);
     }
     keysToRemove.forEach(k => localStorage.removeItem(k));
 }
