@@ -111,7 +111,11 @@ async function _loadClientAndShowApp(userId) {
     _resolveAuthReady();
 
     // אם window.onload כבר רץ — נריץ ידנית את פונקציות האתחול
-    if (document.readyState === 'complete') reinitApp();
+    if (document.readyState === 'complete') {
+        const _n = new Date();
+        localStorage.setItem('last_reset_v4', `${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,'0')}-${String(_n.getDate()).padStart(2,'0')}`);
+        reinitApp();
+    }
 
     // הצגת כפתור מנהל בתפריט המבורגר אם צריך
     if (SB_IS_ADMIN) {
