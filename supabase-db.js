@@ -342,14 +342,22 @@ async function sbFetchCoachDashData(clientIds) {
 // ── טעינת כל נתוני משתמש → localStorage + CLIENT ───────────
 
 async function loadUserIntoApp(userId) {
-    const [profile, todayNutrition, weightHist, todayWorkout, performance, streaks] = await Promise.all([
-        sbFetchProfile(userId),
-        sbFetchTodayNutrition(userId),
-        sbFetchWeightHistory(userId),
-        sbFetchTodayWorkout(userId),
-        sbFetchPerformance(userId),
-        sbFetchStreaks(userId)
-    ]);
+    let profile, todayNutrition, weightHist, todayWorkout, performance, streaks;
+    try {
+        [profile, todayNutrition, weightHist, todayWorkout, performance, streaks] = await Promise.all([
+            sbFetchProfile(userId),
+            sbFetchTodayNutrition(userId),
+            sbFetchWeightHistory(userId),
+            sbFetchTodayWorkout(userId),
+            sbFetchPerformance(userId),
+            sbFetchStreaks(userId)
+        ]);
+    } catch (err) {
+        console.warn('[loadUserIntoApp] offline — restoring CLIENT from cache:', err);
+        const cached = (() => { try { return JSON.parse(localStorage.getItem('profile_data_v1')); } catch { return null; } })();
+        if (cached) Object.assign(CLIENT, cached);
+        return;
+    }
 
     // ── Profile ────────────────────────────────────────────
     if (profile) {
