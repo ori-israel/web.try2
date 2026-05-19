@@ -2148,10 +2148,28 @@ async function analyzeFood(base64, mimeType, correction) {
                 }
             })
         });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'gemini error');
-        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        if (!response.ok) { const e = await response.json().catch(() => ({})); throw new Error(e.error || 'gemini error'); }
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '', buffer = '';
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const jsonStr = line.slice(6).trim();
+                if (!jsonStr || jsonStr === '[DONE]') continue;
+                try {
+                    const parsed = JSON.parse(jsonStr);
+                    const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) fullText += text;
+                } catch {}
+            }
+        }
+        const jsonMatch = fullText.match(/\{[\s\S]*\}/);
         if (!jsonMatch) throw new Error('no JSON');
         const result = JSON.parse(jsonMatch[0]);
 
