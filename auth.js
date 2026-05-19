@@ -412,9 +412,15 @@ function _renderUrgentMode(list) {
             </div>
             <div class="coach-urgent-right">
                 <span class="coach-urgent-score">${scoreStr}</span>
-                <button class="coach-vac-icon${vac ? ' active' : ''}" onclick="toggleVacationMode('${client.id}', ${vac})">🏖️</button>
-                <button class="admin-select-btn" onclick="adminViewClient('${client.id}')">כניסה ›</button>
+                <button class="coach-vac-icon${vac ? ' active' : ''}" data-client-id="${client.id}" data-vac="${vac}">🏖️</button>
+                <button class="admin-select-btn" data-client-id="${client.id}">כניסה ›</button>
             </div>`;
+        row.querySelector('.coach-vac-icon').addEventListener('click', function() {
+            toggleVacationMode(this.dataset.clientId, this.dataset.vac === 'true');
+        });
+        row.querySelector('.admin-select-btn').addEventListener('click', function() {
+            adminViewClient(this.dataset.clientId);
+        });
         list.appendChild(row);
     });
 
@@ -467,7 +473,7 @@ function _renderOverviewMode(list) {
                     })()}
                 </div>
                 <div class="coach-card-score" style="color:${bClr}">${sStr}<span class="coach-card-score-unit">pts</span></div>
-                <button class="coach-vac-icon${vac ? ' active' : ''}" onclick="event.stopPropagation();toggleVacationMode('${client.id}',${vac})">🏖️</button>
+                <button class="coach-vac-icon${vac ? ' active' : ''}" data-client-id="${client.id}" data-vac="${vac}">🏖️</button>
             </div>
             <div class="coach-card-body">
                 <div class="coach-bars">
@@ -476,9 +482,20 @@ function _renderOverviewMode(list) {
                     ${_coachScoreBar('הרגלים',  s.habitsScore)}
                 </div>
                 <div class="coach-sparkline">${_coachSparkline(s.last4)}</div>
-                <button class="coach-q-btn" onclick="event.stopPropagation();showQuestionnaireModal('${client.id}')">📋 שאלון אחרון</button>
-                <button class="admin-select-btn" style="width:100%;margin-top:6px" onclick="adminViewClient('${client.id}')">כניסה ›</button>
+                <button class="coach-q-btn" data-client-id="${client.id}">📋 שאלון אחרון</button>
+                <button class="admin-select-btn" data-client-id="${client.id}" style="width:100%;margin-top:6px">כניסה ›</button>
             </div>`;
+        card.querySelector('.coach-vac-icon').addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleVacationMode(this.dataset.clientId, this.dataset.vac === 'true');
+        });
+        card.querySelector('.coach-q-btn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            showQuestionnaireModal(this.dataset.clientId);
+        });
+        card.querySelector('.admin-select-btn').addEventListener('click', function() {
+            adminViewClient(this.dataset.clientId);
+        });
         list.appendChild(card);
     });
 }

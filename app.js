@@ -145,9 +145,16 @@ function initVideos() {
             const videoCell = row.querySelector('.video-cell');
             const bankUrl = exerciseBank[exerciseName];
             if (videoCell) {
-                videoCell.innerHTML = bankUrl
-                    ? `<button class="play-link" onclick="openVideoModal('${bankUrl}')">▶</button>`
-                    : `-`;
+                if (bankUrl) {
+                    const btn = document.createElement('button');
+                    btn.className = 'play-link';
+                    btn.textContent = '▶';
+                    btn.addEventListener('click', () => openVideoModal(bankUrl));
+                    videoCell.innerHTML = '';
+                    videoCell.appendChild(btn);
+                } else {
+                    videoCell.textContent = '-';
+                }
             }
         });
     });
@@ -497,9 +504,13 @@ function buildWorkoutAccordions(targets = {}) {
                             <span class="accord-detail-value accord-weight-val">${weightHtml}</span>
                         </div>
                     </div>
-                    ${bankUrl ? `<div class="accord-video-link"><button class="accord-video-btn" onclick="openVideoModal('${bankUrl}')">▶ צפה בסרטון</button></div>` : ''}
+                    ${bankUrl ? `<div class="accord-video-link"><button class="accord-video-btn" data-video-url="${encodeURIComponent(bankUrl)}">▶ צפה בסרטון</button></div>` : ''}
                 </div>
             `;
+            const videoBtn = item.querySelector('.accord-video-btn');
+            if (videoBtn) {
+                videoBtn.addEventListener('click', () => openVideoModal(decodeURIComponent(videoBtn.dataset.videoUrl)));
+            }
             const accordCheckbox = item.querySelector('.accord-checkbox');
             const header = item.querySelector('.workout-accord-header');
             accordCheckbox.addEventListener('change', () => {
