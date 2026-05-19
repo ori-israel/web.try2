@@ -355,7 +355,9 @@ async function loadUserIntoApp(userId) {
     } catch (err) {
         console.warn('[loadUserIntoApp] offline — restoring CLIENT from cache:', err);
         const cached = (() => { try { return JSON.parse(localStorage.getItem('profile_data_v1')); } catch { return null; } })();
+        console.log('[Offline] restoring CLIENT from cache:', cached);
         if (cached) Object.assign(CLIENT, cached);
+        console.log('[Offline] CLIENT restored:', CLIENT);
         return;
     }
 
