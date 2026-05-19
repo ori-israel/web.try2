@@ -73,6 +73,7 @@ async function reinitApp() {
 async function handleLoginSuccess(user) {
     SB_USER = user;
     showLoadingScreen('טוען פרופיל...');
+    sbUpdateLastSeen(user.id).catch(() => {});
     try {
         const profile = await sbFetchProfile(user.id);
         SB_IS_ADMIN = profile?.is_admin || false;
@@ -251,6 +252,7 @@ function _buildClientStats(client) {
         hasWorkout,
         nutritionBadDays,
         vacationMode:    !!(profile.vacation_mode),
+        lastSeen:        profile.last_seen || null,
     };
 }
 
@@ -427,7 +429,15 @@ function _renderOverviewMode(list) {
         card.innerHTML = `
             <div class="coach-card-header" onclick="this.closest('.coach-overview-card').classList.toggle('expanded')">
                 ${_coachInitials(name, client.id)}
-                <div class="coach-card-name">${name}</div>
+                <div style="display:flex;flex-direction:column;flex:1;min-width:0;">
+                    <div class="coach-card-name">${name}</div>
+                    ${(() => {
+                        if (!s.lastSeen) return '<span style="font-size:11px;color:#888;">כניסה אחרונה: לא ידוע</span>';
+                        const days = Math.floor((Date.now() - new Date(s.lastSeen).getTime()) / 86400000);
+                        const clr  = days >= 5 ? '#f87171' : days >= 2 ? '#fb923c' : '#4ade80';
+                        return `<span style="font-size:11px;color:${clr};">כניסה אחרונה: לפני ${days} ימים</span>`;
+                    })()}
+                </div>
                 <div class="coach-card-score" style="color:${bClr}">${sStr}<span class="coach-card-score-unit">pts</span></div>
                 <button class="coach-vac-icon${vac ? ' active' : ''}" onclick="event.stopPropagation();toggleVacationMode('${client.id}',${vac})">🏖️</button>
             </div>

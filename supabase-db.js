@@ -46,6 +46,14 @@ async function sbFetchProfile(userId) {
     return data;
 }
 
+async function sbUpdateLastSeen(uid) {
+    const { error } = await db
+        .from('profiles')
+        .update({ last_seen: new Date().toISOString() })
+        .eq('id', uid);
+    if (error) throw error;
+}
+
 async function sbUpsertProfile(userId, updates) {
     const clean = Object.fromEntries(
         Object.entries(updates).filter(([, v]) => v !== undefined)
@@ -271,7 +279,7 @@ async function sbFetchCoachDashData(clientIds) {
 
     const [pRes, sRes, wRes, nRes] = await Promise.all([
         db.from('profiles')
-          .select('id, current_weight, protein_ratio, workouts_per_week, vacation_mode')
+          .select('id, current_weight, protein_ratio, workouts_per_week, vacation_mode, last_seen')
           .in('id', clientIds),
         db.from('weekly_scores')
           .select('client_id, week_start, score, workouts_score, nutrition_score, habits_score')
