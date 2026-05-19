@@ -236,6 +236,7 @@ function closeCompleteMsg() {
         localStorage.setItem('last_reset_v4', todayStr);
         location.reload();
     }
+    setInterval(() => manageDailyReset(), 60 * 1000);
 
     function modifyPortion(type, amount) {
         let current = userPortions[type] + amount;
