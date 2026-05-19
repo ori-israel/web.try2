@@ -86,7 +86,13 @@ async function handleLoginSuccess(user) {
         }
     } catch (err) {
         console.error('[Auth]', err);
-        showLoginForm('שגיאה בטעינת הנתונים. נסה שוב.');
+        const cached = (() => { try { return JSON.parse(localStorage.getItem('profile_data_v1')); } catch { return null; } })();
+        if (cached) {
+            console.warn('[Auth] offline — loading from cached profile');
+            await _loadClientAndShowApp(user.id);
+        } else {
+            showLoginForm('שגיאה בטעינת הנתונים. נסה שוב.');
+        }
     }
 }
 
