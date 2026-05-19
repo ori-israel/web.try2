@@ -36,13 +36,29 @@ async function sbGetSession() {
 
 // ── Profile ─────────────────────────────────────────────────
 
+let _sbToastTimer = null;
+function showSupabaseError() {
+    const toast = document.getElementById('supabase-error-toast');
+    if (!toast) return;
+    toast.style.display = 'block';
+    clearTimeout(_sbToastTimer);
+    _sbToastTimer = setTimeout(() => { toast.style.display = 'none'; }, 3000);
+}
+
+function _isNetworkError(error) {
+    if (!error) return false;
+    if (error.code === 'PGRST116') return false;
+    if (error.status === 401 || error.status === 403) return false;
+    return true;
+}
+
 async function sbFetchProfile(userId) {
     const { data, error } = await db
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
-    if (error && error.code !== 'PGRST116') throw error;
+    if (error && error.code !== 'PGRST116') { if (_isNetworkError(error)) showSupabaseError(); throw error; }
     return data;
 }
 
@@ -89,7 +105,7 @@ async function sbFetchTodayNutrition(userId) {
         .eq('user_id', userId)
         .eq('date', today)
         .maybeSingle();
-    if (error) throw error;
+    if (error) { if (_isNetworkError(error)) showSupabaseError(); throw error; }
     return data;
 }
 
@@ -110,7 +126,7 @@ async function sbFetchWeightHistory(userId) {
         .select('date, weight')
         .eq('user_id', userId)
         .order('date', { ascending: true });
-    if (error) throw error;
+    if (error) { if (_isNetworkError(error)) showSupabaseError(); throw error; }
     return data || [];
 }
 
