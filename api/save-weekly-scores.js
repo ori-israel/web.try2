@@ -1,6 +1,12 @@
 const { createClient } = require('@supabase/supabase-js');
 
 module.exports = async (req, res) => {
+    const secret = process.env.CRON_SECRET;
+    const auth   = req.headers.authorization || '';
+    if (!secret || auth !== `Bearer ${secret}`) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     const supabase = createClient(
         process.env.SUPABASE_URL,
         process.env.SUPABASE_SERVICE_KEY
