@@ -595,7 +595,7 @@ function _showPWAPromptIfNeeded() {
     if (window.matchMedia('(display-mode: standalone)').matches) return;
     setTimeout(() => {
         const popup = document.getElementById('pwa-install-popup');
-        if (popup) popup.style.cssText = 'display:flex;align-items:center;justify-content:center;';
+        if (popup) popup.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;';
     }, 2500);
 }
 
@@ -604,7 +604,7 @@ function pwaInstallYes() {
     localStorage.setItem('pwa_prompt_shown', 'yes');
     if (_isIOS()) {
         const p = document.getElementById('pwa-ios-popup');
-        p.style.cssText = 'display:flex;align-items:center;justify-content:center;';
+        p.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;';
     } else if (_deferredInstallPrompt) {
         _deferredInstallPrompt.prompt();
         _deferredInstallPrompt.userChoice.then(() => { _deferredInstallPrompt = null; });
@@ -631,7 +631,7 @@ function triggerPWAInstall() {
     }
     if (_isIOS()) {
         const p = document.getElementById('pwa-ios-popup');
-        p.style.cssText = 'display:flex;align-items:center;justify-content:center;';
+        p.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;';
     } else if (_deferredInstallPrompt) {
         _deferredInstallPrompt.prompt();
         _deferredInstallPrompt.userChoice.then(() => { _deferredInstallPrompt = null; });
