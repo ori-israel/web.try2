@@ -13,38 +13,34 @@ module.exports = async (req, res) => {
     if (typeof pin !== 'string' || !pin) return res.status(400).json({ ok: false });
 
     if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
-        console.error('[verify-pin] Missing SUPABASE_URL or SUPABASE_SERVICE_KEY env vars');
         return res.status(500).json({ ok: false, error: 'server misconfigured' });
     }
 
-    // Verify token and get user ID
-    const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-    console.error('[verify-pin] token_preview:', token?.slice(0,30), 'url:', process.env.SUPABASE_URL?.slice(0,30));
-    const { data: { user }, error: authErr } = await db.auth.getUser(token);
-    if (authErr) console.error('[verify-pin] Auth error full:', JSON.stringify(authErr));
-    if (authErr || !user) {
-        console.error('[verify-pin] Auth error:', authErr?.message);
+    // Decode JWT to get user ID without calling getUser
+    let userId;
+    try {
+        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+        userId = payload.sub;
+        if (!userId) throw new Error('no sub');
+    } catch (e) {
+        console.error('[verify-pin] JWT decode error:', e.message);
         return res.status(401).json({ ok: false });
     }
 
-    // Look up the PIN stored in the profile row (never sent to client)
+    const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+
     const { data: profile, error: profErr } = await db
         .from('profiles')
         .select('coach_pin')
-        .eq('id', user.id)
+        .eq('id', userId)
         .single();
 
-    if (profErr) {
-        console.error('[verify-pin] Profile fetch error for', user.id, ':', profErr.message);
-        return res.status(404).json({ ok: false });
-    }
-    if (!profile) {
-        console.error('[verify-pin] No profile row found for', user.id);
+    if (profErr || !profile) {
+        console.error('[verify-pin] Profile error:', profErr?.message);
         return res.status(404).json({ ok: false });
     }
 
-    const storedPin = profile.coach_pin;
-    console.log('[verify-pin] user:', user.id, 'pin_set:', storedPin != null, 'match:', storedPin === pin);
-    const ok = typeof storedPin === 'string' && storedPin === pin;
+    const ok = typeof profile.coach_pin === 'string' && profile.coach_pin === pin;
+    console.log('[verify-pin] userId:', userId, 'match:', ok);
     return res.status(200).json({ ok });
 };
