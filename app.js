@@ -595,7 +595,7 @@ function _showPWAPromptIfNeeded() {
     if (window.matchMedia('(display-mode: standalone)').matches) return;
     setTimeout(() => {
         const popup = document.getElementById('pwa-install-popup');
-        if (popup) popup.style.display = 'flex';
+        if (popup) popup.style.cssText = 'display:flex;align-items:center;justify-content:center;';
     }, 2500);
 }
 
