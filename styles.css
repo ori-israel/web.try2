@@ -144,7 +144,7 @@ h1 {
 .sub-header {
     font-size: 14px;
     color: var(--text-secondary);
-    margin: 4px 0;
+    margin: 2px 0;
     font-weight: 400;
     letter-spacing: 0.1px;
 }
