@@ -1019,13 +1019,13 @@
 
 <!-- PWA install prompt -->
 <div id="pwa-install-popup" class="complete-modal" style="display:none;">
-    <div class="complete-content">
+    <div class="complete-content" style="max-width:320px;padding:24px;">
         <span class="close-complete" onclick="pwaInstallLater()">&times;</span>
         <div style="font-size:2rem;margin-bottom:8px;">📲</div>
-        <h2 style="margin:0 0 10px;">רוצה להוסיף את האפליקציה למסך הבית?</h2>
-        <div style="display:flex;gap:12px;margin-top:16px;">
-            <button onclick="pwaInstallYes()" class="calc-btn" style="flex:1;">כן, הוסף</button>
+        <h2 style="margin:0 0 20px;">רוצה להוסיף את האפליקציה למסך הבית?</h2>
+        <div style="display:flex;gap:10px;direction:rtl;">
             <button onclick="pwaInstallLater()" class="secondary-btn" style="flex:1;">אחר כך</button>
+            <button onclick="pwaInstallYes()" class="calc-btn" style="flex:1;">כן, הוסף</button>
         </div>
     </div>
 </div>
