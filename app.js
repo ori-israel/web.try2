@@ -578,6 +578,66 @@ window.addEventListener('online', () => {
     }
 });
 
+// ── PWA install ──────────────────────────────────────────────
+let _deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    _deferredInstallPrompt = e;
+});
+
+function _isIOS() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
+function _showPWAPromptIfNeeded() {
+    if (localStorage.getItem('pwa_prompt_shown')) return;
+    if (window.matchMedia('(display-mode: standalone)').matches) return;
+    setTimeout(() => {
+        const popup = document.getElementById('pwa-install-popup');
+        if (popup) popup.style.display = 'flex';
+    }, 2500);
+}
+
+function pwaInstallYes() {
+    document.getElementById('pwa-install-popup').style.display = 'none';
+    localStorage.setItem('pwa_prompt_shown', 'yes');
+    if (_isIOS()) {
+        document.getElementById('pwa-ios-popup').style.display = 'flex';
+    } else if (_deferredInstallPrompt) {
+        _deferredInstallPrompt.prompt();
+        _deferredInstallPrompt.userChoice.then(() => { _deferredInstallPrompt = null; });
+    }
+}
+
+function pwaInstallLater() {
+    document.getElementById('pwa-install-popup').style.display = 'none';
+    localStorage.setItem('pwa_prompt_shown', 'later');
+}
+
+function pwaIosClose() {
+    document.getElementById('pwa-ios-popup').style.display = 'none';
+}
+
+function triggerPWAInstall() {
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        const toast = document.createElement('div');
+        toast.innerText = 'האפליקציה כבר נמצאת במסך הבית ✓';
+        toast.style.cssText = `position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:9999;box-shadow:0 4px 15px rgba(0,0,0,0.2);white-space:nowrap;`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+        return;
+    }
+    if (_isIOS()) {
+        document.getElementById('pwa-ios-popup').style.display = 'flex';
+    } else if (_deferredInstallPrompt) {
+        _deferredInstallPrompt.prompt();
+        _deferredInstallPrompt.userChoice.then(() => { _deferredInstallPrompt = null; });
+    } else {
+        showAlert('כדי להוסיף למסך הבית, השתמש בתפריט הדפדפן');
+    }
+}
+
    window.onload = async () => {
     // ממתין לאימות Supabase לפני אתחול האפליקציה
     if (window._authReady) await window._authReady;
@@ -596,6 +656,7 @@ window.addEventListener('online', () => {
     setTimeout(renderWeightChart, 100);
     checkBirthday();
     checkThursdayBanner();
+    _showPWAPromptIfNeeded();
 };
 
     function toggleAccordion(id) {

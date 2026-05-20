@@ -1,0 +1,12 @@
+{
+  "name": "OI Fitness",
+  "short_name": "OI Fitness",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#4F7FFF",
+  "icons": [
+    { "src": "https://ebfyrswzqawqznydovbx.supabase.co/storage/v1/object/public/assets/logo.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "https://ebfyrswzqawqznydovbx.supabase.co/storage/v1/object/public/assets/logo.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
