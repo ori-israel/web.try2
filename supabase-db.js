@@ -371,13 +371,13 @@ async function loadUserIntoApp(userId) {
             likedFoods:    profile.liked_foods    || '',
             dislikedFoods: profile.disliked_foods || '',
             coachingGoal:  profile.coaching_goal  || '',
-            coachPin:      profile.coach_pin      || null,
+
             vacationMode:  profile.vacation_mode  || false,
             avatarUrl:     profile.avatar_url     || null,
         };
         Object.assign(CLIENT, p);
         localStorage.setItem('profile_data_v1', JSON.stringify(p));
-        localStorage.setItem('current_weight', String(p.currentWeight));
+        sessionStorage.setItem('current_weight', String(p.currentWeight));
 
         if (profile.workout_a  && profile.workout_a.length)  CLIENT.workoutA    = profile.workout_a;
         if (profile.workout_b  && profile.workout_b.length)  CLIENT.workoutB    = profile.workout_b;
@@ -401,18 +401,18 @@ async function loadUserIntoApp(userId) {
     const portions = todayNutrition
         ? { protein: todayNutrition.protein || 0, carbs: todayNutrition.carbs || 0, fat: todayNutrition.fat || 0 }
         : { protein: 0, carbs: 0, fat: 0 };
-    localStorage.setItem('user_portions_v3', JSON.stringify(portions));
+    sessionStorage.setItem('user_portions_v3', JSON.stringify(portions));
 
     // ── היסטוריית משקל ────────────────────────────────────
     if (weightHist && weightHist.length) {
-        localStorage.setItem('weight_history', JSON.stringify(weightHist));
+        sessionStorage.setItem('weight_history', JSON.stringify(weightHist));
     }
 
     // ── התקדמות אימון יומי ────────────────────────────────
     if (todayWorkout) {
         if (todayWorkout.exercises)        localStorage.setItem('workout_progress_v3', JSON.stringify(todayWorkout.exercises));
         if (todayWorkout.tasks)            localStorage.setItem('tasks_v3',            JSON.stringify(todayWorkout.tasks));
-        if (todayWorkout.exercise_weights) localStorage.setItem('exercise_weights',    JSON.stringify(todayWorkout.exercise_weights));
+        if (todayWorkout.exercise_weights) sessionStorage.setItem('exercise_weights',    JSON.stringify(todayWorkout.exercise_weights));
     }
 
     // ── מדדי ביצועים ──────────────────────────────────────
