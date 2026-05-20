@@ -173,7 +173,7 @@ h1 {
 }
 
 .top-right-logo img {
-    height: 48px;
+    height: 120px;
     width: auto;
     display: block;
     transition: transform 0.2s ease, opacity 0.2s ease;
@@ -1472,7 +1472,7 @@ mark {
     .header { padding-top: 68px; }
 
     .top-right-logo { top: 10px; right: 12px; }
-    .top-right-logo img { height: 38px; }
+    .top-right-logo img { height: 60px; }
 
     .hamburger-btn { width: 36px; height: 36px; }
     .whatsapp-top-btn { width: 36px; height: 36px; font-size: 18px; }
