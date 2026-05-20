@@ -1012,17 +1012,18 @@
             </div>
         </div>
 
-        <button id="pwa-add-btn" onclick="triggerPWAInstall()" class="secondary-btn" style="width:100%; margin-top:4px;">הוספת האפליקציה למסך הבית 📲</button>
+        <button id="pwa-add-btn" onclick="triggerPWAInstall()" class="calc-btn" style="width:100%; margin-top:4px;">הוספת האפליקציה למסך הבית 📲</button>
         <button id="prof-save-btn" class="calc-btn" onclick="saveProfile()" style="width:100%; margin-top:4px;">שמור שינויים</button>
     </div>
 </div>
 
 <!-- PWA install prompt -->
-<div id="pwa-install-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:flex-end;justify-content:center;">
-    <div style="background:var(--bg-card);border-radius:20px 20px 0 0;padding:28px 24px 36px;width:100%;max-width:480px;text-align:center;direction:rtl;">
-        <p style="font-size:17px;font-weight:600;margin:0 0 8px;">הוסף למסך הבית</p>
-        <p style="font-size:14px;color:var(--text-secondary);margin:0 0 24px;">רוצה להוסיף את האפליקציה למסך הבית?</p>
-        <div style="display:flex;gap:12px;">
+<div id="pwa-install-popup" class="complete-modal" style="display:none;">
+    <div class="complete-content">
+        <span class="close-complete" onclick="pwaInstallLater()">&times;</span>
+        <div style="font-size:2rem;margin-bottom:8px;">📲</div>
+        <h2 style="margin:0 0 10px;">רוצה להוסיף את האפליקציה למסך הבית?</h2>
+        <div style="display:flex;gap:12px;margin-top:16px;">
             <button onclick="pwaInstallYes()" class="calc-btn" style="flex:1;">כן, הוסף</button>
             <button onclick="pwaInstallLater()" class="secondary-btn" style="flex:1;">אחר כך</button>
         </div>
@@ -1030,15 +1031,17 @@
 </div>
 
 <!-- PWA iOS instructions -->
-<div id="pwa-ios-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:flex-end;justify-content:center;">
-    <div style="background:var(--bg-card);border-radius:20px 20px 0 0;padding:28px 24px 36px;width:100%;max-width:480px;text-align:center;direction:rtl;">
-        <p style="font-size:17px;font-weight:600;margin:0 0 16px;">להוספה למסך הבית</p>
-        <div style="font-size:15px;color:var(--text-secondary);line-height:2;margin:0 0 24px;text-align:right;">
-            <div>1. לחצו על כפתור השיתוף ⬆️</div>
-            <div>2. גללו למטה ובחרו "הוסף למסך הבית"</div>
-            <div>3. לחצו על "הוסף"</div>
-        </div>
-        <button onclick="pwaIosClose()" class="calc-btn" style="width:100%;">הבנתי</button>
+<div id="pwa-ios-popup" class="complete-modal" style="display:none;">
+    <div class="complete-content">
+        <span class="close-complete" onclick="pwaIosClose()">&times;</span>
+        <div style="font-size:2rem;margin-bottom:8px;">📱</div>
+        <h2 style="margin:0 0 14px;">הוספה למסך הבית</h2>
+        <p style="text-align:right;line-height:2;margin:0 0 16px;">
+            1. לחצו על כפתור השיתוף ⬆️<br>
+            2. גללו למטה ובחרו "הוסף למסך הבית"<br>
+            3. לחצו על "הוסף"
+        </p>
+        <button onclick="pwaIosClose()" class="calc-btn" style="width:100%;margin-top:4px;">הבנתי</button>
     </div>
 </div>
 
