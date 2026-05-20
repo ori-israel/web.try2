@@ -603,7 +603,8 @@ function pwaInstallYes() {
     document.getElementById('pwa-install-popup').style.display = 'none';
     localStorage.setItem('pwa_prompt_shown', 'yes');
     if (_isIOS()) {
-        document.getElementById('pwa-ios-popup').style.display = 'flex';
+        const p = document.getElementById('pwa-ios-popup');
+        p.style.cssText = 'display:flex;align-items:center;justify-content:center;';
     } else if (_deferredInstallPrompt) {
         _deferredInstallPrompt.prompt();
         _deferredInstallPrompt.userChoice.then(() => { _deferredInstallPrompt = null; });
@@ -629,7 +630,8 @@ function triggerPWAInstall() {
         return;
     }
     if (_isIOS()) {
-        document.getElementById('pwa-ios-popup').style.display = 'flex';
+        const p = document.getElementById('pwa-ios-popup');
+        p.style.cssText = 'display:flex;align-items:center;justify-content:center;';
     } else if (_deferredInstallPrompt) {
         _deferredInstallPrompt.prompt();
         _deferredInstallPrompt.userChoice.then(() => { _deferredInstallPrompt = null; });
