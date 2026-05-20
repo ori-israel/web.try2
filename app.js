@@ -104,6 +104,8 @@ function toggleTheme() {
 
     const goalText = CLIENT.goal === 'cut' ? 'חיטוב' : 'מסה';
     document.getElementById('header-goal-display').innerText = `${goalText} | ${totalCalories} קק"ל`;
+    const coachEl = document.getElementById('coach-name-display');
+    if (coachEl) coachEl.textContent = COACH_NAME;
     document.title = `פורטל הליווי של ${CLIENT.name}`;
     document.querySelector('h1').innerText = `תוכנית הליווי של ${CLIENT.name}`;
 
