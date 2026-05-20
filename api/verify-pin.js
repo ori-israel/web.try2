@@ -20,6 +20,7 @@ module.exports = async (req, res) => {
     // Verify token and get user ID
     const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
     const { data: { user }, error: authErr } = await db.auth.getUser(token);
+    if (authErr) console.error('[verify-pin] Auth error full:', JSON.stringify(authErr));
     if (authErr || !user) {
         console.error('[verify-pin] Auth error:', authErr?.message);
         return res.status(401).json({ ok: false });
