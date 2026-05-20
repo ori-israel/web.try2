@@ -307,7 +307,7 @@ async function sbFetchCoachDashData(clientIds) {
 
     console.log('[CoachDash] monStr:', monStr, '| prevMonStr:', prevMonStr, '| fourAgoStr:', fourAgoStr, '| clientIds:', clientIds);
 
-    const [pRes, sRes, wRes, nRes] = await Promise.all([
+    const [pRes, sRes, wRes, nRes, whRes] = await Promise.all([
         db.from('profiles')
           .select('id, current_weight, protein_ratio, workouts_per_week, vacation_mode, last_seen')
           .in('id', clientIds),
@@ -324,16 +324,27 @@ async function sbFetchCoachDashData(clientIds) {
           .select('user_id, date, protein, carbs, fat')
           .in('user_id', clientIds)
           .gte('date', monStr),
+        db.from('weight_history')
+          .select('user_id, date')
+          .in('user_id', clientIds)
+          .order('date', { ascending: false }),
     ]);
+
+    // Build map: user_id → most recent weight date
+    const lastWeightDates = {};
+    (whRes.data || []).forEach(r => {
+        if (!lastWeightDates[r.user_id]) lastWeightDates[r.user_id] = r.date;
+    });
 
     console.log('[CoachDash] scores raw:', sRes.data, '| sRes.error:', sRes.error);
     console.log('[CoachDash] workouts raw:', wRes.data?.length, '| nutrition raw:', nRes.data?.length);
 
     return {
-        profiles:  pRes.data  || [],
-        scores:    sRes.data  || [],
-        workouts:  wRes.data  || [],
-        nutrition: nRes.data  || [],
+        profiles:        pRes.data  || [],
+        scores:          sRes.data  || [],
+        workouts:        wRes.data  || [],
+        nutrition:       nRes.data  || [],
+        lastWeightDates,
         monStr,
         prevMonStr,
     };

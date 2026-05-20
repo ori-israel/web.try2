@@ -242,7 +242,7 @@ function _renderCoachList(list) {
 }
 
 function _buildClientStats(client) {
-    const { profiles, scores, workouts, nutrition, monStr, prevMonStr } = _coachDashData;
+    const { profiles, scores, workouts, nutrition, monStr, prevMonStr, lastWeightDates } = _coachDashData;
     const profile = profiles.find(p => p.id === client.id) || {};
 
     const clientScores = scores
@@ -276,8 +276,9 @@ function _buildClientStats(client) {
         last4,
         hasWorkout,
         nutritionBadDays,
-        vacationMode:    !!(profile.vacation_mode),
-        lastSeen:        profile.last_seen || null,
+        vacationMode:      !!(profile.vacation_mode),
+        lastSeen:          profile.last_seen || null,
+        lastWeightUpdate:  lastWeightDates?.[client.id] || null,
     };
 }
 
@@ -470,6 +471,13 @@ function _renderOverviewMode(list) {
                         const clr  = days >= 5 ? '#f87171' : days >= 2 ? '#fb923c' : '#4ade80';
                         const lbl  = days === 0 ? 'היום' : days === 1 ? 'אתמול' : days === 2 ? 'שלשום' : `לפני ${days} ימים`;
                         return `<span style="font-size:11px;color:${clr};">כניסה אחרונה: ${lbl}</span>`;
+                    })()}
+                    ${(() => {
+                        if (!s.lastWeightUpdate) return '<span style="font-size:11px;color:#888;">עדכון משקל אחרון: לא עודכן</span>';
+                        const days = Math.floor((Date.now() - new Date(s.lastWeightUpdate + 'T00:00:00').getTime()) / 86400000);
+                        const clr  = days >= 14 ? '#f87171' : days >= 7 ? '#fb923c' : '#4ade80';
+                        const lbl  = days === 0 ? 'היום' : days === 1 ? 'אתמול' : `לפני ${days} ימים`;
+                        return `<span style="font-size:11px;color:${clr};">עדכון משקל אחרון: ${lbl}</span>`;
                     })()}
                 </div>
                 <div class="coach-card-score" style="color:${bClr}">${sStr}<span class="coach-card-score-unit">pts</span></div>
