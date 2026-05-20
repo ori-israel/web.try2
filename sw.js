@@ -25,7 +25,7 @@ self.addEventListener('fetch', e => {
     if (e.request.method !== 'GET') return;
     const url = new URL(e.request.url);
     // Always network for API, Supabase, external services
-    if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase.co') || url.hostname.includes('googleapis.com')) {
+    if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase.co') || url.hostname.includes('googleapis.com') || url.hostname.includes('gstatic.com')) {
         e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
         return;
     }
