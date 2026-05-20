@@ -591,7 +591,7 @@ function _isIOS() {
 }
 
 function _showPWAPromptIfNeeded() {
-    if (localStorage.getItem('pwa_prompt_shown')) return;
+    // if (localStorage.getItem('pwa_prompt_shown')) return;  // temporarily disabled for testing
     if (window.matchMedia('(display-mode: standalone)').matches) return;
     setTimeout(() => {
         const popup = document.getElementById('pwa-install-popup');
