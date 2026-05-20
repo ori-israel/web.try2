@@ -24,8 +24,13 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
     if (e.request.method !== 'GET') return;
     const url = new URL(e.request.url);
-    // Always network for API, Supabase, external services
-    if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase.co') || url.hostname.includes('googleapis.com') || url.hostname.includes('gstatic.com')) {
+    // Pass Google Fonts straight to network — no caching
+    if (url.hostname.includes('googleapis.com') || url.hostname.includes('gstatic.com')) {
+        e.respondWith(fetch(e.request));
+        return;
+    }
+    // Always network for API and Supabase
+    if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase.co')) {
         e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
         return;
     }
