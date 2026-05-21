@@ -1147,13 +1147,15 @@ async function renderScoreHistory(userId) {
         const thisSunStr = fmt(new Date(thisMon.getTime() + 6 * 86400000));
 
         // Past weeks from weekly_scores (same source as admin panel)
-        const { data: histData } = await db
+        // Order descending + limit so we always get the MOST RECENT weeks, then reverse for display
+        const { data: histRaw } = await db
             .from('weekly_scores')
             .select('week_start, score')
             .eq('client_id', userId)
             .lt('week_start', thisMonStr)
-            .order('week_start', { ascending: true })
+            .order('week_start', { ascending: false })
             .limit(7);
+        const histData = (histRaw || []).reverse();
 
         // Current week — compute live from raw data
         const weeklyTarget = CLIENT.workoutsPerWeek || 3;
