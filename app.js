@@ -1167,7 +1167,7 @@ async function renderScoreHistory(userId) {
             db.from('weight_history').select('date').eq('user_id', userId).gte('date', startDate).lte('date', endDate),
         ]);
 
-        const computed = weeks.map(({ monStr, sunStr }) => {
+        const computed = weeks.map(({ monStr, sunStr, current }) => {
             const wk  = (wkData  || []).filter(r => r.date >= monStr && r.date <= sunStr);
             const nut = (nutData || []).filter(r => r.date >= monStr && r.date <= sunStr);
             const wt  = (wtData  || []).filter(r => r.date >= monStr && r.date <= sunStr);
