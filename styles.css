@@ -1990,7 +1990,7 @@ input[type="radio"] { accent-color: var(--accent); }
 .app-dialog-msg  { margin: 0 0 24px; font-size: 18px; line-height: 1.5; text-align: center; color: var(--text-primary); font-weight: 600; }
 .app-dialog-input-field { width: 100%; margin-bottom: 15px; box-sizing: border-box; }
 .app-dialog-btns { display: flex; gap: 12px; justify-content: center; }
-.app-dialog-btn  { padding: 14px 0; border-radius: var(--radius); border: 1.5px solid transparent; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.2s ease; flex: 1; }
+.app-dialog-btn  { padding: 14px 0; border-radius: var(--radius); border: 1.5px solid transparent; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.2s ease; flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; }
 .primary-btn   { background: var(--gradient-btn); color: #fff; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3); }
 .primary-btn:hover { opacity: 0.9; }
 .secondary-btn { background: transparent; color: var(--text-primary); border: 1.5px solid rgba(150,150,150,0.5); }
