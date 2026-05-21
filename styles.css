@@ -344,13 +344,17 @@ h1 {
 .theme-toggle:active { transform: scale(0.9); }
 
 .theme-toggle-profile {
-    width: 48px;
+    width: auto;
     height: 48px;
+    padding: 0 14px;
     border-radius: var(--radius);
     border: 1.5px solid var(--border);
-    font-size: 22px;
+    font-size: 14px;
+    font-weight: 600;
     align-self: flex-end;
     margin-bottom: 6px;
+    gap: 6px;
+    white-space: nowrap;
 }
 
 /* ============================================

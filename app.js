@@ -52,13 +52,18 @@ document.addEventListener('click', function(e) {
     }
 });
 
+function _setThemeBtn(theme) {
+    const btn = document.querySelector('.theme-toggle-profile');
+    if (btn) btn.textContent = theme === 'dark' ? '☀️ מצב יום' : '🌙 מצב לילה';
+}
+
 function toggleTheme() {
     const html = document.documentElement;
     const current = html.getAttribute('data-theme');
     const next = current === 'dark' ? 'light' : 'dark';
     html.setAttribute('data-theme', next);
     localStorage.setItem('theme', next);
-    document.querySelector('.theme-toggle').textContent = next === 'dark' ? '☀️' : '🌙';
+    _setThemeBtn(next);
     if (typeof syncThemeNow === 'function') syncThemeNow(next);
     renderWeightChart();
 }
@@ -66,8 +71,7 @@ function toggleTheme() {
 (function initTheme() {
     const saved = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', saved);
-    const btn = document.querySelector('.theme-toggle');
-    if (btn) btn.textContent = saved === 'dark' ? '☀️' : '🌙';
+    _setThemeBtn(saved);
 })();
 
     function generatePortionGoals() {
