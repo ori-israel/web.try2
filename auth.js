@@ -107,13 +107,15 @@ async function _loadClientAndShowApp(userId) {
 
     _showApp();
 
+    // תמיד מגדיר last_reset_v4 לפני שmanagedDailyReset יכול לרוץ
+    const _n = new Date();
+    localStorage.setItem('last_reset_v4', `${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,'0')}-${String(_n.getDate()).padStart(2,'0')}`);
+
     // פתרון ה-promise כדי ש-window.onload יוכל להמשיך
     _resolveAuthReady();
 
     // אם window.onload כבר רץ — נריץ ידנית את פונקציות האתחול
     if (document.readyState === 'complete') {
-        const _n = new Date();
-        localStorage.setItem('last_reset_v4', `${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,'0')}-${String(_n.getDate()).padStart(2,'0')}`);
         reinitApp();
     }
 
@@ -203,6 +205,7 @@ function _clearUserLocalStorage() {
         if (k === 'workout_completed_date' && workoutDate === todayStr) continue;
         if (k === 'pwa_prompt_shown') continue;
         if (k === 'remember_me') continue;
+        if (k === 'last_reset_v4') continue;
         keysToRemove.push(k);
     }
     keysToRemove.forEach(k => localStorage.removeItem(k));
