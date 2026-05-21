@@ -205,6 +205,7 @@ function _clearUserLocalStorage() {
         if (k === 'workout_completed_date' && workoutDate === todayStr) continue;
         if (k === 'workout_streak_incremented_date') continue;
         if (k === 'workout_popup_shown_date') continue;
+        if (k.startsWith('survey_submitted_')) continue;
         if (k === 'pwa_prompt_shown') continue;
         if (k === 'remember_me') continue;
         if (k === 'last_reset_v4') continue;
