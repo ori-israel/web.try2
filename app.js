@@ -631,7 +631,7 @@ function triggerPWAInstall() {
     if (window.matchMedia('(display-mode: standalone)').matches) {
         const toast = document.createElement('div');
         toast.innerText = 'האפליקציה כבר נמצאת במסך הבית ✓';
-        toast.style.cssText = `position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:9999;box-shadow:0 4px 15px rgba(0,0,0,0.2);white-space:nowrap;`;
+        toast.style.cssText = `position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:100001;box-shadow:0 4px 15px rgba(0,0,0,0.2);white-space:nowrap;`;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
         return;
