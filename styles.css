@@ -343,6 +343,16 @@ h1 {
 .theme-toggle:hover { background: var(--bg-card); box-shadow: var(--shadow); }
 .theme-toggle:active { transform: scale(0.9); }
 
+.theme-toggle-profile {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    font-size: 22px;
+    align-self: flex-end;
+    margin-bottom: 6px;
+}
+
 /* ============================================
    Tabs
    ============================================ */

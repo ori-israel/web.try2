@@ -111,13 +111,7 @@
                         </svg>
                     </span>
                 </button>
-                <button class="theme-toggle" onclick="toggleTheme()" title="מצב לילה/יום">🌙</button>
                 <button id="admin-hamburger-btn" class="admin-hamburger-btn" onclick="toggleAdminPanel()" title="תפריט מנהל" style="display:none;">⚙️</button>
-                <button class="logout-menu-btn" onclick="doLogout()" title="התנתק">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-                    </svg>
-                </button>
             </div>
             <div id="admin-panel" class="admin-panel-dropdown">
                 <p id="admin-bar-name" class="admin-panel-name">מצב מנהל</p>
@@ -914,13 +908,16 @@
         </div>
 
         <!-- Avatar upload -->
-        <div style="display:flex;flex-direction:column;align-items:center;padding:16px 0 8px;">
-            <div id="avatar-preview-wrap" onclick="document.getElementById('avatar-file-input').click()" style="width:80px;height:80px;border-radius:50%;overflow:hidden;cursor:pointer;background:var(--bg-card-alt);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:32px;">
-                <img id="avatar-preview-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;">
-                <span id="avatar-preview-placeholder">👤</span>
+        <div style="display:flex;flex-direction:row;align-items:flex-end;justify-content:center;padding:16px 0 8px;gap:20px;">
+            <button class="theme-toggle theme-toggle-profile" onclick="toggleTheme()" title="מצב לילה/יום"></button>
+            <div style="display:flex;flex-direction:column;align-items:center;">
+                <div id="avatar-preview-wrap" onclick="document.getElementById('avatar-file-input').click()" style="width:80px;height:80px;border-radius:50%;overflow:hidden;cursor:pointer;background:var(--bg-card-alt);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:32px;">
+                    <img id="avatar-preview-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;">
+                    <span id="avatar-preview-placeholder">👤</span>
+                </div>
+                <span style="font-size:12px;color:var(--text-secondary);margin-top:6px;cursor:pointer;" onclick="document.getElementById('avatar-file-input').click()">שנה תמונה</span>
+                <input id="avatar-file-input" type="file" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleAvatarUpload(this)">
             </div>
-            <span style="font-size:12px;color:var(--text-secondary);margin-top:6px;cursor:pointer;" onclick="document.getElementById('avatar-file-input').click()">שנה תמונה</span>
-            <input id="avatar-file-input" type="file" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleAvatarUpload(this)">
         </div>
 
         <!-- Section 1: Client editable -->
@@ -1021,6 +1018,7 @@
 
         <button id="prof-save-btn" class="calc-btn" onclick="saveProfile()" style="width:100%; margin-top:4px;">שמור שינויים</button>
         <button id="pwa-add-btn" onclick="triggerPWAInstall()" style="width:100%;margin-top:8px;padding:12px;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-secondary);border:1.5px solid var(--text-secondary);">הוספת האפליקציה למסך הבית 📲</button>
+        <button onclick="doLogout()" style="width:100%;margin-top:8px;padding:12px;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:#ef4444;border:1.5px solid #ef4444;">התנתק</button>
     </div>
 </div>
 
