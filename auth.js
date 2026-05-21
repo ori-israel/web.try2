@@ -546,6 +546,68 @@ function adminBackToList() {
     renderAdminPanel().then(() => _showOverlay('admin-overlay'));
 }
 
+// ── New client modal ─────────────────────────────────────────
+
+function openNewClientModal() {
+    const modal = document.getElementById('new-client-modal');
+    modal.style.display = 'flex';
+    document.getElementById('nc-name').value = '';
+    document.getElementById('nc-email').value = '';
+    document.getElementById('nc-password').value = '';
+    document.getElementById('nc-start-date').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('nc-error').style.display = 'none';
+}
+
+function closeNewClientModal() {
+    document.getElementById('new-client-modal').style.display = 'none';
+}
+
+async function submitNewClient() {
+    const name      = document.getElementById('nc-name').value.trim();
+    const email     = document.getElementById('nc-email').value.trim();
+    const password  = document.getElementById('nc-password').value;
+    const startDate = document.getElementById('nc-start-date').value;
+    const errEl     = document.getElementById('nc-error');
+    const btn       = document.getElementById('nc-submit-btn');
+
+    errEl.style.display = 'none';
+    if (!name || !email || !password) {
+        errEl.textContent = 'שם, אימייל וסיסמה הם שדות חובה';
+        errEl.style.display = 'block';
+        return;
+    }
+    if (password.length < 6) {
+        errEl.textContent = 'סיסמה חייבת להכיל לפחות 6 תווים';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    btn.textContent = 'יוצר...';
+    btn.disabled = true;
+
+    try {
+        const { data: { session } } = await db.auth.getSession();
+        const resp = await fetch('/api/create-user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ name, email, password, startDate }),
+        });
+        const result = await resp.json();
+        if (!resp.ok) throw new Error(result.error || 'שגיאה ביצירת משתמש');
+        closeNewClientModal();
+        await renderAdminPanel();
+    } catch (e) {
+        errEl.textContent = e.message;
+        errEl.style.display = 'block';
+    } finally {
+        btn.textContent = 'צור לקוח';
+        btn.disabled = false;
+    }
+}
+
 // ── מודל שאלון שבועי ────────────────────────────────────────
 
 async function showQuestionnaireModal(clientId) {

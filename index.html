@@ -58,7 +58,10 @@
     <div style="width:100%; max-width:480px;">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
             <h2 style="margin:0; color:var(--text-primary,#fff); font-size:22px;">לוח מנהל</h2>
-            <button onclick="doLogout()" class="admin-logout-btn">התנתק</button>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button onclick="openNewClientModal()" class="admin-add-client-btn">+ לקוח חדש</button>
+                <button onclick="doLogout()" class="admin-logout-btn">התנתק</button>
+            </div>
         </div>
         <button onclick="adminViewClient(SB_USER.id)" class="admin-self-btn">כניסה לפרופיל שלי ›</button>
         <div class="coach-mode-toggle">
@@ -66,6 +69,36 @@
             <button class="coach-mode-btn" data-mode="urgent" onclick="setCoachMode('urgent')">דחוף 🔴</button>
         </div>
         <div id="admin-client-list"></div>
+    </div>
+</div>
+
+<!-- ══ New client modal ════════════════════════════════ -->
+<div id="new-client-modal" style="display:none; position:fixed; inset:0; z-index:10001; background:rgba(0,0,0,.75); align-items:center; justify-content:center; padding:20px;">
+    <div class="profile-sheet" style="max-width:420px; width:100%; padding:24px; border-radius:var(--radius-lg);">
+        <div class="profile-header">
+            <h2>לקוח חדש</h2>
+            <button class="close-btn" onclick="closeNewClientModal()">&times;</button>
+        </div>
+        <div class="profile-group" style="margin-top:16px;">
+            <div class="profile-row">
+                <label for="nc-name">שם מלא</label>
+                <input id="nc-name" type="text" class="profile-input" placeholder="ישראל ישראלי">
+            </div>
+            <div class="profile-row">
+                <label for="nc-email">אימייל</label>
+                <input id="nc-email" type="email" class="profile-input" placeholder="example@mail.com" dir="ltr">
+            </div>
+            <div class="profile-row">
+                <label for="nc-password">סיסמה</label>
+                <input id="nc-password" type="password" class="profile-input" placeholder="לפחות 6 תווים" dir="ltr">
+            </div>
+            <div class="profile-row">
+                <label for="nc-start-date">תאריך התחלת ליווי</label>
+                <input id="nc-start-date" type="date" class="profile-input" dir="ltr">
+            </div>
+        </div>
+        <div id="nc-error" style="color:#ef4444; font-size:13px; margin:8px 0; display:none;"></div>
+        <button id="nc-submit-btn" class="calc-btn" onclick="submitNewClient()" style="width:100%; margin-top:8px;">צור לקוח</button>
     </div>
 </div>
 

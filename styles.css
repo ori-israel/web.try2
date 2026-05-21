@@ -2157,6 +2157,19 @@ input[type="radio"] { accent-color: var(--accent); }
     font-weight: 600;
 }
 .admin-logout-btn:hover { background: rgba(239, 68, 68, 0.08); }
+.admin-add-client-btn {
+    padding: 7px 14px;
+    background: transparent;
+    color: var(--accent, #3b82f6);
+    border: 1px solid rgba(59, 130, 246, 0.45);
+    border-radius: 20px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+.admin-add-client-btn:hover { background: rgba(59, 130, 246, 0.08); }
 .admin-loading, .admin-empty, .admin-error {
     text-align: center;
     padding: 22px;
