@@ -1180,12 +1180,9 @@ async function renderScoreHistory(userId) {
             return { label: `${d}/${m}`, score };
         });
 
-        // Drop leading all-zero weeks (user hadn't started yet)
-        let firstReal = computed.findIndex(w => w.score > 0);
-        if (firstReal < 0) firstReal = computed.length - 1;
-        const visible = computed.slice(firstReal);
-
-        if (visible.length < 1) {
+        // Keep only weeks with actual data (score > 0)
+        const firstReal = computed.findIndex(w => w.score > 0);
+        if (firstReal < 0) {
             container.innerHTML = `
                 <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;direction:rtl;">
                     <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:8px;">📈 היסטוריית ציונים שבועיים</div>
@@ -1194,6 +1191,7 @@ async function renderScoreHistory(userId) {
             _trackingWidgetCache[cacheKey] = Date.now();
             return;
         }
+        const visible = computed.slice(firstReal);
 
         await loadChartJs();
 
