@@ -162,6 +162,7 @@ async function doLogin() {
     const password = document.getElementById('login-password').value;
     const btn      = document.getElementById('login-btn');
     const errorEl  = document.getElementById('login-error');
+    const remember = document.getElementById('remember-me-cb')?.checked;
 
     errorEl.textContent = '';
     if (!email || !password) { errorEl.textContent = 'יש למלא אימייל וסיסמה'; return; }
@@ -170,6 +171,11 @@ async function doLogin() {
     btn.textContent = 'מתחבר...';
     try {
         const { user } = await sbSignIn(email, password);
+        if (remember) {
+            localStorage.setItem('remember_me', 'yes');
+        } else {
+            sessionStorage.setItem('remember_me', 'session');
+        }
         await handleLoginSuccess(user);
     } catch {
         errorEl.textContent = 'אימייל או סיסמה שגויים';
@@ -181,6 +187,7 @@ async function doLogin() {
 async function doLogout() {
     if (!await showConfirmDanger('להתנתק?')) return;
     _clearUserLocalStorage();
+    sessionStorage.removeItem('remember_me');
     sbSignOut().finally(() => location.reload());
 }
 
@@ -760,7 +767,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const session = await sbGetSession();
         if (session) {
-            await handleLoginSuccess(session.user);
+            const remembered = localStorage.getItem('remember_me') === 'yes'
+                             || sessionStorage.getItem('remember_me') === 'session';
+            if (!remembered) {
+                await db.auth.signOut();
+                showLoginForm();
+            } else {
+                await handleLoginSuccess(session.user);
+            }
         } else {
             showLoginForm();
         }
