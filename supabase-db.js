@@ -526,12 +526,6 @@ async function loadUserIntoApp(userId) {
         sbQueueNutritionSync(userId, merged.protein, merged.carbs, merged.fat);
     }
 
-    // debug log
-    const _dbgModify = localStorage.getItem('_dbg_modify');
-    localStorage.setItem('_dbg_load', JSON.stringify({
-        sb: portions, local: _local, idb: _idbPending ? {p:_idbPending.protein,c:_idbPending.carbs,f:_idbPending.fat} : null,
-        lastModify: _dbgModify ? JSON.parse(_dbgModify) : null, ts: Date.now()
-    }));
     // ── היסטוריית משקל ────────────────────────────────────
     if (weightHist && weightHist.length) {
         sessionStorage.setItem('weight_history', JSON.stringify(weightHist));
