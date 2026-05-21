@@ -35,8 +35,14 @@ function _openSWDB() {
 }
 
 async function sbQueueNutritionSync(userId, protein, carbs, fat) {
+    if (!userId) return;
+
+    // 1. שמירה ישירה מיידית — עובד כל עוד הדף חי
+    sbSaveNutrition(userId, protein, carbs, fat).catch(() => {});
+
+    // 2. IDB + SW background sync — גיבוי לסגירה מיידית
     const token = _cachedToken;
-    if (!token || !userId) return;
+    if (!token) return;
     try {
         const db2 = await _openSWDB();
         const tx  = db2.transaction(_IDB_STORE, 'readwrite');
@@ -59,8 +65,7 @@ async function sbQueueNutritionSync(userId, protein, carbs, fat) {
                 navigator.serviceWorker.controller.postMessage({ type: 'SYNC_NUTRITION' });
             }
         }
-    } catch (e) {
-        // fallback: keepalive fetch
+    } catch (_) {
         _sbSaveNutritionKeepalive(userId, protein, carbs, fat);
     }
 }
