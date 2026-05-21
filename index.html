@@ -78,8 +78,8 @@
         <h2>שאלון שבועי</h2>
         <p>הגיע הזמן לקחת 2 דקות ולמלא את השאלון השבועי שלך</p>
         <div style="display:flex;gap:12px;justify-content:center;align-items:center;width:100%;margin-top:auto;padding-top:16px;">
-            <button id="weekly-survey-banner-open" class="calc-btn" style="flex:1;">למלא עכשיו</button>
-            <button id="weekly-survey-banner-close" class="calc-btn" style="flex:1;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:10px 20px;">אחר כך</button>
+            <button id="weekly-survey-banner-open" class="calc-btn" style="flex:1;" onclick="document.getElementById('weekly-survey-banner').style.display='none'; openSurvey();">למלא עכשיו</button>
+            <button id="weekly-survey-banner-close" class="calc-btn" style="flex:1;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:10px 20px;" onclick="document.getElementById('weekly-survey-banner').style.display='none';">אחר כך</button>
         </div>
     </div>
 </div>
