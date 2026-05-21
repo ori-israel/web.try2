@@ -598,11 +598,17 @@ window.addEventListener('beforeinstallprompt', e => {
     _deferredInstallPrompt = e;
 });
 
+window.addEventListener('appinstalled', () => {
+    localStorage.setItem('pwa_installed', 'yes');
+    _deferredInstallPrompt = null;
+});
+
 function _isIOS() {
     return /iphone|ipad|ipod/i.test(navigator.userAgent);
 }
 
 function _showPWAPromptIfNeeded() {
+    if (localStorage.getItem('pwa_installed')) return;
     if (localStorage.getItem('pwa_prompt_shown')) return;
     if (window.matchMedia('(display-mode: standalone)').matches) return;
     setTimeout(() => {
@@ -630,10 +636,11 @@ function pwaInstallLater() {
 
 function pwaIosClose() {
     document.getElementById('pwa-ios-popup').style.display = 'none';
+    localStorage.setItem('pwa_installed', 'yes');
 }
 
 function triggerPWAInstall() {
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    if (window.matchMedia('(display-mode: standalone)').matches || localStorage.getItem('pwa_installed')) {
         const toast = document.createElement('div');
         toast.innerText = 'האפליקציה כבר נמצאת במסך הבית ✓';
         toast.style.cssText = `position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:100001;box-shadow:0 4px 15px rgba(0,0,0,0.2);white-space:nowrap;`;
