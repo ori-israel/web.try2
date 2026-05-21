@@ -683,6 +683,19 @@ function triggerPWAInstall() {
 };
 
 document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        // sync מיידי לפני שהאפליקציה נסגרת
+        if (typeof scheduleSyncNutrition === 'function') {
+            const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+            if (uid) {
+                const p = JSON.parse(localStorage.getItem('user_portions_v3') || '{}');
+                if (p.protein || p.carbs || p.fat) {
+                    navigator.sendBeacon && navigator.sendBeacon; // fallback hint
+                    sbSaveNutrition(uid, p.protein || 0, p.carbs || 0, p.fat || 0).catch(() => {});
+                }
+            }
+        }
+    }
     if (document.visibilityState === 'visible' && typeof loadPortions === 'function') {
         loadPortions();
     }
