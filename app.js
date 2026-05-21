@@ -661,6 +661,18 @@ function triggerPWAInstall() {
     _showPWAPromptIfNeeded();
 };
 
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && typeof loadPortions === 'function') {
+        loadPortions();
+    }
+});
+
+window.addEventListener('pageshow', (e) => {
+    if (e.persisted && typeof loadPortions === 'function') {
+        loadPortions();
+    }
+});
+
     function toggleAccordion(id) {
         const content = document.getElementById(id);
         const allAccordions = document.querySelectorAll('.accordion-content');
