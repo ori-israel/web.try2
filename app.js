@@ -1132,22 +1132,22 @@ async function renderScoreHistory(userId) {
     container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-secondary);font-size:0.9rem;">טוען היסטוריה...</div>';
 
     try {
-        // Build last 8 completed weeks (Mon–Sun), excluding current week
+        // Build last 7 completed weeks + current week (8 total)
         const today = new Date();
         const dow = today.getDay();
+        const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         const thisMon = new Date(today);
         thisMon.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
         thisMon.setHours(0, 0, 0, 0);
+        const thisSun = new Date(thisMon); thisSun.setDate(thisMon.getDate() + 6);
 
         const weeks = [];
-        for (let i = 8; i >= 1; i--) {
-            const mon = new Date(thisMon);
-            mon.setDate(thisMon.getDate() - i * 7);
-            const sun = new Date(mon);
-            sun.setDate(mon.getDate() + 6);
-            const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-            weeks.push({ monStr: fmt(mon), sunStr: fmt(sun) });
+        for (let i = 7; i >= 1; i--) {
+            const mon = new Date(thisMon); mon.setDate(thisMon.getDate() - i * 7);
+            const sun = new Date(mon);     sun.setDate(mon.getDate() + 6);
+            weeks.push({ monStr: fmt(mon), sunStr: fmt(sun), current: false });
         }
+        weeks.push({ monStr: fmt(thisMon), sunStr: fmt(thisSun), current: true });
 
         const startDate = weeks[0].monStr;
         const endDate   = weeks[weeks.length - 1].sunStr;
@@ -1177,21 +1177,12 @@ async function renderScoreHistory(userId) {
             const habitsScore    = wt.length > 0 ? 1 : 0;
             const score = Math.round((workoutScore * 0.4 + nutritionScore * 0.4 + habitsScore * 0.2) * 100);
             const [, m, d] = monStr.split('-');
-            return { label: `${d}/${m}`, score };
+            return { label: current ? 'השבוע' : `${d}/${m}`, score, current };
         });
 
-        // Keep only weeks with actual data (score > 0)
-        const firstReal = computed.findIndex(w => w.score > 0);
-        if (firstReal < 0) {
-            container.innerHTML = `
-                <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;direction:rtl;">
-                    <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:8px;">📈 היסטוריית ציונים שבועיים</div>
-                    <div style="text-align:center;color:var(--text-secondary);font-size:0.88rem;padding:8px 0;">אין מספיק היסטוריה עדיין</div>
-                </div>`;
-            _trackingWidgetCache[cacheKey] = Date.now();
-            return;
-        }
-        const visible = computed.slice(firstReal);
+        // Trim leading all-zero weeks, always keep current week
+        const firstReal = computed.findIndex(w => w.score > 0 || w.current);
+        const visible = firstReal >= 0 ? computed.slice(firstReal) : computed.slice(-1);
 
         await loadChartJs();
 
@@ -1229,11 +1220,11 @@ async function renderScoreHistory(userId) {
                     backgroundColor: 'rgba(245,197,24,0.06)',
                     fill: true,
                     tension: 0.3,
-                    pointRadius: 6,
-                    pointHoverRadius: 8,
-                    pointBackgroundColor: '#f5c518',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 1.5,
+                    pointRadius: visible.map(w => w.current ? 8 : 5),
+                    pointHoverRadius: 10,
+                    pointBackgroundColor: visible.map(w => w.current ? '#fff' : '#f5c518'),
+                    pointBorderColor: visible.map(w => w.current ? '#f5c518' : '#fff'),
+                    pointBorderWidth: visible.map(w => w.current ? 3 : 1.5),
                 }]
             },
             options: {
