@@ -1137,55 +1137,51 @@ async function renderScoreHistory(userId) {
     container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-secondary);font-size:0.9rem;">טוען היסטוריה...</div>';
 
     try {
-        // Build last 7 completed weeks + current week (8 total)
         const today = new Date();
-        const dow = today.getDay();
-        const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const dow   = today.getDay();
+        const fmt   = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         const thisMon = new Date(today);
         thisMon.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
         thisMon.setHours(0, 0, 0, 0);
-        const thisSun = new Date(thisMon); thisSun.setDate(thisMon.getDate() + 6);
+        const thisMonStr = fmt(thisMon);
+        const thisSunStr = fmt(new Date(thisMon.getTime() + 6 * 86400000));
 
-        const weeks = [];
-        for (let i = 7; i >= 1; i--) {
-            const mon = new Date(thisMon); mon.setDate(thisMon.getDate() - i * 7);
-            const sun = new Date(mon);     sun.setDate(mon.getDate() + 6);
-            weeks.push({ monStr: fmt(mon), sunStr: fmt(sun), current: false });
-        }
-        weeks.push({ monStr: fmt(thisMon), sunStr: fmt(thisSun), current: true });
+        // Past weeks from weekly_scores (same source as admin panel)
+        const { data: histData } = await db
+            .from('weekly_scores')
+            .select('week_start, score')
+            .eq('client_id', userId)
+            .lt('week_start', thisMonStr)
+            .order('week_start', { ascending: true })
+            .limit(7);
 
-        const startDate = weeks[0].monStr;
-        const endDate   = weeks[weeks.length - 1].sunStr;
-
+        // Current week — compute live from raw data
         const weeklyTarget = CLIENT.workoutsPerWeek || 3;
         const proteinGoal  = Math.round((CLIENT.currentWeight || CLIENT.startWeight || 80) * (CLIENT.proteinRatio || 2));
-        const calorieGoal  = 2000;
-
         const [{ data: wkData }, { data: nutData }, { data: wtData }] = await Promise.all([
-            db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', startDate).lte('date', endDate),
-            db.from('daily_nutrition').select('date,protein,carbs,fat').eq('user_id', userId).gte('date', startDate).lte('date', endDate),
-            db.from('weight_history').select('date').eq('user_id', userId).gte('date', startDate).lte('date', endDate),
+            db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', thisMonStr).lte('date', thisSunStr),
+            db.from('daily_nutrition').select('date,protein,carbs,fat').eq('user_id', userId).gte('date', thisMonStr).lte('date', thisSunStr),
+            db.from('weight_history').select('date').eq('user_id', userId).gte('date', thisMonStr).lte('date', thisSunStr),
         ]);
-
-        const computed = weeks.map(({ monStr, sunStr, current }) => {
-            const wk  = (wkData  || []).filter(r => r.date >= monStr && r.date <= sunStr);
-            const nut = (nutData || []).filter(r => r.date >= monStr && r.date <= sunStr);
-            const wt  = (wtData  || []).filter(r => r.date >= monStr && r.date <= sunStr);
-
-            const workoutScore   = Math.min(new Set(wk.map(r => r.date)).size / weeklyTarget, 1);
-            let nutritionMet = 0;
-            nut.forEach(r => {
-                const kcal = r.protein * 4 + r.carbs * 4 + r.fat * 9;
-                if (r.protein >= proteinGoal && kcal >= calorieGoal * 0.85) nutritionMet++;
-            });
-            const nutritionScore = Math.min(nutritionMet / 7, 1);
-            const habitsScore    = wt.length > 0 ? 1 : 0;
-            const score = Math.round((workoutScore * 0.4 + nutritionScore * 0.4 + habitsScore * 0.2) * 100);
-            const [, m, d] = monStr.split('-');
-            return { label: current ? 'השבוע' : `${d}/${m}`, score, current };
+        let nutritionMet = 0;
+        (nutData || []).forEach(r => {
+            const kcal = r.protein * 4 + r.carbs * 4 + r.fat * 9;
+            if (r.protein >= proteinGoal && kcal >= 1700) nutritionMet++;
         });
+        const curScore = Math.round((
+            Math.min(new Set((wkData||[]).map(r=>r.date)).size / weeklyTarget, 1) * 0.4 +
+            Math.min(nutritionMet / 7, 1) * 0.4 +
+            ((wtData||[]).length > 0 ? 1 : 0) * 0.2
+        ) * 100);
 
-        // Trim leading all-zero weeks, always keep current week
+        // Merge: past weeks + current week
+        const pastPoints = (histData || []).map(r => {
+            const [, m, d] = r.week_start.split('-');
+            return { label: `${d}/${m}`, score: r.score, current: false };
+        });
+        const computed = [...pastPoints, { label: 'השבוע', score: curScore, current: true }];
+
+        // Trim leading all-zero past weeks, always keep current week
         const firstReal = computed.findIndex(w => w.score > 0 || w.current);
         const visible = firstReal >= 0 ? computed.slice(firstReal) : computed.slice(-1);
 
