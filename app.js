@@ -533,26 +533,16 @@ function buildWorkoutAccordions(targets = {}) {
 }
 
    async function checkThursdayBanner() {
-    if (new Date().getDay() !== 4) return;
-    const dismissKey = 'survey_banner_dismissed_' + localDateStr();
-    if (localStorage.getItem(dismissKey)) return;
+    // Show Thu(4) Fri(5) Sat(6) only
+    const day = new Date().getDay();
+    if (day < 4) return;
     const uid = typeof SB_USER !== 'undefined' && SB_USER?.id;
     if (!uid) return;
     try {
         const hasRow = await sbCheckThisWeekQuestionnaire(uid);
         if (hasRow) return;
         const banner = document.getElementById('weekly-survey-banner');
-        if (!banner) return;
-        banner.style.display = 'flex';
-        document.getElementById('weekly-survey-banner-close').onclick = () => {
-            banner.style.display = 'none';
-            setTimeout(checkThursdayBanner, 3600000);
-        };
-        document.getElementById('weekly-survey-banner-open').onclick = () => {
-            banner.style.display = 'none';
-            localStorage.setItem(dismissKey, '1');
-            openSurvey();
-        };
+        if (banner) banner.style.display = 'flex';
     } catch(e) { console.warn('[SB] thursday banner:', e.message); }
 }
 
