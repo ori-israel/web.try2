@@ -221,12 +221,10 @@ function checkWorkoutCompletion(clickedCheckbox) {
 
     if (allChecked) {
         const today = localDateStr();
-        const storedDate = localStorage.getItem('workout_completed_date');
-        if (storedDate && storedDate !== today) localStorage.removeItem('workout_completed_date');
-        const alreadyCompleted = localStorage.getItem('workout_completed_date') === today;
         const isScheduledToday = CLIENT.workoutDays?.[letter]?.includes(new Date().getDay());
         completeWorkoutStreak(letter);
-        if (!alreadyCompleted && isScheduledToday) {
+        if (localStorage.getItem('workout_popup_shown_date') !== today && isScheduledToday) {
+            localStorage.setItem('workout_popup_shown_date', today);
             const msg = document.getElementById('workout-complete-msg');
             if (msg) {
                 msg.style.cssText = "display:flex; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9999; align-items:center; justify-content:center;";
@@ -254,6 +252,8 @@ function closeCompleteMsg() {
         localStorage.removeItem('tasks_v3');
         localStorage.removeItem('workout_progress_v3');
         localStorage.removeItem('workout_completed_date');
+        localStorage.removeItem('workout_popup_shown_date');
+        localStorage.removeItem('workout_streak_incremented_date');
         sessionStorage.removeItem('ai_chat_history');
         localStorage.setItem('last_reset_v4', todayStr);
         location.reload();
@@ -1932,9 +1932,9 @@ function completeWorkoutStreak(letter) {
 
     const scheduledDays = CLIENT.workoutDays?.[letter];
     if (!scheduledDays || !scheduledDays.includes(todayDay)) return;
-    if (localStorage.getItem('workout_completed_date') === today) return;
-    
-    localStorage.setItem('workout_completed_date', today);
+    if (localStorage.getItem('workout_streak_incremented_date') === today) return;
+
+    localStorage.setItem('workout_streak_incremented_date', today);
     let streak = parseInt(localStorage.getItem('workout_streak') || '0');
     streak++;
     localStorage.setItem('workout_streak', streak);
