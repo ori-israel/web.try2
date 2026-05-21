@@ -971,19 +971,8 @@
         <!-- Section 2: Coach data -->
         <div class="profile-section-label">
             נתוני מאמן
-            <span class="coach-lock-icon">🔒</span>
         </div>
         <div class="profile-group">
-            <div id="coach-lock-section" class="coach-lock-banner">
-                <span>שדות אלו נערכים על ידי המאמן בלבד</span>
-                <div class="coach-pin-row">
-                    <input id="coach-pin-input" type="password" class="coach-pin-input"
-                        placeholder="קוד מאמן" maxlength="20"
-                        autocomplete="new-password"
-                        onkeydown="if(event.key==='Enter') unlockCoachSection()">
-                    <button class="coach-pin-btn" onclick="unlockCoachSection()">פתח</button>
-                </div>
-            </div>
             <div id="coach-save-note" class="coach-save-note" style="display:none">✏️ מצב עריכת מאמן פעיל</div>
             <div class="profile-row">
                 <label for="prof-name">שם מלא</label>
