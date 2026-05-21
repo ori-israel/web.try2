@@ -269,8 +269,8 @@ function closeCompleteMsg() {
         checkNutritionStreak();
         const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
         if (uid) {
-            if (typeof sbSaveNutritionBeacon === 'function') {
-                sbSaveNutritionBeacon(uid, userPortions.protein, userPortions.carbs, userPortions.fat);
+            if (typeof sbQueueNutritionSync === 'function') {
+                sbQueueNutritionSync(uid, userPortions.protein, userPortions.carbs, userPortions.fat);
             } else if (typeof sbSaveNutrition === 'function') {
                 sbSaveNutrition(uid, userPortions.protein, userPortions.carbs, userPortions.fat).catch(() => {});
             }
@@ -701,6 +701,7 @@ function triggerPWAInstall() {
             'MODIFY: f=' + (_mod ? _mod.f : '?') + ' c=' + (_mod ? _mod.c : '?') + ' p=' + (_mod ? _mod.p : '?') + '\n' +
             'LOAD SB: f=' + (_load ? _load.sb.fat : '?') + '\n' +
             'LOAD LOCAL: f=' + (_load ? (_load.local ? _load.local.fat : 'NULL') : '?') + '\n' +
+            'LOAD IDB: f=' + (_load ? (_load.idb ? _load.idb.f : 'NULL') : '?') + '\n' +
             'delta: ' + secAgo + 's  [tap to close]';
         d.onclick = () => d.remove();
         document.body.appendChild(d);
@@ -714,8 +715,8 @@ document.addEventListener('visibilitychange', () => {
         if (uid) {
             const p = JSON.parse(localStorage.getItem('user_portions_v3') || '{}');
             if (p.protein || p.carbs || p.fat) {
-                if (typeof sbSaveNutritionBeacon === 'function') {
-                    sbSaveNutritionBeacon(uid, p.protein || 0, p.carbs || 0, p.fat || 0);
+                if (typeof sbQueueNutritionSync === 'function') {
+                    sbQueueNutritionSync(uid, p.protein || 0, p.carbs || 0, p.fat || 0);
                 } else if (typeof sbSaveNutrition === 'function') {
                     sbSaveNutrition(uid, p.protein || 0, p.carbs || 0, p.fat || 0).catch(() => {});
                 }

@@ -18,25 +18,71 @@ db.auth.onAuthStateChange((_event, session) => {
     _cachedToken = session ? session.access_token : null;
 });
 
-// keepalive fetch — survives iOS page kill (unlike async fetch)
-function sbSaveNutritionBeacon(userId, protein, carbs, fat) {
+// ── IndexedDB queue for SW background sync ──────────────────
+
+const _IDB_NAME  = 'pf-sw-db';
+const _IDB_STORE = 'pending-nutrition';
+
+function _openSWDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(_IDB_NAME, 1);
+        req.onupgradeneeded = e => {
+            e.target.result.createObjectStore(_IDB_STORE, { keyPath: 'id' });
+        };
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror   = e => reject(e.target.error);
+    });
+}
+
+async function sbQueueNutritionSync(userId, protein, carbs, fat) {
+    const token = _cachedToken;
+    if (!token || !userId) return;
+    try {
+        const db2 = await _openSWDB();
+        const tx  = db2.transaction(_IDB_STORE, 'readwrite');
+        tx.objectStore(_IDB_STORE).put({
+            id: 'latest',
+            userId, protein, carbs, fat,
+            date:        new Date().toISOString().split('T')[0],
+            token,
+            supabaseUrl: SUPABASE_URL,
+            anonKey:     SUPABASE_ANON_KEY,
+            ts:          Date.now(),
+        });
+        await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+
+        if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.ready;
+            if (reg.sync) {
+                await reg.sync.register('sync-nutrition');
+            } else if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({ type: 'SYNC_NUTRITION' });
+            }
+        }
+    } catch (e) {
+        // fallback: keepalive fetch
+        _sbSaveNutritionKeepalive(userId, protein, carbs, fat);
+    }
+}
+
+// keepalive fetch fallback
+function _sbSaveNutritionKeepalive(userId, protein, carbs, fat) {
     const token = _cachedToken;
     if (!token) return;
     const today = new Date().toISOString().split('T')[0];
-    const body = JSON.stringify([{
-        user_id: userId, date: today,
-        protein, carbs, fat,
-        updated_at: new Date().toISOString()
-    }]);
     fetch(`${SUPABASE_URL}/rest/v1/daily_nutrition`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'apikey': SUPABASE_ANON_KEY,
+            'apikey':        SUPABASE_ANON_KEY,
             'Authorization': `Bearer ${token}`,
-            'Prefer': 'resolution=merge-duplicates',
+            'Prefer':        'resolution=merge-duplicates',
         },
-        body,
+        body: JSON.stringify([{
+            user_id: userId, date: today,
+            protein, carbs, fat,
+            updated_at: new Date().toISOString(),
+        }]),
         keepalive: true,
     }).catch(() => {});
 }
@@ -442,25 +488,45 @@ async function loadUserIntoApp(userId) {
         ? { protein: todayNutrition.protein || 0, carbs: todayNutrition.carbs || 0, fat: todayNutrition.fat || 0 }
         : { protein: 0, carbs: 0, fat: 0 };
     sessionStorage.setItem('user_portions_v3', JSON.stringify(portions));
-    // Restore Supabase data to localStorage (merged with any unsaved local changes)
+
+    // Merge: SB + localStorage + IndexedDB pending (take max of all three)
     const _localStr = localStorage.getItem('user_portions_v3');
+    const _local    = _localStr ? JSON.parse(_localStr) : null;
+
+    // Check IndexedDB for a pending save that didn't reach Supabase yet
+    let _idbPending = null;
+    try {
+        const _idb = await _openSWDB();
+        const _all = await new Promise((res, rej) => {
+            const r = _idb.transaction(_IDB_STORE, 'readonly').objectStore(_IDB_STORE).getAll();
+            r.onsuccess = e => res(e.target.result);
+            r.onerror   = e => rej(e.target.error);
+        });
+        if (_all && _all.length) {
+            const _latest = _all[_all.length - 1];
+            const _today  = new Date().toISOString().split('T')[0];
+            if (_latest.date === _today) _idbPending = _latest;
+        }
+    } catch (_) {}
+
+    const merged = {
+        protein: Math.max(portions.protein, _local?.protein || 0, _idbPending?.protein || 0),
+        carbs:   Math.max(portions.carbs,   _local?.carbs   || 0, _idbPending?.carbs   || 0),
+        fat:     Math.max(portions.fat,      _local?.fat     || 0, _idbPending?.fat      || 0),
+    };
+    localStorage.setItem('user_portions_v3', JSON.stringify(merged));
+
+    // If IDB had data higher than SB, re-queue the save
+    if (_idbPending && (merged.fat > portions.fat || merged.protein > portions.protein || merged.carbs > portions.carbs)) {
+        sbQueueNutritionSync(userId, merged.protein, merged.carbs, merged.fat);
+    }
+
+    // debug log
     const _dbgModify = localStorage.getItem('_dbg_modify');
     localStorage.setItem('_dbg_load', JSON.stringify({
-        sb: portions,
-        local: _localStr ? JSON.parse(_localStr) : null,
-        lastModify: _dbgModify ? JSON.parse(_dbgModify) : null,
-        ts: Date.now()
+        sb: portions, local: _local, idb: _idbPending ? {p:_idbPending.protein,c:_idbPending.carbs,f:_idbPending.fat} : null,
+        lastModify: _dbgModify ? JSON.parse(_dbgModify) : null, ts: Date.now()
     }));
-    if (!_localStr) {
-        localStorage.setItem('user_portions_v3', JSON.stringify(portions));
-    } else {
-        const _local = JSON.parse(_localStr);
-        localStorage.setItem('user_portions_v3', JSON.stringify({
-            protein: Math.max(portions.protein, _local.protein || 0),
-            carbs:   Math.max(portions.carbs,   _local.carbs   || 0),
-            fat:     Math.max(portions.fat,      _local.fat     || 0),
-        }));
-    }
     // ── היסטוריית משקל ────────────────────────────────────
     if (weightHist && weightHist.length) {
         sessionStorage.setItem('weight_history', JSON.stringify(weightHist));

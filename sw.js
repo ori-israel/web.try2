@@ -1,9 +1,75 @@
-const CACHE_NAME = 'oi-fitness-v6';
+const CACHE_NAME = 'oi-fitness-v7';
 const PRECACHE = [
     '/', '/index.html', '/styles.css', '/app.js', '/auth.js',
     '/supabase-db.js', '/client.js', '/data.js', '/profile.js',
     '/ai.js', '/achievements.js',
 ];
+
+const IDB_NAME  = 'pf-sw-db';
+const IDB_STORE = 'pending-nutrition';
+
+// ── IndexedDB helpers ────────────────────────────────────────
+
+function _openIDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = e => {
+            e.target.result.createObjectStore(IDB_STORE, { keyPath: 'id' });
+        };
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror   = e => reject(e.target.error);
+    });
+}
+
+function _idbGetAll(db) {
+    return new Promise((resolve, reject) => {
+        const req = db.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).getAll();
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror   = e => reject(e.target.error);
+    });
+}
+
+function _idbClear(db) {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).clear();
+        tx.oncomplete = resolve;
+        tx.onerror    = e => reject(e.target.error);
+    });
+}
+
+// ── Sync nutrition to Supabase ───────────────────────────────
+
+async function syncNutrition() {
+    const db      = await _openIDB();
+    const pending = await _idbGetAll(db);
+    if (!pending.length) return;
+
+    // Last write wins
+    const item = pending[pending.length - 1];
+
+    const res = await fetch(`${item.supabaseUrl}/rest/v1/daily_nutrition`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'apikey':        item.anonKey,
+            'Authorization': `Bearer ${item.token}`,
+            'Prefer':        'resolution=merge-duplicates',
+        },
+        body: JSON.stringify([{
+            user_id:    item.userId,
+            date:       item.date,
+            protein:    item.protein,
+            carbs:      item.carbs,
+            fat:        item.fat,
+            updated_at: new Date().toISOString(),
+        }]),
+    });
+
+    if (res.ok) await _idbClear(db);
+}
+
+// ── SW lifecycle ─────────────────────────────────────────────
 
 self.addEventListener('install', e => {
     e.waitUntil(
@@ -21,23 +87,38 @@ self.addEventListener('activate', e => {
     );
 });
 
+// ── Background Sync ──────────────────────────────────────────
+
+self.addEventListener('sync', e => {
+    if (e.tag === 'sync-nutrition') {
+        e.waitUntil(syncNutrition());
+    }
+});
+
+// ── Message from page (fallback for older iOS) ───────────────
+
+self.addEventListener('message', e => {
+    if (e.data && e.data.type === 'SYNC_NUTRITION') {
+        syncNutrition().catch(() => {});
+    }
+});
+
+// ── Fetch (caching) ──────────────────────────────────────────
+
 self.addEventListener('fetch', e => {
     if (e.request.method !== 'GET') return;
     const url = new URL(e.request.url);
 
-    // Pass Google Fonts straight to network
     if (url.hostname.includes('googleapis.com') || url.hostname.includes('gstatic.com')) {
         e.respondWith(fetch(e.request));
         return;
     }
 
-    // Always network for API and Supabase
     if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase.co')) {
         e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
         return;
     }
 
-    // Network-first for JS files — always get fresh code
     if (url.pathname.endsWith('.js')) {
         e.respondWith(
             fetch(e.request).then(res => {
@@ -51,7 +132,6 @@ self.addEventListener('fetch', e => {
         return;
     }
 
-    // Cache-first for other static assets (CSS, images, fonts)
     e.respondWith(
         caches.match(e.request).then(cached => {
             if (cached) return cached;
