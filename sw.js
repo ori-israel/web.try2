@@ -1,4 +1,4 @@
-const CACHE_NAME = 'oi-fitness-v8';
+const CACHE_NAME = 'oi-fitness-v9';
 const PRECACHE = [
     '/', '/index.html', '/styles.css', '/app.js', '/auth.js',
     '/supabase-db.js', '/client.js', '/data.js', '/profile.js',
@@ -118,6 +118,20 @@ self.addEventListener('fetch', e => {
 
     if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase.co')) {
         e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+        return;
+    }
+
+    // HTML — תמיד מהרשת כדי שעדכונים ייכנסו מיד
+    if (url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname === '') {
+        e.respondWith(
+            fetch(e.request).then(res => {
+                if (res && res.status === 200) {
+                    const clone = res.clone();
+                    caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+                }
+                return res;
+            }).catch(() => caches.match(e.request))
+        );
         return;
     }
 

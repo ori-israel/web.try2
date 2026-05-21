@@ -13,6 +13,13 @@
     <script>
         localStorage.removeItem('_dbg_load');
         localStorage.removeItem('_dbg_modify');
+        (function() {
+            var _orig = localStorage.setItem.bind(localStorage);
+            localStorage.setItem = function(k, v) {
+                if (k === '_dbg_load' || k === '_dbg_modify') return;
+                _orig(k, v);
+            };
+        })();
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
         }
