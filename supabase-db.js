@@ -12,6 +12,35 @@ let SB_USER     = null;   // משתמש מחובר
 let SB_VIEW_ID  = null;   // ID הלקוח הנצפה (מנהל יכול לצפות באחר)
 let SB_IS_ADMIN = false;
 
+// ── Token cache (for keepalive saves on page close) ─────────
+let _cachedToken = null;
+db.auth.onAuthStateChange((_event, session) => {
+    _cachedToken = session ? session.access_token : null;
+});
+
+// keepalive fetch — survives iOS page kill (unlike async fetch)
+function sbSaveNutritionBeacon(userId, protein, carbs, fat) {
+    const token = _cachedToken;
+    if (!token) return;
+    const today = new Date().toISOString().split('T')[0];
+    const body = JSON.stringify([{
+        user_id: userId, date: today,
+        protein, carbs, fat,
+        updated_at: new Date().toISOString()
+    }]);
+    fetch(`${SUPABASE_URL}/rest/v1/daily_nutrition`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${token}`,
+            'Prefer': 'resolution=merge-duplicates',
+        },
+        body,
+        keepalive: true,
+    }).catch(() => {});
+}
+
 function getActiveUserId() {
     return SB_VIEW_ID || (SB_USER && SB_USER.id) || null;
 }
@@ -415,20 +444,16 @@ async function loadUserIntoApp(userId) {
     sessionStorage.setItem('user_portions_v3', JSON.stringify(portions));
     // Restore Supabase data to localStorage (merged with any unsaved local changes)
     const _localStr = localStorage.getItem('user_portions_v3');
-    console.log('[portions] supabase:', JSON.stringify(portions), '| local:', _localStr);
     if (!_localStr) {
         localStorage.setItem('user_portions_v3', JSON.stringify(portions));
     } else {
         const _local = JSON.parse(_localStr);
-        const merged = {
+        localStorage.setItem('user_portions_v3', JSON.stringify({
             protein: Math.max(portions.protein, _local.protein || 0),
             carbs:   Math.max(portions.carbs,   _local.carbs   || 0),
             fat:     Math.max(portions.fat,      _local.fat     || 0),
-        };
-        console.log('[portions] merged:', JSON.stringify(merged));
-        localStorage.setItem('user_portions_v3', JSON.stringify(merged));
+        }));
     }
-
     // ── היסטוריית משקל ────────────────────────────────────
     if (weightHist && weightHist.length) {
         sessionStorage.setItem('weight_history', JSON.stringify(weightHist));

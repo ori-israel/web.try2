@@ -266,9 +266,13 @@ function closeCompleteMsg() {
         localStorage.setItem('user_portions_v3', JSON.stringify(userPortions));
         updatePortionProgress(type);
         checkNutritionStreak();
-        if (typeof sbSaveNutrition === 'function') {
-            const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
-            if (uid) sbSaveNutrition(uid, userPortions.protein, userPortions.carbs, userPortions.fat).catch(() => {});
+        const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+        if (uid) {
+            if (typeof sbSaveNutritionBeacon === 'function') {
+                sbSaveNutritionBeacon(uid, userPortions.protein, userPortions.carbs, userPortions.fat);
+            } else if (typeof sbSaveNutrition === 'function') {
+                sbSaveNutrition(uid, userPortions.protein, userPortions.carbs, userPortions.fat).catch(() => {});
+            }
         }
     }
 
@@ -687,13 +691,14 @@ function triggerPWAInstall() {
 
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
-        // sync מיידי לפני שהאפליקציה נסגרת
-        if (typeof scheduleSyncNutrition === 'function') {
-            const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
-            if (uid) {
-                const p = JSON.parse(localStorage.getItem('user_portions_v3') || '{}');
-                if (p.protein || p.carbs || p.fat) {
-                    navigator.sendBeacon && navigator.sendBeacon; // fallback hint
+        // keepalive save — survives iOS page kill
+        const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+        if (uid) {
+            const p = JSON.parse(localStorage.getItem('user_portions_v3') || '{}');
+            if (p.protein || p.carbs || p.fat) {
+                if (typeof sbSaveNutritionBeacon === 'function') {
+                    sbSaveNutritionBeacon(uid, p.protein || 0, p.carbs || 0, p.fat || 0);
+                } else if (typeof sbSaveNutrition === 'function') {
                     sbSaveNutrition(uid, p.protein || 0, p.carbs || 0, p.fat || 0).catch(() => {});
                 }
             }
