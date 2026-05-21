@@ -187,6 +187,7 @@ async function doLogin() {
 async function doLogout() {
     if (!await showConfirmDanger('להתנתק?')) return;
     _clearUserLocalStorage();
+    localStorage.removeItem('remember_me');
     sessionStorage.removeItem('remember_me');
     sbSignOut().finally(() => location.reload());
 }
@@ -201,6 +202,7 @@ function _clearUserLocalStorage() {
         if (k.startsWith('sb-')) continue;
         if (k === 'workout_completed_date' && workoutDate === todayStr) continue;
         if (k === 'pwa_prompt_shown') continue;
+        if (k === 'remember_me') continue;
         keysToRemove.push(k);
     }
     keysToRemove.forEach(k => localStorage.removeItem(k));
