@@ -264,6 +264,7 @@ function closeCompleteMsg() {
         userPortions[type] = current;
         document.getElementById(type + '-val').innerText = current;
         localStorage.setItem('user_portions_v3', JSON.stringify(userPortions));
+        localStorage.setItem('_dbg_modify', JSON.stringify({p:userPortions.protein,c:userPortions.carbs,f:userPortions.fat,ts:Date.now()}));
         updatePortionProgress(type);
         checkNutritionStreak();
         const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
@@ -687,6 +688,23 @@ function triggerPWAInstall() {
     checkBirthday();
     checkThursdayBanner();
     _showPWAPromptIfNeeded();
+    // debug panel — יימחק אחרי אבחון
+    setTimeout(() => {
+        const _load = JSON.parse(localStorage.getItem('_dbg_load') || 'null');
+        const _mod  = JSON.parse(localStorage.getItem('_dbg_modify') || 'null');
+        if (!_load && !_mod) return;
+        const d = document.createElement('div');
+        d.id = '_dbg_panel';
+        d.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;padding:8px;font-size:11px;z-index:99999;direction:ltr;white-space:pre-wrap;';
+        const secAgo = _load && _mod ? ((_load.ts - _mod.ts)/1000).toFixed(1) : '?';
+        d.textContent =
+            'MODIFY: f=' + (_mod ? _mod.f : '?') + ' c=' + (_mod ? _mod.c : '?') + ' p=' + (_mod ? _mod.p : '?') + '\n' +
+            'LOAD SB: f=' + (_load ? _load.sb.fat : '?') + '\n' +
+            'LOAD LOCAL: f=' + (_load ? (_load.local ? _load.local.fat : 'NULL') : '?') + '\n' +
+            'delta: ' + secAgo + 's  [tap to close]';
+        d.onclick = () => d.remove();
+        document.body.appendChild(d);
+    }, 800);
 };
 
 document.addEventListener('visibilitychange', () => {

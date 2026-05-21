@@ -444,6 +444,13 @@ async function loadUserIntoApp(userId) {
     sessionStorage.setItem('user_portions_v3', JSON.stringify(portions));
     // Restore Supabase data to localStorage (merged with any unsaved local changes)
     const _localStr = localStorage.getItem('user_portions_v3');
+    const _dbgModify = localStorage.getItem('_dbg_modify');
+    localStorage.setItem('_dbg_load', JSON.stringify({
+        sb: portions,
+        local: _localStr ? JSON.parse(_localStr) : null,
+        lastModify: _dbgModify ? JSON.parse(_dbgModify) : null,
+        ts: Date.now()
+    }));
     if (!_localStr) {
         localStorage.setItem('user_portions_v3', JSON.stringify(portions));
     } else {
