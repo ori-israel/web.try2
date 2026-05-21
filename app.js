@@ -1132,20 +1132,66 @@ async function renderScoreHistory(userId) {
     container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-secondary);font-size:0.9rem;">טוען היסטוריה...</div>';
 
     try {
-        const { data, error } = await db
-            .from('weekly_scores')
-            .select('week_start, score')
-            .eq('client_id', userId)
-            .order('week_start', { ascending: true });
+        // Build last 8 completed weeks (Mon–Sun), excluding current week
+        const today = new Date();
+        const dow = today.getDay();
+        const thisMon = new Date(today);
+        thisMon.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
+        thisMon.setHours(0, 0, 0, 0);
 
-        if (error) throw error;
+        const weeks = [];
+        for (let i = 8; i >= 1; i--) {
+            const mon = new Date(thisMon);
+            mon.setDate(thisMon.getDate() - i * 7);
+            const sun = new Date(mon);
+            sun.setDate(mon.getDate() + 6);
+            const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            weeks.push({ monStr: fmt(mon), sunStr: fmt(sun) });
+        }
 
-        if (!data || data.length < 2) {
+        const startDate = weeks[0].monStr;
+        const endDate   = weeks[weeks.length - 1].sunStr;
+
+        const weeklyTarget = CLIENT.workoutsPerWeek || 3;
+        const proteinGoal  = Math.round((CLIENT.currentWeight || CLIENT.startWeight || 80) * (CLIENT.proteinRatio || 2));
+        const calorieGoal  = 2000;
+
+        const [{ data: wkData }, { data: nutData }, { data: wtData }] = await Promise.all([
+            db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', startDate).lte('date', endDate),
+            db.from('daily_nutrition').select('date,protein,carbs,fat').eq('user_id', userId).gte('date', startDate).lte('date', endDate),
+            db.from('weight_history').select('date').eq('user_id', userId).gte('date', startDate).lte('date', endDate),
+        ]);
+
+        const computed = weeks.map(({ monStr, sunStr }) => {
+            const wk  = (wkData  || []).filter(r => r.date >= monStr && r.date <= sunStr);
+            const nut = (nutData || []).filter(r => r.date >= monStr && r.date <= sunStr);
+            const wt  = (wtData  || []).filter(r => r.date >= monStr && r.date <= sunStr);
+
+            const workoutScore   = Math.min(new Set(wk.map(r => r.date)).size / weeklyTarget, 1);
+            let nutritionMet = 0;
+            nut.forEach(r => {
+                const kcal = r.protein * 4 + r.carbs * 4 + r.fat * 9;
+                if (r.protein >= proteinGoal && kcal >= calorieGoal * 0.85) nutritionMet++;
+            });
+            const nutritionScore = Math.min(nutritionMet / 7, 1);
+            const habitsScore    = wt.length > 0 ? 1 : 0;
+            const score = Math.round((workoutScore * 0.4 + nutritionScore * 0.4 + habitsScore * 0.2) * 100);
+            const [, m, d] = monStr.split('-');
+            return { label: `${d}/${m}`, score };
+        });
+
+        // Drop leading all-zero weeks (user hadn't started yet)
+        let firstReal = computed.findIndex(w => w.score > 0);
+        if (firstReal < 0) firstReal = computed.length - 1;
+        const visible = computed.slice(firstReal);
+
+        if (visible.length < 1) {
             container.innerHTML = `
                 <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;direction:rtl;">
                     <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:8px;">📈 היסטוריית ציונים שבועיים</div>
                     <div style="text-align:center;color:var(--text-secondary);font-size:0.88rem;padding:8px 0;">אין מספיק היסטוריה עדיין</div>
                 </div>`;
+            _trackingWidgetCache[cacheKey] = Date.now();
             return;
         }
 
@@ -1156,12 +1202,6 @@ async function renderScoreHistory(userId) {
                 <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:12px;">📈 היסטוריית ציונים שבועיים</div>
                 <canvas id="score-history-canvas"></canvas>
             </div>`;
-
-        const labels = data.map(r => {
-            const [y, m, d] = r.week_start.split('-');
-            return `${d}/${m}`;
-        });
-        const scores = data.map(r => r.score);
 
         const goalLabelPlugin = {
             id: 'goalLabel',
@@ -1183,33 +1223,27 @@ async function renderScoreHistory(userId) {
             type: 'line',
             plugins: [goalLabelPlugin],
             data: {
-                labels,
-                datasets: [
-                    {
-                        label: 'ציון שבועי',
-                        data: scores,
-                        borderColor: '#f5c518',
-                        backgroundColor: 'rgba(245,197,24,0.06)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 6,
-                        pointHoverRadius: 8,
-                        pointBackgroundColor: '#f5c518',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 1.5,
-                    }
-                ]
+                labels: visible.map(w => w.label),
+                datasets: [{
+                    label: 'ציון שבועי',
+                    data: visible.map(w => w.score),
+                    borderColor: '#f5c518',
+                    backgroundColor: 'rgba(245,197,24,0.06)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#f5c518',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 1.5,
+                }]
             },
             options: {
                 responsive: true,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
                     legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: c => ` ציון: ${c.parsed.y}%`
-                        }
-                    }
+                    tooltip: { callbacks: { label: c => ` ציון: ${c.parsed.y}%` } }
                 },
                 scales: {
                     y: {
@@ -1228,7 +1262,11 @@ async function renderScoreHistory(userId) {
         _trackingWidgetCache[cacheKey] = Date.now();
     } catch (err) {
         console.error('Score history error:', err);
-        container.innerHTML = '';
+        container.innerHTML = `
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;direction:rtl;">
+                <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:8px;">📈 היסטוריית ציונים שבועיים</div>
+                <div style="text-align:center;color:var(--text-secondary);font-size:0.88rem;padding:8px 0;">אין מספיק היסטוריה עדיין</div>
+            </div>`;
     }
 }
 
