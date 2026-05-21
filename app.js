@@ -53,7 +53,7 @@ document.addEventListener('click', function(e) {
 });
 
 function _setThemeBtn(theme) {
-    const btn = document.querySelector('.theme-toggle-profile');
+    const btn = document.getElementById('theme-toggle-profile-btn');
     if (btn) btn.textContent = theme === 'dark' ? '☀️ מצב יום' : '🌙 מצב לילה';
 }
 
