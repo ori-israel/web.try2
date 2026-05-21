@@ -1123,11 +1123,11 @@ async function renderScoreHistory(userId) {
     if (_trackingWidgetCache[cacheKey] && Date.now() - _trackingWidgetCache[cacheKey] < 5 * 60 * 1000) return;
     let container = document.getElementById('score-history-container');
     if (!container) {
-        const weeklyContainer = document.getElementById('weekly-score-container');
-        if (!weeklyContainer) return;
+        const anchor = document.getElementById('score-history-anchor');
+        if (!anchor) return;
         container = document.createElement('div');
         container.id = 'score-history-container';
-        weeklyContainer.insertAdjacentElement('afterend', container);
+        anchor.insertAdjacentElement('afterend', container);
     }
     container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-secondary);font-size:0.9rem;">טוען היסטוריה...</div>';
 
