@@ -1993,8 +1993,8 @@ input[type="radio"] { accent-color: var(--accent); }
 .app-dialog-btn  { padding: 14px 0; border-radius: var(--radius); border: none; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.2s ease; flex: 1; }
 .primary-btn   { background: var(--gradient-btn); color: #fff; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3); }
 .primary-btn:hover { opacity: 0.9; }
-.secondary-btn { background: var(--bg-card-alt); color: var(--text-secondary); border: 0.5px solid var(--border); }
-.secondary-btn:hover { background: var(--input-bg); }
+.secondary-btn { background: transparent; color: var(--text-primary); border: 1.5px solid var(--border); }
+.secondary-btn:hover { background: var(--bg-card-alt); }
 .danger-btn    { background: transparent; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); }
 .danger-btn:hover { background: rgba(239, 68, 68, 0.08); }
 .modal-close {
