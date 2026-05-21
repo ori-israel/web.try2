@@ -193,6 +193,7 @@ function _clearUserLocalStorage() {
         const k = localStorage.key(i);
         if (k.startsWith('sb-')) continue;
         if (k === 'workout_completed_date' && workoutDate === todayStr) continue;
+        if (k === 'pwa_installed' || k === 'pwa_prompt_shown') continue;
         keysToRemove.push(k);
     }
     keysToRemove.forEach(k => localStorage.removeItem(k));
