@@ -475,7 +475,7 @@ function scheduleSyncNutrition() {
             const p = JSON.parse(localStorage.getItem('user_portions_v3') || '{}');
             await sbSaveNutrition(uid, p.protein || 0, p.carbs || 0, p.fat || 0);
         } catch (e) { showSupabaseError(); console.warn('[SB] nutrition sync:', e.message); }
-    }, 1500);
+    }, 300);
 }
 
 async function syncProfileNow(data) {
