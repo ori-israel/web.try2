@@ -1200,7 +1200,7 @@ async function renderScoreHistory(userId) {
         container.innerHTML = `
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;direction:rtl;">
                 <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:12px;">📈 היסטוריית ציונים שבועיים</div>
-                <canvas id="score-history-canvas"></canvas>
+                <canvas id="score-history-canvas" height="180"></canvas>
             </div>`;
 
         const goalLabelPlugin = {
@@ -1240,6 +1240,7 @@ async function renderScoreHistory(userId) {
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
                     legend: { display: false },
