@@ -11,6 +11,8 @@
     <link rel="manifest" href="/manifest.json">
     <!-- SW registration disabled during development — re-enable for production
     <script>
+        localStorage.removeItem('_dbg_load');
+        localStorage.removeItem('_dbg_modify');
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
         }
