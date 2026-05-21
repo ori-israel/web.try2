@@ -119,8 +119,7 @@ async function handleAvatarUpload(input) {
 
 function setCoachFieldsState(editable) {
     document.querySelectorAll('.coach-editable-field').forEach(f => { f.disabled = !editable; });
-    document.getElementById('coach-lock-section').style.display  = editable ? 'none'  : 'flex';
-    document.getElementById('coach-save-note').style.display      = editable ? 'block' : 'none';
+    document.getElementById('coach-save-note').style.display = editable ? 'block' : 'none';
 }
 
 // ── Coach unlock ──────────────────────────────
