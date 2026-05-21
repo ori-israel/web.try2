@@ -1295,12 +1295,16 @@ mark {
     background-color: var(--overlay-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    align-items: center;
+    justify-content: center;
+}
+.complete-modal[style*="flex"], .complete-modal[style*="block"] {
+    display: flex !important;
 }
 
 .complete-content {
     background: var(--modal-bg);
-    margin: 20% auto;
-    padding: 28px;
+    padding: 24px 24px 20px;
     border-radius: var(--radius-xl);
     width: 85%;
     max-width: 360px;
