@@ -27,6 +27,7 @@ module.exports = async (req, res) => {
         return res.status(401).json({ ok: false });
     }
 
+    console.log('[verify-pin] url_full:', process.env.SUPABASE_URL, 'key_len:', process.env.SUPABASE_SERVICE_KEY?.length);
     const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
     const { data: profile, error: profErr } = await db
