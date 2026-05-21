@@ -1857,6 +1857,7 @@ function completeWorkoutStreak(letter) {
     localStorage.setItem('workout_streak', streak);
     document.getElementById('workout-streak-count').innerText = streak;
     if (typeof syncStreaksNow === 'function') syncStreaksNow();
+    if (streak === 7 && typeof _showAchievementPopup === 'function') _showAchievementPopup('streak_7_workout');
     if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
 }
 
@@ -1885,6 +1886,7 @@ function completeNutritionStreak() {
     sessionStorage.setItem('nutrition_streak', streak);
     document.getElementById('nutrition-streak-count').innerText = streak;
     if (typeof syncStreaksNow === 'function') syncStreaksNow();
+    if (streak === 7 && typeof _showAchievementPopup === 'function') _showAchievementPopup('streak_7_nutrition');
     if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
     showNutritionComplete();
 }
