@@ -244,7 +244,7 @@ function closeCompleteMsg() {
         const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
         const lastReset = localStorage.getItem('last_reset_v4');
         if (lastReset === todayStr) return;
-        sessionStorage.removeItem('user_portions_v3');
+        localStorage.removeItem('user_portions_v3');
         localStorage.removeItem('tasks_v3');
         localStorage.removeItem('workout_progress_v3');
         localStorage.removeItem('workout_completed_date');
@@ -259,7 +259,7 @@ function closeCompleteMsg() {
         if (current < 0) current = 0;
         userPortions[type] = current;
         document.getElementById(type + '-val').innerText = current;
-        sessionStorage.setItem('user_portions_v3', JSON.stringify(userPortions));
+        localStorage.setItem('user_portions_v3', JSON.stringify(userPortions));
         updatePortionProgress(type);
         checkNutritionStreak();
         if (typeof scheduleSyncNutrition === 'function') scheduleSyncNutrition();
@@ -288,7 +288,7 @@ function closeCompleteMsg() {
     }
 
     function loadPortions() {
-        const saved = sessionStorage.getItem('user_portions_v3');
+        const saved = localStorage.getItem('user_portions_v3');
         if (saved) {
             userPortions = JSON.parse(saved);
             document.getElementById('protein-val').innerText = userPortions.protein;
