@@ -1986,11 +1986,11 @@ input[type="radio"] { accent-color: var(--accent); }
 }
 
 /* ── App dialog ── */
-.app-dialog-card { max-width: 320px; padding: 22px 18px 18px; }
-.app-dialog-msg  { margin: 0 0 15px; font-size: 14px; line-height: 1.5; text-align: center; color: var(--text-primary); }
+.app-dialog-card { max-width: 320px; padding: 32px 24px 24px; }
+.app-dialog-msg  { margin: 0 0 24px; font-size: 18px; line-height: 1.5; text-align: center; color: var(--text-primary); font-weight: 600; }
 .app-dialog-input-field { width: 100%; margin-bottom: 15px; box-sizing: border-box; }
-.app-dialog-btns { display: flex; gap: 10px; justify-content: center; }
-.app-dialog-btn  { padding: 9px 22px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.2s ease; }
+.app-dialog-btns { display: flex; gap: 12px; justify-content: center; }
+.app-dialog-btn  { padding: 14px 0; border-radius: var(--radius); border: none; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.2s ease; flex: 1; }
 .primary-btn   { background: var(--gradient-btn); color: #fff; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3); }
 .primary-btn:hover { opacity: 0.9; }
 .secondary-btn { background: var(--bg-card-alt); color: var(--text-secondary); border: 0.5px solid var(--border); }
