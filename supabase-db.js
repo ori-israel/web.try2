@@ -413,6 +413,18 @@ async function loadUserIntoApp(userId) {
         ? { protein: todayNutrition.protein || 0, carbs: todayNutrition.carbs || 0, fat: todayNutrition.fat || 0 }
         : { protein: 0, carbs: 0, fat: 0 };
     sessionStorage.setItem('user_portions_v3', JSON.stringify(portions));
+    // Restore Supabase data to localStorage (merged with any unsaved local changes)
+    const _localStr = localStorage.getItem('user_portions_v3');
+    if (!_localStr) {
+        localStorage.setItem('user_portions_v3', JSON.stringify(portions));
+    } else {
+        const _local = JSON.parse(_localStr);
+        localStorage.setItem('user_portions_v3', JSON.stringify({
+            protein: Math.max(portions.protein, _local.protein || 0),
+            carbs:   Math.max(portions.carbs,   _local.carbs   || 0),
+            fat:     Math.max(portions.fat,      _local.fat     || 0),
+        }));
+    }
 
     // ── היסטוריית משקל ────────────────────────────────────
     if (weightHist && weightHist.length) {
