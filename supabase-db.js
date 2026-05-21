@@ -415,15 +415,18 @@ async function loadUserIntoApp(userId) {
     sessionStorage.setItem('user_portions_v3', JSON.stringify(portions));
     // Restore Supabase data to localStorage (merged with any unsaved local changes)
     const _localStr = localStorage.getItem('user_portions_v3');
+    console.log('[portions] supabase:', JSON.stringify(portions), '| local:', _localStr);
     if (!_localStr) {
         localStorage.setItem('user_portions_v3', JSON.stringify(portions));
     } else {
         const _local = JSON.parse(_localStr);
-        localStorage.setItem('user_portions_v3', JSON.stringify({
+        const merged = {
             protein: Math.max(portions.protein, _local.protein || 0),
             carbs:   Math.max(portions.carbs,   _local.carbs   || 0),
             fat:     Math.max(portions.fat,      _local.fat     || 0),
-        }));
+        };
+        console.log('[portions] merged:', JSON.stringify(merged));
+        localStorage.setItem('user_portions_v3', JSON.stringify(merged));
     }
 
     // ── היסטוריית משקל ────────────────────────────────────
