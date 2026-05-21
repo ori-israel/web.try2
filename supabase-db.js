@@ -552,7 +552,7 @@ async function loadUserIntoApp(userId) {
     if (streaks) {
         localStorage.setItem('workout_streak',   String(streaks.workout_streak   || 0));
         localStorage.setItem('nutrition_streak',  String(streaks.nutrition_streak || 0));
-        if (streaks.workout_completed_date && streaks.workout_completed_date === localDateStr())   localStorage.setItem('workout_completed_date',   streaks.workout_completed_date);
+        // workout_completed_date managed locally only — not restored from Supabase
         if (streaks.nutrition_completed_date) localStorage.setItem('nutrition_completed_date', streaks.nutrition_completed_date);
     }
 
