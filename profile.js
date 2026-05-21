@@ -33,6 +33,16 @@ function openProfile() {
     document.querySelector('.hamburger-menu').classList.remove('open');
 }
 
+function openProfileAsAdmin() {
+    isCoachUnlocked = true;
+    populateProfileForm();
+    setCoachFieldsState(true);
+    const overlay = document.getElementById('profile-overlay');
+    overlay.style.display = 'flex';
+    requestAnimationFrame(() => overlay.classList.add('open'));
+    toggleAdminPanel();
+}
+
 function handleProfileOverlayClick(e) {
     if (e.target === document.getElementById('profile-overlay')) closeProfile();
 }
