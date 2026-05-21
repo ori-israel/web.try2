@@ -266,7 +266,10 @@ function closeCompleteMsg() {
         localStorage.setItem('user_portions_v3', JSON.stringify(userPortions));
         updatePortionProgress(type);
         checkNutritionStreak();
-        if (typeof scheduleSyncNutrition === 'function') scheduleSyncNutrition();
+        if (typeof sbSaveNutrition === 'function') {
+            const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+            if (uid) sbSaveNutrition(uid, userPortions.protein, userPortions.carbs, userPortions.fat).catch(() => {});
+        }
     }
 
     function updatePortionProgress(type) {
