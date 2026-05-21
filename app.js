@@ -3,7 +3,6 @@ function localDateStr() {
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-let _workoutPopupShownThisSession = false;
 
 // ── Custom dialog (replaces alert / confirm / prompt) ────────
 function _appDialog({ message, withInput = false, defaultValue = '', okLabel = 'אישור', cancelLabel = null, okClass = 'primary-btn' }) {
@@ -221,10 +220,13 @@ function checkWorkoutCompletion(clickedCheckbox) {
 
 
     if (allChecked) {
+        const today = localDateStr();
+        const storedDate = localStorage.getItem('workout_completed_date');
+        if (storedDate && storedDate !== today) localStorage.removeItem('workout_completed_date');
+        const alreadyCompleted = localStorage.getItem('workout_completed_date') === today;
         const isScheduledToday = CLIENT.workoutDays?.[letter]?.includes(new Date().getDay());
         completeWorkoutStreak(letter);
-        if (!_workoutPopupShownThisSession && isScheduledToday) {
-            _workoutPopupShownThisSession = true;
+        if (!alreadyCompleted && isScheduledToday) {
             const msg = document.getElementById('workout-complete-msg');
             if (msg) {
                 msg.style.cssText = "display:flex; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9999; align-items:center; justify-content:center;";
