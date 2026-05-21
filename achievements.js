@@ -76,16 +76,17 @@ async function checkAchievements(profile, streaks, weeklyScores, workoutLogs) {
         for (const key of newlyUnlocked) await _showAchievementPopup(key);
     }
 
-    // Repeating — once per session to avoid spam on page load
+    // Repeating — once per day to avoid spam on PWA reopen
+    const today = typeof localDateStr === 'function' ? localDateStr() : new Date().toISOString().slice(0,10);
     const repeatingToShow = [];
     if (streaks.workout_streak   >= 7) repeatingToShow.push('streak_7_workout');
     if (streaks.nutrition_streak >= 7) repeatingToShow.push('streak_7_nutrition');
     if (weeklyScores.length > 0 && weeklyScores[0].score === 100) repeatingToShow.push('score_100');
 
     for (const key of repeatingToShow) {
-        const sessionKey = 'ach_shown_' + key;
-        if (sessionStorage.getItem(sessionKey)) continue;
-        sessionStorage.setItem(sessionKey, '1');
+        const sessionKey = 'ach_shown_' + key + '_' + today;
+        if (localStorage.getItem(sessionKey)) continue;
+        localStorage.setItem(sessionKey, '1');
         await _showAchievementPopup(key);
     }
 }
