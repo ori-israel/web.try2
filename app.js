@@ -385,6 +385,11 @@ function closeCompleteMsg() {
             document.getElementById(tabId).classList.add('active');
             window.scrollTo({top: 0, behavior: 'smooth'});
             if (tabId === 'tab4') {
+                const uid = getActiveUserId();
+                if (uid) {
+                    delete _trackingWidgetCache['history_' + uid];
+                    renderScoreHistory(uid);
+                }
 }
             if (tabId === 'tab2') {
     initWorkoutsFromClient();
