@@ -917,10 +917,10 @@
             <input id="avatar-file-input" type="file" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleAvatarUpload(this)">
         </div>
         <!-- Section 1: Client editable -->
-        <div style="overflow:hidden;margin-top:150px;margin-bottom:4px;">
-            <button id="theme-toggle-profile-btn" onclick="toggleTheme()" style="float:left;padding:7px 14px;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-primary);border:1.5px solid var(--border);white-space:nowrap;"></button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0;">
+            <button id="theme-toggle-profile-btn" onclick="toggleTheme()" style="padding:7px 14px;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-primary);border:1.5px solid var(--border);white-space:nowrap;"></button>
+            <div class="profile-section-label" style="margin:0;padding:0;">עריכה אישית</div>
         </div>
-        <div class="profile-section-label">עריכה אישית</div>
         <div class="profile-group">
             <div class="profile-row">
                 <label for="prof-nickname">שם משתמש</label>
