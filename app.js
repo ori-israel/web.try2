@@ -362,6 +362,7 @@ function closeCompleteMsg() {
                         formData.get('q4_topic')
                     );
                 }
+                localStorage.setItem('survey_submitted_' + _surveyWeekKey(), '1');
                 await showAlert("השאלון נשלח בהצלחה!"); surveyForm.reset(); closeSurvey();
             } catch (error) {
                 console.warn('[SB] questionnaire save:', error.message);
@@ -532,19 +533,35 @@ function buildWorkoutAccordions(targets = {}) {
     });
 }
 
-   async function checkThursdayBanner() {
-    // Show Thu(4) Fri(5) Sat(6) only
-    const day = new Date().getDay();
-    if (day < 4) return;
-    const uid = typeof SB_USER !== 'undefined' && SB_USER?.id;
-    if (!uid) return;
-    try {
-        const hasRow = await sbCheckThisWeekQuestionnaire(uid);
-        if (hasRow) return;
-        const banner = document.getElementById('weekly-survey-banner');
-        if (banner) banner.style.display = 'flex';
-    } catch(e) { console.warn('[SB] thursday banner:', e.message); }
-}
+   function _surveyWeekKey() {
+        const today = new Date();
+        const dow = today.getDay();
+        const mon = new Date(today);
+        mon.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
+        return `${mon.getFullYear()}-${String(mon.getMonth()+1).padStart(2,'0')}-${String(mon.getDate()).padStart(2,'0')}`;
+    }
+
+    async function checkThursdayBanner() {
+        const now = new Date();
+        const day  = now.getDay();
+        const hour = now.getHours();
+        // Thu(4) only after 19:00, Fri(5) and Sat(6) any time
+        if (day < 4) return;
+        if (day === 4 && hour < 19) return;
+        // localStorage fast-check (set after successful submission)
+        if (localStorage.getItem('survey_submitted_' + _surveyWeekKey())) return;
+        const uid = typeof SB_USER !== 'undefined' && SB_USER?.id;
+        if (!uid) return;
+        try {
+            const hasRow = await sbCheckThisWeekQuestionnaire(uid);
+            if (hasRow) {
+                localStorage.setItem('survey_submitted_' + _surveyWeekKey(), '1');
+                return;
+            }
+            const banner = document.getElementById('weekly-survey-banner');
+            if (banner) banner.style.display = 'flex';
+        } catch(e) { console.warn('[SB] thursday banner:', e.message); }
+    }
 
 window.addEventListener('offline', () => {
     const banner = document.getElementById('offline-banner');
