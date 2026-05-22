@@ -2170,6 +2170,20 @@ input[type="radio"] { accent-color: var(--accent); }
     font-weight: 600;
 }
 .admin-add-client-btn:hover { background: rgba(59, 130, 246, 0.08); }
+.admin-delete-client-btn {
+    width: 100%;
+    padding: 8px;
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+.admin-delete-client-btn:hover { background: rgba(239, 68, 68, 0.08); }
 .admin-loading, .admin-empty, .admin-error {
     text-align: center;
     padding: 22px;
