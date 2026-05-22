@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
 
     const { data: profiles, error: profErr } = await supabase
         .from('profiles')
-        .select('id, workouts_per_week, protein_ratio, current_weight, start_weight, vacation_mode')
+        .select('id, workouts_per_week, protein_ratio, current_weight, start_weight, vacation_mode, portion_values')
         .eq('is_admin', false);
 
     if (profErr) {
@@ -78,6 +78,11 @@ module.exports = async (req, res) => {
         const proteinGoal = Math.round(weight * (profile.protein_ratio || 2));
         const calorieGoal = 2000;
 
+        const pv  = profile.portion_values || {};
+        const pvP = pv.protein ?? 27.5;
+        const pvC = pv.carbs   ?? 37.5;
+        const pvF = pv.fat     ?? 12.5;
+
         const { data: nutritionData } = await supabase
             .from('daily_nutrition')
             .select('protein, carbs, fat')
@@ -87,8 +92,9 @@ module.exports = async (req, res) => {
 
         let nutritionMet = 0;
         (nutritionData || []).forEach(r => {
-            const kcal = r.protein * 4 + r.carbs * 4 + r.fat * 9;
-            if (r.protein >= proteinGoal && kcal >= calorieGoal * 0.85) nutritionMet++;
+            const proteinG = r.protein * pvP;
+            const kcal = proteinG * 4 + (r.carbs * pvC) * 4 + (r.fat * pvF) * 9;
+            if (proteinG >= proteinGoal && kcal >= calorieGoal * 0.85) nutritionMet++;
         });
         const nutritionScore = Math.min(nutritionMet / 7, 1);
 

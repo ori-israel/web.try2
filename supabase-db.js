@@ -389,7 +389,7 @@ async function sbFetchCoachDashData(clientIds) {
 
     const [pRes, sRes, wRes, nRes, whRes] = await Promise.all([
         db.from('profiles')
-          .select('id, current_weight, protein_ratio, workouts_per_week, vacation_mode, last_seen')
+          .select('id, current_weight, protein_ratio, workouts_per_week, vacation_mode, last_seen, portion_values')
           .in('id', clientIds),
         db.from('weekly_scores')
           .select('client_id, week_start, score, workouts_score, nutrition_score, habits_score')

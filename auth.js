@@ -278,24 +278,29 @@ function _buildClientStats(client) {
     const proteinGoal = Math.round(weight * pRatio);
     const calGoal     = 2000;
 
+    const pv = profile.portion_values || {};
+    const pvP = pv.protein ?? 27.5;
+    const pvC = pv.carbs   ?? 37.5;
+    const pvF = pv.fat     ?? 12.5;
+
+    const nutritionMeetsGoal = n => {
+        const proteinG = n.protein * pvP;
+        const kcal     = proteinG * 4 + (n.carbs * pvC) * 4 + (n.fat * pvF) * 9;
+        return proteinG >= proteinGoal && kcal >= calGoal * 0.85;
+    };
+
     const clientWorkouts  = workouts.filter(w => w.client_id === client.id);
     const clientNutrition = nutrition.filter(n => n.user_id  === client.id);
 
     const hasWorkout = clientWorkouts.length > 0;
 
-    const nutritionBadDays = clientNutrition.filter(n => {
-        const kcal = n.protein * 4 + n.carbs * 4 + n.fat * 9;
-        return !(n.protein >= proteinGoal && kcal >= calGoal * 0.85);
-    }).length;
+    const nutritionBadDays = clientNutrition.filter(n => !nutritionMeetsGoal(n)).length;
 
     // Live scores for current week (cron only saves at week end)
     const weeklyTarget      = profile.workouts_per_week || 3;
     const workoutDates      = new Set(clientWorkouts.map(w => w.date));
     const liveWorkouts      = Math.min(Math.round(workoutDates.size / weeklyTarget * 100), 100);
-    const nutritionMet      = clientNutrition.filter(n => {
-        const kcal = n.protein * 4 + n.carbs * 4 + n.fat * 9;
-        return n.protein >= proteinGoal && kcal >= calGoal * 0.85;
-    }).length;
+    const nutritionMet      = clientNutrition.filter(nutritionMeetsGoal).length;
     const liveNutrition     = Math.min(Math.round(nutritionMet / 7 * 100), 100);
     const lastWeight        = lastWeightDates?.[client.id];
     const liveHabits        = (lastWeight && lastWeight >= monStr) ? 100 : 0;

@@ -1135,8 +1135,9 @@ async function renderWeeklyScore(userId) {
 
         let nutritionMet = 0;
         (nutritionRows || []).forEach(r => {
-            const kcal = r.protein * 4 + r.carbs * 4 + r.fat * 9;
-            if (r.protein >= proteinGoal && kcal >= calorieGoal * 0.85) nutritionMet++;
+            const proteinG = r.protein * portionValues.protein;
+            const kcal = proteinG * 4 + (r.carbs * portionValues.carbs) * 4 + (r.fat * portionValues.fat) * 9;
+            if (proteinG >= proteinGoal && kcal >= calorieGoal * 0.85) nutritionMet++;
         });
         const nutritionScore = Math.min(nutritionMet / 7, 1);
 
@@ -1210,8 +1211,9 @@ async function renderScoreHistory(userId) {
         ]);
         let nutritionMet = 0;
         (nutData || []).forEach(r => {
-            const kcal = r.protein * 4 + r.carbs * 4 + r.fat * 9;
-            if (r.protein >= proteinGoal && kcal >= 1700) nutritionMet++;
+            const proteinG = r.protein * portionValues.protein;
+            const kcal = proteinG * 4 + (r.carbs * portionValues.carbs) * 4 + (r.fat * portionValues.fat) * 9;
+            if (proteinG >= proteinGoal && kcal >= 1700) nutritionMet++;
         });
         const curScore = Math.round((
             Math.min(new Set((wkData||[]).map(r=>r.date)).size / weeklyTarget, 1) * 0.4 +
