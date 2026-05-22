@@ -273,26 +273,40 @@ function _buildClientStats(client) {
     const prevWeek    = clientScores.find(s => s.week_start === prevMonStr) || null;
     const last4       = clientScores.slice(-4).map(s => s.score);
 
-    const hasWorkout  = workouts.some(w => w.client_id === client.id);
-
     const weight      = profile.current_weight || 80;
     const pRatio      = profile.protein_ratio  || 2.0;
     const proteinGoal = Math.round(weight * pRatio);
     const calGoal     = 2000;
 
-    const nutritionBadDays = nutrition
-        .filter(n => n.user_id === client.id)
-        .filter(n => {
-            const kcal = n.protein * 4 + n.carbs * 4 + n.fat * 9;
-            return !(n.protein >= proteinGoal && kcal >= calGoal * 0.85);
-        }).length;
+    const clientWorkouts  = workouts.filter(w => w.client_id === client.id);
+    const clientNutrition = nutrition.filter(n => n.user_id  === client.id);
+
+    const hasWorkout = clientWorkouts.length > 0;
+
+    const nutritionBadDays = clientNutrition.filter(n => {
+        const kcal = n.protein * 4 + n.carbs * 4 + n.fat * 9;
+        return !(n.protein >= proteinGoal && kcal >= calGoal * 0.85);
+    }).length;
+
+    // Live scores for current week (cron only saves at week end)
+    const weeklyTarget      = profile.workouts_per_week || 3;
+    const workoutDates      = new Set(clientWorkouts.map(w => w.date));
+    const liveWorkouts      = Math.min(Math.round(workoutDates.size / weeklyTarget * 100), 100);
+    const nutritionMet      = clientNutrition.filter(n => {
+        const kcal = n.protein * 4 + n.carbs * 4 + n.fat * 9;
+        return n.protein >= proteinGoal && kcal >= calGoal * 0.85;
+    }).length;
+    const liveNutrition     = Math.min(Math.round(nutritionMet / 7 * 100), 100);
+    const lastWeight        = lastWeightDates?.[client.id];
+    const liveHabits        = (lastWeight && lastWeight >= monStr) ? 100 : 0;
+    const liveScore         = Math.round(liveWorkouts * 0.4 + liveNutrition * 0.4 + liveHabits * 0.2);
 
     return {
-        currentScore:    currentWeek?.score          ?? null,
-        prevScore:       prevWeek?.score             ?? null,
-        workoutsScore:   currentWeek?.workouts_score ?? null,
-        nutritionScore:  currentWeek?.nutrition_score ?? null,
-        habitsScore:     currentWeek?.habits_score   ?? null,
+        currentScore:    currentWeek?.score           ?? liveScore,
+        prevScore:       prevWeek?.score              ?? null,
+        workoutsScore:   currentWeek?.workouts_score  ?? liveWorkouts,
+        nutritionScore:  currentWeek?.nutrition_score ?? liveNutrition,
+        habitsScore:     currentWeek?.habits_score    ?? liveHabits,
         last4,
         hasWorkout,
         nutritionBadDays,
@@ -535,10 +549,10 @@ function _renderOverviewMode(list) {
 
 async function adminViewClient(clientId) {
     // Re-verify admin status from DB on every client-view action (not just JS variable)
-    const { data: { session } } = await db.auth.getSession();
+    const session = await sbGetSession();
     if (!session?.user) return;
-    const { data: self, error } = await db.from('profiles').select('is_admin').eq('id', session.user.id).single();
-    if (error || !self?.is_admin) {
+    const self = await sbFetchProfile(session.user.id);
+    if (!self?.is_admin) {
         console.error('[adminViewClient] Access denied — not admin');
         return;
     }
@@ -602,29 +616,18 @@ async function submitNewClient() {
     btn.disabled = true;
 
     try {
-        const { data: { session } } = await db.auth.getSession();
-        if (!session) throw new Error('פג תוקף החיבור — יש לרענן את הדף');
-        const resp = await fetch('/api/create-user', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.access_token}`,
-            },
-            body: JSON.stringify({
-                name,
-                email,
-                password,
-                startDate,
-                birthDate:   document.getElementById('nc-birth-date').value   || null,
-                startWeight: parseFloat(document.getElementById('nc-start-weight').value) || null,
-                goalWeight:  parseFloat(document.getElementById('nc-goal-weight').value)  || null,
-                height:      parseInt(document.getElementById('nc-height').value)          || null,
-                gender:      document.getElementById('nc-gender').value,
-                goal:        document.getElementById('nc-goal').value,
-            }),
+        await _authedPost('/api/create-user', {
+            name,
+            email,
+            password,
+            startDate,
+            birthDate:   document.getElementById('nc-birth-date').value   || null,
+            startWeight: parseFloat(document.getElementById('nc-start-weight').value) || null,
+            goalWeight:  parseFloat(document.getElementById('nc-goal-weight').value)  || null,
+            height:      parseInt(document.getElementById('nc-height').value)          || null,
+            gender:      document.getElementById('nc-gender').value,
+            goal:        document.getElementById('nc-goal').value,
         });
-        const result = await resp.json();
-        if (!resp.ok) throw new Error(result.error || 'שגיאה ביצירת משתמש');
         closeNewClientModal();
         await renderAdminPanel();
     } catch (e) {
@@ -636,24 +639,26 @@ async function submitNewClient() {
     }
 }
 
+async function _authedPost(path, body) {
+    const session = await sbGetSession();
+    if (!session) throw new Error('פג תוקף החיבור — יש לרענן את הדף');
+    const resp = await fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify(body),
+    });
+    const result = await resp.json();
+    if (!resp.ok) throw new Error(result.error || 'שגיאת שרת');
+    return result;
+}
+
 // ── Delete client ─────────────────────────────────────────────
 
 async function deleteClient(clientId, clientName) {
     const confirmed = await showConfirmDanger(`למחוק את ${clientName}? פעולה זו בלתי הפיכה.`);
     if (!confirmed) return;
     try {
-        const { data: { session } } = await db.auth.getSession();
-        if (!session) throw new Error('פג תוקף החיבור — יש לרענן את הדף');
-        const resp = await fetch('/api/delete-user', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.access_token}`,
-            },
-            body: JSON.stringify({ userId: clientId }),
-        });
-        const result = await resp.json();
-        if (!resp.ok) throw new Error(result.error || 'שגיאה במחיקה');
+        await _authedPost('/api/delete-user', { userId: clientId });
         await renderAdminPanel();
     } catch (e) {
         await showAlert('שגיאה: ' + e.message);
@@ -892,7 +897,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const remembered = localStorage.getItem('remember_me') === 'yes'
                              || sessionStorage.getItem('remember_me') === 'session';
             if (!remembered) {
-                await db.auth.signOut();
+                await sbSignOut();
                 showLoginForm();
             } else {
                 await handleLoginSuccess(session.user);
