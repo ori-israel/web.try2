@@ -16,7 +16,9 @@ async function _handler(req, res) {
         return res.status(500).json({ error: 'server misconfigured' });
     }
 
-    const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+    const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY, {
+        auth: { autoRefreshToken: false, persistSession: false }
+    });
 
     // Verify caller is admin
     let callerId;
