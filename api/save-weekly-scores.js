@@ -1,6 +1,8 @@
 const { createClient } = require('@supabase/supabase-js');
 
 module.exports = async (req, res) => {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+
     const secret = process.env.CRON_SECRET;
     const auth   = req.headers.authorization || '';
     if (!secret || auth !== `Bearer ${secret}`) {

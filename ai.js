@@ -66,9 +66,15 @@ async function sendAIMessage() {
                 parts: [{ text: m.content }]
             }));
 
+        const { data: { session: _aiSession } } = await db.auth.getSession();
+        if (!_aiSession) throw new Error('לא מחובר');
+
         const response = await fetch('/api/gemini', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${_aiSession.access_token}`,
+            },
             body: JSON.stringify({
                 model: 'gemini-2.5-flash-lite',
                 payload: {

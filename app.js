@@ -313,7 +313,8 @@ function closeCompleteMsg() {
 
     function toggleTask(el) {
         const checkbox = el.querySelector('input');
-        if (event.target !== checkbox) checkbox.checked = !checkbox.checked;
+        const evt = window.event;
+        if (!evt || evt.target !== checkbox) checkbox.checked = !checkbox.checked;
         el.classList.toggle('done', checkbox.checked);
         updateDailyProgress(); 
         saveChecklist();
@@ -673,6 +674,7 @@ function triggerPWAInstall() {
    window.onload = async () => {
     // ממתין לאימות Supabase לפני אתחול האפליקציה
     if (window._authReady) await window._authReady;
+    if (typeof _appInitDone !== 'undefined' && _appInitDone) return;
     manageDailyReset();
     updateCounter();
     initVideos();
@@ -881,7 +883,8 @@ function highlightText(html, filter) {
     const walk = (node) => {
         if (node.nodeType === 3) { // Text node
             const text = node.nodeValue;
-            const regex = new RegExp(`(${filter})`, 'gi');
+            const escapedFilter = filter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escapedFilter})`, 'gi');
             if (regex.test(text)) {
                 const span = document.createElement('span');
                 span.innerHTML = text.replace(regex, '<mark style="background-color: yellow; color: black;">$1</mark>');
@@ -981,7 +984,8 @@ function initFAQ() {
             const allVals = document.querySelectorAll('.weight-val');
             const startWeight = parseFloat(allVals[0].innerText);
             const goalWeight = parseFloat(allVals[2].innerText);
-            const percent = Math.min(100, Math.round(((startWeight - val) / (startWeight - goalWeight)) * 100));
+            const weightDiff = startWeight - goalWeight;
+            const percent = weightDiff === 0 ? 0 : Math.min(100, Math.round(((startWeight - val) / weightDiff) * 100));
             document.querySelectorAll('.progress-bar')[0].style.width = percent + '%';
             document.querySelector('.progress-text').innerText = 'עברת כבר ' + percent + '% מהדרך ליעד!';
             generatePortionGoals();
@@ -1006,7 +1010,8 @@ function loadSavedWeight() {
         const allVals = document.querySelectorAll('.weight-val');
         const startWeight = parseFloat(allVals[0].innerText);
         const goalWeight = parseFloat(allVals[2].innerText);
-        const percent = Math.min(100, Math.round(((startWeight - parseFloat(savedWeight)) / (startWeight - goalWeight)) * 100));
+        const weightDiff = startWeight - goalWeight;
+        const percent = weightDiff === 0 ? 0 : Math.min(100, Math.round(((startWeight - parseFloat(savedWeight)) / weightDiff) * 100));
         document.querySelectorAll('.progress-bar')[0].style.width = percent + '%';
         document.querySelector('.progress-text').innerText = 'עברת כבר ' + percent + '% מהדרך ליעד!';
     }
