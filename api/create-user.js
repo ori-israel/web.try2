@@ -45,18 +45,22 @@ async function _handler(req, res) {
         return res.status(400).json({ error: 'email, password, name required' });
     }
 
-    // Create auth user
-    const { data: newUser, error: createErr } = await db.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
+    // Create auth user via Admin REST API
+    const createResp = await fetch(`${process.env.SUPABASE_URL}/auth/v1/admin/users`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'apikey': process.env.SUPABASE_SERVICE_KEY,
+            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+        },
+        body: JSON.stringify({ email, password, email_confirm: true }),
     });
-
-    if (createErr) {
-        return res.status(400).json({ error: createErr.message });
+    const createData = await createResp.json();
+    if (!createResp.ok) {
+        return res.status(400).json({ error: createData.msg || createData.message || 'Failed to create user' });
     }
 
-    const uid = newUser.user.id;
+    const uid = createData.id;
 
     // Wait briefly for the DB trigger to create the profile row
     await new Promise(r => setTimeout(r, 300));
