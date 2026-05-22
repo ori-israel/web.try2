@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-export const config = { api: { bodyParser: { sizeLimit: '50kb' } } };
+export const config = { api: { bodyParser: { sizeLimit: '10mb' } } };
 
 const ALLOWED_MODELS = new Set([
     'gemini-2.5-flash-lite',
