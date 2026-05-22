@@ -112,7 +112,9 @@ function toggleTheme() {
     const coachEl = document.getElementById('coach-name-display');
     if (coachEl) coachEl.textContent = COACH_NAME;
     document.title = `פורטל הליווי של ${CLIENT.name}`;
-    document.querySelector('h1').innerText = `תוכנית הליווי של ${CLIENT.name}`;
+    const h1 = document.querySelector('h1');
+    h1.innerText = `תוכנית הליווי של ${CLIENT.name}`;
+    h1.style.visibility = 'visible';
 
 }
 
@@ -987,7 +989,9 @@ function initFAQ() {
             const weightDiff = startWeight - goalWeight;
             const percent = weightDiff === 0 ? 0 : Math.min(100, Math.round(((startWeight - val) / weightDiff) * 100));
             document.querySelectorAll('.progress-bar')[0].style.width = percent + '%';
-            document.querySelector('.progress-text').innerText = 'עברת כבר ' + percent + '% מהדרך ליעד!';
+            const pt = document.querySelector('.progress-text');
+            pt.innerText = 'עברת כבר ' + percent + '% מהדרך ליעד!';
+            pt.style.visibility = 'visible';
             generatePortionGoals();
             showWeightUpdateToast();
             renderWeightChart();
@@ -1013,7 +1017,9 @@ function loadSavedWeight() {
         const weightDiff = startWeight - goalWeight;
         const percent = weightDiff === 0 ? 0 : Math.min(100, Math.round(((startWeight - parseFloat(savedWeight)) / weightDiff) * 100));
         document.querySelectorAll('.progress-bar')[0].style.width = percent + '%';
-        document.querySelector('.progress-text').innerText = 'עברת כבר ' + percent + '% מהדרך ליעד!';
+        const pt = document.querySelector('.progress-text');
+        pt.innerText = 'עברת כבר ' + percent + '% מהדרך ליעד!';
+        pt.style.visibility = 'visible';
     }
 }
 
