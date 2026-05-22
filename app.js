@@ -2300,9 +2300,11 @@ async function analyzeFood(base64, mimeType, correction) {
 {"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם מאכל", "grams": X}, ...]}`;
 
     try {
+        const { data: { session: _scanSession } } = await db.auth.getSession();
+        if (!_scanSession) throw new Error('לא מחובר');
         const response = await fetch('/api/gemini', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_scanSession.access_token}` },
             body: JSON.stringify({
                 model: 'gemini-2.5-flash-lite',
                 payload: {
