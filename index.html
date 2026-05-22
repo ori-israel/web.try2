@@ -73,8 +73,8 @@
 </div>
 
 <!-- ══ New client modal ════════════════════════════════ -->
-<div id="new-client-modal" style="display:none; position:fixed; inset:0; z-index:10001; background:rgba(0,0,0,.75); align-items:center; justify-content:center; padding:20px;">
-    <div class="profile-sheet" style="max-width:420px; width:100%; padding:24px; border-radius:var(--radius-lg);">
+<div id="new-client-modal" style="display:none; position:fixed; inset:0; z-index:10001; background:rgba(0,0,0,.75); align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
+    <div class="profile-sheet" style="max-width:420px; width:100%; padding:24px; border-radius:var(--radius-lg); margin:auto;">
         <div class="profile-header">
             <h2>לקוח חדש</h2>
             <button class="close-btn" onclick="closeNewClientModal()">&times;</button>
@@ -93,8 +93,38 @@
                 <input id="nc-password" type="password" class="profile-input" placeholder="לפחות 6 תווים" dir="ltr">
             </div>
             <div class="profile-row">
-                <label for="nc-start-date">תאריך התחלת ליווי</label>
+                <label for="nc-start-date">התחלת ליווי</label>
                 <input id="nc-start-date" type="date" class="profile-input" dir="ltr">
+            </div>
+            <div class="profile-row">
+                <label for="nc-birth-date">תאריך לידה</label>
+                <input id="nc-birth-date" type="date" class="profile-input" dir="ltr">
+            </div>
+            <div class="profile-row">
+                <label for="nc-start-weight">משקל התחלתי</label>
+                <input id="nc-start-weight" type="number" class="profile-input" placeholder="ק״ג" step="0.1">
+            </div>
+            <div class="profile-row">
+                <label for="nc-goal-weight">משקל יעד</label>
+                <input id="nc-goal-weight" type="number" class="profile-input" placeholder="ק״ג" step="0.1">
+            </div>
+            <div class="profile-row">
+                <label for="nc-height">גובה (ס״מ)</label>
+                <input id="nc-height" type="number" class="profile-input" placeholder="ס״מ">
+            </div>
+            <div class="profile-row">
+                <label for="nc-gender">מין</label>
+                <select id="nc-gender" class="profile-input profile-select">
+                    <option value="male">גבר</option>
+                    <option value="female">אישה</option>
+                </select>
+            </div>
+            <div class="profile-row">
+                <label for="nc-goal">מטרה</label>
+                <select id="nc-goal" class="profile-input profile-select">
+                    <option value="cut">חיטוב</option>
+                    <option value="bulk">מסה</option>
+                </select>
             </div>
         </div>
         <div id="nc-error" style="color:#ef4444; font-size:13px; margin:8px 0; display:none;"></div>

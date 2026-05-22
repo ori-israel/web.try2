@@ -508,6 +508,7 @@ function _renderOverviewMode(list) {
                 <div class="coach-sparkline">${_coachSparkline(s.last4)}</div>
                 <button class="coach-q-btn" data-client-id="${client.id}">📋 שאלון אחרון</button>
                 <button class="admin-select-btn" data-client-id="${client.id}" style="width:100%;margin-top:6px">כניסה ›</button>
+                <button class="admin-delete-client-btn" data-client-id="${client.id}" data-client-name="${name}" style="width:100%;margin-top:6px">🗑️ מחק לקוח</button>
             </div>`;
         card.querySelector('.coach-vac-icon').addEventListener('click', function(e) {
             e.stopPropagation();
@@ -519,6 +520,10 @@ function _renderOverviewMode(list) {
         });
         card.querySelector('.admin-select-btn').addEventListener('click', function() {
             adminViewClient(this.dataset.clientId);
+        });
+        card.querySelector('.admin-delete-client-btn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            deleteClient(this.dataset.clientId, this.dataset.clientName);
         });
         list.appendChild(card);
     });
@@ -555,6 +560,12 @@ function openNewClientModal() {
     document.getElementById('nc-email').value = '';
     document.getElementById('nc-password').value = '';
     document.getElementById('nc-start-date').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('nc-birth-date').value = '';
+    document.getElementById('nc-start-weight').value = '';
+    document.getElementById('nc-goal-weight').value = '';
+    document.getElementById('nc-height').value = '';
+    document.getElementById('nc-gender').value = 'male';
+    document.getElementById('nc-goal').value = 'cut';
     document.getElementById('nc-error').style.display = 'none';
 }
 
@@ -593,7 +604,18 @@ async function submitNewClient() {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${session.access_token}`,
             },
-            body: JSON.stringify({ name, email, password, startDate }),
+            body: JSON.stringify({
+                name,
+                email,
+                password,
+                startDate,
+                birthDate:   document.getElementById('nc-birth-date').value   || null,
+                startWeight: parseFloat(document.getElementById('nc-start-weight').value) || null,
+                goalWeight:  parseFloat(document.getElementById('nc-goal-weight').value)  || null,
+                height:      parseInt(document.getElementById('nc-height').value)          || null,
+                gender:      document.getElementById('nc-gender').value,
+                goal:        document.getElementById('nc-goal').value,
+            }),
         });
         const result = await resp.json();
         if (!resp.ok) throw new Error(result.error || 'שגיאה ביצירת משתמש');
@@ -605,6 +627,29 @@ async function submitNewClient() {
     } finally {
         btn.textContent = 'צור לקוח';
         btn.disabled = false;
+    }
+}
+
+// ── Delete client ─────────────────────────────────────────────
+
+async function deleteClient(clientId, clientName) {
+    const confirmed = await showConfirmDanger(`למחוק את ${clientName}? פעולה זו בלתי הפיכה.`);
+    if (!confirmed) return;
+    try {
+        const { data: { session } } = await db.auth.getSession();
+        const resp = await fetch('/api/delete-user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ userId: clientId }),
+        });
+        const result = await resp.json();
+        if (!resp.ok) throw new Error(result.error || 'שגיאה במחיקה');
+        await renderAdminPanel();
+    } catch (e) {
+        await showAlert('שגיאה: ' + e.message);
     }
 }
 

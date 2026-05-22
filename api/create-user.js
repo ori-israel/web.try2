@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
         return res.status(403).json({ error: 'Forbidden' });
     }
 
-    const { email, password, name, startDate } = req.body || {};
+    const { email, password, name, startDate, birthDate, startWeight, goalWeight, height, gender, goal } = req.body || {};
     if (!email || !password || !name) {
         return res.status(400).json({ error: 'email, password, name required' });
     }
@@ -52,14 +52,22 @@ module.exports = async (req, res) => {
     const uid = newUser.user.id;
 
     // Create profile row
-    await db.from('profiles').upsert({
+    const profileData = {
         id: uid,
         email,
         name,
         nickname: name.split(' ')[0],
-        start_date: startDate || new Date().toISOString().slice(0, 10),
-        is_admin: false,
-    });
+        start_date:   startDate  || new Date().toISOString().slice(0, 10),
+        is_admin:     false,
+    };
+    if (birthDate)   profileData.birth_date    = birthDate;
+    if (startWeight) profileData.start_weight  = startWeight;
+    if (goalWeight)  profileData.goal_weight   = goalWeight;
+    if (height)      profileData.height        = height;
+    if (gender)      profileData.gender        = gender;
+    if (goal)        profileData.goal          = goal;
+
+    await db.from('profiles').upsert(profileData);
 
     return res.status(200).json({ ok: true, userId: uid });
 };
