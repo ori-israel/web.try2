@@ -9,22 +9,11 @@
     <title>פורטל ליווי אישי - תוכנית עבודה</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="/manifest.json">
-    <!-- SW registration disabled during development — re-enable for production
     <script>
-        localStorage.removeItem('_dbg_load');
-        localStorage.removeItem('_dbg_modify');
-        (function() {
-            var _orig = localStorage.setItem.bind(localStorage);
-            localStorage.setItem = function(k, v) {
-                if (k === '_dbg_load' || k === '_dbg_modify') return;
-                _orig(k, v);
-            };
-        })();
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
         }
     </script>
-    -->
 </head>
 <body>
 
