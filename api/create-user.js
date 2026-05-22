@@ -51,23 +51,33 @@ module.exports = async (req, res) => {
 
     const uid = newUser.user.id;
 
-    // Create profile row
-    const profileData = {
-        id: uid,
-        email,
-        name,
-        nickname: name.split(' ')[0],
-        start_date:   startDate  || new Date().toISOString().slice(0, 10),
-        is_admin:     false,
-    };
-    if (birthDate)   profileData.birth_date    = birthDate;
-    if (startWeight) profileData.start_weight  = startWeight;
-    if (goalWeight)  profileData.goal_weight   = goalWeight;
-    if (height)      profileData.height        = height;
-    if (gender)      profileData.gender        = gender;
-    if (goal)        profileData.goal          = goal;
+    // Wait briefly for the DB trigger to create the profile row
+    await new Promise(r => setTimeout(r, 300));
 
-    await db.from('profiles').upsert(profileData);
+    // Update profile row with all provided data
+    const profileData = {
+        name,
+        nickname:      name.split(' ')[0],
+        start_date:    startDate  || new Date().toISOString().slice(0, 10),
+        is_admin:      false,
+        workouts_per_week: 3,
+        birth_date:    birthDate    || null,
+        start_weight:  startWeight  || null,
+        goal_weight:   goalWeight   || null,
+        height:        height       || null,
+        gender:        gender       || 'male',
+        goal:          goal         || 'cut',
+    };
+
+    const { error: updateErr } = await db
+        .from('profiles')
+        .update(profileData)
+        .eq('id', uid);
+
+    if (updateErr) {
+        console.error('[create-user] profile update error:', updateErr.message);
+        return res.status(500).json({ error: 'user created but profile update failed: ' + updateErr.message });
+    }
 
     return res.status(200).json({ ok: true, userId: uid });
 };
