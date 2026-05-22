@@ -5,6 +5,7 @@
 // Promise שמ-window.onload של app.js ממתין לו לפני אתחול
 let _resolveAuthReady;
 window._authReady = new Promise(r => { _resolveAuthReady = r; });
+let _appInitDone = false;
 
 // ── UI helpers ──────────────────────────────────────────────
 
@@ -66,6 +67,8 @@ async function reinitApp() {
         if (typeof renderWeightChart    === 'function') renderWeightChart();
         if (typeof checkBirthday        === 'function') checkBirthday();
     }, 150);
+    if (typeof checkThursdayBanner      === 'function') checkThursdayBanner();
+    if (typeof _showPWAPromptIfNeeded   === 'function') _showPWAPromptIfNeeded();
 }
 
 // ── Auth flow ────────────────────────────────────────────────
@@ -112,6 +115,7 @@ async function _loadClientAndShowApp(userId) {
     localStorage.setItem('last_reset_v4', `${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,'0')}-${String(_n.getDate()).padStart(2,'0')}`);
 
     // פתרון ה-promise כדי ש-window.onload יוכל להמשיך
+    _appInitDone = true;
     _resolveAuthReady();
 
     // אם window.onload כבר רץ — נריץ ידנית את פונקציות האתחול
@@ -531,9 +535,9 @@ function _renderOverviewMode(list) {
 
 async function adminViewClient(clientId) {
     // Re-verify admin status from DB on every client-view action (not just JS variable)
-    const { data: { user } } = await db.auth.getUser();
-    if (!user) return;
-    const { data: self, error } = await db.from('profiles').select('is_admin').eq('id', user.id).single();
+    const { data: { session } } = await db.auth.getSession();
+    if (!session?.user) return;
+    const { data: self, error } = await db.from('profiles').select('is_admin').eq('id', session.user.id).single();
     if (error || !self?.is_admin) {
         console.error('[adminViewClient] Access denied — not admin');
         return;
@@ -547,7 +551,8 @@ function adminBackToList() {
     document.getElementById('admin-hamburger-btn').style.display = 'none';
     _clearUserLocalStorage();
     SB_VIEW_ID = null;
-    _resolveAuthReady = () => {}; // שיחה נוספת לא תשפיע
+    window._authReady = new Promise(r => { _resolveAuthReady = r; });
+    _appInitDone = false;
     renderAdminPanel().then(() => _showOverlay('admin-overlay'));
 }
 
@@ -598,6 +603,7 @@ async function submitNewClient() {
 
     try {
         const { data: { session } } = await db.auth.getSession();
+        if (!session) throw new Error('פג תוקף החיבור — יש לרענן את הדף');
         const resp = await fetch('/api/create-user', {
             method: 'POST',
             headers: {
@@ -637,6 +643,7 @@ async function deleteClient(clientId, clientName) {
     if (!confirmed) return;
     try {
         const { data: { session } } = await db.auth.getSession();
+        if (!session) throw new Error('פג תוקף החיבור — יש לרענן את הדף');
         const resp = await fetch('/api/delete-user', {
             method: 'POST',
             headers: {

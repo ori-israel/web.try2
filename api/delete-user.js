@@ -1,5 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 module.exports = async (req, res) => {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
@@ -11,22 +13,18 @@ module.exports = async (req, res) => {
         return res.status(500).json({ error: 'server misconfigured' });
     }
 
-    const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+    const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY, {
+        auth: { autoRefreshToken: false, persistSession: false }
+    });
 
-    // Verify caller is admin
-    let callerId;
-    try {
-        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-        callerId = payload.sub;
-        if (!callerId) throw new Error('no sub');
-    } catch {
-        return res.status(401).json({ error: 'Invalid token' });
-    }
+    // Verify JWT signature via Supabase (not manual decode)
+    const { data: { user }, error: authErr } = await db.auth.getUser(token);
+    if (authErr || !user) return res.status(401).json({ error: 'Unauthorized' });
 
     const { data: caller, error: callerErr } = await db
         .from('profiles')
         .select('is_admin')
-        .eq('id', callerId)
+        .eq('id', user.id)
         .single();
 
     if (callerErr || !caller?.is_admin) {
@@ -34,13 +32,12 @@ module.exports = async (req, res) => {
     }
 
     const { userId } = req.body || {};
-    if (!userId) return res.status(400).json({ error: 'userId required' });
+    if (!userId || !UUID_RE.test(userId)) return res.status(400).json({ error: 'Invalid userId' });
 
-    // Prevent self-deletion
-    if (userId === callerId) return res.status(400).json({ error: 'cannot delete self' });
+    if (userId === user.id) return res.status(400).json({ error: 'cannot delete self' });
 
     const { error: deleteErr } = await db.auth.admin.deleteUser(userId);
-    if (deleteErr) return res.status(400).json({ error: deleteErr.message });
+    if (deleteErr) return res.status(400).json({ error: 'Delete failed' });
 
     return res.status(200).json({ ok: true });
 };

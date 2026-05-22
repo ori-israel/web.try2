@@ -1,4 +1,13 @@
-export const config = { api: { bodyParser: { sizeLimit: '10mb' } } };
+import { createClient } from '@supabase/supabase-js';
+
+export const config = { api: { bodyParser: { sizeLimit: '50kb' } } };
+
+const ALLOWED_MODELS = new Set([
+    'gemini-2.5-flash-lite',
+    'gemini-2.0-flash',
+    'gemini-1.5-flash',
+    'gemini-1.5-pro',
+]);
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -10,10 +19,42 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Gemini API key not configured' });
     }
 
-    const { model = 'gemini-2.5-flash-lite', payload } = req.body;
-    if (!payload) {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+        return res.status(500).json({ error: 'server misconfigured' });
+    }
+
+    // Verify user is authenticated
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+    const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY, {
+        auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    const { data: { user }, error: authErr } = await db.auth.getUser(token);
+    if (authErr || !user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { model = 'gemini-2.5-flash-lite', payload } = req.body || {};
+
+    if (!ALLOWED_MODELS.has(model)) {
+        return res.status(400).json({ error: 'Invalid model' });
+    }
+
+    if (!payload || typeof payload !== 'object') {
         return res.status(400).json({ error: 'Missing payload' });
     }
+
+    if (!payload.contents) {
+        return res.status(400).json({ error: 'Missing contents in payload' });
+    }
+
+    // Only forward known-safe fields — block safetySettings overrides
+    const safePayload = {
+        contents: payload.contents,
+        ...(payload.system_instruction ? { system_instruction: payload.system_instruction } : {}),
+        ...(payload.generation_config  ? { generation_config:  payload.generation_config  } : {}),
+    };
 
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
 
@@ -22,7 +63,7 @@ export default async function handler(req, res) {
         geminiRes = await fetch(geminiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(safePayload)
         });
         if (geminiRes.status !== 503 || attempt === 2) break;
         await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
