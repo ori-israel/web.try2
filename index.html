@@ -1112,7 +1112,7 @@
 </div>
 
 <!-- Food Scanner Modal -->
-<div id="food-scanner-modal" class="modal-overlay hidden">
+<div id="food-scanner-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeFoodScanner()">
   <div class="modal-card">
     <button class="modal-close" onclick="closeFoodScanner()">✕</button>
     <h3 style="margin: 0 0 16px; text-align: center;">📷 זיהוי אוכל מתמונה</h3>
