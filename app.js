@@ -1972,12 +1972,12 @@ function checkNutritionStreak() {
 function completeNutritionStreak() {
     if (CLIENT.vacationMode) return;
     const today = localDateStr();
-    if (sessionStorage.getItem('nutrition_completed_date') === today) return;
+    if (localStorage.getItem('nutrition_completed_date') === today) return;
 
-    sessionStorage.setItem('nutrition_completed_date', today);
-    let streak = parseInt(sessionStorage.getItem('nutrition_streak') || '0');
+    localStorage.setItem('nutrition_completed_date', today);
+    let streak = parseInt(localStorage.getItem('nutrition_streak') || '0');
     streak++;
-    sessionStorage.setItem('nutrition_streak', streak);
+    localStorage.setItem('nutrition_streak', streak);
     document.getElementById('nutrition-streak-count').innerText = streak;
     if (typeof syncStreaksNow === 'function') syncStreaksNow();
     if (streak === 7 && typeof _showAchievementPopup === 'function') _showAchievementPopup('streak_7_nutrition');
@@ -2001,8 +2001,8 @@ function updateNutritionStreak() {
     const today = new Date();
     const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-    let streak = parseInt(sessionStorage.getItem('nutrition_streak') || '0');
-    const lastCompleted = sessionStorage.getItem('nutrition_completed_date');
+    let streak = parseInt(localStorage.getItem('nutrition_streak') || '0');
+    const lastCompleted = localStorage.getItem('nutrition_completed_date');
 
     if (CLIENT.vacationMode) {
         const el = document.getElementById('nutrition-streak-count');
@@ -2021,7 +2021,7 @@ function updateNutritionStreak() {
 
     if (daysDiff > 1) {
         streak = 0;
-        sessionStorage.setItem('nutrition_streak', '0');
+        localStorage.setItem('nutrition_streak', '0');
     }
 
     document.getElementById('nutrition-streak-count').innerText = streak;
