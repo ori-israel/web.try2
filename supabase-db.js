@@ -188,9 +188,15 @@ async function sbDeleteProgressPhoto(photoId, storagePath) {
     await db.storage.from('progress-photos').remove([storagePath]);
 }
 
-function sbGetProgressPhotoUrl(storagePath) {
-    const { data } = db.storage.from('progress-photos').getPublicUrl(storagePath);
-    return data.publicUrl;
+async function sbGetSignedPhotoUrls(storagePaths) {
+    if (!storagePaths.length) return {};
+    const { data, error } = await db.storage
+        .from('progress-photos')
+        .createSignedUrls(storagePaths, 3600);
+    if (error || !data) return {};
+    const map = {};
+    data.forEach(s => { if (s.signedUrl) map[s.path] = s.signedUrl; });
+    return map;
 }
 
 async function sbUpdateLastSeen(uid) {

@@ -2436,10 +2436,13 @@ async function loadProgressPhotos() {
         return;
     }
 
+    const signedUrls = await sbGetSignedPhotoUrls(photos.map(p => p.storage_path));
+
     const wrapper = document.createElement('div');
     wrapper.style.cssText = 'display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin;';
     photos.forEach(p => {
-        const url = sbGetProgressPhotoUrl(p.storage_path);
+        const url = signedUrls[p.storage_path];
+        if (!url) return;
         const dateStr = new Date(p.uploaded_at).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: '2-digit' });
         const item = document.createElement('div');
         item.style.flexShrink = '0';
