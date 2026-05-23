@@ -2440,13 +2440,11 @@ async function loadProgressPhotos() {
         ${photos.map(p => {
             const url = sbGetProgressPhotoUrl(p.storage_path);
             const dateStr = new Date(p.uploaded_at).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: '2-digit' });
-            return `<div style="position:relative;flex-shrink:0;">
+            return `<div style="flex-shrink:0;">
                 <img src="${url}" alt="תמונת התקדמות"
-                    onclick="openProgressPhoto('${url}')"
+                    onclick="openProgressPhoto('${url}','${p.id}','${p.storage_path}')"
                     style="width:72px;height:72px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border);display:block;">
                 <div style="font-size:10px;color:var(--text-secondary);text-align:center;margin-top:2px;">${dateStr}</div>
-                <button onclick="deleteProgressPhoto('${p.id}','${p.storage_path}')"
-                    style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.6);border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;color:white;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;">✕</button>
             </div>`;
         }).join('')}
     </div>`;
@@ -2487,12 +2485,31 @@ async function deleteProgressPhoto(photoId, storagePath) {
     await loadProgressPhotos();
 }
 
-function openProgressPhoto(url) {
+function openProgressPhoto(url, photoId, storagePath) {
     const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;padding:20px;cursor:pointer;';
-    overlay.innerHTML = `<img src="${url}" style="max-width:100%;max-height:90vh;border-radius:10px;object-fit:contain;">
-        <button style="position:absolute;top:16px;left:16px;background:none;border:none;font-size:28px;color:white;cursor:pointer;line-height:1;">✕</button>`;
-    overlay.addEventListener('click', () => overlay.remove());
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;';
+    overlay.innerHTML = `
+        <button id="pp-close" style="position:absolute;top:16px;left:16px;background:none;border:none;font-size:28px;color:white;cursor:pointer;line-height:1;">✕</button>
+        <img src="${url}" style="max-width:100%;max-height:80vh;border-radius:10px;object-fit:contain;">
+        <button id="pp-delete" style="margin-top:20px;background:#e55;color:white;border:none;border-radius:12px;padding:10px 28px;font-size:15px;font-weight:bold;cursor:pointer;">🗑 מחיקת תמונה</button>`;
+    overlay.querySelector('#pp-close').addEventListener('click', () => overlay.remove());
+    overlay.querySelector('#pp-delete').addEventListener('click', () => {
+        const confirmed = document.createElement('div');
+        confirmed.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:10000;';
+        confirmed.innerHTML = `
+            <div style="color:white;font-size:18px;font-weight:bold;text-align:center;">למחוק את התמונה?</div>
+            <div style="display:flex;gap:12px;">
+                <button id="pp-confirm-yes" style="background:#e55;color:white;border:none;border-radius:10px;padding:10px 28px;font-size:15px;font-weight:bold;cursor:pointer;">מחיקה</button>
+                <button id="pp-confirm-no" style="background:rgba(255,255,255,0.15);color:white;border:none;border-radius:10px;padding:10px 28px;font-size:15px;cursor:pointer;">ביטול</button>
+            </div>`;
+        confirmed.querySelector('#pp-confirm-yes').addEventListener('click', async () => {
+            overlay.remove();
+            await deleteProgressPhoto(photoId, storagePath);
+        });
+        confirmed.querySelector('#pp-confirm-no').addEventListener('click', () => confirmed.remove());
+        overlay.appendChild(confirmed);
+    });
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
     document.body.appendChild(overlay);
 }
 
