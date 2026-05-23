@@ -2428,32 +2428,51 @@ async function loadProgressPhotos() {
     const photos = await sbFetchProgressPhotos(uid);
     const count = photos.length;
 
-    countEl.textContent = count > 0 ? `${count}/${PROGRESS_PHOTOS_LIMIT}` : '';
-    uploadLabel.style.display = count >= PROGRESS_PHOTOS_LIMIT ? 'none' : '';
+    if (countEl) countEl.textContent = count > 0 ? `${count}/${PROGRESS_PHOTOS_LIMIT}` : '';
+    if (uploadLabel) uploadLabel.style.display = count >= PROGRESS_PHOTOS_LIMIT ? 'none' : '';
 
     if (count === 0) {
         gallery.innerHTML = `<span style="color:var(--text-secondary);font-size:0.88rem;">עדיין לא הועלתה תמונת התקדמות</span>`;
         return;
     }
 
-    gallery.innerHTML = `<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin;">
-        ${photos.map(p => {
-            const url = sbGetProgressPhotoUrl(p.storage_path);
-            const dateStr = new Date(p.uploaded_at).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: '2-digit' });
-            return `<div style="flex-shrink:0;">
-                <img src="${url}" alt="תמונת התקדמות"
-                    onclick="openProgressPhoto('${url}','${p.id}','${p.storage_path}')"
-                    style="width:72px;height:72px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border);display:block;">
-                <div style="font-size:10px;color:var(--text-secondary);text-align:center;margin-top:2px;">${dateStr}</div>
-            </div>`;
-        }).join('')}
-    </div>`;
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin;';
+    photos.forEach(p => {
+        const url = sbGetProgressPhotoUrl(p.storage_path);
+        const dateStr = new Date(p.uploaded_at).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        const item = document.createElement('div');
+        item.style.flexShrink = '0';
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = 'תמונת התקדמות';
+        img.style.cssText = 'width:72px;height:72px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border);display:block;';
+        img.addEventListener('click', () => openProgressPhoto(url, p.id, p.storage_path));
+        const label = document.createElement('div');
+        label.style.cssText = 'font-size:10px;color:var(--text-secondary);text-align:center;margin-top:2px;';
+        label.textContent = dateStr;
+        item.appendChild(img);
+        item.appendChild(label);
+        wrapper.appendChild(item);
+    });
+    gallery.innerHTML = '';
+    gallery.appendChild(wrapper);
 }
 
 async function uploadProgressPhoto(input) {
     const file = input.files[0];
     if (!file) return;
     input.value = '';
+
+    if (!file.type.startsWith('image/')) {
+        _showProgressPhotoToast('ניתן להעלות תמונות בלבד', false);
+        return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+        _showProgressPhotoToast('התמונה גדולה מדי — מקסימום 10MB', false);
+        return;
+    }
+
     const uid = getActiveUserId();
     if (!uid) return;
 

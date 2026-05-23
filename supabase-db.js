@@ -183,8 +183,9 @@ async function sbUploadProgressPhoto(userId, file) {
 }
 
 async function sbDeleteProgressPhoto(photoId, storagePath) {
+    const { error: dbErr } = await db.from('progress_photos').delete().eq('id', photoId);
+    if (dbErr) throw dbErr;
     await db.storage.from('progress-photos').remove([storagePath]);
-    await db.from('progress_photos').delete().eq('id', photoId);
 }
 
 function sbGetProgressPhotoUrl(storagePath) {
