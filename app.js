@@ -2487,11 +2487,11 @@ async function deleteProgressPhoto(photoId, storagePath) {
 
 function openProgressPhoto(url, photoId, storagePath) {
     const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;padding:20px;';
     overlay.innerHTML = `
         <button id="pp-close" style="position:absolute;top:16px;left:16px;background:none;border:none;font-size:28px;color:white;cursor:pointer;line-height:1;">✕</button>
-        <img src="${url}" style="max-width:100%;max-height:80vh;border-radius:10px;object-fit:contain;">
-        <button id="pp-delete" style="margin-top:20px;background:#e55;color:white;border:none;border-radius:12px;padding:10px 28px;font-size:15px;font-weight:bold;cursor:pointer;">🗑 מחיקת תמונה</button>`;
+        <button id="pp-delete" style="position:absolute;top:16px;right:16px;background:#e55;color:white;border:none;border-radius:10px;padding:7px 16px;font-size:14px;font-weight:bold;cursor:pointer;">🗑 מחיקת תמונה</button>
+        <img src="${url}" style="max-width:100%;max-height:88vh;border-radius:10px;object-fit:contain;">`;
     overlay.querySelector('#pp-close').addEventListener('click', () => overlay.remove());
     overlay.querySelector('#pp-delete').addEventListener('click', () => {
         const confirmed = document.createElement('div');
