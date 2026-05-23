@@ -406,6 +406,7 @@ function closeCompleteMsg() {
                     delete _trackingWidgetCache['history_' + uid];
                     renderScoreHistory(uid);
                 }
+                loadProgressPhotos();
 }
             if (tabId === 'tab2') {
     initWorkoutsFromClient();
@@ -2411,5 +2412,95 @@ function addScannedPortions() {
     toast.style.cssText = `position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:9999;box-shadow:0 4px 15px rgba(0,0,0,0.2);animation:fadeIn 0.3s ease;white-space:nowrap;`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
+}
+
+// ── Progress Photos ──────────────────────────────────────────────────────────
+
+const PROGRESS_PHOTOS_LIMIT = 10;
+
+async function loadProgressPhotos() {
+    const uid = getActiveUserId();
+    const gallery = document.getElementById('progress-photos-gallery');
+    const countEl = document.getElementById('progress-photos-count');
+    const uploadLabel = document.getElementById('progress-photo-upload-label');
+    if (!gallery || !uid) return;
+
+    const photos = await sbFetchProgressPhotos(uid);
+    const count = photos.length;
+
+    countEl.textContent = count > 0 ? `${count}/${PROGRESS_PHOTOS_LIMIT}` : '';
+    uploadLabel.style.display = count >= PROGRESS_PHOTOS_LIMIT ? 'none' : '';
+
+    if (count === 0) {
+        gallery.innerHTML = `<span style="color:var(--text-secondary);font-size:0.88rem;">עדיין לא הועלתה תמונת התקדמות</span>`;
+        return;
+    }
+
+    gallery.innerHTML = `<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin;">
+        ${photos.map(p => {
+            const url = sbGetProgressPhotoUrl(p.storage_path);
+            const dateStr = new Date(p.uploaded_at).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: '2-digit' });
+            return `<div style="position:relative;flex-shrink:0;">
+                <img src="${url}" alt="תמונת התקדמות"
+                    onclick="openProgressPhoto('${url}')"
+                    style="width:72px;height:72px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border);display:block;">
+                <div style="font-size:10px;color:var(--text-secondary);text-align:center;margin-top:2px;">${dateStr}</div>
+                <button onclick="deleteProgressPhoto('${p.id}','${p.storage_path}')"
+                    style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.6);border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;color:white;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;">✕</button>
+            </div>`;
+        }).join('')}
+    </div>`;
+}
+
+async function uploadProgressPhoto(input) {
+    const file = input.files[0];
+    if (!file) return;
+    input.value = '';
+    const uid = getActiveUserId();
+    if (!uid) return;
+
+    const existing = await sbFetchProgressPhotos(uid);
+    if (existing.length >= PROGRESS_PHOTOS_LIMIT) {
+        _showProgressPhotoToast(`הגעת למגבלת ${PROGRESS_PHOTOS_LIMIT} תמונות`, false);
+        return;
+    }
+
+    const gallery = document.getElementById('progress-photos-gallery');
+    if (gallery) gallery.innerHTML = `<span style="color:var(--text-secondary);font-size:0.88rem;">מעלה תמונה...</span>`;
+
+    try {
+        await sbUploadProgressPhoto(uid, file);
+        _showProgressPhotoToast('התמונה נשמרה ✓');
+    } catch (e) {
+        console.error('[uploadProgressPhoto]', e);
+        _showProgressPhotoToast('שגיאה בהעלאה', false);
+    }
+    await loadProgressPhotos();
+}
+
+async function deleteProgressPhoto(photoId, storagePath) {
+    try {
+        await sbDeleteProgressPhoto(photoId, storagePath);
+    } catch (e) {
+        console.error('[deleteProgressPhoto]', e);
+    }
+    await loadProgressPhotos();
+}
+
+function openProgressPhoto(url) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;padding:20px;cursor:pointer;';
+    overlay.innerHTML = `<img src="${url}" style="max-width:100%;max-height:90vh;border-radius:10px;object-fit:contain;">
+        <button style="position:absolute;top:16px;left:16px;background:none;border:none;font-size:28px;color:white;cursor:pointer;line-height:1;">✕</button>`;
+    overlay.addEventListener('click', () => overlay.remove());
+    document.body.appendChild(overlay);
+}
+
+function _showProgressPhotoToast(msg, success = true) {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = `position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:${success ? '#22c55e' : '#e55'};color:white;padding:10px 22px;border-radius:20px;font-size:14px;font-weight:bold;z-index:99999;box-shadow:0 4px 15px rgba(0,0,0,0.2);white-space:nowrap;`;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
 }
 

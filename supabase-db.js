@@ -156,6 +156,42 @@ function sbGetAvatarUrl(uid) {
     return data.publicUrl;
 }
 
+async function sbFetchProgressPhotos(userId) {
+    const { data, error } = await db
+        .from('progress_photos')
+        .select('id, storage_path, uploaded_at')
+        .eq('user_id', userId)
+        .order('uploaded_at', { ascending: false });
+    if (error) return [];
+    return data || [];
+}
+
+async function sbUploadProgressPhoto(userId, file) {
+    const ext = file.name.split('.').pop() || 'jpg';
+    const path = `${userId}/${Date.now()}.${ext}`;
+    const { error: upErr } = await db.storage
+        .from('progress-photos')
+        .upload(path, file, { contentType: file.type });
+    if (upErr) throw upErr;
+    const { error: dbErr } = await db
+        .from('progress_photos')
+        .insert({ user_id: userId, storage_path: path });
+    if (dbErr) {
+        await db.storage.from('progress-photos').remove([path]);
+        throw dbErr;
+    }
+}
+
+async function sbDeleteProgressPhoto(photoId, storagePath) {
+    await db.storage.from('progress-photos').remove([storagePath]);
+    await db.from('progress_photos').delete().eq('id', photoId);
+}
+
+function sbGetProgressPhotoUrl(storagePath) {
+    const { data } = db.storage.from('progress-photos').getPublicUrl(storagePath);
+    return data.publicUrl;
+}
+
 async function sbUpdateLastSeen(uid) {
     const { error } = await db
         .from('profiles')
