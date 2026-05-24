@@ -35,7 +35,8 @@ export default async function handler(req, res) {
         .eq('user_id', user.id).eq('type', scanType).gte('created_at', hourAgo);
     if (count >= rateLimit) return res.status(429).json({ error: rateLimitMsg });
 
-    await db.from('scan_logs').insert({ user_id: user.id, type: scanType });
+    const { error: insertErr } = await db.from('scan_logs').insert({ user_id: user.id, type: scanType });
+    if (insertErr) console.error('scan_logs insert error:', JSON.stringify(insertErr));
     if (!prompt) return res.status(400).json({ error: 'Missing prompt' });
 
     const messages = [{
