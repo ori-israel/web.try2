@@ -31,8 +31,9 @@ export default async function handler(req, res) {
         : 'הגעת למגבלת 10 סריקות בשעה. נסה שוב מאוחר יותר.';
 
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { count } = await db.from('scan_logs').select('*', { count: 'exact', head: true })
+    const { count, error: countErr } = await db.from('scan_logs').select('*', { count: 'exact', head: true })
         .eq('user_id', user.id).eq('type', scanType).gte('created_at', hourAgo);
+    console.log('rate limit check:', { count, scanType, rateLimit, countErr });
     if (count >= rateLimit) return res.status(429).json({ error: rateLimitMsg });
 
     const { error: insertErr } = await db.from('scan_logs').insert({ user_id: user.id, type: scanType });
