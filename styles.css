@@ -1604,7 +1604,7 @@ mark {
         background: var(--accent-light);
     }
 
-    .accord-detail.weight-detail .accord-detail-value { color: var(--accent); }
+    .accord-detail.weight-detail .accord-detail-value { color: var(--text-primary); }
 
     .accord-video-link { display: block; text-align: center; padding: 0 8px 12px; }
 
