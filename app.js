@@ -2358,12 +2358,11 @@ async function analyzeFood(base64, mimeType, correction) {
         scannedItems = Array.isArray(result.items) ? result.items : [];
 
         document.getElementById('scan-food-name').textContent = `🍽️ ${result.food}`;
-        const inputStyle = `width:52px;padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg-input,var(--tag-bg));color:var(--text-primary);font-size:14px;font-weight:700;text-align:center;`;
         document.getElementById('scan-portions').innerHTML =
-            `<div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">` +
-            `<div style="display:flex;align-items:center;justify-content:space-between;">🥩 חלבון <span style="color:#888;font-size:13px;">(${scannedGrams.protein}g)</span> <span style="display:flex;align-items:center;gap:4px;"><input id="scan-input-protein" type="number" min="0" step="0.5" value="${scannedPortions.protein}" style="${inputStyle}"> מנות</span></div>` +
-            `<div style="display:flex;align-items:center;justify-content:space-between;">🍚 פחמימה <span style="color:#888;font-size:13px;">(${scannedGrams.carbs}g)</span> <span style="display:flex;align-items:center;gap:4px;"><input id="scan-input-carbs" type="number" min="0" step="0.5" value="${scannedPortions.carbs}" style="${inputStyle}"> מנות</span></div>` +
-            `<div style="display:flex;align-items:center;justify-content:space-between;">🥑 שומן <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span> <span style="display:flex;align-items:center;gap:4px;"><input id="scan-input-fat" type="number" min="0" step="0.5" value="${scannedPortions.fat}" style="${inputStyle}"> מנות</span></div>` +
+            `<div style="display:flex; flex-direction:column; gap:6px;">` +
+            `<div>🥩 חלבון: <b>${scannedPortions.protein} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.protein}g)</span></div>` +
+            `<div>🍚 פחמימה: <b>${scannedPortions.carbs} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.carbs}g)</span></div>` +
+            `<div>🥑 שומן: <b>${scannedPortions.fat} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span></div>` +
             `</div>`;
 
         const detailsBtn = document.getElementById('scan-details-btn');
@@ -2447,12 +2446,11 @@ async function recalculate() {
         scannedPortions = { protein: round(Math.max(0, scannedGrams.protein / 27.5)), fat: round(Math.max(0, scannedGrams.fat / 12.5)), carbs: round(Math.max(0, scannedGrams.carbs / 37.5)) };
         scannedItems = Array.isArray(result.items) ? result.items : [];
         document.getElementById('scan-food-name').textContent = `🍽️ ${result.food}`;
-        const inputStyle = `width:52px;padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg-input,var(--tag-bg));color:var(--text-primary);font-size:14px;font-weight:700;text-align:center;`;
         document.getElementById('scan-portions').innerHTML =
-            `<div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">` +
-            `<div style="display:flex;align-items:center;justify-content:space-between;">🥩 חלבון <span style="color:#888;font-size:13px;">(${scannedGrams.protein}g)</span> <span style="display:flex;align-items:center;gap:4px;"><input id="scan-input-protein" type="number" min="0" step="0.5" value="${scannedPortions.protein}" style="${inputStyle}"> מנות</span></div>` +
-            `<div style="display:flex;align-items:center;justify-content:space-between;">🍚 פחמימה <span style="color:#888;font-size:13px;">(${scannedGrams.carbs}g)</span> <span style="display:flex;align-items:center;gap:4px;"><input id="scan-input-carbs" type="number" min="0" step="0.5" value="${scannedPortions.carbs}" style="${inputStyle}"> מנות</span></div>` +
-            `<div style="display:flex;align-items:center;justify-content:space-between;">🥑 שומן <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span> <span style="display:flex;align-items:center;gap:4px;"><input id="scan-input-fat" type="number" min="0" step="0.5" value="${scannedPortions.fat}" style="${inputStyle}"> מנות</span></div>` +
+            `<div style="display:flex; flex-direction:column; gap:6px;">` +
+            `<div>🥩 חלבון: <b>${scannedPortions.protein} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.protein}g)</span></div>` +
+            `<div>🍚 פחמימה: <b>${scannedPortions.carbs} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.carbs}g)</span></div>` +
+            `<div>🥑 שומן: <b>${scannedPortions.fat} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span></div>` +
             `</div>`;
         const detailsBtn = document.getElementById('scan-details-btn');
         const detailsBox = document.getElementById('scan-details-box');
@@ -2469,9 +2467,9 @@ async function recalculate() {
 }
 
 function addScannedPortions() {
-    const protein = parseFloat(document.getElementById('scan-input-protein')?.value ?? scannedPortions.protein) || 0;
-    const carbs   = parseFloat(document.getElementById('scan-input-carbs')?.value   ?? scannedPortions.carbs)   || 0;
-    const fat     = parseFloat(document.getElementById('scan-input-fat')?.value     ?? scannedPortions.fat)     || 0;
+    const protein = scannedPortions.protein || 0;
+    const carbs   = scannedPortions.carbs   || 0;
+    const fat     = scannedPortions.fat     || 0;
     const added = [];
     if (protein > 0) { modifyPortion('protein', protein); added.push(`חלבון +${protein}`); }
     if (carbs   > 0) { modifyPortion('carbs',   carbs);   added.push(`פחמימה +${carbs}`); }
