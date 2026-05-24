@@ -35,6 +35,14 @@ export default async function handler(req, res) {
     const { data: { user }, error: authErr } = await db.auth.getUser(token);
     if (authErr || !user) return res.status(401).json({ error: 'Unauthorized' });
 
+    // Rate limit: 10 scans per hour per user
+    const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count } = await db.from('scan_logs').select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id).gte('created_at', hourAgo);
+    if (count >= 10) return res.status(429).json({ error: 'הגעת למגבלת 10 סריקות בשעה. נסה שוב מאוחר יותר.' });
+
+    await db.from('scan_logs').insert({ user_id: user.id });
+
     const { model = 'gemini-2.5-flash-lite', payload } = req.body || {};
 
     if (!ALLOWED_MODELS.has(model)) {
