@@ -14,16 +14,17 @@ module.exports = async (req, res) => {
         process.env.SUPABASE_SERVICE_KEY
     );
 
-    // Week that just ended: Mon–Sun where Sun = today (cron runs Sun 00:02 UTC)
+    // Week that just ended: Sun–Sat (Israeli calendar). Cron runs Sun 00:02 UTC = Sat just ended.
     const now = new Date();
     now.setUTCHours(0, 0, 0, 0);
-    const sun = new Date(now);
-    const mon = new Date(sun);
-    mon.setUTCDate(sun.getUTCDate() - 6);
+    const sat = new Date(now);
+    sat.setUTCDate(now.getUTCDate() - 1); // yesterday = Saturday
+    const sun = new Date(sat);
+    sun.setUTCDate(sat.getUTCDate() - 6); // 6 days before Sat = Sunday
 
     const fmt = d => d.toISOString().split('T')[0];
-    const weekStart = fmt(mon);
-    const weekEnd   = fmt(sun);
+    const weekStart = fmt(sun);
+    const weekEnd   = fmt(sat);
 
     console.log(`Saving weekly scores for ${weekStart} – ${weekEnd}`);
 
