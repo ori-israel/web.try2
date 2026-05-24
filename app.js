@@ -2785,12 +2785,16 @@ async function recalculate() {
     document.getElementById('scanner-step-2').classList.add('hidden');
     document.getElementById('scanner-loading').classList.remove('hidden');
 
-    const prompt = `הערת המשתמש לגבי מנה שזוהתה: "${correction}"
+    const itemsList = scannedItems.map((it, i) => `${i}: ${it.name} (${it.grams}g)`).join('\n');
+    const prompt = `רשימת הפריטים במנה:
+${itemsList}
 
-זהה מה המשתמש רוצה לשנות — שם הפריט וכמות חדשה — והחזר JSON בלבד:
-{"name": "שם הפריט בעברית", "grams": X, "protein_g": X, "fat_g": X, "carbs_g": X}
+הערת המשתמש: "${correction}"
 
-חשב מאקרו לפריט החדש בלבד לפי USDA. אם לא ברור מה הפריט — נחש לפי ההקשר.`;
+זהה איזה פריט מהרשימה המשתמש רוצה לשנות ומה הכמות החדשה. החזר JSON בלבד:
+{"index": X, "grams": Y}
+
+index = מספר הפריט ברשימה. אם לא ברור — בחר לפי קרבה בשם.`;
 
     try {
         const { data: { session: _s } } = await db.auth.getSession();
@@ -2822,17 +2826,10 @@ async function recalculate() {
         const jsonMatch = fullText.match(/\{[\s\S]*\}/);
         if (!jsonMatch) throw new Error('no JSON');
         const changed = JSON.parse(jsonMatch[0]);
-
-        // מחפש פריט קיים עם שם דומה ומחליף — אחרת מוסיף
-        const idx = scannedItems.findIndex(i => i.name === changed.name);
-        if (idx >= 0) {
-            scannedItems[idx] = enrichItemMacros(changed);
-        } else {
-            // ננסה להתאים לפי מילה ראשונה
-            const firstWord = changed.name.split(' ')[0];
-            const fuzzyIdx = scannedItems.findIndex(i => i.name.includes(firstWord) || firstWord.includes(i.name.split(' ')[0]));
-            if (fuzzyIdx >= 0) scannedItems[fuzzyIdx] = enrichItemMacros(changed);
-            else scannedItems.push(enrichItemMacros(changed));
+        const idx = (changed.index !== undefined && changed.index >= 0 && changed.index < scannedItems.length)
+            ? changed.index : -1;
+        if (idx >= 0 && changed.grams > 0) {
+            scannedItems[idx] = enrichItemMacros({ ...scannedItems[idx], grams: changed.grams });
         }
 
         // מחשב סכום מכל הפריטים בקוד — לא מסתמך על AI
