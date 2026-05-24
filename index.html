@@ -1148,14 +1148,9 @@
       <div id="scan-portions" style="margin:8px 0;"></div>
       <button id="scan-details-btn" class="hidden" onclick="toggleScanDetails()" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;padding:4px 0;text-decoration:underline;">▼ פרטים נוספים</button>
       <div id="scan-details-box" class="hidden" style="font-size:13px;color:#aaa;margin:6px 0 4px;display:flex;flex-direction:column;gap:3px;"></div>
-      <p class="scan-disclaimer">⚠️ הערכה בלבד – לא מדויק, נותן כיוון</p>
+      <p class="scan-disclaimer">⚠️ הערכה בלבד – ניתן לערוך לפני הוספה</p>
       <div style="margin-top:14px;">
-        <label style="font-size:13px; color:#aaa;">תיקון זיהוי:</label>
-        <input type="text" id="scan-correction" placeholder="לתיקון הזיהוי במידה ושגוי" class="scan-input">
-        <div style="display:flex; gap:8px; margin-top:10px;">
-          <button class="scan-action-btn secondary" onclick="recalculate()">חישוב מחדש 🔄</button>
-          <button class="scan-action-btn primary" onclick="addScannedPortions()">הוספת מנות ✅</button>
-        </div>
+        <button class="scan-action-btn primary" style="width:100%" onclick="addScannedPortions()">הוספת מנות ✅</button>
       </div>
     </div>
   </div>
