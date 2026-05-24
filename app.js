@@ -2405,18 +2405,18 @@ async function recalculate() {
         ? scannedItems.map(i => `- ${i.name}: ${Math.round(i.grams)}g`).join('\n')
         : `- חלבון: ${scannedGrams.protein}g\n- פחמימה: ${scannedGrams.carbs}g\n- שומן: ${scannedGrams.fat}g`;
 
-    const prompt = `רשימת מרכיבי המנה הנוכחית (קבועים — אל תשנה אלא אם הוזכרו במפורש):
+    const prompt = `רשימת מרכיבי המנה — כל פריט נעול עם הגרמים שלו:
 ${itemsList}
-
-סה"כ נוכחי: חלבון ${scannedGrams.protein}g | פחמימה ${scannedGrams.carbs}g | שומן ${scannedGrams.fat}g
 
 הערת המשתמש: "${correction}"
 
 הוראות חובה:
-1. שנה אך ורק פריטים שהוזכרו במפורש בהערת המשתמש
-2. את כל שאר הפריטים — השאר בדיוק בגרמים שרשומים למעלה, ללא שינוי
-3. חשב את סה"כ המאקרו מחדש לפי ערכי USDA — סכום כל הפריטים לאחר השינוי
-4. החזר JSON בלבד: {"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם", "grams": X}]}`;
+1. שנה אך ורק את הפריט/ים שהמשתמש הזכיר במפורש — כל פריט אחר נשאר עם אותם גרמים בדיוק, ללא כל שינוי
+2. חשב מאקרו לכל פריט בנפרד לפי USDA, ואז סכם:
+   - protein_g = סכום חלבון מכל הפריטים
+   - fat_g = סכום שומן מכל הפריטים
+   - carbs_g = סכום פחמימות מכל הפריטים
+3. החזר JSON בלבד: {"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם", "grams": X}]}`;
 
     try {
         const { data: { session: _s } } = await db.auth.getSession();
