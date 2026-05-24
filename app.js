@@ -2292,14 +2292,16 @@ async function analyzeFood(base64, mimeType, correction) {
     mimeType = compressed.mimeType;
 
     const correctionNote = correction ? `שים לב: ${correction}. ` : '';
-    const prompt = `${correctionNote}זהה את האוכל בתמונה והעריך כמויות בגרמים בצורה מדויקת ככל האפשר.
+    const prompt = `${correctionNote}זהה את האוכל בתמונה והעריך כמויות בצורה מדויקת ככל האפשר.
 הנחיות:
 - העריך לפי גודל המנה הנראה בתמונה ביחס לצלחת/כלי
 - השתמש בערכי מאגר USDA לחישוב מאקרו לפי גרמים
 - אם לא ניתן לזהות בוודאות — העריך טווח ובחר את האמצע
 - items חייב לכלול כל רכיב בנפרד (לדוגמה: אורז, חזה עוף, שמן)
+- עבור כל פריט ב-items: חשב מאקרו לאותו פריט בלבד לפי USDA
+- protein_g/fat_g/carbs_g ברמת ה-food = סכום כל הפריטים
 החזר JSON בלבד, ללא טקסט נוסף:
-{"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם מאכל", "grams": X}, ...]}`;
+{"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם מאכל", "grams": X, "protein_g": X, "fat_g": X, "carbs_g": X}, ...]}`;
 
     try {
         const { data: { session: _scanSession } } = await db.auth.getSession();
@@ -2401,22 +2403,12 @@ async function recalculate() {
     document.getElementById('scanner-step-2').classList.add('hidden');
     document.getElementById('scanner-loading').classList.remove('hidden');
 
-    const itemsList = scannedItems.length
-        ? scannedItems.map(i => `- ${i.name}: ${Math.round(i.grams)}g`).join('\n')
-        : `- חלבון: ${scannedGrams.protein}g\n- פחמימה: ${scannedGrams.carbs}g\n- שומן: ${scannedGrams.fat}g`;
+    const prompt = `הערת המשתמש לגבי מנה שזוהתה: "${correction}"
 
-    const prompt = `רשימת מרכיבי המנה — כל פריט נעול עם הגרמים שלו:
-${itemsList}
+זהה מה המשתמש רוצה לשנות — שם הפריט וכמות חדשה — והחזר JSON בלבד:
+{"name": "שם הפריט בעברית", "grams": X, "protein_g": X, "fat_g": X, "carbs_g": X}
 
-הערת המשתמש: "${correction}"
-
-הוראות חובה:
-1. שנה אך ורק את הפריט/ים שהמשתמש הזכיר במפורש — כל פריט אחר נשאר עם אותם גרמים בדיוק, ללא כל שינוי
-2. חשב מאקרו לכל פריט בנפרד לפי USDA, ואז סכם:
-   - protein_g = סכום חלבון מכל הפריטים
-   - fat_g = סכום שומן מכל הפריטים
-   - carbs_g = סכום פחמימות מכל הפריטים
-3. החזר JSON בלבד: {"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם", "grams": X}]}`;
+חשב מאקרו לפריט החדש בלבד לפי USDA. אם לא ברור מה הפריט — נחש לפי ההקשר.`;
 
     try {
         const { data: { session: _s } } = await db.auth.getSession();
@@ -2447,12 +2439,33 @@ ${itemsList}
         }
         const jsonMatch = fullText.match(/\{[\s\S]*\}/);
         if (!jsonMatch) throw new Error('no JSON');
-        const result = JSON.parse(jsonMatch[0]);
-        scannedGrams = { protein: Math.round(result.protein_g || 0), fat: Math.round(result.fat_g || 0), carbs: Math.round(result.carbs_g || 0) };
+        const changed = JSON.parse(jsonMatch[0]);
+
+        // מחפש פריט קיים עם שם דומה ומחליף — אחרת מוסיף
+        const idx = scannedItems.findIndex(i => i.name === changed.name);
+        if (idx >= 0) {
+            scannedItems[idx] = changed;
+        } else {
+            // ננסה להתאים לפי מילה ראשונה
+            const firstWord = changed.name.split(' ')[0];
+            const fuzzyIdx = scannedItems.findIndex(i => i.name.includes(firstWord) || firstWord.includes(i.name.split(' ')[0]));
+            if (fuzzyIdx >= 0) scannedItems[fuzzyIdx] = changed;
+            else scannedItems.push(changed);
+        }
+
+        // מחשב סכום מכל הפריטים בקוד — לא מסתמך על AI
         const round = v => Math.round(v * 2) / 2;
-        scannedPortions = { protein: round(Math.max(0, scannedGrams.protein / 27.5)), fat: round(Math.max(0, scannedGrams.fat / 12.5)), carbs: round(Math.max(0, scannedGrams.carbs / 37.5)) };
-        scannedItems = Array.isArray(result.items) ? result.items : [];
-        document.getElementById('scan-food-name').textContent = `🍽️ ${result.food}`;
+        scannedGrams = {
+            protein: Math.round(scannedItems.reduce((s, i) => s + (i.protein_g || 0), 0)),
+            fat:     Math.round(scannedItems.reduce((s, i) => s + (i.fat_g     || 0), 0)),
+            carbs:   Math.round(scannedItems.reduce((s, i) => s + (i.carbs_g   || 0), 0))
+        };
+        scannedPortions = {
+            protein: round(Math.max(0, scannedGrams.protein / 27.5)),
+            fat:     round(Math.max(0, scannedGrams.fat     / 12.5)),
+            carbs:   round(Math.max(0, scannedGrams.carbs   / 37.5))
+        };
+
         document.getElementById('scan-portions').innerHTML =
             `<div style="display:flex; flex-direction:column; gap:6px;">` +
             `<div>🥩 חלבון: <b>${scannedPortions.protein} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.protein}g)</span></div>` +
