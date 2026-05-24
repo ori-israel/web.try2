@@ -2395,16 +2395,83 @@ function toggleScanDetails() {
     btn.textContent = open ? '▼ פרטים נוספים' : '▲ הסתר פרטים';
 }
 
-function recalculate() {
-    if (!scannedImageBase64) return;
+async function recalculate() {
     const correction = document.getElementById('scan-correction').value.trim();
-    analyzeFood(scannedImageBase64, scannedImageMime, correction);
+    if (!correction) return;
+
+    document.getElementById('scanner-step-2').classList.add('hidden');
+    document.getElementById('scanner-loading').classList.remove('hidden');
+
+    const originalItems = scannedItems.length
+        ? scannedItems.map(i => `${i.name} ${Math.round(i.grams)}g`).join(', ')
+        : `חלבון ${scannedGrams.protein}g, פחמימה ${scannedGrams.carbs}g, שומן ${scannedGrams.fat}g`;
+
+    const prompt = `המשתמש צילם מנת אוכל. זיהוי AI המקורי: ${originalItems}.
+המשתמש מציין: "${correction}".
+עדכן את הערכים לפי הערת המשתמש בלבד — אל תשנה פריטים שלא הוזכרו.
+השתמש בערכי USDA לחישוב מאקרו.
+החזר JSON בלבד: {"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם", "grams": X}]}`;
+
+    try {
+        const { data: { session: _s } } = await db.auth.getSession();
+        if (!_s) throw new Error('לא מחובר');
+        const response = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_s.access_token}` },
+            body: JSON.stringify({
+                model: 'gemini-2.5-flash-lite',
+                payload: { contents: [{ parts: [{ text: prompt }] }] }
+            })
+        });
+        if (!response.ok) throw new Error('gemini error');
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '', buffer = '';
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n'); buffer = lines.pop();
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const js = line.slice(6).trim();
+                if (!js || js === '[DONE]') continue;
+                try { const p = JSON.parse(js); const t = p.candidates?.[0]?.content?.parts?.[0]?.text; if (t) fullText += t; } catch {}
+            }
+        }
+        const jsonMatch = fullText.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error('no JSON');
+        const result = JSON.parse(jsonMatch[0]);
+        scannedGrams = { protein: Math.round(result.protein_g || 0), fat: Math.round(result.fat_g || 0), carbs: Math.round(result.carbs_g || 0) };
+        const round = v => Math.round(v * 2) / 2;
+        scannedPortions = { protein: round(Math.max(0, scannedGrams.protein / 27.5)), fat: round(Math.max(0, scannedGrams.fat / 12.5)), carbs: round(Math.max(0, scannedGrams.carbs / 37.5)) };
+        scannedItems = Array.isArray(result.items) ? result.items : [];
+        document.getElementById('scan-food-name').textContent = `🍽️ ${result.food}`;
+        const inputStyle = `width:52px;padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg-input,var(--tag-bg));color:var(--text-primary);font-size:14px;font-weight:700;text-align:center;`;
+        document.getElementById('scan-portions').innerHTML =
+            `<div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">` +
+            `<div style="display:flex;align-items:center;justify-content:space-between;">🥩 חלבון <span style="color:#888;font-size:13px;">(${scannedGrams.protein}g)</span> <span style="display:flex;align-items:center;gap:4px;"><input id="scan-input-protein" type="number" min="0" step="0.5" value="${scannedPortions.protein}" style="${inputStyle}"> מנות</span></div>` +
+            `<div style="display:flex;align-items:center;justify-content:space-between;">🍚 פחמימה <span style="color:#888;font-size:13px;">(${scannedGrams.carbs}g)</span> <span style="display:flex;align-items:center;gap:4px;"><input id="scan-input-carbs" type="number" min="0" step="0.5" value="${scannedPortions.carbs}" style="${inputStyle}"> מנות</span></div>` +
+            `<div style="display:flex;align-items:center;justify-content:space-between;">🥑 שומן <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span> <span style="display:flex;align-items:center;gap:4px;"><input id="scan-input-fat" type="number" min="0" step="0.5" value="${scannedPortions.fat}" style="${inputStyle}"> מנות</span></div>` +
+            `</div>`;
+        const detailsBtn = document.getElementById('scan-details-btn');
+        const detailsBox = document.getElementById('scan-details-box');
+        if (scannedItems.length > 0) { detailsBtn.classList.remove('hidden'); detailsBox.innerHTML = scannedItems.map(i => `<div>${i.name} — ${Math.round(i.grams)}g</div>`).join(''); }
+        else { detailsBtn.classList.add('hidden'); }
+        detailsBox.classList.add('hidden');
+        document.getElementById('scan-correction').value = '';
+    } catch {
+        document.getElementById('scan-food-name').textContent = '⚠️ שגיאה בחישוב מחדש';
+    } finally {
+        document.getElementById('scanner-loading').classList.add('hidden');
+        document.getElementById('scanner-step-2').classList.remove('hidden');
+    }
 }
 
 function addScannedPortions() {
-    const protein = parseFloat(document.getElementById('scan-input-protein')?.value) || 0;
-    const carbs   = parseFloat(document.getElementById('scan-input-carbs')?.value)   || 0;
-    const fat     = parseFloat(document.getElementById('scan-input-fat')?.value)     || 0;
+    const protein = parseFloat(document.getElementById('scan-input-protein')?.value ?? scannedPortions.protein) || 0;
+    const carbs   = parseFloat(document.getElementById('scan-input-carbs')?.value   ?? scannedPortions.carbs)   || 0;
+    const fat     = parseFloat(document.getElementById('scan-input-fat')?.value     ?? scannedPortions.fat)     || 0;
     const added = [];
     if (protein > 0) { modifyPortion('protein', protein); added.push(`חלבון +${protein}`); }
     if (carbs   > 0) { modifyPortion('carbs',   carbs);   added.push(`פחמימה +${carbs}`); }
