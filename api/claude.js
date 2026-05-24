@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     const { prompt, imageBase64, imageMime } = req.body || {};
     const isMacroLookup = !imageBase64;
     const scanType = isMacroLookup ? 'macro' : 'scan';
-    const rateLimit = isMacroLookup ? 2 : 10;
+    const rateLimit = isMacroLookup ? 50 : 10;
     const rateLimitMsg = isMacroLookup
         ? 'הגעת למגבלת 50 בירורי מאקרו בשעה. נסה שוב מאוחר יותר.'
         : 'הגעת למגבלת 10 סריקות בשעה. נסה שוב מאוחר יותר.';
