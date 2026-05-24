@@ -2682,7 +2682,12 @@ async function analyzeFood(base64, mimeType, correction) {
     base64 = compressed.base64;
     mimeType = compressed.mimeType;
 
-    const correctionNote = correction ? `שים לב: ${correction}. ` : '';
+    const prevList = scannedItems.length > 0
+        ? `\nהפריטים שזוהו עד כה:\n${scannedItems.map(i => `- ${i.name} (${Math.round(i.grams)}g)`).join('\n')}\n`
+        : '';
+    const correctionNote = correction
+        ? `תיקון מהמשתמש: "${correction}"\nשמור על כל הפריטים שנכונים. שנה/הסר/הוסף רק את מה שהמשתמש ציין במפורש.${prevList}\n`
+        : '';
     const prompt = `${correctionNote}זהה את האוכל בתמונה והעריך כמויות בצורה מדויקת ככל האפשר.
 הנחיות:
 - העריך לפי גודל המנה הנראה בתמונה ביחס לצלחת/כלי
