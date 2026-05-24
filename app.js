@@ -2401,15 +2401,22 @@ async function recalculate() {
     document.getElementById('scanner-step-2').classList.add('hidden');
     document.getElementById('scanner-loading').classList.remove('hidden');
 
-    const originalItems = scannedItems.length
-        ? scannedItems.map(i => `${i.name} ${Math.round(i.grams)}g`).join(', ')
-        : `חלבון ${scannedGrams.protein}g, פחמימה ${scannedGrams.carbs}g, שומן ${scannedGrams.fat}g`;
+    const itemsList = scannedItems.length
+        ? scannedItems.map(i => `- ${i.name}: ${Math.round(i.grams)}g`).join('\n')
+        : `- חלבון: ${scannedGrams.protein}g\n- פחמימה: ${scannedGrams.carbs}g\n- שומן: ${scannedGrams.fat}g`;
 
-    const prompt = `המשתמש צילם מנת אוכל. זיהוי AI המקורי: ${originalItems}.
-המשתמש מציין: "${correction}".
-עדכן את הערכים לפי הערת המשתמש בלבד — אל תשנה פריטים שלא הוזכרו.
-השתמש בערכי USDA לחישוב מאקרו.
-החזר JSON בלבד: {"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם", "grams": X}]}`;
+    const prompt = `רשימת מרכיבי המנה הנוכחית (קבועים — אל תשנה אלא אם הוזכרו במפורש):
+${itemsList}
+
+סה"כ נוכחי: חלבון ${scannedGrams.protein}g | פחמימה ${scannedGrams.carbs}g | שומן ${scannedGrams.fat}g
+
+הערת המשתמש: "${correction}"
+
+הוראות חובה:
+1. שנה אך ורק פריטים שהוזכרו במפורש בהערת המשתמש
+2. את כל שאר הפריטים — השאר בדיוק בגרמים שרשומים למעלה, ללא שינוי
+3. חשב את סה"כ המאקרו מחדש לפי ערכי USDA — סכום כל הפריטים לאחר השינוי
+4. החזר JSON בלבד: {"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם", "grams": X}]}`;
 
     try {
         const { data: { session: _s } } = await db.auth.getSession();
