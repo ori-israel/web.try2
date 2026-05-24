@@ -2774,7 +2774,7 @@ async function analyzeFood(base64, mimeType, correction) {
         document.getElementById('scanner-loading').classList.add('hidden');
         document.getElementById('scanner-step-1').classList.add('hidden');
         document.getElementById('scanner-step-2').classList.remove('hidden');
-        document.getElementById('scan-food-name').textContent = '⚠️ לא הצלחתי לזהות את האוכל';
+        document.getElementById('scan-food-name').textContent = err.message.includes('מגבלת') ? '⛔ ' + err.message : '⚠️ לא הצלחתי לזהות את האוכל';
         document.getElementById('scan-portions').innerHTML = '';
         scannedPortions = { protein: 0, fat: 0, carbs: 0 };
     }
@@ -2866,8 +2866,8 @@ index = מספר הפריט ברשימה. אם לא ברור — בחר לפי �
         else { detailsBtn.classList.add('hidden'); }
         detailsBox.classList.add('hidden');
         document.getElementById('scan-correction').value = '';
-    } catch {
-        document.getElementById('scan-food-name').textContent = '⚠️ שגיאה בחישוב מחדש';
+    } catch (err) {
+        document.getElementById('scan-food-name').textContent = err.message?.includes('מגבלת') ? '⛔ ' + err.message : '⚠️ שגיאה בחישוב מחדש';
     } finally {
         document.getElementById('scanner-loading').classList.add('hidden');
         document.getElementById('scanner-step-2').classList.remove('hidden');
