@@ -2618,8 +2618,8 @@ function renderScanDetails() {
         detailsBtn.classList.remove('hidden');
         detailsBox.innerHTML = scannedItems.map((item, i) =>
             `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                <span style="flex:1;">${item.name} — <span onclick="editItemGrams(${i}, this)" style="color:#aaa;cursor:pointer;text-decoration:underline dotted;">${Math.round(item.grams)}g</span></span>
                 <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:#888;font-size:16px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
+                <span style="flex:1;text-align:right;">${item.name} — <span onclick="editItemGrams(${i}, this)" style="color:#aaa;cursor:pointer;text-decoration:underline dotted;">${Math.round(item.grams)}g</span></span>
             </div>`
         ).join('') + `<div id="add-item-row" style="margin-top:4px;">
             <button onclick="showAddItemForm()" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;padding:2px 0;">+ הוסף פריט</button>

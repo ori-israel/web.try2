@@ -22,15 +22,20 @@ export default async function handler(req, res) {
     const { data: { user }, error: authErr } = await db.auth.getUser(token);
     if (authErr || !user) return res.status(401).json({ error: 'Unauthorized' });
 
-    // Rate limit: 10 scans per hour per user
+    const { prompt, imageBase64, imageMime } = req.body || {};
+    const isMacroLookup = !imageBase64;
+    const scanType = isMacroLookup ? 'macro' : 'scan';
+    const rateLimit = isMacroLookup ? 50 : 10;
+    const rateLimitMsg = isMacroLookup
+        ? 'הגעת למגבלת 50 בירורי מאקרו בשעה. נסה שוב מאוחר יותר.'
+        : 'הגעת למגבלת 10 סריקות בשעה. נסה שוב מאוחר יותר.';
+
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const { count } = await db.from('scan_logs').select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id).gte('created_at', hourAgo);
-    if (count >= 10) return res.status(429).json({ error: 'הגעת למגבלת 10 סריקות בשעה. נסה שוב מאוחר יותר.' });
+        .eq('user_id', user.id).eq('type', scanType).gte('created_at', hourAgo);
+    if (count >= rateLimit) return res.status(429).json({ error: rateLimitMsg });
 
-    await db.from('scan_logs').insert({ user_id: user.id });
-
-    const { prompt, imageBase64, imageMime } = req.body || {};
+    await db.from('scan_logs').insert({ user_id: user.id, type: scanType });
     if (!prompt) return res.status(400).json({ error: 'Missing prompt' });
 
     const messages = [{
