@@ -2676,6 +2676,7 @@ async function compressImage(base64, mimeType) {
 async function analyzeFood(base64, mimeType, correction) {
     document.getElementById('scanner-step-2').classList.add('hidden');
     document.getElementById('scanner-loading').classList.remove('hidden');
+    document.getElementById('scanner-error').classList.add('hidden');
 
     const compressed = await compressImage(base64, mimeType);
     base64 = compressed.base64;
@@ -2774,7 +2775,10 @@ async function analyzeFood(base64, mimeType, correction) {
         document.getElementById('scanner-loading').classList.add('hidden');
         document.getElementById('scanner-step-1').classList.add('hidden');
         document.getElementById('scanner-step-2').classList.remove('hidden');
-        document.getElementById('scan-food-name').textContent = err.message.includes('מגבלת') ? '⛔ ' + err.message : '⚠️ לא הצלחתי לזהות את האוכל';
+        const errMsg = err.message.includes('מגבלת') ? err.message : 'לא הצלחתי לזהות את האוכל';
+        const errEl = document.getElementById('scanner-error');
+        errEl.textContent = '⛔ ' + errMsg;
+        errEl.classList.remove('hidden');
         document.getElementById('scan-portions').innerHTML = '';
         scannedPortions = { protein: 0, fat: 0, carbs: 0 };
     }
@@ -2793,6 +2797,7 @@ async function recalculate() {
 
     document.getElementById('scanner-step-2').classList.add('hidden');
     document.getElementById('scanner-loading').classList.remove('hidden');
+    document.getElementById('scanner-error').classList.add('hidden');
 
     const itemsList = scannedItems.map((it, i) => `${i}: ${it.name} (${it.grams}g)`).join('\n');
     const prompt = `רשימת הפריטים במנה:
@@ -2867,7 +2872,10 @@ index = מספר הפריט ברשימה. אם לא ברור — בחר לפי �
         detailsBox.classList.add('hidden');
         document.getElementById('scan-correction').value = '';
     } catch (err) {
-        document.getElementById('scan-food-name').textContent = err.message?.includes('מגבלת') ? '⛔ ' + err.message : '⚠️ שגיאה בחישוב מחדש';
+        const errMsg2 = err.message?.includes('מגבלת') ? err.message : 'שגיאה בחישוב מחדש';
+        const errEl2 = document.getElementById('scanner-error');
+        errEl2.textContent = '⛔ ' + errMsg2;
+        errEl2.classList.remove('hidden');
     } finally {
         document.getElementById('scanner-loading').classList.add('hidden');
         document.getElementById('scanner-step-2').classList.remove('hidden');
