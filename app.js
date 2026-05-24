@@ -2621,10 +2621,78 @@ function renderScanDetails() {
                 <span style="flex:1;">${item.name} — <span onclick="editItemGrams(${i}, this)" style="color:#aaa;cursor:pointer;text-decoration:underline dotted;">${Math.round(item.grams)}g</span></span>
                 <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:#888;font-size:16px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
             </div>`
-        ).join('');
+        ).join('') + `<div id="add-item-row" style="margin-top:4px;">
+            <button onclick="showAddItemForm()" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;padding:2px 0;">+ הוסף פריט</button>
+        </div>`;
     } else {
         detailsBtn.classList.add('hidden');
     }
+}
+
+function showAddItemForm() {
+    const row = document.getElementById('add-item-row');
+    if (!row) return;
+    row.innerHTML = `
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <input id="add-item-name" type="text" placeholder="שם המאכל" style="flex:1;min-width:100px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:13px;padding:4px 8px;" />
+            <input id="add-item-grams" type="number" placeholder="גרם" value="100" style="width:60px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:13px;padding:4px 6px;text-align:center;" />
+            <button onclick="confirmAddItem()" style="background:#fff;color:#000;border:none;border-radius:4px;padding:4px 10px;font-size:13px;cursor:pointer;">✓</button>
+            <button onclick="renderScanDetails()" style="background:none;border:none;color:#888;font-size:15px;cursor:pointer;padding:0 2px;">✕</button>
+        </div>`;
+    document.getElementById('add-item-name').focus();
+    document.getElementById('add-item-grams').addEventListener('keydown', e => { if (e.key === 'Enter') confirmAddItem(); });
+    document.getElementById('add-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('add-item-grams').focus(); });
+}
+
+async function confirmAddItem() {
+    const nameEl = document.getElementById('add-item-name');
+    const gramsEl = document.getElementById('add-item-grams');
+    if (!nameEl || !gramsEl) return;
+    const name = nameEl.value.trim();
+    const grams = parseInt(gramsEl.value) || 100;
+    if (!name) { nameEl.focus(); return; }
+
+    // Try USDA first
+    const usdaItem = enrichItemMacros({ name, grams, lookup_name: name });
+    const foundInUSDA = usdaItem.protein_g > 0 || usdaItem.fat_g > 0 || usdaItem.carbs_g > 0;
+
+    if (foundInUSDA) {
+        scannedItems.push(usdaItem);
+        updateScannedTotals();
+        renderScanDetails();
+        return;
+    }
+
+    // Fallback: Claude text-only
+    const row = document.getElementById('add-item-row');
+    if (row) row.innerHTML = `<span style="color:#888;font-size:12px;">מחפש מידע תזונתי...</span>`;
+
+    try {
+        const { data: { session } } = await db.auth.getSession();
+        const token = session?.access_token;
+        const prompt = `מהם ערכי המאקרו של ${grams} גרם ${name}? החזר JSON בלבד ללא הסברים: {"protein_g": X, "fat_g": X, "carbs_g": X}`;
+        const resp = await fetch('/api/claude', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+            body: JSON.stringify({ prompt })
+        });
+        if (!resp.ok) throw new Error('claude error');
+        const { text } = await resp.json();
+        const match = text.match(/\{[\s\S]*?\}/);
+        if (!match) throw new Error('no json');
+        const macros = JSON.parse(match[0]);
+        scannedItems.push({
+            name,
+            grams,
+            protein_g: macros.protein_g || 0,
+            fat_g: macros.fat_g || 0,
+            carbs_g: macros.carbs_g || 0
+        });
+    } catch (e) {
+        scannedItems.push({ name, grams, protein_g: 0, fat_g: 0, carbs_g: 0 });
+    }
+    updateScannedTotals();
+    renderScanDetails();
 }
 
 function deleteScannedItem(idx) {
