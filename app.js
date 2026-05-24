@@ -2569,18 +2569,26 @@ const USDA_TABLE = [
 function findInUSDA(name) {
     if (!name) return null;
     const n = name.toLowerCase().trim();
-    // חיפוש מדויק
+    // 1. חיפוש מדויק
     let found = USDA_TABLE.find(r => r.name === name || r.name_en.toLowerCase() === n);
     if (found) return found;
-    // חיפוש חלקי
+    // 2. חיפוש חלקי
     found = USDA_TABLE.find(r => r.name.includes(name) || name.includes(r.name) ||
         r.name_en.toLowerCase().includes(n) || n.includes(r.name_en.toLowerCase()));
-    return found || null;
+    if (found) return found;
+    // 3. חיפוש לפי מילים בודדות — מחלץ מילות מפתח ומחפש כל אחת
+    const words = name.replace(/[()״׳,]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+    for (const word of words) {
+        const wLow = word.toLowerCase();
+        found = USDA_TABLE.find(r => r.name.includes(word) || r.name_en.toLowerCase().includes(wLow));
+        if (found) return found;
+    }
+    return null;
 }
 
 // מחשב מאקרו לפריט לפי גרמים — מטבלה אם אפשר, אחרת מ-AI
 function enrichItemMacros(item) {
-    const usda = findInUSDA(item.name) || findInUSDA(item.name_en);
+    const usda = findInUSDA(item.lookup_name) || findInUSDA(item.name) || findInUSDA(item.name_en);
     if (usda && item.grams) {
         const ratio = item.grams / 100;
         return {
@@ -2683,7 +2691,7 @@ async function analyzeFood(base64, mimeType, correction) {
 - עבור כל פריט ב-items: חשב מאקרו לאותו פריט בלבד לפי USDA
 - protein_g/fat_g/carbs_g ברמת ה-food = סכום כל הפריטים
 החזר JSON בלבד, ללא טקסט נוסף:
-{"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם מאכל", "grams": X, "protein_g": X, "fat_g": X, "carbs_g": X}, ...]}`;
+{"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם מאכל מלא", "lookup_name": "שם קצר לחיפוש (מילה אחת או שתיים, ללא תוספות)", "grams": X, "protein_g": X, "fat_g": X, "carbs_g": X}, ...]}`;
 
     try {
         const { data: { session: _scanSession } } = await db.auth.getSession();
