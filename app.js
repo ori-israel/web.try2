@@ -1074,14 +1074,13 @@ function initWorkoutJournal() {
 
 function getWeekRange() {
     const today = new Date();
-    const day = today.getDay();
-    const diffToMon = day === 0 ? -6 : 1 - day;
-    const mon = new Date(today);
-    mon.setDate(today.getDate() + diffToMon);
-    const sun = new Date(mon);
-    sun.setDate(mon.getDate() + 6);
+    const day = today.getDay(); // 0=Sun, 6=Sat
+    const sun = new Date(today);
+    sun.setDate(today.getDate() - day); // back to Sunday
+    const sat = new Date(sun);
+    sat.setDate(sun.getDate() + 6);
     const fmt = d => d.toISOString().split('T')[0];
-    return { monStr: fmt(mon), sunStr: fmt(sun) };
+    return { monStr: fmt(sun), sunStr: fmt(sat) };
 }
 
 function buildStars(score0to5) {
@@ -1186,7 +1185,7 @@ async function renderScoreHistory(userId) {
         const dow   = today.getDay();
         const fmt   = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         const thisMon = new Date(today);
-        thisMon.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
+        thisMon.setDate(today.getDate() - dow); // back to Sunday
         thisMon.setHours(0, 0, 0, 0);
         const thisMonStr = fmt(thisMon);
         const thisSunStr = fmt(new Date(thisMon.getTime() + 6 * 86400000));

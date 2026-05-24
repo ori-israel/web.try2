@@ -418,7 +418,7 @@ async function sbFetchCoachDashData(clientIds) {
     const today  = new Date();
     const dow    = today.getDay();
     const mon    = new Date(today);
-    mon.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
+    mon.setDate(today.getDate() - dow); // back to Sunday (Israeli week start)
     // No setHours — keep local time so toISOString() stays on the correct date (matches getWeekRange())
     const monStr     = mon.toISOString().slice(0, 10);
     const prevMon    = new Date(mon);
@@ -753,7 +753,7 @@ async function sbCheckThisWeekQuestionnaire(clientId) {
     const today = new Date();
     const dow = today.getDay();
     const mon = new Date(today);
-    mon.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
+    mon.setDate(today.getDate() - dow); // back to Sunday (Israeli week start)
     const monStr = mon.toISOString().slice(0, 10);
     const { data, error } = await db
         .from('weekly_questionnaire')
