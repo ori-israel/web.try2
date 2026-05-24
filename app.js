@@ -2677,6 +2677,12 @@ async function confirmAddItem() {
             headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
             body: JSON.stringify({ prompt })
         });
+        if (resp.status === 429) {
+            const errData = await resp.json().catch(() => ({}));
+            const row2 = document.getElementById('add-item-row');
+            if (row2) row2.innerHTML = `<span style="color:#ff6b6b;font-size:12px;">${errData.error || 'הגעת למגבלת הבירורים בשעה'}</span>`;
+            return;
+        }
         if (!resp.ok) throw new Error('claude error');
         const { text } = await resp.json();
         const match = text.match(/\{[\s\S]*?\}/);
