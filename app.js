@@ -2617,8 +2617,9 @@ function renderScanDetails() {
     if (scannedItems.length > 0) {
         detailsBtn.classList.remove('hidden');
         detailsBox.innerHTML = scannedItems.map((item, i) =>
-            `<div style="display:flex;align-items:center;justify-content:space-between;">
-                <span>${item.name} — ${Math.round(item.grams)}g</span>
+            `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                <span style="flex:1;">${item.name}</span>
+                <span onclick="editItemGrams(${i}, this)" style="color:#aaa;cursor:pointer;text-decoration:underline dotted;min-width:40px;text-align:right;">${Math.round(item.grams)}g</span>
                 <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:#888;font-size:16px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
             </div>`
         ).join('');
@@ -2653,6 +2654,27 @@ function undoDeleteItem() {
     updateScannedTotals();
     renderScanDetails();
     document.getElementById('scan-undo-toast').classList.add('hidden');
+}
+
+function editItemGrams(idx, el) {
+    const current = Math.round(scannedItems[idx].grams);
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.value = current;
+    input.style.cssText = 'width:52px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:13px;padding:2px 4px;text-align:center;';
+    el.replaceWith(input);
+    input.focus();
+    input.select();
+    const save = () => {
+        const val = parseInt(input.value);
+        if (val > 0) {
+            scannedItems[idx] = enrichItemMacros({ ...scannedItems[idx], grams: val });
+            updateScannedTotals();
+        }
+        renderScanDetails();
+    };
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { input.blur(); } });
 }
 
 function updateScannedTotals() {
