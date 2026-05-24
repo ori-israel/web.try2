@@ -2698,42 +2698,13 @@ async function analyzeFood(base64, mimeType, correction) {
     try {
         const { data: { session: _scanSession } } = await db.auth.getSession();
         if (!_scanSession) throw new Error('לא מחובר');
-        const response = await fetch('/api/gemini', {
+        const response = await fetch('/api/claude', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_scanSession.access_token}` },
-            body: JSON.stringify({
-                model: 'gemini-2.5-flash-lite',
-                payload: {
-                    contents: [{
-                        parts: [
-                            { text: prompt },
-                            { inline_data: { mime_type: mimeType, data: base64 } }
-                        ]
-                    }]
-                }
-            })
+            body: JSON.stringify({ prompt, imageBase64: base64, imageMime: mimeType })
         });
-        if (!response.ok) { const e = await response.json().catch(() => ({})); throw new Error(e.error || 'gemini error'); }
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let fullText = '', buffer = '';
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop();
-            for (const line of lines) {
-                if (!line.startsWith('data: ')) continue;
-                const jsonStr = line.slice(6).trim();
-                if (!jsonStr || jsonStr === '[DONE]') continue;
-                try {
-                    const parsed = JSON.parse(jsonStr);
-                    const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (text) fullText += text;
-                } catch {}
-            }
-        }
+        if (!response.ok) { const e = await response.json().catch(() => ({})); throw new Error(e.error || 'claude error'); }
+        const { text: fullText } = await response.json();
         const jsonMatch = fullText.match(/\{[\s\S]*\}/);
         if (!jsonMatch) throw new Error('no JSON');
         const result = JSON.parse(jsonMatch[0]);
@@ -2813,30 +2784,13 @@ index = מספר הפריט ברשימה. אם לא ברור — בחר לפי �
     try {
         const { data: { session: _s } } = await db.auth.getSession();
         if (!_s) throw new Error('לא מחובר');
-        const response = await fetch('/api/gemini', {
+        const response = await fetch('/api/claude', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_s.access_token}` },
-            body: JSON.stringify({
-                model: 'gemini-2.5-flash-lite',
-                payload: { contents: [{ parts: [{ text: prompt }] }] }
-            })
+            body: JSON.stringify({ prompt })
         });
-        if (!response.ok) throw new Error('gemini error');
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let fullText = '', buffer = '';
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n'); buffer = lines.pop();
-            for (const line of lines) {
-                if (!line.startsWith('data: ')) continue;
-                const js = line.slice(6).trim();
-                if (!js || js === '[DONE]') continue;
-                try { const p = JSON.parse(js); const t = p.candidates?.[0]?.content?.parts?.[0]?.text; if (t) fullText += t; } catch {}
-            }
-        }
+        if (!response.ok) { const e = await response.json().catch(() => ({})); throw new Error(e.error || 'claude error'); }
+        const { text: fullText } = await response.json();
         const jsonMatch = fullText.match(/\{[\s\S]*\}/);
         if (!jsonMatch) throw new Error('no JSON');
         const changed = JSON.parse(jsonMatch[0]);
