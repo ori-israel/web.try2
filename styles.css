@@ -1602,7 +1602,6 @@ mark {
 
     .accord-detail.weight-detail {
         background: var(--accent-light);
-        border: 1px dashed rgba(59, 130, 246, 0.4);
     }
 
     .accord-detail.weight-detail .accord-detail-value { color: var(--accent); }

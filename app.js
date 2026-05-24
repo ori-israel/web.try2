@@ -515,13 +515,13 @@ function buildWorkoutAccordions(targets = {}) {
                             <span class="accord-detail-label">סטים עבודה</span>
                             <span class="accord-detail-value">${work}</span>
                         </div>
-                        <div class="accord-detail">
-                            <span class="accord-detail-label">חזרות</span>
-                            <span class="accord-detail-value">${repsDisplay}</span>
-                        </div>
                         <div class="accord-detail weight-detail" data-ex-id="${exId}">
                             <span class="accord-detail-label">משקל</span>
                             <span class="accord-detail-value accord-weight-val">${weightHtml}</span>
+                        </div>
+                        <div class="accord-detail">
+                            <span class="accord-detail-label">חזרות</span>
+                            <span class="accord-detail-value">${repsDisplay}</span>
                         </div>
                     </div>
                     ${bankUrl ? `<div class="accord-video-link"><button class="accord-video-btn" data-video-url="${encodeURIComponent(bankUrl)}">▶ צפה בסרטון</button></div>` : ''}
