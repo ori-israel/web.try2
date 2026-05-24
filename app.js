@@ -2640,6 +2640,7 @@ function showAddItemForm() {
             <button onclick="renderScanDetails()" style="background:none;border:none;color:#888;font-size:15px;cursor:pointer;padding:0 2px;">✕</button>
         </div>`;
     document.getElementById('add-item-name').focus();
+    document.getElementById('add-item-grams').addEventListener('focus', function() { this.select(); });
     document.getElementById('add-item-grams').addEventListener('keydown', e => { if (e.key === 'Enter') confirmAddItem(); });
     document.getElementById('add-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('add-item-grams').focus(); });
 }
