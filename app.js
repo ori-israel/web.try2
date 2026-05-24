@@ -2764,76 +2764,8 @@ function toggleScanDetails() {
 
 async function recalculate() {
     const correction = document.getElementById('scan-correction').value.trim();
-    if (!correction) return;
-
-    document.getElementById('scanner-step-2').classList.add('hidden');
-    document.getElementById('scanner-loading').classList.remove('hidden');
-    document.getElementById('scanner-error').classList.add('hidden');
-
-    const itemsList = scannedItems.map((it, i) => `${i}: ${it.name} (${it.grams}g)`).join('\n');
-    const prompt = `רשימת הפריטים במנה:
-${itemsList}
-
-הערת המשתמש: "${correction}"
-
-זהה איזה פריט מהרשימה המשתמש רוצה לשנות ומה הכמות החדשה. החזר JSON בלבד:
-{"index": X, "grams": Y}
-
-index = מספר הפריט ברשימה. אם לא ברור — בחר לפי קרבה בשם.`;
-
-    try {
-        const { data: { session: _s } } = await db.auth.getSession();
-        if (!_s) throw new Error('לא מחובר');
-        const response = await fetch('/api/claude', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_s.access_token}` },
-            body: JSON.stringify({ prompt })
-        });
-        if (!response.ok) { const e = await response.json().catch(() => ({})); throw new Error(e.error || 'claude error'); }
-        const { text: fullText } = await response.json();
-        const jsonMatch = fullText.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) throw new Error('no JSON');
-        const changed = JSON.parse(jsonMatch[0]);
-        const idx = (changed.index !== undefined && changed.index >= 0 && changed.index < scannedItems.length)
-            ? changed.index : -1;
-        if (idx >= 0 && changed.grams > 0) {
-            scannedItems[idx] = enrichItemMacros({ ...scannedItems[idx], grams: changed.grams });
-        }
-
-        // מחשב סכום מכל הפריטים בקוד — לא מסתמך על AI
-        const round = v => Math.round(v * 2) / 2;
-        scannedGrams = {
-            protein: Math.round(scannedItems.reduce((s, i) => s + (i.protein_g || 0), 0)),
-            fat:     Math.round(scannedItems.reduce((s, i) => s + (i.fat_g     || 0), 0)),
-            carbs:   Math.round(scannedItems.reduce((s, i) => s + (i.carbs_g   || 0), 0))
-        };
-        scannedPortions = {
-            protein: round(Math.max(0, scannedGrams.protein / 27.5)),
-            fat:     round(Math.max(0, scannedGrams.fat     / 12.5)),
-            carbs:   round(Math.max(0, scannedGrams.carbs   / 37.5))
-        };
-
-        document.getElementById('scan-portions').innerHTML =
-            `<div style="display:flex; flex-direction:column; gap:6px;">` +
-            `<div>🥩 חלבון: <b>${scannedPortions.protein} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.protein}g)</span></div>` +
-            `<div>🍚 פחמימה: <b>${scannedPortions.carbs} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.carbs}g)</span></div>` +
-            `<div>🥑 שומן: <b>${scannedPortions.fat} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span></div>` +
-            `</div>`;
-        const detailsBtn = document.getElementById('scan-details-btn');
-        const detailsBox = document.getElementById('scan-details-box');
-        if (scannedItems.length > 0) { detailsBtn.classList.remove('hidden'); detailsBox.innerHTML = scannedItems.map(i => `<div>${i.name} — ${Math.round(i.grams)}g</div>`).join(''); }
-        else { detailsBtn.classList.add('hidden'); }
-        detailsBox.classList.add('hidden');
-        document.getElementById('scan-correction').value = '';
-    } catch (err) {
-        const errMsg2 = err.message?.includes('מגבלת') ? err.message : 'שגיאה בחישוב מחדש';
-        const errEl2 = document.getElementById('scanner-error');
-        errEl2.textContent = '⛔ ' + errMsg2;
-        errEl2.classList.remove('hidden');
-    } finally {
-        document.getElementById('scanner-loading').classList.add('hidden');
-        document.getElementById('scanner-step-2').classList.remove('hidden');
-    }
+    if (!correction || !scannedImageBase64) return;
+    await analyzeFood(scannedImageBase64, scannedImageMime, correction);
 }
 
 function addScannedPortions() {
