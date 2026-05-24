@@ -2607,6 +2607,73 @@ let scannedGrams = { protein: 0, fat: 0, carbs: 0 };
 let scannedItems = [];
 let scannedImageBase64 = null;
 let scannedImageMime = null;
+let _deletedItem = null;
+let _deletedIdx = null;
+let _undoTimer = null;
+
+function renderScanDetails() {
+    const detailsBtn = document.getElementById('scan-details-btn');
+    const detailsBox = document.getElementById('scan-details-box');
+    if (scannedItems.length > 0) {
+        detailsBtn.classList.remove('hidden');
+        detailsBox.innerHTML = scannedItems.map((item, i) =>
+            `<div style="display:flex;align-items:center;justify-content:space-between;">
+                <span>${item.name} — ${Math.round(item.grams)}g</span>
+                <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:#888;font-size:16px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
+            </div>`
+        ).join('');
+    } else {
+        detailsBtn.classList.add('hidden');
+    }
+}
+
+function deleteScannedItem(idx) {
+    _deletedItem = scannedItems[idx];
+    _deletedIdx = idx;
+    scannedItems.splice(idx, 1);
+    updateScannedTotals();
+    renderScanDetails();
+    // הצג toast
+    const toast = document.getElementById('scan-undo-toast');
+    toast.classList.remove('hidden');
+    if (_undoTimer) clearTimeout(_undoTimer);
+    _undoTimer = setTimeout(() => {
+        toast.classList.add('hidden');
+        _deletedItem = null;
+        _deletedIdx = null;
+    }, 2000);
+}
+
+function undoDeleteItem() {
+    if (_deletedItem === null) return;
+    clearTimeout(_undoTimer);
+    scannedItems.splice(_deletedIdx, 0, _deletedItem);
+    _deletedItem = null;
+    _deletedIdx = null;
+    updateScannedTotals();
+    renderScanDetails();
+    document.getElementById('scan-undo-toast').classList.add('hidden');
+}
+
+function updateScannedTotals() {
+    const round = v => Math.round(v * 2) / 2;
+    scannedGrams = {
+        protein: Math.round(scannedItems.reduce((s, i) => s + (i.protein_g || 0), 0)),
+        fat:     Math.round(scannedItems.reduce((s, i) => s + (i.fat_g     || 0), 0)),
+        carbs:   Math.round(scannedItems.reduce((s, i) => s + (i.carbs_g   || 0), 0))
+    };
+    scannedPortions = {
+        protein: round(Math.max(0, scannedGrams.protein / 27.5)),
+        fat:     round(Math.max(0, scannedGrams.fat     / 12.5)),
+        carbs:   round(Math.max(0, scannedGrams.carbs   / 37.5))
+    };
+    document.getElementById('scan-portions').innerHTML =
+        `<div style="display:flex; flex-direction:column; gap:6px;">` +
+        `<div>🥩 חלבון: <b>${scannedPortions.protein} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.protein}g)</span></div>` +
+        `<div>🍚 פחמימה: <b>${scannedPortions.carbs} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.carbs}g)</span></div>` +
+        `<div>🥑 שומן: <b>${scannedPortions.fat} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span></div>` +
+        `</div>`;
+}
 
 function openFoodScanner() {
     const modal = document.getElementById('food-scanner-modal');
@@ -2739,15 +2806,8 @@ async function analyzeFood(base64, mimeType, correction) {
             `<div>🥑 שומן: <b>${scannedPortions.fat} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span></div>` +
             `</div>`;
 
-        const detailsBtn = document.getElementById('scan-details-btn');
-        const detailsBox = document.getElementById('scan-details-box');
-        if (scannedItems.length > 0) {
-            detailsBtn.classList.remove('hidden');
-            detailsBox.innerHTML = scannedItems.map(item => `<div>${item.name} — ${Math.round(item.grams)}g</div>`).join('');
-        } else {
-            detailsBtn.classList.add('hidden');
-        }
-        detailsBox.classList.add('hidden');
+        renderScanDetails();
+        document.getElementById('scan-details-box').classList.add('hidden');
         document.getElementById('scanner-loading').classList.add('hidden');
         document.getElementById('scanner-step-1').classList.add('hidden');
         document.getElementById('scanner-step-2').classList.remove('hidden');
@@ -2823,11 +2883,8 @@ ${itemsList}
             `<div>🍚 פחמימה: <b>${scannedPortions.carbs} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.carbs}g)</span></div>` +
             `<div>🥑 שומן: <b>${scannedPortions.fat} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span></div>` +
             `</div>`;
-        const detailsBtn = document.getElementById('scan-details-btn');
-        const detailsBox = document.getElementById('scan-details-box');
-        if (scannedItems.length > 0) { detailsBtn.classList.remove('hidden'); detailsBox.innerHTML = scannedItems.map(i => `<div>${i.name} — ${Math.round(i.grams)}g</div>`).join(''); }
-        else { detailsBtn.classList.add('hidden'); }
-        detailsBox.classList.add('hidden');
+        renderScanDetails();
+        document.getElementById('scan-details-box').classList.add('hidden');
         document.getElementById('scan-correction').value = '';
     } catch (err) {
         const errMsg2 = err.message?.includes('מגבלת') ? err.message : 'שגיאה בחישוב מחדש';
