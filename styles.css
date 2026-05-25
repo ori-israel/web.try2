@@ -168,8 +168,8 @@ h1 {
    ============================================ */
 .top-right-logo {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: 8px;
+    right: 0px;
 }
 
 .top-right-logo img {
