@@ -2615,8 +2615,8 @@ function renderScanDetails() {
     const detailsBox = document.getElementById('scan-details-box');
     if (scannedItems.length > 0) {
         detailsBox.innerHTML = scannedItems.map((item, i) =>
-            `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px;">
-                <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:#888;font-size:20px;cursor:pointer;padding:0 8px;line-height:1;min-width:36px;">✕</button>
+            `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:#888;font-size:18px;cursor:pointer;padding:0 6px;line-height:1;min-width:32px;">✕</button>
                 <span style="flex:1;text-align:right;font-size:15px;">${item.name} — <span onclick="editItemGrams(${i}, this)" style="color:#aaa;cursor:pointer;text-decoration:underline dotted;">${Math.round(item.grams)}g</span></span>
             </div>`
         ).join('') + `<div id="add-item-row" style="margin-top:6px;">
