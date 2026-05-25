@@ -1913,7 +1913,7 @@ async function initWorkoutsFromClient() {
         const tbody = container.querySelector('tbody');
         if (!tbody) return;
         tbody.innerHTML = '';
-        workout.forEach((ex, i) => {
+        (workout || []).forEach((ex, i) => {
             const t = targets[ex.name];
             const weightDisplay = t
                 ? `${t.target_weight}${t.suggest_increase ? ' <span style="color:#22c55e;font-size:0.9em;">↑</span>' : ''}`
