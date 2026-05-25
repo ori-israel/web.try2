@@ -402,9 +402,20 @@ async function sbFetchAllClients() {
     const { data, error } = await db
         .from('profiles')
         .select('id, name, nickname, email, is_admin, created_at, avatar_url')
+        .is('deleted_at', null)
         .order('created_at', { ascending: true });
     if (error) throw error;
     return (data || []).filter(u => !u.is_admin);
+}
+
+async function sbFetchDeletedClients() {
+    const { data, error } = await db
+        .from('profiles')
+        .select('id, name, nickname, email, deleted_at')
+        .not('deleted_at', 'is', null)
+        .order('deleted_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
 }
 
 async function sbSetVacationMode(clientId, value) {

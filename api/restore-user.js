@@ -33,15 +33,13 @@ module.exports = async (req, res) => {
     const { userId } = req.body || {};
     if (!userId || !UUID_RE.test(userId)) return res.status(400).json({ error: 'Invalid userId' });
 
-    if (userId === user.id) return res.status(400).json({ error: 'cannot delete self' });
-
-    // Soft delete: ban the user + mark deleted_at in profiles
-    const { error: banErr } = await db.auth.admin.updateUserById(userId, { ban_duration: '876000h' });
-    if (banErr) return res.status(400).json({ error: 'Ban failed' });
+    // Restore: unban + clear deleted_at
+    const { error: unbanErr } = await db.auth.admin.updateUserById(userId, { ban_duration: 'none' });
+    if (unbanErr) return res.status(400).json({ error: 'Unban failed' });
 
     const { error: profileErr } = await db
         .from('profiles')
-        .update({ deleted_at: new Date().toISOString() })
+        .update({ deleted_at: null })
         .eq('id', userId);
     if (profileErr) return res.status(400).json({ error: 'Profile update failed' });
 

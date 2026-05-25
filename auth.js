@@ -247,7 +247,9 @@ function setCoachMode(mode) {
     _coachMode = mode;
     _syncCoachToggle();
     const list = document.getElementById('admin-client-list');
-    if (list && _coachClients && _coachDashData) _renderCoachList(list);
+    if (!list) return;
+    if (mode === 'archive') _renderArchiveMode(list);
+    else if (_coachClients && _coachDashData) _renderCoachList(list);
 }
 
 function _syncCoachToggle() {
@@ -259,6 +261,45 @@ function _syncCoachToggle() {
 function _renderCoachList(list) {
     if (_coachMode === 'urgent') _renderUrgentMode(list);
     else                         _renderOverviewMode(list);
+}
+
+async function _renderArchiveMode(list) {
+    const sb = document.getElementById('coach-search-bar');
+    if (sb) sb.style.display = 'none';
+    list.className = 'admin-client-list';
+    list.innerHTML = '<div class="admin-loading">טוען ארכיון...</div>';
+    try {
+        const deleted = await sbFetchDeletedClients();
+        if (!deleted.length) {
+            list.innerHTML = '<div class="admin-empty">אין לקוחות בארכיון</div>';
+            return;
+        }
+        list.innerHTML = '';
+        deleted.forEach(client => {
+            const name = client.name || client.nickname || client.email || '(ללא שם)';
+            const deletedDate = new Date(client.deleted_at).toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric' });
+            const row = document.createElement('div');
+            row.className = 'coach-urgent-row';
+            row.style.opacity = '0.75';
+            row.innerHTML = `
+                <div class="coach-urgent-left">
+                    <div class="coach-urgent-text">
+                        <span class="coach-urgent-name">${name}</span>
+                        <span class="coach-urgent-reason" style="color:#888">נמחק: ${deletedDate}</span>
+                    </div>
+                </div>
+                <div class="coach-urgent-right">
+                    <button class="admin-restore-btn" data-client-id="${client.id}" data-client-name="${name}" style="background:#4ade80;color:#000;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:bold;cursor:pointer;">שחזר</button>
+                </div>`;
+            row.querySelector('.admin-restore-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                restoreClient(this.dataset.clientId, this.dataset.clientName);
+            });
+            list.appendChild(row);
+        });
+    } catch (err) {
+        list.innerHTML = `<div class="admin-error">שגיאה: ${err.message}</div>`;
+    }
 }
 
 function _buildClientStats(client) {
@@ -660,11 +701,25 @@ async function _authedPost(path, body) {
 // ── Delete client ─────────────────────────────────────────────
 
 async function deleteClient(clientId, clientName) {
-    const confirmed = await showConfirmDanger(`למחוק את ${clientName}? פעולה זו בלתי הפיכה.`);
+    const confirmed = await showConfirmDanger(`למחוק את ${clientName}? ניתן לשחזר מהארכיון.`);
     if (!confirmed) return;
     try {
         await _authedPost('/api/delete-user', { userId: clientId });
+        _showToast(`🗃️ ${clientName} הועבר לארכיון`);
         await renderAdminPanel();
+    } catch (e) {
+        await showAlert('שגיאה: ' + e.message);
+    }
+}
+
+async function restoreClient(clientId, clientName) {
+    try {
+        await _authedPost('/api/restore-user', { userId: clientId });
+        _showToast(`✅ ${clientName} שוחזר בהצלחה`);
+        const list = document.getElementById('admin-client-list');
+        if (list) await _renderArchiveMode(list);
+        await renderAdminPanel();
+        setCoachMode('overview');
     } catch (e) {
         await showAlert('שגיאה: ' + e.message);
     }
