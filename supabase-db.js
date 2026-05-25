@@ -515,7 +515,9 @@ async function loadUserIntoApp(userId) {
             allergies:     profile.allergies      || '',
             likedFoods:    profile.liked_foods    || '',
             dislikedFoods: profile.disliked_foods || '',
-            coachingGoal:  profile.coaching_goal  || '',
+            coachingGoal:           profile.coaching_goal            || '',
+            coachingDurationMonths: profile.coaching_duration_months || null,
+            nextMeetingDate:        profile.next_meeting_date        || null,
 
             vacationMode:  profile.vacation_mode  || false,
             avatarUrl:     profile.avatar_url     || null,
@@ -655,7 +657,8 @@ async function syncProfileNow(data) {
             allergies:      data.allergies,
             liked_foods:    data.likedFoods,
             disliked_foods: data.dislikedFoods,
-            coaching_goal:  data.coachingGoal,
+            coaching_goal:            data.coachingGoal,
+            coaching_duration_months: data.coachingDurationMonths || null,
         });
     } catch (e) { console.error('[SB] profile sync failed:', e.message); }
 }

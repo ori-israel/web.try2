@@ -12,7 +12,8 @@ let isCoachUnlocked = false;
     const fields = [
         'nickname', 'email', 'currentWeight', 'startWeight', 'goalWeight', 'activityLevel',
         'allergies', 'likedFoods', 'dislikedFoods', 'birthDate',
-        'name', 'startDate', 'height', 'gender', 'goal'
+        'name', 'startDate', 'height', 'gender', 'goal',
+        'coachingDurationMonths', 'nextMeetingDate'
     ];
     fields.forEach(f => { if (saved[f] !== undefined) CLIENT[f] = saved[f]; });
     if (saved.currentWeight) localStorage.setItem('current_weight', String(saved.currentWeight));
@@ -73,8 +74,9 @@ function populateProfileForm() {
     document.getElementById('prof-start-weight').value = CLIENT.startWeight    || '';
     document.getElementById('prof-goal-weight').value  = CLIENT.goalWeight     || '';
     document.getElementById('prof-birth-date').value   = CLIENT.birthDate      || '';
-    document.getElementById('prof-start-date').value   = CLIENT.startDate      || '';
-    document.getElementById('prof-height').value       = CLIENT.height         || '';
+    document.getElementById('prof-start-date').value           = CLIENT.startDate             || '';
+    document.getElementById('prof-coaching-duration').value    = CLIENT.coachingDurationMonths || '';
+    document.getElementById('prof-height').value               = CLIENT.height                 || '';
     document.getElementById('prof-gender').value       = CLIENT.gender         || 'male';
     document.getElementById('prof-goal').value         = CLIENT.goal           || 'bulk';
     setCoachFieldsState(false);
@@ -200,11 +202,12 @@ function saveProfile() {
             name:        document.getElementById('prof-name').value,
             startWeight: parseFloat(document.getElementById('prof-start-weight').value) || CLIENT.startWeight,
             goalWeight:  parseFloat(document.getElementById('prof-goal-weight').value) || CLIENT.goalWeight,
-            birthDate:   document.getElementById('prof-birth-date').value,
-            startDate:   document.getElementById('prof-start-date').value,
-            height:      parseFloat(document.getElementById('prof-height').value),
-            gender:      document.getElementById('prof-gender').value,
-            goal:        document.getElementById('prof-goal').value,
+            birthDate:             document.getElementById('prof-birth-date').value,
+            startDate:             document.getElementById('prof-start-date').value,
+            coachingDurationMonths: parseInt(document.getElementById('prof-coaching-duration').value) || null,
+            height:                parseFloat(document.getElementById('prof-height').value),
+            gender:                document.getElementById('prof-gender').value,
+            goal:                  document.getElementById('prof-goal').value,
         });
     }
 

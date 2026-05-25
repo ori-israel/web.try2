@@ -140,6 +140,13 @@
 
 <div id="app-container" style="display:none;">
 <div id="vacation-banner" style="display:none;">🏖️ מצב חופשה פעיל — הציונים והרצפים מושהים</div>
+<div id="meeting-reminder-banner" style="display:none;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:var(--bg-card);border-bottom:2px solid var(--accent);font-size:14px;font-weight:600;">
+    <span>📅 הגיע הזמן לקבוע את הפגישה הבאה</span>
+    <div style="display:flex;gap:8px;align-items:center;">
+        <button onclick="openCalendlyModal()" style="padding:6px 14px;border-radius:var(--radius);background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">לקביעת פגישה</button>
+        <button onclick="dismissMeetingReminder()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-secondary);line-height:1;">&times;</button>
+    </div>
+</div>
 <div id="weekly-survey-banner" class="complete-modal" style="display:none;">
     <div class="complete-content" style="max-width:300px;padding:16px;display:flex;flex-direction:column;min-height:320px;">
         <div class="trophy-icon" style="font-size:48px;">📋</div>
@@ -164,9 +171,9 @@
                         <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-5.5-2.8-23.2-8.5-44.2-27.1-16.4-14.6-27.4-32.7-30.6-38.2-3.2-5.6-.3-8.6 2.5-11.3 2.5-2.5 5.5-6.5 8.3-9.7 2.8-3.3 3.7-5.6 5.5-9.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 13.3 5.7 23.5 9.2 31.6 11.8 13.3 4.2 25.5 3.6 35.2 2.1 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/>
                     </svg>
                 </a>
-                <a href="https://calendly.com/ori-israel555/30min" target="_blank" class="calendar-float-btn" title="קבע פגישה">
+                <button onclick="openCalendlyModal()" class="calendar-float-btn" title="קבע פגישה" style="background:none;border:none;cursor:pointer;font-size:inherit;padding:0;display:flex;align-items:center;justify-content:center;" id="calendly-hamburger-btn">
                     📅
-                </a>
+                </button>
                 <button class="profile-menu-btn" onclick="openProfile()" title="פרטים אישיים" style="padding:0;overflow:hidden;border-radius:50%;width:32px;height:32px;">
                     <img id="hamburger-avatar" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;border-radius:50%;">
                     <span id="hamburger-avatar-fallback" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">
@@ -1064,6 +1071,10 @@
                 <input id="prof-start-date" type="date" class="profile-input coach-editable-field" disabled dir="ltr">
             </div>
             <div class="profile-row">
+                <label for="prof-coaching-duration">משך ליווי (חודשים)</label>
+                <input id="prof-coaching-duration" type="number" class="profile-input coach-editable-field" disabled min="1" max="24" placeholder="לדוגמה: 3">
+            </div>
+            <div class="profile-row">
                 <label for="prof-height">גובה (ס״מ)</label>
                 <input id="prof-height" type="number" class="profile-input coach-editable-field" disabled>
             </div>
@@ -1207,5 +1218,89 @@
 </div>
 
 <div id="supabase-error-toast" style="display:none; position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:#e55; color:#fff; padding:8px 16px; border-radius:20px; font-size:14px; z-index:9998; direction:rtl; white-space:nowrap;">⚠️ בעיית תקשורת — מנסה שוב</div>
+
+<!-- Calendly modal -->
+<div id="calendly-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;">
+    <div style="background:var(--bg-card);border-radius:18px;width:92%;max-width:480px;height:82vh;position:relative;overflow:hidden;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0;">
+            <span style="font-weight:700;font-size:16px;">📅 קביעת פגישה</span>
+            <button onclick="closeCalendlyModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-secondary);line-height:1;">&times;</button>
+        </div>
+        <iframe id="calendly-iframe" src="" width="100%" style="flex:1;border:none;" allow="payment"></iframe>
+    </div>
+</div>
+
+<script>
+// ── Calendly modal ──────────────────────────────
+const CALENDLY_URL = 'https://calendly.com/ori-israel555/30min';
+
+function openCalendlyModal() {
+    const modal = document.getElementById('calendly-modal');
+    const iframe = document.getElementById('calendly-iframe');
+    if (!iframe.src || iframe.src === window.location.href) iframe.src = CALENDLY_URL;
+    modal.style.display = 'flex';
+    document.querySelector('.hamburger-menu') && document.querySelector('.hamburger-menu').classList.remove('open');
+}
+
+function closeCalendlyModal() {
+    document.getElementById('calendly-modal').style.display = 'none';
+}
+
+document.getElementById('calendly-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeCalendlyModal();
+});
+
+// ── Calendly event listener ─────────────────────
+window.addEventListener('message', function(e) {
+    if (!e.data || e.data.event !== 'calendly.event_scheduled') return;
+    const startTime = e.data.payload && e.data.payload.event && e.data.payload.event.start_time;
+    if (!startTime) return;
+
+    CLIENT.nextMeetingDate = startTime;
+    const data = JSON.parse(localStorage.getItem('profile_data_v1') || '{}');
+    data.nextMeetingDate = startTime;
+    localStorage.setItem('profile_data_v1', JSON.stringify(data));
+
+    const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+    if (uid) sbUpsertProfile(uid, { next_meeting_date: startTime }).catch(() => {});
+
+    document.getElementById('meeting-reminder-banner').style.display = 'none';
+    closeCalendlyModal();
+});
+
+// ── Reminder logic ──────────────────────────────
+function checkMeetingReminder() {
+    const durationMonths = CLIENT.coachingDurationMonths;
+    if (!durationMonths) return;
+
+    const startDate = CLIENT.startDate;
+    if (!startDate) return;
+
+    // Is coaching still active?
+    const start = new Date(startDate);
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + parseInt(durationMonths));
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (today > end) return;
+
+    // Is there a future meeting scheduled?
+    const nextMeeting = CLIENT.nextMeetingDate ? new Date(CLIENT.nextMeetingDate) : null;
+    if (nextMeeting && nextMeeting > today) return;
+
+    // Was reminder dismissed today?
+    const dismissed = localStorage.getItem('meeting_reminder_dismissed');
+    if (dismissed && new Date(dismissed).toDateString() === today.toDateString()) return;
+
+    document.getElementById('meeting-reminder-banner').style.display = 'flex';
+}
+
+function dismissMeetingReminder() {
+    localStorage.setItem('meeting_reminder_dismissed', new Date().toISOString());
+    document.getElementById('meeting-reminder-banner').style.display = 'none';
+}
+
+// checkMeetingReminder is called from reinitApp() in auth.js after data loads
+</script>
 </body>
 </html>
