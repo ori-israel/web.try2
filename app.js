@@ -1938,7 +1938,17 @@ async function initWorkoutsFromClient() {
     });
 
     const totalShown = selector.querySelectorAll('.workout-nav-btn').length;
-    selector.classList.toggle('multi-row', totalShown >= 6);
+    if (totalShown >= 6) {
+        selector.classList.add('multi-row');
+        const perRow = Math.ceil(totalShown / 2);
+        const pct = (100 / perRow).toFixed(2);
+        selector.querySelectorAll('.workout-nav-btn').forEach(btn => {
+            btn.style.flex = `1 1 calc(${pct}% - 6px)`;
+            btn.style.maxWidth = `calc(${pct}% - 6px)`;
+        });
+    } else {
+        selector.classList.remove('multi-row');
+    }
 
     const todayDay = new Date().getDay();
     const todayLetter = Object.entries(CLIENT.workoutDays || {}).find(([, days]) => days.includes(todayDay))?.[0];
