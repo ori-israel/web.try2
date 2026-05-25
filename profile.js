@@ -199,7 +199,6 @@ function saveProfile() {
     });
     console.log('[saveProfile] data לפני שמירה:', JSON.stringify(data));
 
-    console.log('[saveProfile] isCoachUnlocked:', isCoachUnlocked, '| duration field:', document.getElementById('prof-coaching-duration')?.value);
     if (isCoachUnlocked) {
         Object.assign(data, {
             name:        document.getElementById('prof-name').value,
