@@ -1581,7 +1581,7 @@ mark {
         direction: rtl;
     }
 
-    .workout-accord-item.open .workout-accord-body { max-height: 200px; }
+    .workout-accord-item.open .workout-accord-body { max-height: 320px; }
 
     .workout-accord-details {
         display: grid;
