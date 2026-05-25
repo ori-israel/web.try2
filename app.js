@@ -568,7 +568,7 @@ function buildWorkoutAccordions(targets = {}) {
                         const userId = getActiveUserId();
                         if (!userId) return;
                         try {
-                            await sbUpsertProfile(userId, { ['workout' + letter]: workout });
+                            await sbUpsertProfile(userId, { ['workout_' + letter.toLowerCase()]: workout });
                         } catch(e) {
                             console.error('[note save]', e);
                         }
