@@ -1896,7 +1896,8 @@ async function initWorkoutsFromClient() {
 
     letters.forEach(letter => {
         const workout = CLIENT['workout' + letter];
-        if (!workout || !workout.length) return;
+        const hasCardio = !!CLIENT.cardioPlan?.[letter]?.description;
+        if ((!workout || !workout.length) && !hasCardio) return;
 
         if (!firstLetter) firstLetter = letter;
 
