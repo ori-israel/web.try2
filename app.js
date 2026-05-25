@@ -498,6 +498,9 @@ function buildWorkoutAccordions(targets = {}) {
                 repsDisplay = cells[4]?.textContent.trim() || '—';
             }
 
+            const [exLetter, exIdx] = exId ? exId.split('_') : ['', ''];
+            const exNote = (exLetter && exIdx !== '') ? (CLIENT['workout' + exLetter]?.[parseInt(exIdx)]?.note || '') : '';
+
             item.innerHTML = `
                 <div class="workout-accord-header ${isChecked ? 'checked' : ''}">
                     <input type="checkbox" class="accord-checkbox" ${isChecked ? 'checked' : ''}>
@@ -524,6 +527,9 @@ function buildWorkoutAccordions(targets = {}) {
                             <span class="accord-detail-value">${repsDisplay}</span>
                         </div>
                     </div>
+                    <div class="accord-note-wrap">
+                        <textarea class="accord-note-input" maxlength="100" placeholder="הערות לאימון הבא..." data-ex-id="${exId}">${exNote}</textarea>
+                    </div>
                     ${bankUrl ? `<div class="accord-video-link"><button class="accord-video-btn" data-video-url="${encodeURIComponent(bankUrl)}">▶ צפה בסרטון</button></div>` : ''}
                 </div>
             `;
@@ -548,6 +554,27 @@ function buildWorkoutAccordions(targets = {}) {
                 if (e.target.classList.contains('accord-checkbox')) return;
                 item.classList.toggle('open');
             });
+            const noteInput = item.querySelector('.accord-note-input');
+            if (noteInput) {
+                noteInput.addEventListener('click', e => e.stopPropagation());
+                let _noteTimer = null;
+                noteInput.addEventListener('input', () => {
+                    clearTimeout(_noteTimer);
+                    _noteTimer = setTimeout(async () => {
+                        const [letter, idx] = noteInput.dataset.exId.split('_');
+                        const workout = CLIENT['workout' + letter];
+                        if (!workout?.[parseInt(idx)]) return;
+                        workout[parseInt(idx)].note = noteInput.value;
+                        const userId = getActiveUserId();
+                        if (!userId) return;
+                        try {
+                            await sbUpsertProfile(userId, { ['workout' + letter]: workout });
+                        } catch(e) {
+                            console.error('[note save]', e);
+                        }
+                    }, 1500);
+                });
+            }
             const weightCell = item.querySelector('.weight-detail');
             accordion.appendChild(item);
         });
