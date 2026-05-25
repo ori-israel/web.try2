@@ -1421,31 +1421,33 @@ async function renderJournalForDate(dateStr) {
         const saved = savedEntries[ex.name] || {};
         const last = lastEntries[ex.name];
         const lastHtml = last
-            ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:6px;direction:rtl;">אימון קודם (${journalFormatShortDate(last.date)}): ${last.weight_kg} ק"ג × ${last.reps} חזרות</div>`
-            : '';
+            ? `<div class="journal-last-entry">קודם (${journalFormatShortDate(last.date)}): ${last.weight_kg} ק"ג × ${last.reps} חזרות</div>`
+            : `<div class="journal-last-entry" style="color:var(--text-muted)">אין רשומה קודמת</div>`;
+        const isSaved = saved.weight_kg != null;
         html += `
-            <div style="background:var(--bg-card);border:1px solid var(--border);border-right:3px solid var(--accent);border-radius:12px;padding:16px;margin-bottom:12px;">
-                <div style="font-weight:bold;margin-bottom:10px;direction:rtl;color:var(--text-primary);display:flex;align-items:center;justify-content:space-between;">
-                    <span>${ex.name}</span>
-                    <button class="journal-chart-btn" data-exercise="${ex.name}" style="background:transparent;border:1px solid rgba(128,128,128,0.4);border-radius:6px;padding:2px 6px;font-size:14px;cursor:pointer;opacity:0.7;line-height:1;" title="גרף חוזק" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">📊</button>
-                </div>
-                <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
-                    <label style="font-size:13px;display:flex;align-items:center;gap:6px;color:var(--text-primary);">
-                        <span>משקל:</span>
-                        <input type="number" class="journal-weight-input" data-exercise="${ex.name}"
-                               value="${saved.weight_kg ?? ''}" min="0" step="0.5"
-                               style="width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:16px;text-align:center;">
-                    </label>
-                    <label style="font-size:13px;display:flex;align-items:center;gap:6px;color:var(--text-primary);">
-                        <span>חזרות:</span>
-                        <input type="number" class="journal-reps-input" data-exercise="${ex.name}"
-                               value="${saved.reps ?? ''}" min="0" step="1"
-                               style="width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:16px;text-align:center;">
-                    </label>
-                    <button class="journal-save-btn" data-exercise="${ex.name}"
-                            style="padding:8px 16px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:14px;font-weight:bold;cursor:pointer;">שמירה ✓</button>
+            <div class="journal-ex-card${isSaved ? ' journal-ex-saved' : ''}">
+                <div class="journal-ex-header">
+                    <span class="journal-ex-name">${ex.name}</span>
+                    <button class="journal-chart-btn" data-exercise="${ex.name}">📊</button>
                 </div>
                 ${lastHtml}
+                <div class="journal-ex-body">
+                    <div class="journal-ex-inputs">
+                        <label class="journal-ex-label">
+                            <span>משקל:</span>
+                            <input type="number" class="journal-weight-input" data-exercise="${ex.name}"
+                                   value="${saved.weight_kg ?? ''}" min="0" step="0.5"
+                                   style="width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:16px;text-align:center;">
+                        </label>
+                        <label class="journal-ex-label">
+                            <span>חזרות:</span>
+                            <input type="number" class="journal-reps-input" data-exercise="${ex.name}"
+                                   value="${saved.reps ?? ''}" min="0" step="1"
+                                   style="width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:16px;text-align:center;">
+                        </label>
+                    </div>
+                    <button class="journal-save-btn" data-exercise="${ex.name}">שמירה ✓</button>
+                </div>
             </div>`;
     });
 
@@ -1453,6 +1455,13 @@ async function renderJournalForDate(dateStr) {
     html += '<div id="journal-save-msg" style="font-size:15px;font-weight:bold;color:var(--main-green);text-align:center;padding:8px;min-height:20px;"></div>';
 
     container.innerHTML = html;
+
+    container.querySelectorAll('.journal-ex-header').forEach(header => {
+        header.addEventListener('click', (e) => {
+            if (e.target.classList.contains('journal-chart-btn')) return;
+            header.closest('.journal-ex-card').classList.toggle('open');
+        });
+    });
 
     container.querySelectorAll('.journal-chart-btn').forEach(btn => {
         btn.addEventListener('click', () => showStrengthChart(btn.dataset.exercise, userId));
@@ -1463,6 +1472,7 @@ async function renderJournalForDate(dateStr) {
             const exerciseName = btn.dataset.exercise;
             await autoSaveJournalEntries(dateStr, workoutLetter, exerciseName);
             btn.textContent = '✓ נשמר';
+            btn.closest('.journal-ex-card').classList.add('journal-ex-saved');
             setTimeout(() => { btn.textContent = 'שמירה ✓'; }, 2000);
         });
     });
