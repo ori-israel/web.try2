@@ -237,9 +237,10 @@ function saveProfile() {
     // Supabase sync
     if (typeof syncProfileNow === 'function') syncProfileNow(data);
 
-    if (typeof generatePortionGoals === 'function') generatePortionGoals();
-    if (typeof loadSavedWeight     === 'function')  loadSavedWeight();
-    if (typeof renderWeightChart   === 'function')  renderWeightChart();
+    if (typeof generatePortionGoals  === 'function') generatePortionGoals();
+    if (typeof loadSavedWeight      === 'function')  loadSavedWeight();
+    if (typeof renderWeightChart    === 'function')  renderWeightChart();
+    if (typeof checkMeetingReminder === 'function')  checkMeetingReminder();
 
     const btn = document.getElementById('prof-save-btn');
     btn.textContent = '✓ נשמר!';
