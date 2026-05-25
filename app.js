@@ -1895,8 +1895,10 @@ function loadCoachingGoal() {
     const el = document.getElementById('coaching-goal-display');
     if (!el) return;
     const saved = localStorage.getItem('coaching_goal');
-    el.value = saved || CLIENT.coachingGoal || '';
+    const rawGoal = saved || CLIENT.coachingGoal || '';
+    el.value = rawGoal.slice(0, 300);
     el.addEventListener('input', () => {
+        if (el.value.length > 300) el.value = el.value.slice(0, 300);
         const val = el.value.trim();
         localStorage.setItem('coaching_goal', val);
         if (typeof syncCoachingGoalNow === 'function') syncCoachingGoalNow(val);

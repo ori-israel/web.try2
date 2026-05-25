@@ -678,7 +678,7 @@
 
        <div class="card" style="margin-top: 35px;">
     <strong>יעד מרכזי עד לפגישה הבאה:</strong>
-    <textarea id="coaching-goal-display" rows="3" spellcheck="false" style="width:100%; margin:5px 0; padding:8px; border:1px solid var(--main-green); border-radius:8px; font-size:16px; font-family:inherit; resize:vertical; direction:rtl; text-align:right; background:var(--bg-card); color:var(--text-primary); box-sizing:border-box;"></textarea>
+    <textarea id="coaching-goal-display" rows="3" spellcheck="false" maxlength="300" style="width:100%; margin:5px 0; padding:8px; border:1px solid var(--main-green); border-radius:8px; font-size:16px; font-family:inherit; resize:vertical; direction:rtl; text-align:right; background:var(--bg-card); color:var(--text-primary); box-sizing:border-box;"></textarea>
 </div>
 
 <button class="calc-btn" onclick="openSurvey()" style="background-color: var(--dark-green); margin-top: 25px;">
@@ -965,7 +965,7 @@
     <p style="font-size:12px; color:#999; text-align:center; margin:10px 0 0 0;">⚠️ הסוכן עשוי לטעות — תמיד ניתן לפנות לאורי לאימות</p>
     <div style="display:flex; align-items:center; gap:10px; padding-top:15px; border-top:1px solid #eee;">
     <button onclick="sendAIMessage()" class="calc-btn" style="width:80px; height:48px; padding:0; margin:0; flex-shrink:0; order:1;">שלח</button>
-    <input type="text" id="ai-chat-input" placeholder="כתוב שאלה..." 
+    <input type="text" id="ai-chat-input" placeholder="כתוב שאלה..." maxlength="500"
         style="flex:1; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:16px; font-family:inherit; height:48px; order:2;"
         onkeydown="if(event.key==='Enter') sendAIMessage()">
 </div>
@@ -1000,7 +1000,7 @@
         <div class="profile-group">
             <div class="profile-row">
                 <label for="prof-nickname">שם משתמש</label>
-                <input id="prof-nickname" type="text" class="profile-input" placeholder="שם">
+                <input id="prof-nickname" type="text" class="profile-input" placeholder="שם" maxlength="20">
             </div>
             <div class="profile-row">
                 <label for="prof-email">מייל</label>
@@ -1022,15 +1022,15 @@
             </div>
             <div class="profile-row profile-row-textarea">
                 <label for="prof-allergies">אלרגיות/מגבלות תזונתיות (אם יש)</label>
-                <textarea id="prof-allergies" class="profile-input profile-textarea" placeholder="למשל: אגוזים, גלוטן... (לא חובה)"></textarea>
+                <textarea id="prof-allergies" class="profile-input profile-textarea" placeholder="למשל: אגוזים, גלוטן... (לא חובה)" maxlength="150"></textarea>
             </div>
             <div class="profile-row profile-row-textarea">
                 <label for="prof-liked-foods">מאכלים מועדפים</label>
-                <textarea id="prof-liked-foods" class="profile-input profile-textarea" placeholder="מאכלים שטעימים לי"></textarea>
+                <textarea id="prof-liked-foods" class="profile-input profile-textarea" placeholder="מאכלים שטעימים לי" maxlength="200"></textarea>
             </div>
             <div class="profile-row profile-row-textarea">
                 <label for="prof-disliked-foods">מאכלים שלא ארצה לאכול</label>
-                <textarea id="prof-disliked-foods" class="profile-input profile-textarea" placeholder="מאכלים שלא טעימים לי"></textarea>
+                <textarea id="prof-disliked-foods" class="profile-input profile-textarea" placeholder="מאכלים שלא טעימים לי" maxlength="200"></textarea>
             </div>
         </div>
 
@@ -1042,7 +1042,7 @@
             <div id="coach-save-note" class="coach-save-note" style="display:none">✏️ מצב עריכת מאמן פעיל</div>
             <div class="profile-row">
                 <label for="prof-name">שם מלא</label>
-                <input id="prof-name" type="text" class="profile-input coach-editable-field" disabled>
+                <input id="prof-name" type="text" class="profile-input coach-editable-field" disabled maxlength="20">
             </div>
             <div class="profile-row">
                 <label for="prof-start-weight">משקל התחלתי</label>
