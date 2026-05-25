@@ -585,19 +585,32 @@ function buildWorkoutAccordions(targets = {}) {
         const letter = workoutContainer?.id?.replace('workout-', '');
         const cardio = letter ? CLIENT.cardioPlan?.[letter] : null;
         if (cardio?.description) {
+            const cardioId = `${letter}_cardio`;
+            const savedState = JSON.parse(localStorage.getItem('workout_progress_v3') || '{}');
+            const isCardioChecked = !!savedState[cardioId];
             const cardioItem = document.createElement('div');
             cardioItem.className = 'workout-accord-item workout-cardio-item';
             cardioItem.innerHTML = `
-                <div class="workout-accord-header">
-                    <span style="font-size:18px;line-height:1;">🏃</span>
-                    <span class="accord-name">אירובי</span>
+                <div class="workout-accord-header ${isCardioChecked ? 'checked' : ''}">
+                    <input type="checkbox" class="accord-checkbox workout-checkbox" data-id="${cardioId}" ${isCardioChecked ? 'checked' : ''}>
+                    <span class="accord-name">🏃 אירובי</span>
+                    <span class="accord-check-icon">✓</span>
+                    <span class="accord-toggle">▾</span>
                 </div>
-                <div class="workout-accord-body" style="max-height:none;padding:8px 14px 14px;">
-                    <div style="font-size:14px;color:var(--text-primary);direction:rtl;margin-bottom:4px;">${cardio.description}</div>
-                    ${cardio.duration ? `<div style="font-size:13px;color:var(--text-secondary);direction:rtl;">⏱ ${cardio.duration} דקות</div>` : ''}
+                <div class="workout-accord-body">
+                    <div style="padding:8px 14px 14px;direction:rtl;">
+                        <div style="font-size:14px;color:var(--text-primary);margin-bottom:4px;">${cardio.description}</div>
+                        ${cardio.duration ? `<div style="font-size:13px;color:var(--text-secondary);">⏱ ${cardio.duration} דקות</div>` : ''}
+                    </div>
                 </div>
             `;
-            cardioItem.querySelector('.workout-accord-header').addEventListener('click', () => {
+            const cardioHeader = cardioItem.querySelector('.workout-accord-header');
+            const cardioCb = cardioItem.querySelector('.accord-checkbox');
+            cardioCb.addEventListener('change', () => {
+                cardioHeader.classList.toggle('checked', cardioCb.checked);
+            });
+            cardioHeader.addEventListener('click', (e) => {
+                if (e.target.classList.contains('accord-checkbox')) return;
                 cardioItem.classList.toggle('open');
             });
             accordion.appendChild(cardioItem);
