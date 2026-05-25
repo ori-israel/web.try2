@@ -1424,10 +1424,10 @@ async function renderJournalForDate(dateStr) {
             ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:6px;direction:rtl;">אימון קודם (${journalFormatShortDate(last.date)}): ${last.weight_kg} ק"ג × ${last.reps} חזרות</div>`
             : '';
         html += `
-            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;">
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-right:3px solid var(--accent);border-radius:12px;padding:16px;margin-bottom:12px;">
                 <div style="font-weight:bold;margin-bottom:10px;direction:rtl;color:var(--text-primary);display:flex;align-items:center;justify-content:space-between;">
-                    <button class="journal-chart-btn" data-exercise="${ex.name}" style="background:transparent;border:1px solid rgba(128,128,128,0.4);border-radius:6px;padding:2px 6px;font-size:14px;cursor:pointer;opacity:0.7;line-height:1;" title="גרף חוזק" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">📊</button>
                     <span>${ex.name}</span>
+                    <button class="journal-chart-btn" data-exercise="${ex.name}" style="background:transparent;border:1px solid rgba(128,128,128,0.4);border-radius:6px;padding:2px 6px;font-size:14px;cursor:pointer;opacity:0.7;line-height:1;" title="גרף חוזק" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">📊</button>
                 </div>
                 <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
                     <label style="font-size:13px;display:flex;align-items:center;gap:6px;color:var(--text-primary);">
