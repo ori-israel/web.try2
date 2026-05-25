@@ -1489,7 +1489,7 @@ mark {
 @media (max-width: 600px) {
     .header { padding-top: 68px; }
 
-    .top-right-logo { top: 10px; right: 12px; }
+    .top-right-logo { top: 8px; right: 0px; }
     .top-right-logo img { height: 60px; }
 
     .hamburger-btn { width: 36px; height: 36px; }
