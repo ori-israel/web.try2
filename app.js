@@ -579,6 +579,30 @@ function buildWorkoutAccordions(targets = {}) {
             const weightCell = item.querySelector('.weight-detail');
             accordion.appendChild(item);
         });
+
+        // cardio display
+        const workoutContainer = wrapper.closest('[id^="workout-"]');
+        const letter = workoutContainer?.id?.replace('workout-', '');
+        const cardio = letter ? CLIENT.cardioPlan?.[letter] : null;
+        if (cardio?.description) {
+            const cardioItem = document.createElement('div');
+            cardioItem.className = 'workout-accord-item workout-cardio-item';
+            cardioItem.innerHTML = `
+                <div class="workout-accord-header">
+                    <span style="font-size:18px;line-height:1;">🏃</span>
+                    <span class="accord-name">אירובי</span>
+                </div>
+                <div class="workout-accord-body" style="max-height:none;padding:8px 14px 14px;">
+                    <div style="font-size:14px;color:var(--text-primary);direction:rtl;margin-bottom:4px;">${cardio.description}</div>
+                    ${cardio.duration ? `<div style="font-size:13px;color:var(--text-secondary);direction:rtl;">⏱ ${cardio.duration} דקות</div>` : ''}
+                </div>
+            `;
+            cardioItem.querySelector('.workout-accord-header').addEventListener('click', () => {
+                cardioItem.classList.toggle('open');
+            });
+            accordion.appendChild(cardioItem);
+        }
+
         wrapper.appendChild(accordion);
     });
 }

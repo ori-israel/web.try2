@@ -823,6 +823,22 @@ function _rerenderWorkoutSections() {
                 </div>
             </div>
             <button class="we-add-btn" onclick="weAddRow('${letter}')">+ הוסף תרגיל</button>
+            <div class="we-cardio-section">
+                <div class="we-cardio-title">🏃 אירובי (אופציונלי)</div>
+                <div class="we-cardio-row">
+                    <input class="we-input we-cardio-desc" type="text" maxlength="120"
+                        placeholder="תיאור: הליכון שיפוע 15 מהירות 4..."
+                        value="${CLIENT.cardioPlan?.[letter]?.description || ''}"
+                        data-workout="${letter}">
+                    <div class="we-cardio-duration-wrap">
+                        <input class="we-input we-cardio-duration" type="number" min="1" max="180"
+                            placeholder="דקות"
+                            value="${CLIENT.cardioPlan?.[letter]?.duration || ''}"
+                            data-workout="${letter}">
+                        <span class="we-cardio-unit">דק׳</span>
+                    </div>
+                </div>
+            </div>
         `;
         sectionsEl.appendChild(section);
     });
@@ -915,6 +931,11 @@ async function saveWorkoutPlan() {
             });
             if (!CLIENT.workoutDays) CLIENT.workoutDays = {};
             CLIENT.workoutDays[letter] = days;
+
+            const cardioDesc = document.querySelector(`.we-cardio-desc[data-workout="${letter}"]`)?.value.trim() || '';
+            const cardioDur  = parseInt(document.querySelector(`.we-cardio-duration[data-workout="${letter}"]`)?.value) || 0;
+            if (!CLIENT.cardioPlan) CLIENT.cardioPlan = {};
+            CLIENT.cardioPlan[letter] = cardioDesc ? { description: cardioDesc, duration: cardioDur || null } : null;
         });
 
         await syncWorkoutPlanNow();

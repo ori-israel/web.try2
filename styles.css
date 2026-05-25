@@ -2407,6 +2407,36 @@ input[type="radio"] { accent-color: var(--accent); }
     transition: all 0.2s ease;
 }
 .we-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.we-cardio-section {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(59,130,246,0.05);
+    border: 1px dashed rgba(59,130,246,0.3);
+    border-radius: 10px;
+}
+.we-cardio-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 8px;
+    direction: rtl;
+}
+.we-cardio-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.we-cardio-desc { flex: 1; min-width: 160px; direction: rtl; }
+.we-cardio-duration-wrap { display: flex; align-items: center; gap: 4px; }
+.we-cardio-duration { width: 64px; text-align: center; }
+.we-cardio-unit { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+
+.workout-cardio-item .workout-accord-header { cursor: pointer; }
+.workout-cardio-item { border-top: 1px solid var(--border); margin-top: 4px; opacity: 0.85; }
+.workout-cardio-item.open .workout-accord-body { display: block !important; }
+
 .we-footer { margin-top: 16px; border-top: 0.5px solid var(--border); padding-top: 16px; }
 .we-save-btn {
     width: 100%;
