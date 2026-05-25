@@ -527,7 +527,7 @@ function buildWorkoutAccordions(targets = {}) {
                         </div>
                     </div>
                     <div class="accord-note-wrap">
-                        <input type="text" class="accord-note-input" maxlength="100" placeholder="הערות לאימון..." value="${exNote.replace(/"/g, '&quot;')}">
+                        <input type="text" class="accord-note-input" maxlength="100" placeholder="הערות לאימון..." data-ex-name="${name.replace(/"/g, '&quot;')}" value="${exNote.replace(/"/g, '&quot;')}">
                     </div>
                     ${bankUrl ? `<div class="accord-video-link"><button class="accord-video-btn" data-video-url="${encodeURIComponent(bankUrl)}">▶ צפה בסרטון</button></div>` : ''}
                 </div>
@@ -565,6 +565,10 @@ function buildWorkoutAccordions(targets = {}) {
                         try {
                             if (!CLIENT.exerciseNotes) CLIENT.exerciseNotes = {};
                             CLIENT.exerciseNotes[name] = noteInput.value;
+                            // sync all other inputs for the same exercise
+                            document.querySelectorAll(`.accord-note-input[data-ex-name="${name}"]`).forEach(el => {
+                                if (el !== noteInput) el.value = noteInput.value;
+                            });
                             await sbUpsertProfile(userId, { exercise_notes: CLIENT.exerciseNotes });
                         } catch(e) {
                             console.error('[note save]', e);
