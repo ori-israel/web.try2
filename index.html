@@ -1251,12 +1251,27 @@ document.getElementById('calendly-modal').addEventListener('click', function(e) 
 });
 
 // ── Calendly event listener ─────────────────────
-window.addEventListener('message', function(e) {
+window.addEventListener('message', async function(e) {
     if (!e.data || e.data.event !== 'calendly.event_scheduled') return;
 
-    // Calendly payload contains only URIs, not start_time — use 14 days from now
-    const startTime = (e.data.payload && e.data.payload.event && e.data.payload.event.start_time)
-        || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+    const eventUri = e.data.payload?.event?.uri;
+    let startTime = null;
+
+    // Try to get the actual meeting time from our backend
+    if (eventUri) {
+        try {
+            const resp = await fetch('/api/calendly-event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ eventUri })
+            });
+            const json = await resp.json();
+            if (json.startTime) startTime = json.startTime;
+        } catch {}
+    }
+
+    // Fallback: 14 days from now
+    if (!startTime) startTime = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
     CLIENT.nextMeetingDate = startTime;
     const data = JSON.parse(localStorage.getItem('profile_data_v1') || '{}');
@@ -1286,9 +1301,13 @@ function checkMeetingReminder() {
     today.setHours(0, 0, 0, 0);
     if (today > end) return;
 
-    // Is there a future meeting scheduled?
+    // Show banner 4 days before next meeting is due (so client books in time)
+    const REMIND_DAYS_BEFORE = 3;
     const nextMeeting = CLIENT.nextMeetingDate ? new Date(CLIENT.nextMeetingDate) : null;
-    if (nextMeeting && nextMeeting > today) return;
+    if (nextMeeting) {
+        const daysUntil = (nextMeeting - today) / (1000 * 60 * 60 * 24);
+        if (daysUntil > REMIND_DAYS_BEFORE) return; // too early
+    }
 
     // Was reminder dismissed today?
     const dismissed = localStorage.getItem('meeting_reminder_dismissed');
