@@ -533,6 +533,7 @@ async function loadUserIntoApp(userId) {
         if (profile.workout_g  && profile.workout_g.length)  CLIENT.workoutG    = profile.workout_g;
         if (profile.workout_days)                             CLIENT.workoutDays     = profile.workout_days;
         if (profile.workouts_per_week)                        CLIENT.workoutsPerWeek = profile.workouts_per_week;
+        CLIENT.exerciseNotes = profile.exercise_notes || {};
         if (profile.portion_values) {
             portionValues.protein = profile.portion_values.protein ?? portionValues.protein;
             portionValues.carbs   = profile.portion_values.carbs   ?? portionValues.carbs;

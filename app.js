@@ -498,8 +498,7 @@ function buildWorkoutAccordions(targets = {}) {
                 repsDisplay = cells[4]?.textContent.trim() || '—';
             }
 
-            const [exLetter, exIdx] = exId ? exId.split('_') : ['', ''];
-            const exNote = (exLetter && exIdx !== '') ? (CLIENT['workout' + exLetter]?.[parseInt(exIdx)]?.note || '') : '';
+            const exNote = (CLIENT.exerciseNotes?.[name] || '');
 
             item.innerHTML = `
                 <div class="workout-accord-header ${isChecked ? 'checked' : ''}">
@@ -528,7 +527,7 @@ function buildWorkoutAccordions(targets = {}) {
                         </div>
                     </div>
                     <div class="accord-note-wrap">
-                        <input type="text" class="accord-note-input" maxlength="100" placeholder="הערות לאימון..." data-ex-id="${exId}" value="${exNote.replace(/"/g, '&quot;')}">
+                        <input type="text" class="accord-note-input" maxlength="100" placeholder="הערות לאימון..." value="${exNote.replace(/"/g, '&quot;')}">
                     </div>
                     ${bankUrl ? `<div class="accord-video-link"><button class="accord-video-btn" data-video-url="${encodeURIComponent(bankUrl)}">▶ צפה בסרטון</button></div>` : ''}
                 </div>
@@ -561,14 +560,12 @@ function buildWorkoutAccordions(targets = {}) {
                 noteInput.addEventListener('input', () => {
                     clearTimeout(_noteTimer);
                     _noteTimer = setTimeout(async () => {
-                        const [letter, idx] = noteInput.dataset.exId.split('_');
-                        const workout = CLIENT['workout' + letter];
-                        if (!workout?.[parseInt(idx)]) return;
-                        workout[parseInt(idx)].note = noteInput.value;
                         const userId = getActiveUserId();
                         if (!userId) return;
                         try {
-                            await sbUpsertProfile(userId, { ['workout_' + letter.toLowerCase()]: workout });
+                            if (!CLIENT.exerciseNotes) CLIENT.exerciseNotes = {};
+                            CLIENT.exerciseNotes[name] = noteInput.value;
+                            await sbUpsertProfile(userId, { exercise_notes: CLIENT.exerciseNotes });
                         } catch(e) {
                             console.error('[note save]', e);
                         }
