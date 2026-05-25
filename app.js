@@ -1421,7 +1421,7 @@ async function renderJournalForDate(dateStr) {
         const saved = savedEntries[ex.name] || {};
         const last = lastEntries[ex.name];
         const lastHtml = last
-            ? `<div class="journal-last-entry">קודם (${journalFormatShortDate(last.date)}): ${last.weight_kg} ק"ג × ${last.reps} חזרות</div>`
+            ? `<div class="journal-last-entry">אימון קודם (${journalFormatShortDate(last.date)}): ${last.weight_kg} ק"ג × ${last.reps} חזרות</div>`
             : `<div class="journal-last-entry" style="color:var(--text-muted)">אין רשומה קודמת</div>`;
         const isSaved = saved.weight_kg != null;
         html += `
