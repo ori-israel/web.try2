@@ -1253,8 +1253,10 @@ document.getElementById('calendly-modal').addEventListener('click', function(e) 
 // ── Calendly event listener ─────────────────────
 window.addEventListener('message', function(e) {
     if (!e.data || e.data.event !== 'calendly.event_scheduled') return;
-    const startTime = e.data.payload && e.data.payload.event && e.data.payload.event.start_time;
-    if (!startTime) return;
+
+    // Calendly payload contains only URIs, not start_time — use 14 days from now
+    const startTime = (e.data.payload && e.data.payload.event && e.data.payload.event.start_time)
+        || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
     CLIENT.nextMeetingDate = startTime;
     const data = JSON.parse(localStorage.getItem('profile_data_v1') || '{}');
