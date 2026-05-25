@@ -2612,10 +2612,8 @@ let _deletedIdx = null;
 let _undoTimer = null;
 
 function renderScanDetails() {
-    const detailsBtn = document.getElementById('scan-details-btn');
     const detailsBox = document.getElementById('scan-details-box');
     if (scannedItems.length > 0) {
-        detailsBtn.classList.remove('hidden');
         detailsBox.innerHTML = scannedItems.map((item, i) =>
             `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
                 <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:#888;font-size:16px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
@@ -2625,7 +2623,7 @@ function renderScanDetails() {
             <button onclick="showAddItemForm()" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;padding:2px 0;">+ הוסף פריט</button>
         </div>`;
     } else {
-        detailsBtn.classList.add('hidden');
+        detailsBox.innerHTML = '';
     }
 }
 
@@ -2903,7 +2901,6 @@ async function analyzeFood(base64, mimeType, correction) {
             `</div>`;
 
         renderScanDetails();
-        document.getElementById('scan-details-box').classList.add('hidden');
         document.getElementById('scanner-loading').classList.add('hidden');
         document.getElementById('scanner-step-1').classList.add('hidden');
         document.getElementById('scanner-step-2').classList.remove('hidden');
@@ -2980,7 +2977,6 @@ ${itemsList}
             `<div>🥑 שומן: <b>${scannedPortions.fat} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span></div>` +
             `</div>`;
         renderScanDetails();
-        document.getElementById('scan-details-box').classList.add('hidden');
         document.getElementById('scan-correction').value = '';
     } catch (err) {
         const errMsg2 = err.message?.includes('מגבלת') ? err.message : 'שגיאה בחישוב מחדש';
