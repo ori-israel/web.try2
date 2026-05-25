@@ -2615,12 +2615,12 @@ function renderScanDetails() {
     const detailsBox = document.getElementById('scan-details-box');
     if (scannedItems.length > 0) {
         detailsBox.innerHTML = scannedItems.map((item, i) =>
-            `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:#888;font-size:16px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
-                <span style="flex:1;text-align:right;">${item.name} — <span onclick="editItemGrams(${i}, this)" style="color:#aaa;cursor:pointer;text-decoration:underline dotted;">${Math.round(item.grams)}g</span></span>
+            `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px;">
+                <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:#888;font-size:20px;cursor:pointer;padding:0 8px;line-height:1;min-width:36px;">✕</button>
+                <span style="flex:1;text-align:right;font-size:15px;">${item.name} — <span onclick="editItemGrams(${i}, this)" style="color:#aaa;cursor:pointer;text-decoration:underline dotted;">${Math.round(item.grams)}g</span></span>
             </div>`
-        ).join('') + `<div id="add-item-row" style="margin-top:4px;">
-            <button onclick="showAddItemForm()" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;padding:2px 0;">+ הוסף פריט</button>
+        ).join('') + `<div id="add-item-row" style="margin-top:6px;">
+            <button onclick="showAddItemForm()" style="background:none;border:none;color:#888;font-size:15px;cursor:pointer;padding:8px 0;width:100%;text-align:right;">+ הוסף פריט</button>
         </div>`;
     } else {
         detailsBox.innerHTML = '';
