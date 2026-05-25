@@ -1617,13 +1617,11 @@ mark {
         border-radius: 8px;
         color: var(--text-primary);
         font-size: 13px;
-        padding: 8px 10px;
-        resize: none;
-        min-height: 58px;
+        padding: 7px 10px;
         direction: rtl;
         font-family: inherit;
         transition: border-color 0.2s;
-        line-height: 1.4;
+        height: 36px;
     }
     .accord-note-input:focus {
         outline: none;

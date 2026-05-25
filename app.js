@@ -528,7 +528,7 @@ function buildWorkoutAccordions(targets = {}) {
                         </div>
                     </div>
                     <div class="accord-note-wrap">
-                        <textarea class="accord-note-input" maxlength="100" placeholder="הערות לאימון הבא..." data-ex-id="${exId}">${exNote}</textarea>
+                        <input type="text" class="accord-note-input" maxlength="100" placeholder="הערות לאימון הבא..." data-ex-id="${exId}" value="${exNote.replace(/"/g, '&quot;')}">
                     </div>
                     ${bankUrl ? `<div class="accord-video-link"><button class="accord-video-btn" data-video-url="${encodeURIComponent(bankUrl)}">▶ צפה בסרטון</button></div>` : ''}
                 </div>
