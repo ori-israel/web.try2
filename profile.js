@@ -75,7 +75,9 @@ function populateProfileForm() {
     document.getElementById('prof-goal-weight').value  = CLIENT.goalWeight     || '';
     document.getElementById('prof-birth-date').value   = CLIENT.birthDate      || '';
     document.getElementById('prof-start-date').value           = CLIENT.startDate             || '';
-    document.getElementById('prof-coaching-duration').value    = CLIENT.coachingDurationMonths || '';
+    if (!isCoachUnlocked) {
+        document.getElementById('prof-coaching-duration').value = CLIENT.coachingDurationMonths || '';
+    }
     document.getElementById('prof-height').value               = CLIENT.height                 || '';
     document.getElementById('prof-gender').value       = CLIENT.gender         || 'male';
     document.getElementById('prof-goal').value         = CLIENT.goal           || 'bulk';
