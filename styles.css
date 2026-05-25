@@ -1168,6 +1168,13 @@ mark {
     background: var(--bg-card-alt);
     border-radius: var(--radius);
 }
+.workout-selector.multi-row {
+    flex-wrap: wrap;
+}
+.workout-selector.multi-row .workout-nav-btn {
+    flex: 1 1 calc(50% - 6px);
+    max-width: calc(50% - 6px);
+}
 
 .workout-nav-btn {
     flex: 1;

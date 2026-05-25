@@ -1937,6 +1937,9 @@ async function initWorkoutsFromClient() {
         container.style.display = 'none';
     });
 
+    const totalShown = selector.querySelectorAll('.workout-nav-btn').length;
+    selector.classList.toggle('multi-row', totalShown >= 6);
+
     const todayDay = new Date().getDay();
     const todayLetter = Object.entries(CLIENT.workoutDays || {}).find(([, days]) => days.includes(todayDay))?.[0];
     showWorkout(todayLetter || firstLetter);
