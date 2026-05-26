@@ -16,6 +16,7 @@
             window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
         }
     </script>
+    <script src="https://assets.calendly.com/assets/external/widget.js" async></script>
 </head>
 <body>
 
@@ -1226,7 +1227,7 @@
             <span style="font-weight:700;font-size:16px;">📅 קביעת פגישה</span>
             <button onclick="closeCalendlyModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-secondary);line-height:1;">&times;</button>
         </div>
-        <iframe id="calendly-iframe" src="" width="100%" style="flex:1;border:none;" allow="payment"></iframe>
+        <div id="calendly-inline-container" style="flex:1;min-width:320px;"></div>
     </div>
 </div>
 
@@ -1236,8 +1237,14 @@ const CALENDLY_URL = 'https://calendly.com/ori-israel555/30min';
 
 function openCalendlyModal() {
     const modal = document.getElementById('calendly-modal');
-    const iframe = document.getElementById('calendly-iframe');
-    if (!iframe.src || iframe.src === window.location.href) iframe.src = CALENDLY_URL;
+    const container = document.getElementById('calendly-inline-container');
+    container.innerHTML = '';
+    if (window.Calendly) {
+        Calendly.initInlineWidget({ url: CALENDLY_URL, parentElement: container });
+    } else {
+        // fallback if SDK not loaded yet
+        container.innerHTML = `<iframe src="${CALENDLY_URL}" width="100%" height="100%" style="border:none;" allow="payment"></iframe>`;
+    }
     modal.style.display = 'flex';
     document.querySelector('.hamburger-menu') && document.querySelector('.hamburger-menu').classList.remove('open');
 }
