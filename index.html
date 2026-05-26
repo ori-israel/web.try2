@@ -1260,13 +1260,10 @@ document.getElementById('calendly-modal').addEventListener('click', function(e) 
 // ── Calendly event listener ─────────────────────
 window.addEventListener('message', async function(e) {
     if (!e.data || e.data.event !== 'calendly.event_scheduled') return;
-    console.log('[Calendly] postMessage received:', JSON.stringify(e.data));
 
     const eventUri = e.data.payload?.event?.uri;
-    console.log('[Calendly] eventUri:', eventUri);
     let startTime = null;
 
-    // Try to get the actual meeting time from our backend
     if (eventUri) {
         try {
             const resp = await fetch('/api/calendly-event', {
@@ -1275,17 +1272,11 @@ window.addEventListener('message', async function(e) {
                 body: JSON.stringify({ eventUri })
             });
             const json = await resp.json();
-            console.log('[Calendly] API response:', json);
             if (json.startTime) startTime = json.startTime;
-        } catch (err) { console.warn('[Calendly] API error:', err); }
+        } catch {}
     }
 
-    // Fallback: 14 days from now
-    if (!startTime) {
-        console.warn('[Calendly] using fallback date');
-        startTime = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
-    }
-    console.log('[Calendly] saving startTime:', startTime);
+    if (!startTime) startTime = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
     CLIENT.nextMeetingDate = startTime;
     const data = JSON.parse(localStorage.getItem('profile_data_v1') || '{}');
