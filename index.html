@@ -1306,23 +1306,24 @@ function checkMeetingReminder() {
     today.setHours(0, 0, 0, 0);
     if (today > end) return;
 
-    // Show banner 4 days before next meeting is due (so client books in time)
-    const REMIND_DAYS_BEFORE = 3;
+    // Show banner from day 11 to day 15 after last meeting (4-day window)
     const nextMeeting = CLIENT.nextMeetingDate ? new Date(CLIENT.nextMeetingDate) : null;
-    if (nextMeeting) {
-        const daysUntil = (nextMeeting - today) / (1000 * 60 * 60 * 24);
-        if (daysUntil > REMIND_DAYS_BEFORE) return; // too early
+    if (!nextMeeting) {
+        // No meeting booked yet — always show
+        document.getElementById('meeting-reminder-banner').style.display = 'flex';
+        return;
     }
-
-    // Was reminder dismissed today?
-    const dismissed = localStorage.getItem('meeting_reminder_dismissed');
-    if (dismissed && new Date(dismissed).toDateString() === today.toDateString()) return;
+    const meetingDay = new Date(nextMeeting);
+    meetingDay.setHours(0, 0, 0, 0);
+    const daysAfter = Math.floor((today - meetingDay) / 86400000);
+    if (daysAfter < 11) return;  // too early
+    if (daysAfter > 15) return;  // 4-day window expired
 
     document.getElementById('meeting-reminder-banner').style.display = 'flex';
 }
 
 function dismissMeetingReminder() {
-    localStorage.setItem('meeting_reminder_dismissed', new Date().toISOString());
+    // Dismiss for this session only (no localStorage)
     document.getElementById('meeting-reminder-banner').style.display = 'none';
 }
 
