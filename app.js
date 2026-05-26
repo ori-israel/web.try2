@@ -2091,6 +2091,11 @@ function completeNutritionStreak() {
     if (typeof syncStreaksNow === 'function') syncStreaksNow();
     if (streak === 7 && typeof _showAchievementPopup === 'function') _showAchievementPopup('streak_7_nutrition');
     if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
+    const uid = getActiveUserId();
+    if (uid && typeof _trackingWidgetCache !== 'undefined') {
+        delete _trackingWidgetCache['weekly_' + uid];
+        if (typeof renderWeeklyScore === 'function') renderWeeklyScore(uid);
+    }
     showNutritionComplete();
 }
 
