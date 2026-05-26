@@ -2046,6 +2046,22 @@ function completeWorkoutStreak(letter) {
     if (typeof syncStreaksNow === 'function') syncStreaksNow();
     if (streak === 7 && typeof _showAchievementPopup === 'function') _showAchievementPopup('streak_7_workout');
     if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
+
+    // Mark workout as done in performance log so weekly score updates in real-time
+    const uid = getActiveUserId();
+    if (uid) {
+        db.from('workout_performance_log').insert({
+            client_id: uid,
+            date: today,
+            exercise_name: '__workout_done__',
+            workout_letter: letter,
+            weight_kg: 0,
+            reps: 0
+        }).then(() => {
+            if (typeof _trackingWidgetCache !== 'undefined') delete _trackingWidgetCache['weekly_' + uid];
+            if (typeof renderWeeklyScore === 'function') renderWeeklyScore(uid);
+        }).catch(() => {});
+    }
 }
 
 function checkNutritionStreak() {
