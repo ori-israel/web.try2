@@ -140,6 +140,7 @@ async function sendAIMessage() {
         sessionStorage.setItem('ai_chat_history', JSON.stringify(aiChatHistory));
 
     } catch (err) {
+        console.error('AI error:', err);
         const loadingEl = document.getElementById(loadingId);
         if (loadingEl) {
             loadingEl.className = '';
