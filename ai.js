@@ -227,7 +227,7 @@ async function buildSystemPrompt() {
     const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
     const todayWorkout = Object.entries(CLIENT.workoutDays || {}).find(([letter, days]) => days.includes(todayDay));
     const todayWorkoutInfo = todayWorkout
-        ? `יום אימון ${todayWorkout[0]} (${CLIENT['workout'+todayWorkout[0]].map(e => e.name).join(', ')})`
+        ? `יום אימון ${todayWorkout[0]} (${(CLIENT['workout'+todayWorkout[0]] || []).map(e => e.name).join(', ')})`
         : 'יום מנוחה';
 
     const p = JSON.parse(localStorage.getItem('profile_data_v1') || '{}');
