@@ -269,6 +269,7 @@ ${genderNote}.
 - קלוריות תחזוקה (TDEE): ${tdee} קק"ל | יעד קלורי: ${targetCalories} קק"ל (${goal === 'cut' ? 'גירעון 250' : 'עודף 250'})
 - סטריק אימונים: ${workoutStreak} | סטריק תזונה: ${nutritionStreak}
 - יעד לפגישה: ${localStorage.getItem('coaching_goal') || CLIENT.coachingGoal}
+- פגישת זום הבאה: ${CLIENT.nextMeetingDate ? new Date(CLIENT.nextMeetingDate).toLocaleDateString('he-IL', {weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'}) : 'טרם נקבעה'}
 - אלרגיות: ${allergies}
 - לא אוהב: ${dislikedFoods}
 - אוהב: ${likedFoods}
