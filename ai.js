@@ -59,7 +59,7 @@ async function sendAIMessage() {
 
     try {
         const messages = aiChatHistory
-            .slice(-10)
+            .slice(-6)
             .filter((m, i) => !(i === 0 && m.role === 'assistant'))
             .map(m => ({
                 role: m.role === 'assistant' ? 'model' : 'user',
