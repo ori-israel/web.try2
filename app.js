@@ -1554,7 +1554,22 @@ function toggleJournalCal() {
     const cal = document.getElementById('journal-calendar');
     if (!cal) return;
     journalCalOpen = !journalCalOpen;
-    cal.style.display = journalCalOpen ? 'block' : 'none';
+    if (journalCalOpen) {
+        let backdrop = document.getElementById('journal-cal-backdrop');
+        if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.id = 'journal-cal-backdrop';
+            backdrop.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.5);';
+            backdrop.onclick = () => toggleJournalCal();
+            document.body.appendChild(backdrop);
+        }
+        backdrop.style.display = 'block';
+        cal.style.display = 'block';
+    } else {
+        cal.style.display = 'none';
+        const backdrop = document.getElementById('journal-cal-backdrop');
+        if (backdrop) backdrop.style.display = 'none';
+    }
 }
 
 function renderJournalCalGrid(selectedDate) {
