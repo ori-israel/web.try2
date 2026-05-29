@@ -258,46 +258,34 @@ async function buildSystemPrompt() {
     const tdee = Math.round(bmr * (parseFloat(activityLevel) || 1.375));
     const targetCalories = goal === 'cut' ? tdee - 250 : tdee + 250;
 
-    let prompt = `אתה עוזר אישי של מאמן כושר בשם אורי ישראל. עונה בעברית בלבד, בסגנון חם וישיר.
-${genderNote}.
+    const todayShort = new Date().toLocaleDateString('he-IL', {weekday:'short', day:'numeric', month:'numeric'});
+    const nextMeetingStr = CLIENT.nextMeetingDate ? new Date(CLIENT.nextMeetingDate).toLocaleDateString('he-IL', {weekday:'short', day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit'}) : 'טרם נקבעה';
+    const pVal = document.getElementById('protein-val')?.innerText || '0';
+    const pTgt = document.getElementById('protein-target')?.innerText?.replace('/ ','') || '?';
+    const cVal = document.getElementById('carbs-val')?.innerText || '0';
+    const cTgt = document.getElementById('carbs-target')?.innerText?.replace('/ ','') || '?';
+    const fVal = document.getElementById('fat-val')?.innerText || '0';
+    const fTgt = document.getElementById('fat-target')?.innerText?.replace('/ ','') || '?';
+    const workoutsCompact = Object.entries(CLIENT.workoutDays || {}).map(([l, days]) => {
+        const exs = (CLIENT['workout'+l] || []).map(e => {
+            const note = CLIENT.exerciseNotes?.[e.name] ? `(${CLIENT.exerciseNotes[e.name]})` : '';
+            return `${e.name} ${e.reps}חז${note}`;
+        }).join(', ');
+        return `${days.map(d => dayNames[d]).join('+')}[${l}]: ${exs}`;
+    }).join(' | ');
 
-נתוני לקוח:
-- שם מלא: ${fullName} | כינוי: ${nickname}
-- מין: ${isMale ? 'גבר' : 'אישה'} | גיל: ${age || 'לא ידוע'} | תאריך לידה: ${birthDate} | גובה: ${height} ס"מ
-- יום ${dayNumber} מתחילת הליווי | התחלה: ${startDate} | משך ליווי: ${CLIENT.coachingDurationMonths || '?'} חודשים | התאריך המדויק: ${new Date().toLocaleDateString('he-IL', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})} — ${todayWorkoutInfo}
-- משקל נוכחי: ${weight} ק"ג | משקל התחלתי: ${CLIENT.startWeight} ק"ג | יעד: ${goalWeight} ק"ג
-- מטרה: ${goal === 'bulk' ? 'מסה' : 'חיטוב'} | רמת פעילות: ${activityDesc} (מכפיל ${activityLevel} — ${activityLevel <= 1.3 ? 'בישיבה, מעט פעילות' : activityLevel <= 1.4 ? 'פעילות קלה 1-2 ימים בשבוע' : activityLevel <= 1.55 ? 'פעילות מתונה 3-5 ימים בשבוע' : activityLevel <= 1.725 ? 'פעילות אינטנסיבית 6-7 ימים' : 'אתלט/עבודה פיזית'})
-- קלוריות תחזוקה (TDEE): ${tdee} קק"ל | יעד קלורי: ${targetCalories} קק"ל (${goal === 'cut' ? 'גירעון 250' : 'עודף 250'})
-- סטריק אימונים: ${workoutStreak} | סטריק תזונה: ${nutritionStreak}
-- יעד לפגישה: ${localStorage.getItem('coaching_goal') || CLIENT.coachingGoal}
-- פגישת זום הבאה: ${CLIENT.nextMeetingDate ? new Date(CLIENT.nextMeetingDate).toLocaleDateString('he-IL', {weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'}) : 'טרם נקבעה'}
-- אלרגיות: ${allergies}
-- לא אוהב: ${dislikedFoods}
-- אוהב: ${likedFoods}
-
-תזונה היום:
-- חלבון: ${document.getElementById('protein-val')?.innerText}/${document.getElementById('protein-target')?.innerText?.replace('/ ','')} מנות
-- פחמימה: ${document.getElementById('carbs-val')?.innerText}/${document.getElementById('carbs-target')?.innerText?.replace('/ ','')} מנות
-- שומן: ${document.getElementById('fat-val')?.innerText}/${document.getElementById('fat-target')?.innerText?.replace('/ ','')} מנות
-
-אימונים שבועיים:
-${Object.entries(CLIENT.workoutDays || {}).map(([l, days]) => {
-    const exercises = CLIENT['workout'+l] || [];
-    return `${days.map(d => dayNames[d]).join('+')} — אימון ${l}:\n` +
-        exercises.map(e => {
-            const note = CLIENT.exerciseNotes?.[e.name] ? ` | הערה: ${CLIENT.exerciseNotes[e.name]}` : '';
-            return `  • ${e.name}${e.sets ? ': ' + e.sets + ' סטים ×' : ':'} ${e.reps} חזרות${note}`;
-        }).join('\n');
-}).join('\n\n')}
-
-מנות: חלבון=25-30גר | פחמימה=35-40גר | שומן=10-15גר
-
-חוקים:
-1. התאמה אישית מורכבת → "שלח לאורי בווטסאפ"
-2. אסור ייעוץ רפואי
-3. תמיד עודד
-4. התאריך והיום שסופקו בנתוני הלקוח הם המדויקים — אל תסתמך על הידע שלך לגבי תאריכים.
-5. תשובות קצרות וממוקדות — רק כמה משפטים. אם השאלה פשוטה, תשובה קצרה. רק אם השאלה מורכבת תרחיב.`;
+    let prompt = `מאמן כושר: אורי ישראל. עברית בלבד. ${isMale ? 'פנה בזכר' : 'פנה בנקבה'}.
+לקוח: ${fullName}(${nickname}), ${isMale?'גבר':'אישה'}, ${age||'?'}י, ${height}ס"מ
+ליווי: יום ${dayNumber}/${CLIENT.coachingDurationMonths ? CLIENT.coachingDurationMonths*30 : '?'} | התחלה: ${startDate} | היום: ${todayShort} | ${todayWorkoutInfo}
+משקל: נוכחי ${weight} | התחלה ${CLIENT.startWeight} | יעד ${goalWeight} ק"ג
+מטרה: ${goal==='bulk'?'מסה':'חיטוב'} | TDEE: ${tdee} | יעד קלורי: ${targetCalories} (${goal==='cut'?'-250':'+250'})
+פעילות: מכפיל ${activityLevel} | ${CLIENT.workoutsPerWeek||3} אימונים/שבוע
+סטריקים: אימון ${workoutStreak} | תזונה ${nutritionStreak}
+יעד פגישה: ${localStorage.getItem('coaching_goal') || CLIENT.coachingGoal} | זום הבא: ${nextMeetingStr}
+אלרגיות: ${allergies} | לא אוהב: ${dislikedFoods} | אוהב: ${likedFoods}
+תזונה היום: חלבון ${pVal}/${pTgt} | פחמימה ${cVal}/${cTgt} | שומן ${fVal}/${fTgt} מנות (חלבון=27.5ג פחמימה=37.5ג שומן=12.5ג)
+אימונים: ${workoutsCompact}
+כללים: שאלות_מורכבות→ווטסאפ_לאורי | ללא_ייעוץ_רפואי | עודד_תמיד | תאריך_מהנתונים_בלבד | תשובות_קצרות`;
 
     const userId = getActiveUserId();
 
