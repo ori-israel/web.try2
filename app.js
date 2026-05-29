@@ -1557,12 +1557,8 @@ function toggleJournalCal() {
     cal.style.display = journalCalOpen ? 'block' : 'none';
     if (journalCalOpen) {
         setTimeout(() => {
-            const rect = cal.getBoundingClientRect();
-            if (rect.bottom > window.innerHeight) {
-                const overflow = rect.bottom - window.innerHeight + 16;
-                window.scrollBy({ top: overflow, behavior: 'smooth' });
-            }
-        }, 0);
+            cal.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 50);
     }
 }
 
