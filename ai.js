@@ -250,15 +250,23 @@ async function buildSystemPrompt() {
         : 'המתאמנת היא אישה — פנה אליה בלשון נקבה (לדוגמה: "עשית", "אכלת", "הגעת" בנקבה)';
     const activityDesc = activityLevel >= 1.725 ? 'פעילות אינטנסיבית יומיומית' : activityLevel >= 1.55 ? '6 אימונים בשבוע' : activityLevel >= 1.465 ? '4-5 אימונים בשבוע' : activityLevel >= 1.375 ? '1-3 אימונים בשבוע' : 'לא עושה פעילות';
 
+    // חישוב קלוריות יעד
+    const ageCalc = age || 25;
+    let bmr = (10 * (parseFloat(weight) || 80)) + (6.25 * (parseFloat(height) || 170)) - (5 * ageCalc);
+    bmr = isMale ? bmr + 5 : bmr - 161;
+    const tdee = Math.round(bmr * (parseFloat(activityLevel) || 1.375));
+    const targetCalories = goal === 'cut' ? tdee - 250 : tdee + 250;
+
     let prompt = `אתה עוזר אישי של מאמן כושר בשם אורי ישראל. עונה בעברית בלבד, בסגנון חם וישיר.
 ${genderNote}.
 
 נתוני לקוח:
 - שם מלא: ${fullName} | כינוי: ${nickname}
 - מין: ${isMale ? 'גבר' : 'אישה'} | גיל: ${age || 'לא ידוע'} | תאריך לידה: ${birthDate} | גובה: ${height} ס"מ
-- יום ${dayNumber} מתחילת הליווי | התחלה: ${startDate} | התאריך המדויק: ${new Date().toLocaleDateString('he-IL', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})} — ${todayWorkoutInfo}
+- יום ${dayNumber} מתחילת הליווי | התחלה: ${startDate} | משך ליווי: ${CLIENT.coachingDurationMonths || '?'} חודשים | התאריך המדויק: ${new Date().toLocaleDateString('he-IL', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})} — ${todayWorkoutInfo}
 - משקל נוכחי: ${weight} ק"ג | משקל התחלתי: ${CLIENT.startWeight} ק"ג | יעד: ${goalWeight} ק"ג
 - מטרה: ${goal === 'bulk' ? 'מסה' : 'חיטוב'} | רמת פעילות: ${activityDesc} (מכפיל ${activityLevel} — ${activityLevel <= 1.3 ? 'בישיבה, מעט פעילות' : activityLevel <= 1.4 ? 'פעילות קלה 1-2 ימים בשבוע' : activityLevel <= 1.55 ? 'פעילות מתונה 3-5 ימים בשבוע' : activityLevel <= 1.725 ? 'פעילות אינטנסיבית 6-7 ימים' : 'אתלט/עבודה פיזית'})
+- קלוריות תחזוקה (TDEE): ${tdee} קק"ל | יעד קלורי: ${targetCalories} קק"ל (${goal === 'cut' ? 'גירעון 250' : 'עודף 250'})
 - סטריק אימונים: ${workoutStreak} | סטריק תזונה: ${nutritionStreak}
 - יעד לפגישה: ${localStorage.getItem('coaching_goal') || CLIENT.coachingGoal}
 - אלרגיות: ${allergies}
@@ -271,9 +279,14 @@ ${genderNote}.
 - שומן: ${document.getElementById('fat-val')?.innerText}/${document.getElementById('fat-target')?.innerText?.replace('/ ','')} מנות
 
 אימונים שבועיים:
-${Object.entries(CLIENT.workoutDays || {}).map(([l, days]) =>
-    `${days.map(d => dayNames[d]).join('+')}: ${CLIENT['workout'+l].map(e => e.name).join(', ')}`
-).join('\n')}
+${Object.entries(CLIENT.workoutDays || {}).map(([l, days]) => {
+    const exercises = CLIENT['workout'+l] || [];
+    return `${days.map(d => dayNames[d]).join('+')} — אימון ${l}:\n` +
+        exercises.map(e => {
+            const note = CLIENT.exerciseNotes?.[e.name] ? ` | הערה: ${CLIENT.exerciseNotes[e.name]}` : '';
+            return `  • ${e.name}${e.sets ? ': ' + e.sets + ' סטים ×' : ':'} ${e.reps} חזרות${note}`;
+        }).join('\n');
+}).join('\n\n')}
 
 מנות: חלבון=25-30גר | פחמימה=35-40גר | שומן=10-15גר
 
@@ -286,17 +299,52 @@ ${Object.entries(CLIENT.workoutDays || {}).map(([l, days]) =>
 
     const userId = getActiveUserId();
 
-    const [logsRes, scoresRes, qRes, weightRes] = await Promise.allSettled([
+    const { monStr, sunStr } = typeof getWeekRange === 'function' ? getWeekRange() : (() => {
+        const now = new Date();
+        const day = now.getDay();
+        const mon = new Date(now); mon.setDate(now.getDate() - ((day + 6) % 7));
+        const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+        const fmt = d => d.toISOString().split('T')[0];
+        return { monStr: fmt(mon), sunStr: fmt(sun) };
+    })();
+
+    const [logsRes, scoresRes, qRes, weightRes, curWorkoutRes, curNutRes, curWeightRes] = await Promise.allSettled([
         db.from('workout_performance_log').select('exercise_name, date, weight_kg, reps').eq('client_id', userId).order('date', { ascending: false }),
         db.from('weekly_scores').select('week_start, score, workouts_score, nutrition_score, habits_score').eq('client_id', userId).order('week_start', { ascending: false }),
         db.from('weekly_questionnaire').select('submitted_at, q1_win, q2_challenge, q3_score, q4_topic').eq('client_id', userId).order('submitted_at', { ascending: false }).limit(1).single(),
         db.from('weight_history').select('date, weight').eq('user_id', userId).order('date', { ascending: false }).limit(10),
+        db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', monStr).lte('date', sunStr),
+        db.from('daily_nutrition').select('date, protein, carbs, fat').eq('user_id', userId).gte('date', monStr).lte('date', sunStr),
+        db.from('weight_history').select('date').eq('user_id', userId).gte('date', monStr).lte('date', sunStr).limit(1),
     ]);
 
     const logs      = logsRes.status   === 'fulfilled' ? logsRes.value.data   : null;
     const scoreRows = scoresRes.status === 'fulfilled' ? scoresRes.value.data : null;
     const qRow      = qRes.status      === 'fulfilled' ? qRes.value.data      : null;
     const wRows     = weightRes.status === 'fulfilled' ? weightRes.value.data : null;
+
+    // ציון שבועי נוכחי
+    const curWorkoutData = curWorkoutRes.status === 'fulfilled' ? curWorkoutRes.value.data : null;
+    const curNutData     = curNutRes.status     === 'fulfilled' ? curNutRes.value.data     : null;
+    const curWeightData  = curWeightRes.status  === 'fulfilled' ? curWeightRes.value.data  : null;
+    if (curWorkoutData !== null) {
+        const weeklyTarget  = CLIENT.workoutsPerWeek || 3;
+        const proteinGoal   = Math.round((CLIENT.currentWeight || CLIENT.startWeight || 80) * (CLIENT.proteinRatio || 2));
+        const pv            = typeof portionValues !== 'undefined' ? portionValues : { protein: 27.5, carbs: 37.5, fat: 12.5 };
+        const workoutCount  = new Set((curWorkoutData || []).map(r => r.date)).size;
+        let nutritionMet = 0;
+        (curNutData || []).forEach(r => {
+            const proteinG = r.protein * pv.protein;
+            const kcal = proteinG * 4 + (r.carbs * pv.carbs) * 4 + (r.fat * pv.fat) * 9;
+            if (proteinG >= proteinGoal && kcal >= 1700) nutritionMet++;
+        });
+        const hasWeightThisWeek = curWeightData && curWeightData.length > 0;
+        const ws = Math.min(workoutCount / weeklyTarget, 1);
+        const ns = Math.min(nutritionMet / 7, 1);
+        const hs = hasWeightThisWeek ? 1 : 0;
+        const curScore = Math.round((ws * 0.4 + ns * 0.4 + hs * 0.2) * 100);
+        prompt += `\n\nציון שבועי נוכחי (${monStr} – ${sunStr}): ${curScore}% | אימונים: ${workoutCount}/${weeklyTarget} | תזונה: ${nutritionMet}/7 ימים | שקילה: ${hasWeightThisWeek ? 'כן' : 'לא'}`;
+    }
 
     if (logs && logs.length) {
         const byExercise = {};
