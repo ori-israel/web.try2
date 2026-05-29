@@ -1417,7 +1417,7 @@ async function renderJournalForDate(dateStr) {
             <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMin ? '.35' : '1'}">יום קודם</button>
             <div style="text-align:center;flex:1;position:relative;">
                 <button onclick="toggleJournalCal()" style="font-size:15px;font-weight:bold;color:var(--text-primary);background:transparent;border:none;border-bottom:2px solid #5b7cfa;cursor:pointer;padding:4px 8px;">${journalFormatDate(dateStr)}</button>
-                <div id="journal-calendar" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:12px;min-width:280px;box-shadow:0 4px 20px rgba(0,0,0,0.2);"></div>
+                <div id="journal-calendar" style="display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);z-index:1000;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:12px;min-width:280px;box-shadow:0 4px 20px rgba(0,0,0,0.2);"></div>
                 ${!isToday ? `<button onclick="journalGoToday()" style="background:#5b7cfa;color:#ffffff;border:none;border-radius:20px;padding:8px 20px;font-size:14px;font-weight:bold;cursor:pointer;display:block;margin:6px auto 0;box-shadow:0 2px 6px rgba(0,0,0,0.3);">חזרה להיום</button>` : ''}
             </div>
             <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMax ? '.35' : '1'}">יום הבא</button>
@@ -1554,22 +1554,7 @@ function toggleJournalCal() {
     const cal = document.getElementById('journal-calendar');
     if (!cal) return;
     journalCalOpen = !journalCalOpen;
-    if (journalCalOpen) {
-        let backdrop = document.getElementById('journal-cal-backdrop');
-        if (!backdrop) {
-            backdrop = document.createElement('div');
-            backdrop.id = 'journal-cal-backdrop';
-            backdrop.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.5);';
-            backdrop.onclick = () => toggleJournalCal();
-            document.body.appendChild(backdrop);
-        }
-        backdrop.style.display = 'block';
-        cal.style.display = 'block';
-    } else {
-        cal.style.display = 'none';
-        const backdrop = document.getElementById('journal-cal-backdrop');
-        if (backdrop) backdrop.style.display = 'none';
-    }
+    cal.style.display = journalCalOpen ? 'block' : 'none';
 }
 
 function renderJournalCalGrid(selectedDate) {
