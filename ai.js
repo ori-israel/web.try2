@@ -266,7 +266,7 @@ async function buildSystemPrompt() {
     const cTgt = document.getElementById('carbs-target')?.innerText?.replace('/ ','') || '?';
     const fVal = document.getElementById('fat-val')?.innerText || '0';
     const fTgt = document.getElementById('fat-target')?.innerText?.replace('/ ','') || '?';
-    const workoutTargets = JSON.parse(localStorage.getItem('workout_progress_v3') || '{}');
+    const workoutTargets = (typeof _exerciseTargets !== 'undefined') ? _exerciseTargets : {};
     const workoutsCompact = Object.entries(CLIENT.workoutDays || {}).map(([l, days]) => {
         const exs = (CLIENT['workout'+l] || []).map(e => {
             const note = CLIENT.exerciseNotes?.[e.name] ? `(${CLIENT.exerciseNotes[e.name]})` : '';
