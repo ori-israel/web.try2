@@ -275,8 +275,8 @@ async function buildSystemPrompt() {
             const t = workoutTargets[e.name];
             const repsInfo = t
                 ? `${t.target_reps}חז@${t.target_weight}ק"ג${t.suggest_increase ? ' (העלה משקל)' : ''}`
-                : `${e.reps}חז`;
-            return `${e.name} ${repsInfo}${note}`;
+                : '';
+            return `${e.name}${repsInfo ? ' ' + repsInfo : ''}${note}`;
         }).join(', ');
         return `${days.map(d => dayNames[d]).join('+')} — ${exs}`;
     }).join(' | ');
@@ -289,7 +289,7 @@ async function buildSystemPrompt() {
     const tomorrowInfo = tomorrowWorkout
         ? `${tomorrowShort} — ${(CLIENT['workout'+tomorrowWorkout[0]] || []).map(e => {
             const t = workoutTargets[e.name];
-            return t ? `${e.name} ${t.target_reps}חז@${t.target_weight}ק"ג${t.suggest_increase?' (העלה משקל)':''}` : `${e.name} ${e.reps}חז`;
+            return t ? `${e.name} ${t.target_reps}חז@${t.target_weight}ק"ג${t.suggest_increase?' (העלה משקל)':''}` : e.name;
           }).join(', ')}`
         : `${tomorrowShort} — יום מנוחה`;
 
