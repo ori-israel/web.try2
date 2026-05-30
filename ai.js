@@ -266,10 +266,15 @@ async function buildSystemPrompt() {
     const cTgt = document.getElementById('carbs-target')?.innerText?.replace('/ ','') || '?';
     const fVal = document.getElementById('fat-val')?.innerText || '0';
     const fTgt = document.getElementById('fat-target')?.innerText?.replace('/ ','') || '?';
+    const workoutTargets = JSON.parse(localStorage.getItem('workout_progress_v3') || '{}');
     const workoutsCompact = Object.entries(CLIENT.workoutDays || {}).map(([l, days]) => {
         const exs = (CLIENT['workout'+l] || []).map(e => {
             const note = CLIENT.exerciseNotes?.[e.name] ? `(${CLIENT.exerciseNotes[e.name]})` : '';
-            return `${e.name} ${e.reps}חז${note}`;
+            const t = workoutTargets[e.name];
+            const repsInfo = t
+                ? `${t.target_reps}חז@${t.target_weight}ק"ג${t.suggest_increase ? ' (העלה משקל)' : ''}`
+                : `${e.reps}חז`;
+            return `${e.name} ${repsInfo}${note}`;
         }).join(', ');
         return `${days.map(d => dayNames[d]).join('+')}[${l}]: ${exs}`;
     }).join(' | ');
