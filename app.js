@@ -7013,7 +7013,7 @@ function openFoodScanner() {
     const modal = document.getElementById('food-scanner-modal');
     modal.style.display = '';
     modal.classList.remove('hidden');
-    document.getElementById('scanner-modal-title').textContent = '📷 זיהוי אוכל מתמונה';
+    document.getElementById('scanner-modal-title').textContent = '🍽️ הוספת מנות';
     document.getElementById('scanner-step-1').classList.remove('hidden');
     document.getElementById('scanner-step-2').classList.add('hidden');
     document.getElementById('scanner-loading').classList.add('hidden');
