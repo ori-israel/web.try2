@@ -267,6 +267,8 @@ async function buildSystemPrompt() {
     const fVal = document.getElementById('fat-val')?.innerText || '0';
     const fTgt = document.getElementById('fat-target')?.innerText?.replace('/ ','') || '?';
     const workoutTargets = (typeof _exerciseTargets !== 'undefined') ? _exerciseTargets : {};
+
+    // בניית לוח אימונים לפי ימים (ללא אותיות)
     const workoutsCompact = Object.entries(CLIENT.workoutDays || {}).map(([l, days]) => {
         const exs = (CLIENT['workout'+l] || []).map(e => {
             const note = CLIENT.exerciseNotes?.[e.name] ? `(${CLIENT.exerciseNotes[e.name]})` : '';
@@ -276,12 +278,25 @@ async function buildSystemPrompt() {
                 : `${e.reps}חז`;
             return `${e.name} ${repsInfo}${note}`;
         }).join(', ');
-        return `${days.map(d => dayNames[d]).join('+')}[${l}]: ${exs}`;
+        return `${days.map(d => dayNames[d]).join('+')} — ${exs}`;
     }).join(' | ');
+
+    // אימון מחר מחושב ישירות
+    const tomorrowDay = (todayDay + 1) % 7;
+    const tomorrowWorkout = Object.entries(CLIENT.workoutDays || {}).find(([l, days]) => days.includes(tomorrowDay));
+    const tomorrowDate = new Date(); tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    const tomorrowShort = tomorrowDate.toLocaleDateString('he-IL', {weekday:'short', day:'numeric', month:'numeric'});
+    const tomorrowInfo = tomorrowWorkout
+        ? `${tomorrowShort} — ${(CLIENT['workout'+tomorrowWorkout[0]] || []).map(e => {
+            const t = workoutTargets[e.name];
+            return t ? `${e.name} ${t.target_reps}חז@${t.target_weight}ק"ג${t.suggest_increase?' (העלה משקל)':''}` : `${e.name} ${e.reps}חז`;
+          }).join(', ')}`
+        : `${tomorrowShort} — יום מנוחה`;
 
     let prompt = `מאמן כושר: אורי ישראל. עברית בלבד. ${isMale ? 'פנה בזכר' : 'פנה בנקבה'}.
 לקוח: ${fullName}(${nickname}), ${isMale?'גבר':'אישה'}, ${age||'?'}י, ${height}ס"מ
 ליווי: יום ${dayNumber}/${CLIENT.coachingDurationMonths ? CLIENT.coachingDurationMonths*30 : '?'} | התחלה: ${startDate} | היום: ${todayShort} | ${todayWorkoutInfo}
+מחר: ${tomorrowInfo}
 משקל: נוכחי ${weight} | התחלה ${CLIENT.startWeight} | יעד ${goalWeight} ק"ג
 מטרה: ${goal==='bulk'?'מסה':'חיטוב'} | TDEE: ${tdee} | יעד קלורי: ${targetCalories} (${goal==='cut'?'-250':'+250'})
 פעילות: מכפיל ${activityLevel} | ${CLIENT.workoutsPerWeek||3} אימונים/שבוע
@@ -289,7 +304,7 @@ async function buildSystemPrompt() {
 יעד פגישה: ${localStorage.getItem('coaching_goal') || CLIENT.coachingGoal} | זום הבא: ${nextMeetingStr}
 אלרגיות: ${allergies} | לא אוהב: ${dislikedFoods} | אוהב: ${likedFoods}
 תזונה היום: חלבון ${pVal}/${pTgt} | פחמימה ${cVal}/${cTgt} | שומן ${fVal}/${fTgt} מנות (חלבון=27.5ג פחמימה=37.5ג שומן=12.5ג)
-אימונים: ${workoutsCompact}
+לוח אימונים: ${workoutsCompact}
 כללים: שאלות_מורכבות→ווטסאפ_לאורי | ללא_ייעוץ_רפואי | עודד_תמיד | תאריך_מהנתונים_בלבד | תשובות_קצרות`;
 
     const userId = getActiveUserId();
