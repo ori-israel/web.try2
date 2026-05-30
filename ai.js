@@ -274,7 +274,7 @@ async function buildSystemPrompt() {
             const note = CLIENT.exerciseNotes?.[e.name] ? `(${CLIENT.exerciseNotes[e.name]})` : '';
             const t = workoutTargets[e.name];
             const repsInfo = t
-                ? `${t.target_reps}חז@${t.target_weight}ק"ג${t.suggest_increase ? ' (העלה משקל)' : ''}`
+                ? `${t.target_reps} חזרות עם ${t.target_weight} ק"ג${t.suggest_increase ? ' (העלה משקל)' : ''}`
                 : '';
             return `${e.name}${repsInfo ? ' ' + repsInfo : ''}${note}`;
         }).join(', ');
