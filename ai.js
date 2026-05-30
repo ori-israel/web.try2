@@ -289,7 +289,7 @@ async function buildSystemPrompt() {
     const tomorrowInfo = tomorrowWorkout
         ? `${tomorrowShort} — ${(CLIENT['workout'+tomorrowWorkout[0]] || []).map(e => {
             const t = workoutTargets[e.name];
-            return t ? `${e.name} ${t.target_reps}חז@${t.target_weight}ק"ג${t.suggest_increase?' (העלה משקל)':''}` : e.name;
+            return t ? `${e.name} ${t.target_reps} חזרות עם ${t.target_weight} ק"ג${t.suggest_increase?' (העלה משקל)':''}` : e.name;
           }).join(', ')}`
         : `${tomorrowShort} — יום מנוחה`;
 
@@ -305,7 +305,7 @@ async function buildSystemPrompt() {
 אלרגיות: ${allergies} | לא אוהב: ${dislikedFoods} | אוהב: ${likedFoods}
 תזונה היום: חלבון ${pVal}/${pTgt} | פחמימה ${cVal}/${cTgt} | שומן ${fVal}/${fTgt} מנות (חלבון=27.5ג פחמימה=37.5ג שומן=12.5ג)
 לוח אימונים: ${workoutsCompact}
-כללים: שאלות_מורכבות→ווטסאפ_לאורי | ללא_ייעוץ_רפואי | עודד_תמיד | תאריך_מהנתונים_בלבד | תשובות_קצרות`;
+כללים: שאלות_מורכבות→ווטסאפ_לאורי | ללא_ייעוץ_רפואי | עודד_תמיד | תאריך_מהנתונים_בלבד | תשובות_קצרות | אל_תשתמש_בסימן_@ | אימון_מחר_לפי_שדה_מחר_בלבד_אל_תחשב_לבד`;
 
     const userId = getActiveUserId();
 
