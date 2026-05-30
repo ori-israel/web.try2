@@ -1145,14 +1145,15 @@
 <div id="food-scanner-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeFoodScanner()">
   <div class="modal-card">
     <button class="modal-close" onclick="closeFoodScanner()">✕</button>
-    <h3 style="margin: 0 0 16px; text-align: center;">📷 זיהוי אוכל מתמונה</h3>
+    <h3 id="scanner-modal-title" style="margin: 0 0 16px; text-align: center;">📷 זיהוי אוכל מתמונה</h3>
 
     <div id="scanner-step-1">
       <input type="file" id="food-image-input" accept="image/*" capture="environment" style="display:none">
       <input type="file" id="food-gallery-input" accept="image/*" style="display:none">
-      <div style="display:flex; gap:10px;">
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
         <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-image-input').click()">צילום תמונה 📷</button>
         <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-gallery-input').click()">העלאה מהגלריה 🖼️</button>
+        <button class="scan-upload-btn" style="flex:1" onclick="openTextEntry()">הזנה בכתב ✍️</button>
       </div>
       <img id="food-preview" class="hidden" alt="תצוגה מקדימה" style="width:100%; border-radius:10px; margin:12px 0;">
     </div>
@@ -1161,7 +1162,7 @@
     <div id="scanner-loading" class="hidden" style="text-align:center; padding:20px 0; color:#aaa;">מנתח תמונה... ⏳</div>
 
     <div id="scanner-step-2" class="hidden">
-      <p style="font-size:12px; color:#aaa; margin:0 0 4px;">זוהה:</p>
+      <p id="scan-food-label" style="font-size:12px; color:#aaa; margin:0 0 4px;">זוהה:</p>
       <p id="scan-food-name" style="font-weight:bold; font-size:18px; margin:0 0 12px;"></p>
       <div id="scan-portions" style="margin:8px 0;"></div>
       <div id="scan-details-box" style="font-size:13px;color:#aaa;margin:6px 0 4px;display:flex;flex-direction:column;gap:2px;"></div>

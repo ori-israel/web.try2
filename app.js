@@ -7013,14 +7013,38 @@ function openFoodScanner() {
     const modal = document.getElementById('food-scanner-modal');
     modal.style.display = '';
     modal.classList.remove('hidden');
+    document.getElementById('scanner-modal-title').textContent = '📷 זיהוי אוכל מתמונה';
     document.getElementById('scanner-step-1').classList.remove('hidden');
     document.getElementById('scanner-step-2').classList.add('hidden');
     document.getElementById('scanner-loading').classList.add('hidden');
     document.getElementById('food-preview').classList.add('hidden');
     document.getElementById('scan-correction').value = '';
+    document.getElementById('scan-food-label').style.display = '';
+    document.getElementById('scan-food-name').style.display = '';
     scannedImageBase64 = null;
     scannedImageMime = null;
+    scannedItems = [];
     scannedPortions = { protein: 0, fat: 0, carbs: 0 };
+}
+
+function openTextEntry() {
+    scannedItems = [];
+    scannedPortions = { protein: 0, fat: 0, carbs: 0 };
+    scannedGrams = { protein: 0, fat: 0, carbs: 0 };
+    const modal = document.getElementById('food-scanner-modal');
+    modal.style.display = '';
+    modal.classList.remove('hidden');
+    document.getElementById('scanner-modal-title').textContent = '✍️ הזנת ארוחה בכתב';
+    document.getElementById('scanner-step-1').classList.add('hidden');
+    document.getElementById('scanner-loading').classList.add('hidden');
+    document.getElementById('scanner-error').classList.add('hidden');
+    document.getElementById('scan-food-label').style.display = 'none';
+    document.getElementById('scan-food-name').style.display = 'none';
+    document.getElementById('scan-portions').innerHTML = '';
+    document.getElementById('scan-details-box').innerHTML = '<div id="add-item-row"></div>';
+    document.getElementById('scan-undo-toast').classList.add('hidden');
+    document.getElementById('scanner-step-2').classList.remove('hidden');
+    showAddItemForm();
 }
 
 function closeFoodScanner() {
