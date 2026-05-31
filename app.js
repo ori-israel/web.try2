@@ -1229,7 +1229,7 @@ async function renderWeeklyScore(userId) {
         (nutritionRows || []).forEach(r => {
             const proteinG = r.protein * portionValues.protein;
             const kcal = proteinG * 4 + (r.carbs * portionValues.carbs) * 4 + (r.fat * portionValues.fat) * 9;
-            if (proteinG >= proteinGoal && kcal >= calorieGoal * 0.85) nutritionMet++;
+            if (proteinG >= proteinGoal * 0.9) nutritionMet++;
         });
         const nutritionScore = Math.min(nutritionMet / 7, 1);
 
@@ -1305,7 +1305,7 @@ async function renderScoreHistory(userId) {
         (nutData || []).forEach(r => {
             const proteinG = r.protein * portionValues.protein;
             const kcal = proteinG * 4 + (r.carbs * portionValues.carbs) * 4 + (r.fat * portionValues.fat) * 9;
-            if (proteinG >= proteinGoal && kcal >= 1700) nutritionMet++;
+            if (proteinG >= proteinGoal * 0.9) nutritionMet++;
         });
         const curScore = Math.round((
             Math.min(new Set((wkData||[]).map(r=>r.date)).size / weeklyTarget, 1) * 0.4 +
@@ -2126,7 +2126,9 @@ function completeNutritionStreak() {
     const uid = getActiveUserId();
     if (uid && typeof _trackingWidgetCache !== 'undefined') {
         delete _trackingWidgetCache['weekly_' + uid];
-        if (typeof renderWeeklyScore === 'function') renderWeeklyScore(uid);
+        delete _trackingWidgetCache['history_' + uid];
+        // delay to let Supabase save complete before querying
+        if (typeof renderWeeklyScore === 'function') setTimeout(() => renderWeeklyScore(uid), 2000);
     }
     showNutritionComplete();
 }
