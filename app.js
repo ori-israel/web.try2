@@ -7162,21 +7162,34 @@ async function startBarcodeCamera() {
             showBarcodeCameraError('ספריית הסריקה לא נטענה');
             return;
         }
-        const reader = new ZXing.MultiFormatReader();
+        const reader = new ZXing.BrowserMultiFormatReader();
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const scanStart = Date.now();
 
         const scan = () => {
             if (!barcodeScanning) return;
+
+            // timeout after 45s — show "not found" message
+            if (Date.now() - scanStart > 45000) {
+                stopBarcodeCamera();
+                document.getElementById('scanner-step-barcode').classList.add('hidden');
+                document.getElementById('scanner-step-1').classList.remove('hidden');
+                document.getElementById('scanner-modal-title').textContent = '🍽️ הוספת מנות';
+                _barcodeMode = false;
+                const errEl = document.getElementById('scanner-error');
+                errEl.textContent = '⚠️ לא נמצא ברקוד — נסה שוב';
+                errEl.classList.remove('hidden');
+                setTimeout(() => errEl.classList.add('hidden'), 3000);
+                return;
+            }
+
             if (video.readyState >= 2 && video.videoWidth > 0) {
                 canvas.width  = video.videoWidth;
                 canvas.height = video.videoHeight;
                 ctx.drawImage(video, 0, 0);
                 try {
-                    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const src    = new ZXing.RGBLuminanceSource(imgData.data, canvas.width, canvas.height);
-                    const bitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(src));
-                    const result = reader.decode(bitmap);
+                    const result = reader.decode(canvas);
                     if (result && barcodeScanning) {
                         barcodeScanning = false;
                         stopBarcodeCamera();
@@ -7184,11 +7197,11 @@ async function startBarcodeCamera() {
                         fetchBarcodeProduct(result.getText());
                         return;
                     }
-                } catch(e) { /* NotFoundException = no barcode in frame, keep scanning */ }
+                } catch(e) { /* NotFoundException = no barcode in frame */ }
             }
-            requestAnimationFrame(scan);
+            setTimeout(scan, 250);
         };
-        requestAnimationFrame(scan);
+        scan();
 
     } catch(e) {
         const msg = e.name === 'NotAllowedError' ? 'נדרשת הרשאת מצלמה' : 'לא ניתן לגשת למצלמה';
