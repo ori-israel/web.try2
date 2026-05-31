@@ -250,6 +250,7 @@ function setCoachMode(mode) {
     const list = document.getElementById('admin-client-list');
     if (!list) return;
     if (mode === 'archive') _renderArchiveMode(list);
+    else if (mode === 'subscribers') _renderSubscribersMode(list);
     else if (_coachClients && _coachDashData) _renderCoachList(list);
 }
 
@@ -301,6 +302,72 @@ async function _renderArchiveMode(list) {
     } catch (err) {
         list.innerHTML = `<div class="admin-error">שגיאה: ${err.message}</div>`;
     }
+}
+
+async function toggleSubscriberMode(clientId, current) {
+    const newVal = !current;
+    const client = _coachClients?.find(c => c.id === clientId);
+    const name   = client?.name || client?.nickname || '';
+    if (client) client.is_subscriber = newVal;
+    try {
+        await sbSetSubscriberMode(clientId, newVal);
+        _showToast(newVal ? `💳 ${name} הועבר למנויים` : `✅ ${name} הועבר חזרה לליווי`);
+    } catch (e) {
+        if (client) client.is_subscriber = current;
+        alert('שגיאה בעדכון סטטוס מנוי');
+    }
+    const list = document.getElementById('admin-client-list');
+    if (list) _renderCoachList(list);
+}
+
+function _renderSubscribersMode(list) {
+    const sb = document.getElementById('coach-search-bar');
+    if (sb) sb.style.display = 'none';
+    list.className = 'admin-client-list';
+    list.innerHTML = '';
+
+    if (!_coachClients) {
+        list.innerHTML = '<div class="admin-loading">טוען...</div>';
+        return;
+    }
+
+    const subscribers = _coachClients.filter(c => c.is_subscriber);
+    if (!subscribers.length) {
+        list.innerHTML = '<div class="admin-empty">אין לקוחות במנוי כרגע</div>';
+        return;
+    }
+
+    subscribers.forEach(client => {
+        const name = client.name || client.nickname || '(ללא שם)';
+        const s    = _coachDashData ? _buildClientStats(client) : null;
+        const score = s?.currentScore ?? null;
+        const bClr  = score === null ? '#444' : score >= 80 ? '#4ade80' : score >= 50 ? '#facc15' : '#f87171';
+        const sStr  = score !== null ? Math.round(score) : '—';
+
+        const row = document.createElement('div');
+        row.className = 'coach-urgent-row';
+        row.innerHTML = `
+            <div class="coach-urgent-left">
+                ${_coachInitials(name, client.id)}
+                <div class="coach-urgent-text">
+                    <span class="coach-urgent-name">${name}</span>
+                    <span class="coach-urgent-reason" style="color:#60a5fa;font-weight:600;">💳 מנוי פעיל — סיים ליווי</span>
+                </div>
+            </div>
+            <div class="coach-urgent-right">
+                <span class="coach-urgent-score" style="color:${bClr}">${sStr}</span>
+                <button class="admin-select-btn" data-client-id="${client.id}">כניסה ›</button>
+                <button class="coach-unsub-btn" data-client-id="${client.id}" data-is-sub="true" style="background:transparent;border:1px solid #f87171;color:#f87171;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;">החזר לליווי</button>
+            </div>`;
+        row.querySelector('.admin-select-btn').addEventListener('click', function() {
+            adminViewClient(this.dataset.clientId);
+        });
+        row.querySelector('.coach-unsub-btn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleSubscriberMode(this.dataset.clientId, true);
+        });
+        list.appendChild(row);
+    });
 }
 
 function _buildClientStats(client) {
@@ -358,6 +425,7 @@ function _buildClientStats(client) {
         hasWorkout,
         nutritionBadDays,
         vacationMode:      !!(profile.vacation_mode),
+        isSubscriber:      !!(profile.is_subscriber),
         lastSeen:          profile.last_seen || null,
         lastWeightUpdate:  lastWeightDates?.[client.id] || null,
     };
@@ -452,7 +520,7 @@ function _renderUrgentMode(list) {
     list.className = 'admin-client-list';
     const sb = document.getElementById('coach-search-bar');
     if (sb) sb.style.display = 'none';
-    const items = _coachClients.map(client => {
+    const items = _coachClients.filter(c => !c.is_subscriber).map(client => {
         const s    = _buildClientStats(client);
         const name = client.name || client.nickname || '(ללא שם)';
         let priority = 5, reason = null, cls = '';
@@ -527,7 +595,7 @@ function _renderOverviewMode(list) {
     list.className = 'admin-client-list coach-overview-list';
     list.innerHTML = '';
 
-    _coachClients.forEach(client => {
+    _coachClients.filter(c => !c.is_subscriber).forEach(client => {
         const s    = _buildClientStats(client);
         const name = client.name || client.nickname || '(ללא שם)';
         const score = s.currentScore;
@@ -573,6 +641,7 @@ function _renderOverviewMode(list) {
                 <div class="coach-sparkline">${_coachSparkline(s.last4)}</div>
                 <button class="coach-q-btn" data-client-id="${client.id}">📋 שאלון אחרון</button>
                 <button class="admin-select-btn" data-client-id="${client.id}" style="width:100%;margin-top:6px">כניסה ›</button>
+                <button class="admin-move-subscriber-btn" data-client-id="${client.id}" style="width:100%;margin-top:6px;background:transparent;border:1px solid #60a5fa;color:#60a5fa;border-radius:8px;padding:8px;font-size:13px;cursor:pointer;">💳 העבר למנויים</button>
                 <button class="admin-delete-client-btn" data-client-id="${client.id}" data-client-name="${name}" style="width:100%;margin-top:6px">🗑️ מחק לקוח</button>
             </div>`;
         card.querySelector('.coach-vac-icon').addEventListener('click', function(e) {
@@ -585,6 +654,10 @@ function _renderOverviewMode(list) {
         });
         card.querySelector('.admin-select-btn').addEventListener('click', function() {
             adminViewClient(this.dataset.clientId);
+        });
+        card.querySelector('.admin-move-subscriber-btn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleSubscriberMode(this.dataset.clientId, false);
         });
         card.querySelector('.admin-delete-client-btn').addEventListener('click', function(e) {
             e.stopPropagation();

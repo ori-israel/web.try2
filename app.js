@@ -629,6 +629,8 @@ function buildWorkoutAccordions(targets = {}) {
     }
 
     async function checkThursdayBanner() {
+        // מנויים לא מקבלים שאלון שבועי
+        if (CLIENT.isSubscriber) return;
         const now = new Date();
         const day  = now.getDay();
         const hour = now.getHours();
@@ -687,6 +689,17 @@ window.addEventListener('appinstalled', () => {
 
 function _isIOS() {
     return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
+function _applySubscriberMode() {
+    if (!CLIENT.isSubscriber) return;
+    // הסתרת פיצ'רי ליווי למנויים שסיימו ליווי
+    const whatsappBtn = document.querySelector('.whatsapp-top-btn');
+    if (whatsappBtn) whatsappBtn.style.display = 'none';
+    const calendlyBtn = document.getElementById('calendly-hamburger-btn');
+    if (calendlyBtn) calendlyBtn.style.display = 'none';
+    const surveyBanner = document.getElementById('weekly-survey-banner');
+    if (surveyBanner) surveyBanner.style.display = 'none';
 }
 
 function _showPWAPromptIfNeeded() {
@@ -759,6 +772,7 @@ function triggerPWAInstall() {
     checkBirthday();
     checkThursdayBanner();
     _showPWAPromptIfNeeded();
+    _applySubscriberMode();
 };
 
 document.addEventListener('visibilitychange', () => {

@@ -401,7 +401,7 @@ async function sbSaveStreaks(userId, fields) {
 async function sbFetchAllClients() {
     const { data, error } = await db
         .from('profiles')
-        .select('id, name, nickname, email, is_admin, created_at, avatar_url')
+        .select('id, name, nickname, email, is_admin, is_subscriber, created_at, avatar_url')
         .is('deleted_at', null)
         .order('created_at', { ascending: true });
     if (error) throw error;
@@ -420,6 +420,11 @@ async function sbFetchDeletedClients() {
 
 async function sbSetVacationMode(clientId, value) {
     const { error } = await db.from('profiles').update({ vacation_mode: value }).eq('id', clientId);
+    if (error) throw error;
+}
+
+async function sbSetSubscriberMode(clientId, value) {
+    const { error } = await db.from('profiles').update({ is_subscriber: value }).eq('id', clientId);
     if (error) throw error;
 }
 
@@ -443,7 +448,7 @@ async function sbFetchCoachDashData(clientIds) {
 
     const [pRes, sRes, wRes, nRes, whRes] = await Promise.all([
         db.from('profiles')
-          .select('id, current_weight, protein_ratio, workouts_per_week, vacation_mode, last_seen, portion_values')
+          .select('id, current_weight, protein_ratio, workouts_per_week, vacation_mode, last_seen, portion_values, is_subscriber')
           .in('id', clientIds),
         db.from('weekly_scores')
           .select('client_id, week_start, score, workouts_score, nutrition_score, habits_score')
@@ -520,6 +525,7 @@ async function loadUserIntoApp(userId) {
             nextMeetingDate:        profile.next_meeting_date        || null,
 
             vacationMode:  profile.vacation_mode  || false,
+            isSubscriber:  profile.is_subscriber  || false,
             avatarUrl:     profile.avatar_url     || null,
         };
         Object.assign(CLIENT, p);
