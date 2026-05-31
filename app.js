@@ -7299,6 +7299,10 @@ async function loadProgressPhotos() {
     const uploadLabel = document.getElementById('progress-photo-upload-label');
     if (!gallery || !uid) return;
 
+    // ניקוי מיידי לפני fetch — מונע הצגת תמונות של משתמש אחר
+    gallery.innerHTML = '<span style="color:var(--text-secondary);font-size:0.88rem;">טוען...</span>';
+    if (countEl) countEl.textContent = '';
+
     const photos = await sbFetchProgressPhotos(uid);
     const count = photos.length;
 

@@ -1296,6 +1296,7 @@ window.addEventListener('message', async function(e) {
 
 // ── Reminder logic ──────────────────────────────
 function checkMeetingReminder() {
+    if (CLIENT.isSubscriber) return;
     const durationMonths = CLIENT.coachingDurationMonths;
     if (!durationMonths) return;
 
