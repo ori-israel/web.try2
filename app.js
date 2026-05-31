@@ -698,9 +698,11 @@ function _applySubscriberMode() {
         const el = document.getElementById(id);
         if (el) el.style.display = hide ? 'none' : '';
     });
-    // באנר שאלון — מוסתר תמיד, checkThursdayBanner מחליט אם להראות
-    const banner = document.getElementById('weekly-survey-banner');
-    if (banner && hide) banner.style.display = 'none';
+    // באנרים — מוסתרים תמיד למנויים
+    ['weekly-survey-banner', 'meeting-reminder-banner'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && hide) el.style.display = 'none';
+    });
     const whatsappBtn = document.querySelector('.whatsapp-top-btn');
     if (whatsappBtn) whatsappBtn.style.display = hide ? 'none' : '';
 }
