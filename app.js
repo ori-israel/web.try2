@@ -7053,7 +7053,6 @@ function openFoodScanner() {
     document.getElementById('scanner-modal-title').textContent = '🍽️ הוספת מנות';
     document.getElementById('scanner-step-1').classList.remove('hidden');
     document.getElementById('scanner-step-2').classList.add('hidden');
-    document.getElementById('scanner-step-barcode').classList.add('hidden');
     document.getElementById('scanner-step-barcode-result').classList.add('hidden');
     document.getElementById('scanner-loading').classList.add('hidden');
     document.getElementById('food-preview').classList.add('hidden');
@@ -7103,124 +7102,12 @@ function closeFoodScanner() {
 
 // ── Barcode Scanner ──────────────────────────────────────────────────────────
 
-async function openBarcodeScanner() {
-    ['scanner-step-1','scanner-step-2','scanner-step-barcode-result'].forEach(id =>
-        document.getElementById(id).classList.add('hidden'));
-    document.getElementById('scanner-step-barcode').classList.remove('hidden');
-    document.getElementById('scanner-modal-title').textContent = '📦 סריקת ברקוד';
-
-    try {
-        _barcodeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        const readerEl = document.getElementById('barcode-reader');
-        readerEl.innerHTML = '';
-        const video = document.createElement('video');
-        video.srcObject = _barcodeStream;
-        video.setAttribute('playsinline', 'true');
-        video.muted = true;
-        video.autoplay = true;
-        video.style.cssText = 'width:100%;display:block;';
-        readerEl.appendChild(video);
-        barcodeScanning = true;
-        let _loopStarted = false;
-        const startLoop = () => { if (!_loopStarted) { _loopStarted = true; _startScanLoop(video); } };
-        video.oncanplay = startLoop;
-        setTimeout(startLoop, 1500); // fallback if oncanplay never fires
-    } catch(e) {
-        document.getElementById('scanner-step-barcode').classList.add('hidden');
-        document.getElementById('scanner-step-1').classList.remove('hidden');
-        document.getElementById('scanner-modal-title').textContent = '🍽️ הוספת מנות';
-        document.getElementById('barcode-file-input').click();
-    }
-}
-
-function _startScanLoop(video) {
-    let lastCode = null, lastCount = 0;
-
-    const takeSnapshot = () => {
-        if (video.readyState < 2 || !video.videoWidth) return null;
-        const c = document.createElement('canvas');
-        c.width = video.videoWidth;
-        c.height = video.videoHeight;
-        c.getContext('2d').drawImage(video, 0, 0);
-        return c;
-    };
-
-    const onTimeout = () => {
-        if (!barcodeScanning) return;
-        barcodeScanning = false;
-        stopBarcodeCamera();
-        document.getElementById('scanner-step-barcode').classList.add('hidden');
-        document.getElementById('scanner-step-1').classList.remove('hidden');
-        document.getElementById('scanner-modal-title').textContent = '🍽️ הוספת מנות';
-        const errEl = document.getElementById('scanner-error');
-        errEl.textContent = '⚠️ לא זוהה ברקוד — נסה שוב';
-        errEl.classList.remove('hidden');
-        setTimeout(() => errEl.classList.add('hidden'), 3000);
-    };
-
-    // Hard deadline — fires regardless of loop state
-    setTimeout(onTimeout, 7000);
-
-    const onFound = (code) => {
-        if (code === lastCode) { lastCount++; } else { lastCode = code; lastCount = 1; }
-        if (lastCount >= 2) {
-            barcodeScanning = false;
-            if (navigator.vibrate) navigator.vibrate(80);
-            stopBarcodeCamera();
-            document.getElementById('scanner-step-barcode').classList.add('hidden');
-            fetchBarcodeProduct(code);
-            return true;
-        }
-        return false;
-    };
-
-    if ('BarcodeDetector' in window) {
-        let detector = null;
-        try { detector = new BarcodeDetector(); } catch(e) {}
-        if (detector) {
-            const scan = async () => {
-                if (!barcodeScanning) return;
-                const snap = takeSnapshot();
-                if (snap) {
-                    try {
-                        const codes = await detector.detect(snap);
-                        if (codes.length > 0) { if (onFound(codes[0].rawValue)) return; }
-                        else { lastCode = null; lastCount = 0; }
-                    } catch(e) {}
-                }
-                if (barcodeScanning) setTimeout(scan, 500);
-            };
-            scan();
-            return;
-        }
-    }
-
-    if (typeof Quagga !== 'undefined') {
-        const scan = () => {
-            if (!barcodeScanning) return;
-            const snap = takeSnapshot();
-            if (!snap) { if (barcodeScanning) setTimeout(scan, 300); return; }
-            Quagga.decodeSingle({
-                decoder: { readers: ['ean_reader','ean_8_reader','code_128_reader','upc_reader'] },
-                locate: true,
-                src: snap.toDataURL('image/jpeg', 0.9),
-                numOfWorkers: 0
-            }, (result) => {
-                if (!barcodeScanning) return;
-                if (result && result.codeResult && result.codeResult.code) {
-                    if (onFound(result.codeResult.code)) return;
-                } else { lastCode = null; lastCount = 0; }
-                if (barcodeScanning) setTimeout(scan, 800);
-            });
-        };
-        scan();
-    }
+function openBarcodeScanner() {
+    document.getElementById('barcode-file-input').click();
 }
 
 function closeBarcodeScanner() {
-    stopBarcodeCamera();
     barcodeCurrentProduct = null;
-    document.getElementById('scanner-step-barcode').classList.add('hidden');
     document.getElementById('scanner-step-barcode-result').classList.add('hidden');
     if (scannedItems.length > 0) {
         document.getElementById('scanner-step-2').classList.remove('hidden');
@@ -7234,61 +7121,63 @@ function closeBarcodeScanner() {
 
 function stopBarcodeCamera() {
     barcodeScanning = false;
-    if (_barcodeStream) {
-        _barcodeStream.getTracks().forEach(t => { try { t.stop(); } catch(e) {} });
-        _barcodeStream = null;
-    }
-    if (typeof Quagga !== 'undefined') {
-        try { Quagga.stop(); } catch(e) {}
-        try { Quagga.offDetected(); } catch(e) {}
-    }
-    const readerEl = document.getElementById('barcode-reader');
-    if (readerEl) readerEl.innerHTML = '';
     barcodeReader = null;
 }
 
-function handleBarcodeFile(file) {
+async function handleBarcodeFile(file) {
     if (!file) return;
     const modal = document.getElementById('food-scanner-modal');
     modal.style.display = '';
     modal.classList.remove('hidden');
-    document.getElementById('scanner-step-1').classList.add('hidden');
-    document.getElementById('scanner-step-2').classList.add('hidden');
-    document.getElementById('scanner-step-barcode').classList.add('hidden');
-    document.getElementById('scanner-step-barcode-result').classList.add('hidden');
+    ['scanner-step-1','scanner-step-2','scanner-step-barcode-result'].forEach(id =>
+        document.getElementById(id).classList.add('hidden'));
     document.getElementById('scanner-loading').classList.remove('hidden');
     document.getElementById('scanner-modal-title').textContent = '📦 סריקת ברקוד';
 
-    if (typeof Quagga === 'undefined') {
-        document.getElementById('scanner-loading').classList.add('hidden');
-        document.getElementById('scanner-step-1').classList.remove('hidden');
-        document.getElementById('scanner-modal-title').textContent = '🍽️ הוספת מנות';
-        return;
+    let code = null;
+
+    // 1. BarcodeDetector (native — most reliable)
+    if ('BarcodeDetector' in window) {
+        try {
+            const bitmap = await createImageBitmap(file);
+            const detector = new BarcodeDetector();
+            const codes = await detector.detect(bitmap);
+            if (codes.length > 0) code = codes[0].rawValue;
+        } catch(e) {}
     }
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        Quagga.decodeSingle({
-            decoder: { readers: ['ean_reader', 'ean_8_reader', 'code_128_reader', 'upc_reader'] },
-            locate: true,
-            src: e.target.result
-        }, async function(result) {
-            document.getElementById('scanner-loading').classList.add('hidden');
-            if (result && result.codeResult && result.codeResult.code) {
-                if (navigator.vibrate) navigator.vibrate(80);
-                await fetchBarcodeProduct(result.codeResult.code);
-            } else {
-                document.getElementById('scanner-step-1').classList.remove('hidden');
-                document.getElementById('scanner-modal-title').textContent = '🍽️ הוספת מנות';
-                _barcodeMode = false;
-                const errEl = document.getElementById('scanner-error');
-                errEl.textContent = '⚠️ לא זוהה ברקוד — יש לצלם את הברקוד בצורה ברורה וישרה';
-                errEl.classList.remove('hidden');
-                setTimeout(() => errEl.classList.add('hidden'), 4000);
-            }
+    // 2. Quagga fallback
+    if (!code && typeof Quagga !== 'undefined') {
+        code = await new Promise(resolve => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                Quagga.decodeSingle({
+                    decoder: { readers: ['ean_reader','ean_8_reader','code_128_reader','upc_reader','upc_e_reader'] },
+                    locate: true,
+                    src: e.target.result,
+                    numOfWorkers: 0
+                }, result => {
+                    resolve(result && result.codeResult && result.codeResult.code ? result.codeResult.code : null);
+                });
+            };
+            reader.readAsDataURL(file);
         });
-    };
-    reader.readAsDataURL(file);
+    }
+
+    document.getElementById('scanner-loading').classList.add('hidden');
+
+    if (code) {
+        if (navigator.vibrate) navigator.vibrate(80);
+        fetchBarcodeProduct(code);
+    } else {
+        document.getElementById('scanner-step-1').classList.remove('hidden');
+        document.getElementById('scanner-modal-title').textContent = '🍽️ הוספת מנות';
+        _barcodeMode = false;
+        const errEl = document.getElementById('scanner-error');
+        errEl.textContent = '⚠️ לא זוהה ברקוד — נסה לצלם ישר ובאור טוב';
+        errEl.classList.remove('hidden');
+        setTimeout(() => errEl.classList.add('hidden'), 4000);
+    }
 }
 
 function showBarcodeCameraError(msg) {
