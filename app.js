@@ -7024,9 +7024,9 @@ function updateScannedTotals() {
         carbs:   Math.round(scannedItems.reduce((s, i) => s + (i.carbs_g   || 0), 0))
     };
     scannedPortions = {
-        protein: round(Math.max(0, scannedGrams.protein / 27.5)),
-        fat:     round(Math.max(0, scannedGrams.fat     / 12.5)),
-        carbs:   round(Math.max(0, scannedGrams.carbs   / 37.5))
+        protein: round(Math.max(0, scannedGrams.protein / portionValues.protein)),
+        fat:     round(Math.max(0, scannedGrams.fat     / portionValues.fat)),
+        carbs:   round(Math.max(0, scannedGrams.carbs   / portionValues.carbs))
     };
     document.getElementById('scan-portions').innerHTML =
         `<div style="display:flex; flex-direction:column; gap:6px;">` +
@@ -7177,9 +7177,9 @@ async function analyzeFood(base64, mimeType, correction) {
             carbs:   Math.round(result.carbs_g   || 0)
         };
         scannedPortions = {
-            protein: round(Math.max(0, scannedGrams.protein / 27.5)),
-            fat:     round(Math.max(0, scannedGrams.fat     / 12.5)),
-            carbs:   round(Math.max(0, scannedGrams.carbs   / 37.5))
+            protein: round(Math.max(0, scannedGrams.protein / portionValues.protein)),
+            fat:     round(Math.max(0, scannedGrams.fat     / portionValues.fat)),
+            carbs:   round(Math.max(0, scannedGrams.carbs   / portionValues.carbs))
         };
         scannedItems = (Array.isArray(result.items) ? result.items : []).map(enrichItemMacros);
 
@@ -7255,9 +7255,9 @@ ${itemsList}
             carbs:   Math.round(scannedItems.reduce((s, i) => s + (i.carbs_g   || 0), 0))
         };
         scannedPortions = {
-            protein: round(Math.max(0, scannedGrams.protein / 27.5)),
-            fat:     round(Math.max(0, scannedGrams.fat     / 12.5)),
-            carbs:   round(Math.max(0, scannedGrams.carbs   / 37.5))
+            protein: round(Math.max(0, scannedGrams.protein / portionValues.protein)),
+            fat:     round(Math.max(0, scannedGrams.fat     / portionValues.fat)),
+            carbs:   round(Math.max(0, scannedGrams.carbs   / portionValues.carbs))
         };
 
         document.getElementById('scan-food-name').textContent = `🍽️ ${result.food}`;
