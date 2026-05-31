@@ -7147,23 +7147,26 @@ function stopBarcodeCamera() {
 
 async function startBarcodeCamera() {
     barcodeScanning = true;
+    const video = document.getElementById('barcode-video');
     try {
         if (typeof ZXing === 'undefined') {
             showBarcodeCameraError('ספריית הסריקה לא נטענה');
             return;
         }
         barcodeReader = new ZXing.BrowserMultiFormatReader();
-        const video = document.getElementById('barcode-video');
-        await barcodeReader.decodeFromVideoDevice(null, video, async (result, err) => {
-            if (!barcodeScanning) return;
-            if (result) {
-                barcodeScanning = false;
-                const barcode = result.getText();
-                stopBarcodeCamera();
-                if (navigator.vibrate) navigator.vibrate(80);
-                await fetchBarcodeProduct(barcode);
+        await barcodeReader.decodeFromConstraints(
+            { video: { facingMode: 'environment' } },
+            video,
+            (result, err) => {
+                if (!barcodeScanning) return;
+                if (result) {
+                    barcodeScanning = false;
+                    stopBarcodeCamera();
+                    if (navigator.vibrate) navigator.vibrate(80);
+                    fetchBarcodeProduct(result.getText());
+                }
             }
-        });
+        );
     } catch(e) {
         showBarcodeCameraError('לא ניתן לגשת למצלמה');
     }
