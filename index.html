@@ -1162,7 +1162,6 @@
 
     <!-- hidden input for barcode fallback -->
     <input type="file" id="barcode-file-input" accept="image/*" capture="environment" style="display:none">
-    <div id="barcode-reader-hidden" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;"></div>
 
     <!-- Barcode live camera step -->
     <div id="scanner-step-barcode" class="hidden">
@@ -1217,7 +1216,7 @@
 
 </div><!-- /app-container -->
 
-<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="client.js"></script>
 <script src="supabase-db.js"></script>
