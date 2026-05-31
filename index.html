@@ -1165,8 +1165,8 @@
 
     <!-- Barcode live camera step -->
     <div id="scanner-step-barcode" class="hidden">
-      <p style="text-align:center;font-size:14px;color:#aaa;margin:0 0 12px;">נא לכוון את הברקוד למסגרת</p>
-      <div style="position:relative;width:100%;border-radius:12px;overflow:hidden;background:#111;">
+      <p style="text-align:center;font-size:13px;color:#aaa;margin:0 0 10px;">נא לכוון את הברקוד למסגרת ולחץ "סריקה"</p>
+      <div style="position:relative;width:100%;border-radius:12px;overflow:hidden;background:#111;min-height:180px;">
         <div id="barcode-reader"></div>
         <div style="position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;">
           <div style="position:relative;width:72%;height:110px;border:2px solid rgba(255,255,255,0.85);border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,0.45);">
@@ -1174,7 +1174,10 @@
           </div>
         </div>
       </div>
-      <button onclick="closeBarcodeScanner()" style="margin-top:14px;width:100%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;padding:12px;font-size:15px;font-family:inherit;cursor:pointer;">ביטול</button>
+      <div style="display:flex;gap:10px;margin-top:12px;">
+        <button onclick="captureBarcode()" style="flex:1;background:var(--gradient-btn);border:none;border-radius:8px;color:#fff;padding:13px;font-size:15px;font-family:inherit;cursor:pointer;font-weight:bold;">📸 סריקה</button>
+        <button onclick="closeBarcodeScanner()" style="flex:0.5;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;padding:13px;font-size:15px;font-family:inherit;cursor:pointer;">ביטול</button>
+      </div>
     </div>
 
     <!-- Barcode result step -->
