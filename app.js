@@ -692,15 +692,17 @@ function _isIOS() {
 }
 
 function _applySubscriberMode() {
-    if (!CLIENT.isSubscriber) return;
-    // הסתרת פיצ'רי ליווי למנויים שסיימו ליווי
-    const ids = ['calendly-hamburger-btn', 'weekly-survey-banner', 'open-survey-btn', 'coaching-goal-card'];
+    const hide = CLIENT.isSubscriber;
+    const ids = ['calendly-hamburger-btn', 'open-survey-btn', 'coaching-goal-card'];
     ids.forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
+        if (el) el.style.display = hide ? 'none' : '';
     });
+    // באנר שאלון — מוסתר תמיד, checkThursdayBanner מחליט אם להראות
+    const banner = document.getElementById('weekly-survey-banner');
+    if (banner && hide) banner.style.display = 'none';
     const whatsappBtn = document.querySelector('.whatsapp-top-btn');
-    if (whatsappBtn) whatsappBtn.style.display = 'none';
+    if (whatsappBtn) whatsappBtn.style.display = hide ? 'none' : '';
 }
 
 function _showPWAPromptIfNeeded() {
