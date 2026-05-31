@@ -1160,22 +1160,9 @@
       <img id="food-preview" class="hidden" alt="תצוגה מקדימה" style="width:100%; border-radius:10px; margin:12px 0;">
     </div>
 
-    <!-- Barcode camera step -->
-    <div id="scanner-step-barcode" class="hidden">
-      <div style="position:relative;border-radius:10px;overflow:hidden;background:#000;aspect-ratio:4/3;max-height:260px;">
-        <video id="barcode-video" style="width:100%;height:100%;object-fit:cover;display:block;" playsinline muted></video>
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
-          <div style="width:76%;aspect-ratio:2.8/1;border:2px solid rgba(255,255,255,0.9);border-radius:8px;position:relative;box-shadow:0 0 0 9999px rgba(0,0,0,0.42);">
-            <div style="position:absolute;left:4%;right:4%;height:2px;background:#5b7cfa;top:50%;animation:barcodeScan 1.5s ease-in-out infinite;"></div>
-          </div>
-        </div>
-        <p style="position:absolute;bottom:10px;left:0;right:0;text-align:center;color:#fff;font-size:13px;margin:0;text-shadow:0 1px 3px rgba(0,0,0,0.8);">נא לכוון את הברקוד למסגרת</p>
-      </div>
-      <div id="barcode-camera-error" class="hidden" style="background:#ff4444;color:#fff;border-radius:8px;padding:10px;text-align:center;font-weight:bold;margin-top:10px;font-size:14px;"></div>
-      <div style="margin-top:12px;text-align:center;">
-        <button onclick="closeBarcodeScanner()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:20px;padding:8px 22px;font-size:14px;cursor:pointer;font-family:inherit;">ביטול</button>
-      </div>
-    </div>
+    <!-- hidden inputs for barcode -->
+    <input type="file" id="barcode-file-input" accept="image/*" capture="environment" style="display:none">
+    <div id="barcode-reader" style="position:fixed;left:-9999px;top:-9999px;width:300px;height:300px;"></div>
 
     <!-- Barcode result step -->
     <div id="scanner-step-barcode-result" class="hidden">
