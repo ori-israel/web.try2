@@ -1160,21 +1160,20 @@
       <img id="food-preview" class="hidden" alt="תצוגה מקדימה" style="width:100%; border-radius:10px; margin:12px 0;">
     </div>
 
-    <!-- Barcode camera step -->
+    <!-- Barcode photo step -->
     <div id="scanner-step-barcode" class="hidden">
-      <div style="position:relative;border-radius:10px;overflow:hidden;background:#000;aspect-ratio:4/3;max-height:260px;">
-        <div id="barcode-reader" style="width:100%;min-height:200px;"></div>
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
-          <div style="width:76%;aspect-ratio:2.8/1;border:2px solid rgba(255,255,255,0.9);border-radius:8px;position:relative;box-shadow:0 0 0 9999px rgba(0,0,0,0.42);">
-            <div id="barcode-scan-line" style="position:absolute;left:4%;right:4%;height:2px;background:#5b7cfa;top:50%;animation:barcodeScan 1.5s ease-in-out infinite;"></div>
-          </div>
-        </div>
-        <p style="position:absolute;bottom:10px;left:0;right:0;text-align:center;color:#fff;font-size:13px;margin:0;text-shadow:0 1px 3px rgba(0,0,0,0.8);">נא לכוון את הברקוד למסגרת</p>
+      <input type="file" id="barcode-file-input" accept="image/*" capture="environment" style="display:none">
+      <div style="text-align:center;padding:24px 0 16px;">
+        <div style="font-size:56px;margin-bottom:12px;">📦</div>
+        <p style="color:#aaa;font-size:14px;margin:0 0 20px;line-height:1.5;">יש לצלם את הברקוד שמאחורי המוצר<br>ולוודא שהוא ברור ובמרכז התמונה</p>
+        <button onclick="document.getElementById('barcode-file-input').click()" style="background:var(--gradient-btn);border:none;border-radius:10px;color:#fff;padding:14px 28px;font-size:16px;font-family:inherit;cursor:pointer;font-weight:bold;box-shadow:0 2px 8px rgba(59,130,246,0.3);">📷 צלם ברקוד</button>
       </div>
       <div id="barcode-camera-error" class="hidden" style="background:#ff4444;color:#fff;border-radius:8px;padding:10px;text-align:center;font-weight:bold;margin-top:10px;font-size:14px;"></div>
       <div style="margin-top:12px;text-align:center;">
         <button onclick="closeBarcodeScanner()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:20px;padding:8px 22px;font-size:14px;cursor:pointer;font-family:inherit;">ביטול</button>
       </div>
+      <!-- hidden container for html5-qrcode processing -->
+      <div id="barcode-reader" style="display:none;position:absolute;visibility:hidden;"></div>
     </div>
 
     <!-- Barcode result step -->

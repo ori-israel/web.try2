@@ -7134,44 +7134,24 @@ function closeBarcodeScanner() {
 
 function stopBarcodeCamera() {
     barcodeScanning = false;
-    if (barcodeReader) {
-        try { barcodeReader.stop().catch(() => {}); } catch(e) {}
-        barcodeReader = null;
-    }
+    barcodeReader = null;
 }
 
-async function startBarcodeCamera() {
-    barcodeScanning = true;
-    const container = document.getElementById('barcode-reader');
-    if (container) container.innerHTML = '';
-
-    await new Promise(r => setTimeout(r, 120)); // wait for DOM to render
-
-    if (typeof Html5Qrcode === 'undefined') {
-        showBarcodeCameraError('ספריית הסריקה לא נטענה');
-        return;
-    }
+async function handleBarcodeFile(file) {
+    if (!file) return;
+    document.getElementById('scanner-step-barcode').classList.add('hidden');
+    document.getElementById('scanner-loading').classList.remove('hidden');
     try {
-        barcodeReader = new Html5Qrcode('barcode-reader');
-        await barcodeReader.start(
-            { facingMode: 'environment' },
-            { fps: 15 },
-            (decodedText) => {
-                if (!barcodeScanning) return;
-                barcodeScanning = false;
-                stopBarcodeCamera();
-                if (navigator.vibrate) navigator.vibrate(80);
-                fetchBarcodeProduct(decodedText);
-            },
-            () => {}
-        );
+        if (typeof Html5Qrcode === 'undefined') throw new Error('ספרייה לא נטענה');
+        const scanner = new Html5Qrcode('barcode-reader');
+        const barcode = await scanner.scanFile(file, false);
+        document.getElementById('scanner-loading').classList.add('hidden');
+        if (navigator.vibrate) navigator.vibrate(80);
+        await fetchBarcodeProduct(barcode);
     } catch(e) {
-        barcodeReader = null; // prevent stop() being called on failed instance
-        const errStr = (e?.message || e?.toString() || '').toLowerCase();
-        const msg = errStr.includes('permission') || errStr.includes('denied') || errStr.includes('ermission')
-            ? 'נדרשת הרשאת מצלמה'
-            : 'לא ניתן לפתוח את המצלמה: ' + (e?.message || e);
-        showBarcodeCameraError(msg);
+        document.getElementById('scanner-loading').classList.add('hidden');
+        document.getElementById('scanner-step-barcode').classList.remove('hidden');
+        showBarcodeCameraError('⚠️ לא זוהה ברקוד — נסה לצלם שוב בבהירות יותר');
     }
 }
 
@@ -7306,6 +7286,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.getElementById('food-gallery-input').addEventListener('change', function(e) {
         handleFoodImageFile(e.target.files[0]);
+        e.target.value = '';
+    });
+    document.getElementById('barcode-file-input').addEventListener('change', function(e) {
+        handleBarcodeFile(e.target.files[0]);
         e.target.value = '';
     });
 });
