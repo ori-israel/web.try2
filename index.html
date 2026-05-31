@@ -1160,9 +1160,23 @@
       <img id="food-preview" class="hidden" alt="תצוגה מקדימה" style="width:100%; border-radius:10px; margin:12px 0;">
     </div>
 
-    <!-- hidden inputs for barcode -->
+    <!-- hidden input for barcode fallback -->
     <input type="file" id="barcode-file-input" accept="image/*" capture="environment" style="display:none">
-    <div id="barcode-reader" style="position:fixed;left:-9999px;top:-9999px;width:300px;height:300px;"></div>
+    <div id="barcode-reader-hidden" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;"></div>
+
+    <!-- Barcode live camera step -->
+    <div id="scanner-step-barcode" class="hidden">
+      <p style="text-align:center;font-size:14px;color:#aaa;margin:0 0 12px;">נא לכוון את הברקוד למסגרת</p>
+      <div style="position:relative;width:100%;border-radius:12px;overflow:hidden;background:#111;">
+        <div id="barcode-reader"></div>
+        <div style="position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;">
+          <div style="position:relative;width:72%;height:110px;border:2px solid rgba(255,255,255,0.85);border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,0.45);">
+            <div style="position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#00e676,transparent);animation:barcodeScan 1.5s ease-in-out infinite;top:10%;"></div>
+          </div>
+        </div>
+      </div>
+      <button onclick="closeBarcodeScanner()" style="margin-top:14px;width:100%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;padding:12px;font-size:15px;font-family:inherit;cursor:pointer;">ביטול</button>
+    </div>
 
     <!-- Barcode result step -->
     <div id="scanner-step-barcode-result" class="hidden">
