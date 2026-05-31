@@ -91,11 +91,12 @@ function toggleTheme() {
         protein: Math.round((proteinGrams / portionValues.protein) * 2) / 2,
         carbs:   Math.round((carbCals / 4 / portionValues.carbs) * 2) / 2,
         fat:     Math.round((fatCals / 9 / portionValues.fat) * 2) / 2,
+        totalCalories,
     };
 }
 
     function generatePortionGoals() {
-    const { protein: pPortions, carbs: cPortions, fat: fPortions } = calcPortionTargets();
+    const { protein: pPortions, carbs: cPortions, fat: fPortions, totalCalories } = calcPortionTargets();
 
     // 7. עדכון HTML
     document.getElementById('protein-target').innerText = `/ ${pPortions}`;
