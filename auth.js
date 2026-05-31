@@ -130,7 +130,7 @@ async function _loadClientAndShowApp(userId) {
         const btn    = document.getElementById('admin-hamburger-btn');
         const nameEl = document.getElementById('admin-bar-name');
         if (btn)    btn.style.display = 'flex';
-        if (nameEl) nameEl.textContent = CLIENT.name || CLIENT.nickname || 'לקוח';
+        if (nameEl) nameEl.textContent = (CLIENT.name || CLIENT.nickname || 'לקוח') + (CLIENT.isSubscriber ? ' 💳' : '');
     }
 }
 
@@ -656,8 +656,10 @@ function _renderOverviewMode(list) {
         card.querySelector('.admin-select-btn').addEventListener('click', function() {
             adminViewClient(this.dataset.clientId);
         });
-        card.querySelector('.admin-move-subscriber-btn').addEventListener('click', function(e) {
+        card.querySelector('.admin-move-subscriber-btn').addEventListener('click', async function(e) {
             e.stopPropagation();
+            const confirmed = await showConfirmDanger(`להעביר את ${name} למנויים?\nפיצ'רי הליווי יוסתרו עבורו.`);
+            if (!confirmed) return;
             toggleSubscriberMode(this.dataset.clientId, false);
         });
         card.querySelector('.admin-delete-client-btn').addEventListener('click', function(e) {

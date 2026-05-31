@@ -113,7 +113,7 @@ function toggleTheme() {
     if (coachEl) coachEl.textContent = COACH_NAME;
     document.title = `פורטל הליווי של ${CLIENT.name}`;
     const h1 = document.querySelector('h1');
-    h1.innerText = `תוכנית הליווי של ${CLIENT.name}`;
+    h1.innerText = `תוכנית הכושר של ${CLIENT.name}`;
     h1.style.visibility = 'visible';
 
 }
