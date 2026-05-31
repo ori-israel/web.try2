@@ -7135,76 +7135,33 @@ function closeBarcodeScanner() {
 function stopBarcodeCamera() {
     barcodeScanning = false;
     if (barcodeReader) {
-        try { barcodeReader.reset(); } catch(e) {}
+        barcodeReader.stop().catch(() => {});
         barcodeReader = null;
-    }
-    const video = document.getElementById('barcode-video');
-    if (video && video.srcObject) {
-        video.srcObject.getTracks().forEach(t => t.stop());
-        video.srcObject = null;
     }
 }
 
 async function startBarcodeCamera() {
     barcodeScanning = true;
-    const video = document.getElementById('barcode-video');
     try {
-        // Step 1: open camera directly — always reliable
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: 'environment' } }
-        });
-        video.srcObject = stream;
-        video.setAttribute('playsinline', '');
-        try { await video.play(); } catch(e) {}
-
-        // Step 2: decode frames with ZXing
-        if (typeof ZXing === 'undefined') {
+        if (typeof Html5Qrcode === 'undefined') {
             showBarcodeCameraError('ספריית הסריקה לא נטענה');
             return;
         }
-        const reader = new ZXing.BrowserMultiFormatReader();
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const scanStart = Date.now();
-
-        const scan = () => {
-            if (!barcodeScanning) return;
-
-            // timeout after 45s — show "not found" message
-            if (Date.now() - scanStart > 45000) {
+        barcodeReader = new Html5Qrcode('barcode-reader');
+        await barcodeReader.start(
+            { facingMode: 'environment' },
+            { fps: 10 },
+            (decodedText) => {
+                if (!barcodeScanning) return;
+                barcodeScanning = false;
                 stopBarcodeCamera();
-                document.getElementById('scanner-step-barcode').classList.add('hidden');
-                document.getElementById('scanner-step-1').classList.remove('hidden');
-                document.getElementById('scanner-modal-title').textContent = '🍽️ הוספת מנות';
-                _barcodeMode = false;
-                const errEl = document.getElementById('scanner-error');
-                errEl.textContent = '⚠️ לא נמצא ברקוד — נסה שוב';
-                errEl.classList.remove('hidden');
-                setTimeout(() => errEl.classList.add('hidden'), 3000);
-                return;
-            }
-
-            if (video.readyState >= 2 && video.videoWidth > 0) {
-                canvas.width  = video.videoWidth;
-                canvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0);
-                try {
-                    const result = reader.decode(canvas);
-                    if (result && barcodeScanning) {
-                        barcodeScanning = false;
-                        stopBarcodeCamera();
-                        if (navigator.vibrate) navigator.vibrate(80);
-                        fetchBarcodeProduct(result.getText());
-                        return;
-                    }
-                } catch(e) { /* NotFoundException = no barcode in frame */ }
-            }
-            setTimeout(scan, 250);
-        };
-        scan();
-
+                if (navigator.vibrate) navigator.vibrate(80);
+                fetchBarcodeProduct(decodedText);
+            },
+            () => {} // scan attempt failed — ignore, keep trying
+        );
     } catch(e) {
-        const msg = e.name === 'NotAllowedError' ? 'נדרשת הרשאת מצלמה' : 'לא ניתן לגשת למצלמה';
+        const msg = e.toString().includes('ermission') ? 'נדרשת הרשאת מצלמה' : 'לא ניתן לגשת למצלמה';
         showBarcodeCameraError(msg);
     }
 }

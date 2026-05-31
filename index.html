@@ -1163,7 +1163,7 @@
     <!-- Barcode camera step -->
     <div id="scanner-step-barcode" class="hidden">
       <div style="position:relative;border-radius:10px;overflow:hidden;background:#000;aspect-ratio:4/3;max-height:260px;">
-        <video id="barcode-video" style="width:100%;height:100%;object-fit:cover;display:block;" playsinline muted></video>
+        <div id="barcode-reader" style="width:100%;height:100%;"></div>
         <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
           <div style="width:76%;aspect-ratio:2.8/1;border:2px solid rgba(255,255,255,0.9);border-radius:8px;position:relative;box-shadow:0 0 0 9999px rgba(0,0,0,0.42);">
             <div id="barcode-scan-line" style="position:absolute;left:4%;right:4%;height:2px;background:#5b7cfa;top:50%;animation:barcodeScan 1.5s ease-in-out infinite;"></div>
@@ -1216,7 +1216,7 @@
 
 </div><!-- /app-container -->
 
-<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="client.js"></script>
 <script src="supabase-db.js"></script>
