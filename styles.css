@@ -2791,3 +2791,8 @@ input[type="radio"] { accent-color: var(--accent); }
     font-weight: 600;
     direction: rtl;
 }
+
+@keyframes barcodeScan {
+    0%, 100% { top: 10%; }
+    50% { top: 85%; }
+}

@@ -1151,12 +1151,48 @@
     <div id="scanner-step-1">
       <input type="file" id="food-image-input" accept="image/*" capture="environment" style="display:none">
       <input type="file" id="food-gallery-input" accept="image/*" style="display:none">
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-image-input').click()">צילום תמונה 📷</button>
-        <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-gallery-input').click()">העלאה מהגלריה 🖼️</button>
-        <button class="scan-upload-btn" style="flex:1" onclick="openTextEntry()">הזנה בכתב ✍️</button>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <button class="scan-upload-btn" onclick="openBarcodeScanner()">סריקת ברקוד 📦</button>
+        <button class="scan-upload-btn" onclick="openTextEntry()">הזנה בכתב ✍️</button>
+        <button class="scan-upload-btn" onclick="document.getElementById('food-gallery-input').click()">העלאה מהגלריה 🖼️</button>
+        <button class="scan-upload-btn" onclick="document.getElementById('food-image-input').click()">צילום תמונה 📷</button>
       </div>
       <img id="food-preview" class="hidden" alt="תצוגה מקדימה" style="width:100%; border-radius:10px; margin:12px 0;">
+    </div>
+
+    <!-- Barcode camera step -->
+    <div id="scanner-step-barcode" class="hidden">
+      <div style="position:relative;border-radius:10px;overflow:hidden;background:#000;aspect-ratio:4/3;max-height:260px;">
+        <video id="barcode-video" style="width:100%;height:100%;object-fit:cover;display:block;" playsinline muted></video>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+          <div style="width:76%;aspect-ratio:2.8/1;border:2px solid rgba(255,255,255,0.9);border-radius:8px;position:relative;box-shadow:0 0 0 9999px rgba(0,0,0,0.42);">
+            <div id="barcode-scan-line" style="position:absolute;left:4%;right:4%;height:2px;background:#5b7cfa;top:50%;animation:barcodeScan 1.5s ease-in-out infinite;"></div>
+          </div>
+        </div>
+        <p style="position:absolute;bottom:10px;left:0;right:0;text-align:center;color:#fff;font-size:13px;margin:0;text-shadow:0 1px 3px rgba(0,0,0,0.8);">נא לכוון את הברקוד למסגרת</p>
+      </div>
+      <div id="barcode-camera-error" class="hidden" style="background:#ff4444;color:#fff;border-radius:8px;padding:10px;text-align:center;font-weight:bold;margin-top:10px;font-size:14px;"></div>
+      <div style="margin-top:12px;text-align:center;">
+        <button onclick="closeBarcodeScanner()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:20px;padding:8px 22px;font-size:14px;cursor:pointer;font-family:inherit;">ביטול</button>
+      </div>
+    </div>
+
+    <!-- Barcode result step -->
+    <div id="scanner-step-barcode-result" class="hidden">
+      <p id="barcode-product-name" style="font-weight:bold;font-size:17px;margin:0 0 4px;direction:rtl;"></p>
+      <p id="barcode-product-per100" style="font-size:12px;color:#888;margin:0 0 14px;direction:rtl;"></p>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;direction:rtl;">
+        <label style="color:#aaa;font-size:14px;white-space:nowrap;">כמות:</label>
+        <input id="barcode-grams-input" type="number" min="1" max="9999" value="100"
+          style="width:80px;background:#333;border:1px solid #555;border-radius:6px;color:#fff;font-size:16px;padding:6px 8px;text-align:center;font-family:inherit;"
+          oninput="updateBarcodePortions()" />
+        <span style="color:#aaa;font-size:14px;">גרם</span>
+      </div>
+      <div id="barcode-portions-display" style="margin:0 0 16px;display:flex;flex-direction:column;gap:6px;"></div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="confirmBarcodeItem()" style="flex:1;background:var(--gradient-btn);border:none;border-radius:8px;color:#fff;padding:12px;font-size:15px;font-family:inherit;cursor:pointer;font-weight:bold;">אישור ✓</button>
+        <button onclick="closeBarcodeScanner()" style="flex:0.5;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;padding:12px;font-size:15px;font-family:inherit;cursor:pointer;">ביטול</button>
+      </div>
     </div>
 
     <div id="scanner-error" class="hidden" style="background:#ff4444;color:#fff;border-radius:8px;padding:12px;text-align:center;font-weight:bold;margin-bottom:12px;"></div>
@@ -1180,6 +1216,7 @@
 
 </div><!-- /app-container -->
 
+<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="client.js"></script>
 <script src="supabase-db.js"></script>
