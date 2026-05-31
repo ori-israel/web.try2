@@ -7135,11 +7135,6 @@ async function openBarcodeScanner() {
 
 function _startScanLoop(video) {
     let lastCode = null, lastCount = 0;
-    const deadline = Date.now() + 7000;
-
-    const detector = ('BarcodeDetector' in window)
-        ? (() => { try { return new BarcodeDetector(); } catch(e) { return null; } })()
-        : null;
 
     const takeSnapshot = () => {
         if (video.readyState < 2 || !video.videoWidth) return null;
@@ -7148,19 +7143,6 @@ function _startScanLoop(video) {
         c.height = video.videoHeight;
         c.getContext('2d').drawImage(video, 0, 0);
         return c;
-    };
-
-    const onFound = (code) => {
-        if (code === lastCode) { lastCount++; } else { lastCode = code; lastCount = 1; }
-        if (lastCount >= 2) {
-            barcodeScanning = false;
-            if (navigator.vibrate) navigator.vibrate(80);
-            stopBarcodeCamera();
-            document.getElementById('scanner-step-barcode').classList.add('hidden');
-            fetchBarcodeProduct(code);
-            return true;
-        }
-        return false;
     };
 
     const onTimeout = () => {
@@ -7176,31 +7158,53 @@ function _startScanLoop(video) {
         setTimeout(() => errEl.classList.add('hidden'), 3000);
     };
 
-    if (detector) {
-        const scan = async () => {
-            if (!barcodeScanning) return;
-            if (Date.now() > deadline) { onTimeout(); return; }
-            const snap = takeSnapshot();
-            if (snap) {
-                try {
-                    const codes = await detector.detect(snap);
-                    if (codes.length > 0) { if (onFound(codes[0].rawValue)) return; }
-                    else { lastCode = null; lastCount = 0; }
-                } catch(e) {}
-            }
-            if (barcodeScanning) setTimeout(scan, 500);
-        };
-        scan();
-    } else if (typeof Quagga !== 'undefined') {
+    // Hard deadline — fires regardless of loop state
+    setTimeout(onTimeout, 7000);
+
+    const onFound = (code) => {
+        if (code === lastCode) { lastCount++; } else { lastCode = code; lastCount = 1; }
+        if (lastCount >= 2) {
+            barcodeScanning = false;
+            if (navigator.vibrate) navigator.vibrate(80);
+            stopBarcodeCamera();
+            document.getElementById('scanner-step-barcode').classList.add('hidden');
+            fetchBarcodeProduct(code);
+            return true;
+        }
+        return false;
+    };
+
+    if ('BarcodeDetector' in window) {
+        let detector = null;
+        try { detector = new BarcodeDetector(); } catch(e) {}
+        if (detector) {
+            const scan = async () => {
+                if (!barcodeScanning) return;
+                const snap = takeSnapshot();
+                if (snap) {
+                    try {
+                        const codes = await detector.detect(snap);
+                        if (codes.length > 0) { if (onFound(codes[0].rawValue)) return; }
+                        else { lastCode = null; lastCount = 0; }
+                    } catch(e) {}
+                }
+                if (barcodeScanning) setTimeout(scan, 500);
+            };
+            scan();
+            return;
+        }
+    }
+
+    if (typeof Quagga !== 'undefined') {
         const scan = () => {
             if (!barcodeScanning) return;
-            if (Date.now() > deadline) { onTimeout(); return; }
             const snap = takeSnapshot();
             if (!snap) { if (barcodeScanning) setTimeout(scan, 300); return; }
             Quagga.decodeSingle({
                 decoder: { readers: ['ean_reader','ean_8_reader','code_128_reader','upc_reader'] },
                 locate: true,
-                src: snap.toDataURL('image/jpeg', 0.9)
+                src: snap.toDataURL('image/jpeg', 0.9),
+                numOfWorkers: 0
             }, (result) => {
                 if (!barcodeScanning) return;
                 if (result && result.codeResult && result.codeResult.code) {
@@ -7210,8 +7214,6 @@ function _startScanLoop(video) {
             });
         };
         scan();
-    } else {
-        onTimeout();
     }
 }
 
