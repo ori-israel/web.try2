@@ -1067,7 +1067,15 @@ function initFAQ() {
             const weightHistory = JSON.parse(sessionStorage.getItem('weight_history') || '[]');
             weightHistory.push({ date: _wDate, weight: val });
             sessionStorage.setItem('weight_history', JSON.stringify(weightHistory));
-            if (typeof syncWeightNow === 'function') syncWeightNow(_wDate, val);
+            if (typeof syncWeightNow === 'function') syncWeightNow(_wDate, val).then(() => {
+                const uid = getActiveUserId();
+                if (uid && typeof _trackingWidgetCache !== 'undefined') {
+                    delete _trackingWidgetCache['weekly_' + uid];
+                    delete _trackingWidgetCache['history_' + uid];
+                    if (typeof renderWeeklyScore === 'function') renderWeeklyScore(uid);
+                    if (typeof renderScoreHistory === 'function') renderScoreHistory(uid);
+                }
+            });
             const allVals = document.querySelectorAll('.weight-val');
             const startWeight = parseFloat(allVals[0].innerText);
             const goalWeight = parseFloat(allVals[2].innerText);

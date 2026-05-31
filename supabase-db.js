@@ -672,7 +672,13 @@ async function syncProfileNow(data) {
 async function syncWeightNow(date, weight) {
     const uid = getActiveUserId();
     if (!uid) return;
-    try { await sbSaveWeight(uid, date, weight); }
+    try {
+        await sbSaveWeight(uid, date, weight);
+        // עדכון current_weight בפרופיל כדי שישמר לאחר ריפרש
+        await sbUpsertProfile(uid, { current_weight: weight });
+        CLIENT.currentWeight = weight;
+        sessionStorage.setItem('current_weight', String(weight));
+    }
     catch (e) { console.warn('[SB] weight sync:', e.message); }
 }
 
