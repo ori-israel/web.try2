@@ -168,6 +168,14 @@
                 <span></span><span></span><span></span>
             </button>
             <div class="hamburger-items">
+                <button class="profile-menu-btn" onclick="openProfile()" title="פרטים אישיים" style="padding:0;overflow:hidden;border-radius:50%;width:32px;height:32px;">
+                    <img id="hamburger-avatar" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;border-radius:50%;">
+                    <span id="hamburger-avatar-fallback" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                        </svg>
+                    </span>
+                </button>
                 <button onclick="openAIChat()" class="calendar-float-btn" title="שאל את המאמן AI" style="background:none;border:none;cursor:pointer;font-size:22px;padding:0;display:flex;align-items:center;justify-content:center;">🤖</button>
                 <a href="https://wa.me/972547950949" target="_blank" class="whatsapp-top-btn" title="שלח הודעה">
                     <svg viewBox="0 0 448 512" width="24" height="24" fill="white">
@@ -176,14 +184,6 @@
                 </a>
                 <button onclick="openCalendlyModal()" class="calendar-float-btn" title="קבע פגישה" style="background:none;border:none;cursor:pointer;font-size:inherit;padding:0;display:flex;align-items:center;justify-content:center;" id="calendly-hamburger-btn">
                     📅
-                </button>
-                <button class="profile-menu-btn" onclick="openProfile()" title="פרטים אישיים" style="padding:0;overflow:hidden;border-radius:50%;width:32px;height:32px;">
-                    <img id="hamburger-avatar" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;border-radius:50%;">
-                    <span id="hamburger-avatar-fallback" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                        </svg>
-                    </span>
                 </button>
                 <button id="admin-hamburger-btn" class="admin-hamburger-btn" onclick="toggleAdminPanel()" title="תפריט מנהל" style="display:none;">⚙️</button>
             </div>
