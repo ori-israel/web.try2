@@ -658,7 +658,7 @@ function _renderOverviewMode(list) {
         });
         card.querySelector('.admin-move-subscriber-btn').addEventListener('click', async function(e) {
             e.stopPropagation();
-            const confirmed = await showConfirmDanger(`להעביר את ${name} למנויים?\nפיצ'רי הליווי יוסתרו עבורו.`);
+            const confirmed = await showConfirmDanger(`להעביר את ${name} למנויים?\nהפיצ'רים של הליווי יעלמו בשביל ${name}.`);
             if (!confirmed) return;
             toggleSubscriberMode(this.dataset.clientId, false);
         });
