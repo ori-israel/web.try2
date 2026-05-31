@@ -7289,9 +7289,9 @@ async function fetchBarcodeProduct(barcode) {
             document.getElementById('scanner-modal-title').textContent = '🍽️ הוספת מנות';
             _barcodeMode = false;
             const errEl = document.getElementById('scanner-error');
-            errEl.textContent = '⚠️ המוצר לא נמצא';
+            errEl.textContent = `⚠️ המוצר לא נמצא (ברקוד: ${barcode})`;
             errEl.classList.remove('hidden');
-            setTimeout(() => errEl.classList.add('hidden'), 3000);
+            setTimeout(() => errEl.classList.add('hidden'), 5000);
             return;
         }
         const product = data.product;
