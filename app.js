@@ -7121,7 +7121,10 @@ async function openBarcodeScanner() {
         video.style.cssText = 'width:100%;display:block;';
         readerEl.appendChild(video);
         barcodeScanning = true;
-        video.oncanplay = () => _startScanLoop(video);
+        let _loopStarted = false;
+        const startLoop = () => { if (!_loopStarted) { _loopStarted = true; _startScanLoop(video); } };
+        video.oncanplay = startLoop;
+        setTimeout(startLoop, 1500); // fallback if oncanplay never fires
     } catch(e) {
         document.getElementById('scanner-step-barcode').classList.add('hidden');
         document.getElementById('scanner-step-1').classList.remove('hidden');
@@ -7139,9 +7142,10 @@ function _startScanLoop(video) {
         : null;
 
     const takeSnapshot = () => {
+        if (video.readyState < 2 || !video.videoWidth) return null;
         const c = document.createElement('canvas');
-        c.width = video.videoWidth || 640;
-        c.height = video.videoHeight || 480;
+        c.width = video.videoWidth;
+        c.height = video.videoHeight;
         c.getContext('2d').drawImage(video, 0, 0);
         return c;
     };
@@ -7176,22 +7180,27 @@ function _startScanLoop(video) {
         const scan = async () => {
             if (!barcodeScanning) return;
             if (Date.now() > deadline) { onTimeout(); return; }
-            try {
-                const codes = await detector.detect(takeSnapshot());
-                if (codes.length > 0) { if (onFound(codes[0].rawValue)) return; }
-                else { lastCode = null; lastCount = 0; }
-            } catch(e) {}
+            const snap = takeSnapshot();
+            if (snap) {
+                try {
+                    const codes = await detector.detect(snap);
+                    if (codes.length > 0) { if (onFound(codes[0].rawValue)) return; }
+                    else { lastCode = null; lastCount = 0; }
+                } catch(e) {}
+            }
             if (barcodeScanning) setTimeout(scan, 500);
         };
-        setTimeout(scan, 800);
+        scan();
     } else if (typeof Quagga !== 'undefined') {
         const scan = () => {
             if (!barcodeScanning) return;
             if (Date.now() > deadline) { onTimeout(); return; }
+            const snap = takeSnapshot();
+            if (!snap) { if (barcodeScanning) setTimeout(scan, 300); return; }
             Quagga.decodeSingle({
                 decoder: { readers: ['ean_reader','ean_8_reader','code_128_reader','upc_reader'] },
                 locate: true,
-                src: takeSnapshot().toDataURL('image/jpeg', 0.9)
+                src: snap.toDataURL('image/jpeg', 0.9)
             }, (result) => {
                 if (!barcodeScanning) return;
                 if (result && result.codeResult && result.codeResult.code) {
@@ -7200,7 +7209,7 @@ function _startScanLoop(video) {
                 if (barcodeScanning) setTimeout(scan, 800);
             });
         };
-        setTimeout(scan, 800);
+        scan();
     } else {
         onTimeout();
     }
