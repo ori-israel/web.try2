@@ -6,6 +6,7 @@ const SUPABASE_URL      = 'https://ebfyrswzqawqznydovbx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViZnlyc3d6cWF3cXpueWRvdmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NjExMDYsImV4cCI6MjA5NDQzNzEwNn0.jVN2qlhdqHieRgmx5C9EVQxCumidePUwQkqAQV8mhrA';
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+function _localDate() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
 // ── מצב session גלובלי ─────────────────────────────────────
 let SB_USER     = null;   // משתמש מחובר
@@ -49,7 +50,7 @@ async function sbQueueNutritionSync(userId, protein, carbs, fat) {
         tx.objectStore(_IDB_STORE).put({
             id: 'latest',
             userId, protein, carbs, fat,
-            date:        new Date().toISOString().split('T')[0],
+            date:        _localDate(),
             token,
             supabaseUrl: SUPABASE_URL,
             anonKey:     SUPABASE_ANON_KEY,
@@ -74,7 +75,7 @@ async function sbQueueNutritionSync(userId, protein, carbs, fat) {
 function _sbSaveNutritionKeepalive(userId, protein, carbs, fat) {
     const token = _cachedToken;
     if (!token) return;
-    const today = new Date().toISOString().split('T')[0];
+    const today = _localDate();
     fetch(`${SUPABASE_URL}/rest/v1/daily_nutrition`, {
         method: 'POST',
         headers: {
@@ -221,7 +222,7 @@ async function sbUpsertProfile(userId, updates) {
 // ── תזונה יומית ─────────────────────────────────────────────
 
 async function sbFetchTodayNutrition(userId) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = _localDate();
     const { data, error } = await db
         .from('daily_nutrition')
         .select('protein, carbs, fat')
@@ -233,7 +234,7 @@ async function sbFetchTodayNutrition(userId) {
 }
 
 async function sbSaveNutrition(userId, protein, carbs, fat) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = _localDate();
     const { error } = await db.from('daily_nutrition').upsert(
         { user_id: userId, date: today, protein, carbs, fat, updated_at: new Date().toISOString() },
         { onConflict: 'user_id,date' }
@@ -264,7 +265,7 @@ async function sbSaveWeight(userId, date, weight) {
 // ── התקדמות אימונים ─────────────────────────────────────────
 
 async function sbFetchTodayWorkout(userId) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = _localDate();
     const { data, error } = await db
         .from('workout_progress')
         .select('exercises, tasks, exercise_weights')
@@ -276,7 +277,7 @@ async function sbFetchTodayWorkout(userId) {
 }
 
 async function sbSaveWorkoutProgress(userId, exercises, tasks, exercise_weights) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = _localDate();
     const { error } = await db.from('workout_progress').upsert(
         { user_id: userId, date: today, exercises, tasks, exercise_weights, updated_at: new Date().toISOString() },
         { onConflict: 'user_id,date' }
@@ -573,7 +574,7 @@ async function loadUserIntoApp(userId) {
         });
         if (_all && _all.length) {
             const _latest = _all[_all.length - 1];
-            const _today  = new Date().toISOString().split('T')[0];
+            const _today  = _localDate();
             if (_latest.date === _today) _idbPending = _latest;
         }
     } catch (_) {}

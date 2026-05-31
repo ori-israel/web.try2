@@ -1170,7 +1170,7 @@ function getWeekRange() {
     sun.setDate(today.getDate() - day); // back to Sunday
     const sat = new Date(sun);
     sat.setDate(sun.getDate() + 6);
-    const fmt = d => d.toISOString().split('T')[0];
+    const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     return { monStr: fmt(sun), sunStr: fmt(sat) };
 }
 
