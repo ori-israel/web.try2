@@ -1198,11 +1198,10 @@ function ensureWeeklyScoreContainer() {
 }
 
 async function renderWeeklyScore(userId) {
-    console.log('[weekly debug] called, userId:', userId);
     const cacheKey = 'weekly_' + userId;
-    if (_trackingWidgetCache[cacheKey] && Date.now() - _trackingWidgetCache[cacheKey] < 5 * 60 * 1000) { console.log('[weekly debug] cache hit, returning'); return; }
+    if (_trackingWidgetCache[cacheKey] && Date.now() - _trackingWidgetCache[cacheKey] < 5 * 60 * 1000) return;
     const container = ensureWeeklyScoreContainer();
-    if (!container) { console.log('[weekly debug] no container found'); return; }
+    if (!container) return;
     container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-secondary);font-size:0.9rem;">טוען ציון שבועי...</div>';
 
     const { monStr, sunStr } = getWeekRange();
@@ -1225,10 +1224,7 @@ async function renderWeeklyScore(userId) {
         const workoutScore = Math.min(workoutCount / weeklyTarget, 1);
 
         let nutritionMet = 0;
-        console.log('[nutrition debug] rows from DB:', nutritionRows);
-        console.log('[nutrition debug] targets:', targets);
         (nutritionRows || []).forEach(r => {
-            console.log('[nutrition debug] row:', r, '| pass:', r.protein >= targets.protein, r.carbs >= targets.carbs, r.fat >= targets.fat);
             if (r.protein >= targets.protein && r.carbs >= targets.carbs && r.fat >= targets.fat) nutritionMet++;
         });
         const nutritionScore = Math.min(nutritionMet / 7, 1);
