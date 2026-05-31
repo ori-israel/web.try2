@@ -7135,22 +7135,27 @@ function closeBarcodeScanner() {
 function stopBarcodeCamera() {
     barcodeScanning = false;
     if (barcodeReader) {
-        barcodeReader.stop().catch(() => {});
+        try { barcodeReader.stop().catch(() => {}); } catch(e) {}
         barcodeReader = null;
     }
 }
 
 async function startBarcodeCamera() {
     barcodeScanning = true;
+    const container = document.getElementById('barcode-reader');
+    if (container) container.innerHTML = '';
+
+    await new Promise(r => setTimeout(r, 120)); // wait for DOM to render
+
+    if (typeof Html5Qrcode === 'undefined') {
+        showBarcodeCameraError('ספריית הסריקה לא נטענה');
+        return;
+    }
     try {
-        if (typeof Html5Qrcode === 'undefined') {
-            showBarcodeCameraError('ספריית הסריקה לא נטענה');
-            return;
-        }
         barcodeReader = new Html5Qrcode('barcode-reader');
         await barcodeReader.start(
             { facingMode: 'environment' },
-            { fps: 10 },
+            { fps: 15 },
             (decodedText) => {
                 if (!barcodeScanning) return;
                 barcodeScanning = false;
@@ -7158,10 +7163,14 @@ async function startBarcodeCamera() {
                 if (navigator.vibrate) navigator.vibrate(80);
                 fetchBarcodeProduct(decodedText);
             },
-            () => {} // scan attempt failed — ignore, keep trying
+            () => {}
         );
     } catch(e) {
-        const msg = e.toString().includes('ermission') ? 'נדרשת הרשאת מצלמה' : 'לא ניתן לגשת למצלמה';
+        barcodeReader = null; // prevent stop() being called on failed instance
+        const errStr = (e?.message || e?.toString() || '').toLowerCase();
+        const msg = errStr.includes('permission') || errStr.includes('denied') || errStr.includes('ermission')
+            ? 'נדרשת הרשאת מצלמה'
+            : 'לא ניתן לפתוח את המצלמה: ' + (e?.message || e);
         showBarcodeCameraError(msg);
     }
 }
