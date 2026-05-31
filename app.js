@@ -7134,24 +7134,51 @@ function closeBarcodeScanner() {
 
 function stopBarcodeCamera() {
     barcodeScanning = false;
+    const video = document.getElementById('barcode-video');
+    if (video && video.srcObject) {
+        video.srcObject.getTracks().forEach(t => t.stop());
+        video.srcObject = null;
+    }
     barcodeReader = null;
 }
 
-async function handleBarcodeFile(file) {
-    if (!file) return;
-    document.getElementById('scanner-step-barcode').classList.add('hidden');
-    document.getElementById('scanner-loading').classList.remove('hidden');
+async function startBarcodeCamera() {
+    barcodeScanning = true;
+    const video = document.getElementById('barcode-video');
     try {
-        if (typeof Html5Qrcode === 'undefined') throw new Error('ספרייה לא נטענה');
-        const scanner = new Html5Qrcode('barcode-reader');
-        const barcode = await scanner.scanFile(file, false);
-        document.getElementById('scanner-loading').classList.add('hidden');
-        if (navigator.vibrate) navigator.vibrate(80);
-        await fetchBarcodeProduct(barcode);
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' } }
+        });
+        video.srcObject = stream;
+        try { await video.play(); } catch(e) {}
+
+        if (!('BarcodeDetector' in window)) {
+            showBarcodeCameraError('נדרש iOS 17.4 ומעלה לסריקה חיה');
+            return;
+        }
+        const detector = new BarcodeDetector({
+            formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39']
+        });
+        const scan = async () => {
+            if (!barcodeScanning) return;
+            if (video.readyState >= 2 && video.videoWidth > 0) {
+                try {
+                    const barcodes = await detector.detect(video);
+                    if (barcodes.length > 0 && barcodeScanning) {
+                        barcodeScanning = false;
+                        stopBarcodeCamera();
+                        if (navigator.vibrate) navigator.vibrate(80);
+                        fetchBarcodeProduct(barcodes[0].rawValue);
+                        return;
+                    }
+                } catch(e) {}
+            }
+            if (barcodeScanning) setTimeout(scan, 200);
+        };
+        scan();
     } catch(e) {
-        document.getElementById('scanner-loading').classList.add('hidden');
-        document.getElementById('scanner-step-barcode').classList.remove('hidden');
-        showBarcodeCameraError('⚠️ לא זוהה ברקוד — נסה לצלם שוב בבהירות יותר');
+        const msg = e.name === 'NotAllowedError' ? 'נדרשת הרשאת מצלמה' : 'לא ניתן לגשת למצלמה';
+        showBarcodeCameraError(msg);
     }
 }
 
@@ -7286,10 +7313,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.getElementById('food-gallery-input').addEventListener('change', function(e) {
         handleFoodImageFile(e.target.files[0]);
-        e.target.value = '';
-    });
-    document.getElementById('barcode-file-input').addEventListener('change', function(e) {
-        handleBarcodeFile(e.target.files[0]);
         e.target.value = '';
     });
 });
