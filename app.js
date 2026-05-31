@@ -7134,19 +7134,26 @@ async function _startNativeDetector() {
     try { detector = new BarcodeDetector({ formats }); }
     catch(e) { detector = new BarcodeDetector(); }
 
+    let lastCode = null, lastCount = 0;
+
     const scan = async () => {
         if (!barcodeScanning) return;
         try {
             if (video.readyState >= 2) {
                 const codes = await detector.detect(video);
                 if (codes.length > 0) {
-                    barcodeScanning = false;
-                    if (navigator.vibrate) navigator.vibrate(80);
                     const code = codes[0].rawValue;
-                    stopBarcodeCamera();
-                    document.getElementById('scanner-step-barcode').classList.add('hidden');
-                    fetchBarcodeProduct(code);
-                    return;
+                    if (code === lastCode) { lastCount++; } else { lastCode = code; lastCount = 1; }
+                    if (lastCount >= 3) {
+                        barcodeScanning = false;
+                        if (navigator.vibrate) navigator.vibrate(80);
+                        stopBarcodeCamera();
+                        document.getElementById('scanner-step-barcode').classList.add('hidden');
+                        fetchBarcodeProduct(code);
+                        return;
+                    }
+                } else {
+                    lastCode = null; lastCount = 0;
                 }
             }
         } catch(e) {}
