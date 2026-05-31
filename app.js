@@ -694,12 +694,13 @@ function _isIOS() {
 function _applySubscriberMode() {
     if (!CLIENT.isSubscriber) return;
     // הסתרת פיצ'רי ליווי למנויים שסיימו ליווי
+    const ids = ['calendly-hamburger-btn', 'weekly-survey-banner', 'open-survey-btn', 'coaching-goal-card'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
     const whatsappBtn = document.querySelector('.whatsapp-top-btn');
     if (whatsappBtn) whatsappBtn.style.display = 'none';
-    const calendlyBtn = document.getElementById('calendly-hamburger-btn');
-    if (calendlyBtn) calendlyBtn.style.display = 'none';
-    const surveyBanner = document.getElementById('weekly-survey-banner');
-    if (surveyBanner) surveyBanner.style.display = 'none';
 }
 
 function _showPWAPromptIfNeeded() {
