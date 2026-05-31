@@ -75,32 +75,27 @@ function toggleTheme() {
     _setThemeBtn(saved);
 })();
 
-    function generatePortionGoals() {
-    // 1. חישוב BMR - נוסחת Mifflin-St Jeor
+    function calcPortionTargets() {
     const weight = parseFloat(sessionStorage.getItem('current_weight')) || CLIENT.currentWeight;
     const ageCalc = Math.floor((new Date() - new Date(CLIENT.birthDate)) / (1000 * 60 * 60 * 24 * 365.25));
     let bmr = (10 * weight) + (6.25 * CLIENT.height) - (5 * ageCalc);
     bmr = CLIENT.gender === 'male' ? bmr + 5 : bmr - 161;
-
-    // 2. חישוב TDEE
     const tdee = Math.round(bmr * CLIENT.activityLevel);
-
-    // 3. קלוריות לפי יעד
     const totalCalories = CLIENT.goal === 'cut' ? tdee - 250 : tdee + 250;
-
-    // 4. חישוב חלבון
     const proteinGrams = weight * CLIENT.proteinRatio;
     const proteinCals = proteinGrams * 4;
-
-    // 5. יתרה קלורית
     const remainingCals = totalCalories - proteinCals;
     const carbCals = CLIENT.goal === 'cut' ? remainingCals * 0.7 : remainingCals * 0.6;
     const fatCals = CLIENT.goal === 'cut' ? remainingCals * 0.3 : remainingCals * 0.4;
+    return {
+        protein: Math.round((proteinGrams / portionValues.protein) * 2) / 2,
+        carbs:   Math.round((carbCals / 4 / portionValues.carbs) * 2) / 2,
+        fat:     Math.round((fatCals / 9 / portionValues.fat) * 2) / 2,
+    };
+}
 
-    // 6. חישוב מנות
-    const pPortions = Math.round((proteinGrams / portionValues.protein) * 2) / 2;
-    const cPortions = Math.round((carbCals / 4 / portionValues.carbs) * 2) / 2;
-    const fPortions = Math.round((fatCals / 9 / portionValues.fat) * 2) / 2;
+    function generatePortionGoals() {
+    const { protein: pPortions, carbs: cPortions, fat: fPortions } = calcPortionTargets();
 
     // 7. עדכון HTML
     document.getElementById('protein-target').innerText = `/ ${pPortions}`;
@@ -244,13 +239,14 @@ function closeCompleteMsg() {
 
     // --- לוגיקה של המונים ואיפוס ---
     let userPortions = { protein: 0, carbs: 0, fat: 0 };
+    function _portionsKey() { return 'user_portions_v3_' + (getActiveUserId() || 'default'); }
 
     function manageDailyReset() {
         const now = new Date();
         const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
         const lastReset = localStorage.getItem('last_reset_v4');
         if (lastReset === todayStr) return;
-        localStorage.removeItem('user_portions_v3');
+        localStorage.removeItem(_portionsKey());
         localStorage.removeItem('tasks_v3');
         localStorage.removeItem('workout_progress_v3');
         localStorage.removeItem('workout_completed_date');
@@ -267,7 +263,7 @@ function closeCompleteMsg() {
         if (current < 0) current = 0;
         userPortions[type] = current;
         document.getElementById(type + '-val').innerText = current;
-        localStorage.setItem('user_portions_v3', JSON.stringify(userPortions));
+        localStorage.setItem(_portionsKey(), JSON.stringify(userPortions));
         updatePortionProgress(type);
         checkNutritionStreak();
         const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
@@ -303,7 +299,7 @@ function closeCompleteMsg() {
     }
 
     function loadPortions() {
-        const saved = localStorage.getItem('user_portions_v3');
+        const saved = localStorage.getItem(_portionsKey());
         if (saved) {
             userPortions = JSON.parse(saved);
             document.getElementById('protein-val').innerText = userPortions.protein;
@@ -403,7 +399,9 @@ function closeCompleteMsg() {
             if (tabId === 'tab4') {
                 const uid = getActiveUserId();
                 if (uid) {
+                    delete _trackingWidgetCache['weekly_' + uid];
                     delete _trackingWidgetCache['history_' + uid];
+                    renderWeeklyScore(uid);
                     renderScoreHistory(uid);
                 }
                 loadProgressPhotos();
@@ -785,7 +783,7 @@ document.addEventListener('visibilitychange', () => {
         // keepalive save — survives iOS page kill
         const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
         if (uid) {
-            const p = JSON.parse(localStorage.getItem('user_portions_v3') || '{}');
+            const p = JSON.parse(localStorage.getItem(_portionsKey()) || '{}');
             if (p.protein || p.carbs || p.fat) {
                 if (typeof sbQueueNutritionSync === 'function') {
                     sbQueueNutritionSync(uid, p.protein || 0, p.carbs || 0, p.fat || 0);
@@ -1199,17 +1197,17 @@ function ensureWeeklyScoreContainer() {
 }
 
 async function renderWeeklyScore(userId) {
+    console.log('[weekly debug] called, userId:', userId);
     const cacheKey = 'weekly_' + userId;
-    if (_trackingWidgetCache[cacheKey] && Date.now() - _trackingWidgetCache[cacheKey] < 5 * 60 * 1000) return;
+    if (_trackingWidgetCache[cacheKey] && Date.now() - _trackingWidgetCache[cacheKey] < 5 * 60 * 1000) { console.log('[weekly debug] cache hit, returning'); return; }
     const container = ensureWeeklyScoreContainer();
-    if (!container) return;
+    if (!container) { console.log('[weekly debug] no container found'); return; }
     container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-secondary);font-size:0.9rem;">טוען ציון שבועי...</div>';
 
     const { monStr, sunStr } = getWeekRange();
     try {
         const weeklyTarget = CLIENT.workoutsPerWeek || 3;
-        const proteinGoal  = Math.round((CLIENT.currentWeight || CLIENT.startWeight || 80) * (CLIENT.proteinRatio || 2));
-        const calorieGoal  = 2000;
+        const targets = calcPortionTargets();
 
         const [{ data: workoutData }, { data: nutritionRows }, { data: weightData }] = await Promise.all([
             db.from('workout_performance_log').select('date')
@@ -1226,10 +1224,11 @@ async function renderWeeklyScore(userId) {
         const workoutScore = Math.min(workoutCount / weeklyTarget, 1);
 
         let nutritionMet = 0;
+        console.log('[nutrition debug] rows from DB:', nutritionRows);
+        console.log('[nutrition debug] targets:', targets);
         (nutritionRows || []).forEach(r => {
-            const proteinG = r.protein * portionValues.protein;
-            const kcal = proteinG * 4 + (r.carbs * portionValues.carbs) * 4 + (r.fat * portionValues.fat) * 9;
-            if (proteinG >= proteinGoal && kcal >= calorieGoal * 0.85) nutritionMet++;
+            console.log('[nutrition debug] row:', r, '| pass:', r.protein >= targets.protein, r.carbs >= targets.carbs, r.fat >= targets.fat);
+            if (r.protein >= targets.protein && r.carbs >= targets.carbs && r.fat >= targets.fat) nutritionMet++;
         });
         const nutritionScore = Math.min(nutritionMet / 7, 1);
 
@@ -1295,7 +1294,7 @@ async function renderScoreHistory(userId) {
 
         // Current week — compute live from raw data
         const weeklyTarget = CLIENT.workoutsPerWeek || 3;
-        const proteinGoal  = Math.round((CLIENT.currentWeight || CLIENT.startWeight || 80) * (CLIENT.proteinRatio || 2));
+        const targets2 = calcPortionTargets();
         const [{ data: wkData }, { data: nutData }, { data: wtData }] = await Promise.all([
             db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', thisMonStr).lte('date', thisSunStr),
             db.from('daily_nutrition').select('date,protein,carbs,fat').eq('user_id', userId).gte('date', thisMonStr).lte('date', thisSunStr),
@@ -1303,9 +1302,7 @@ async function renderScoreHistory(userId) {
         ]);
         let nutritionMet = 0;
         (nutData || []).forEach(r => {
-            const proteinG = r.protein * portionValues.protein;
-            const kcal = proteinG * 4 + (r.carbs * portionValues.carbs) * 4 + (r.fat * portionValues.fat) * 9;
-            if (proteinG >= proteinGoal && kcal >= 1700) nutritionMet++;
+            if (r.protein >= targets2.protein && r.carbs >= targets2.carbs && r.fat >= targets2.fat) nutritionMet++;
         });
         const curScore = Math.round((
             Math.min(new Set((wkData||[]).map(r=>r.date)).size / weeklyTarget, 1) * 0.4 +
@@ -2110,7 +2107,7 @@ function checkNutritionStreak() {
     }
 }
 
-function completeNutritionStreak() {
+async function completeNutritionStreak() {
     if (CLIENT.vacationMode) return;
     const today = localDateStr();
     if (localStorage.getItem('nutrition_completed_date') === today) return;
@@ -2124,9 +2121,12 @@ function completeNutritionStreak() {
     if (streak === 7 && typeof _showAchievementPopup === 'function') _showAchievementPopup('streak_7_nutrition');
     if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
     const uid = getActiveUserId();
-    if (uid && typeof _trackingWidgetCache !== 'undefined') {
-        delete _trackingWidgetCache['weekly_' + uid];
-        if (typeof renderWeeklyScore === 'function') renderWeeklyScore(uid);
+    if (uid) {
+        try { await sbSaveNutrition(uid, userPortions.protein, userPortions.carbs, userPortions.fat); } catch (_) {}
+        if (typeof _trackingWidgetCache !== 'undefined') {
+            delete _trackingWidgetCache['weekly_' + uid];
+            if (typeof renderWeeklyScore === 'function') renderWeeklyScore(uid);
+        }
     }
     showNutritionComplete();
 }
