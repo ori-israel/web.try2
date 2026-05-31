@@ -7149,26 +7149,50 @@ async function startBarcodeCamera() {
     barcodeScanning = true;
     const video = document.getElementById('barcode-video');
     try {
+        // Step 1: open camera directly — always reliable
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' } }
+        });
+        video.srcObject = stream;
+        video.setAttribute('playsinline', '');
+        try { await video.play(); } catch(e) {}
+
+        // Step 2: decode frames with ZXing
         if (typeof ZXing === 'undefined') {
             showBarcodeCameraError('ספריית הסריקה לא נטענה');
             return;
         }
-        barcodeReader = new ZXing.BrowserMultiFormatReader();
-        await barcodeReader.decodeFromConstraints(
-            { video: { facingMode: 'environment' } },
-            video,
-            (result, err) => {
-                if (!barcodeScanning) return;
-                if (result) {
-                    barcodeScanning = false;
-                    stopBarcodeCamera();
-                    if (navigator.vibrate) navigator.vibrate(80);
-                    fetchBarcodeProduct(result.getText());
-                }
+        const reader = new ZXing.MultiFormatReader();
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        const scan = () => {
+            if (!barcodeScanning) return;
+            if (video.readyState >= 2 && video.videoWidth > 0) {
+                canvas.width  = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0);
+                try {
+                    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const src    = new ZXing.RGBLuminanceSource(imgData.data, canvas.width, canvas.height);
+                    const bitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(src));
+                    const result = reader.decode(bitmap);
+                    if (result && barcodeScanning) {
+                        barcodeScanning = false;
+                        stopBarcodeCamera();
+                        if (navigator.vibrate) navigator.vibrate(80);
+                        fetchBarcodeProduct(result.getText());
+                        return;
+                    }
+                } catch(e) { /* NotFoundException = no barcode in frame, keep scanning */ }
             }
-        );
+            requestAnimationFrame(scan);
+        };
+        requestAnimationFrame(scan);
+
     } catch(e) {
-        showBarcodeCameraError('לא ניתן לגשת למצלמה');
+        const msg = e.name === 'NotAllowedError' ? 'נדרשת הרשאת מצלמה' : 'לא ניתן לגשת למצלמה';
+        showBarcodeCameraError(msg);
     }
 }
 
