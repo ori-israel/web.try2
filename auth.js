@@ -240,7 +240,8 @@ async function renderAdminPanel() {
             return;
         }
         _coachDashData = await sbFetchCoachDashData(_coachClients.map(c => c.id));
-        _renderCoachList(list);
+        if (_coachMode === 'subscribers') _renderSubscribersMode(list);
+        else _renderCoachList(list);
     } catch (err) {
         list.innerHTML = `<div class="admin-error">שגיאה: ${err.message}</div>`;
     }
