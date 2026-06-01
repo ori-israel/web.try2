@@ -48,7 +48,7 @@ async function sbQueueNutritionSync(userId, protein, carbs, fat) {
         const db2 = await _openSWDB();
         const tx  = db2.transaction(_IDB_STORE, 'readwrite');
         tx.objectStore(_IDB_STORE).put({
-            id: 'latest',
+            id: 'latest_' + userId,
             userId, protein, carbs, fat,
             date:        _localDate(),
             token,
@@ -557,26 +557,23 @@ async function loadUserIntoApp(userId) {
     const portions = todayNutrition
         ? { protein: todayNutrition.protein || 0, carbs: todayNutrition.carbs || 0, fat: todayNutrition.fat || 0 }
         : { protein: 0, carbs: 0, fat: 0 };
-    sessionStorage.setItem('user_portions_v3', JSON.stringify(portions));
+    const _portionsKey = 'user_portions_v3_' + userId;
+    sessionStorage.setItem(_portionsKey, JSON.stringify(portions));
 
     // Merge: SB + localStorage + IndexedDB pending (take max of all three)
-    const _localStr = localStorage.getItem('user_portions_v3');
+    const _localStr = localStorage.getItem(_portionsKey);
     const _local    = _localStr ? JSON.parse(_localStr) : null;
 
     // Check IndexedDB for a pending save that didn't reach Supabase yet
     let _idbPending = null;
     try {
         const _idb = await _openSWDB();
-        const _all = await new Promise((res, rej) => {
-            const r = _idb.transaction(_IDB_STORE, 'readonly').objectStore(_IDB_STORE).getAll();
+        const _entry = await new Promise((res, rej) => {
+            const r = _idb.transaction(_IDB_STORE, 'readonly').objectStore(_IDB_STORE).get('latest_' + userId);
             r.onsuccess = e => res(e.target.result);
             r.onerror   = e => rej(e.target.error);
         });
-        if (_all && _all.length) {
-            const _latest = _all[_all.length - 1];
-            const _today  = _localDate();
-            if (_latest.date === _today) _idbPending = _latest;
-        }
+        if (_entry && _entry.date === _localDate()) _idbPending = _entry;
     } catch (_) {}
 
     const merged = {
@@ -584,7 +581,7 @@ async function loadUserIntoApp(userId) {
         carbs:   Math.max(portions.carbs,   _local?.carbs   || 0, _idbPending?.carbs   || 0),
         fat:     Math.max(portions.fat,      _local?.fat     || 0, _idbPending?.fat      || 0),
     };
-    localStorage.setItem('user_portions_v3', JSON.stringify(merged));
+    localStorage.setItem(_portionsKey, JSON.stringify(merged));
 
     // If IDB had data higher than SB, re-queue the save
     if (_idbPending && (merged.fat > portions.fat || merged.protein > portions.protein || merged.carbs > portions.carbs)) {
@@ -637,7 +634,7 @@ function scheduleSyncNutrition() {
         const uid = getActiveUserId();
         if (!uid) return;
         try {
-            const p = JSON.parse(localStorage.getItem('user_portions_v3') || '{}');
+            const p = JSON.parse(localStorage.getItem('user_portions_v3_' + uid) || '{}');
             await sbSaveNutrition(uid, p.protein || 0, p.carbs || 0, p.fat || 0);
         } catch (e) { showSupabaseError(); console.warn('[SB] nutrition sync:', e.message); }
     }, 300);
