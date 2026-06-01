@@ -252,7 +252,8 @@ function closeCompleteMsg() {
         localStorage.removeItem('workout_progress_v3');
         localStorage.removeItem('workout_completed_date');
         localStorage.removeItem('workout_popup_shown_date');
-        localStorage.removeItem('workout_streak_incremented_date');
+        const _resetUid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+        if (_resetUid) localStorage.removeItem('workout_streak_incremented_date_' + _resetUid);
         sessionStorage.removeItem('ai_chat_history');
         localStorage.setItem('last_reset_v4', todayStr);
         location.reload();
@@ -2080,9 +2081,11 @@ function completeWorkoutStreak(letter) {
 
     const scheduledDays = CLIENT.workoutDays?.[letter];
     if (!scheduledDays || !scheduledDays.includes(todayDay)) return;
-    if (localStorage.getItem('workout_streak_incremented_date') === today) return;
+    const _streakUid = getActiveUserId();
+    if (!_streakUid) return;
+    if (localStorage.getItem('workout_streak_incremented_date_' + _streakUid) === today) return;
 
-    localStorage.setItem('workout_streak_incremented_date', today);
+    localStorage.setItem('workout_streak_incremented_date_' + _streakUid, today);
     let streak = parseInt(localStorage.getItem('workout_streak') || '0');
     streak++;
     localStorage.setItem('workout_streak', streak);

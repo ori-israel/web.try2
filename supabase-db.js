@@ -616,7 +616,7 @@ async function loadUserIntoApp(userId) {
     if (streaks) {
         localStorage.setItem('workout_streak',   String(streaks.workout_streak   || 0));
         localStorage.setItem('nutrition_streak',  String(streaks.nutrition_streak || 0));
-        if (streaks.workout_completed_date)   localStorage.setItem('workout_streak_incremented_date', streaks.workout_completed_date);
+        if (streaks.workout_completed_date)   localStorage.setItem('workout_streak_incremented_date_' + uid, streaks.workout_completed_date);
         if (streaks.nutrition_completed_date) localStorage.setItem('nutrition_completed_date', streaks.nutrition_completed_date);
     }
 
@@ -689,7 +689,7 @@ async function syncStreaksNow() {
         await sbSaveStreaks(uid, {
             workout_streak:           parseInt(localStorage.getItem('workout_streak')   || '0'),
             nutrition_streak:         parseInt(localStorage.getItem('nutrition_streak') || '0'),
-            workout_completed_date:   localStorage.getItem('workout_streak_incremented_date') || null,
+            workout_completed_date:   localStorage.getItem('workout_streak_incremented_date_' + uid) || null,
             nutrition_completed_date: localStorage.getItem('nutrition_completed_date')  || null,
         });
     } catch (e) { console.warn('[SB] streaks sync:', e.message); }
