@@ -784,7 +784,7 @@ async function sbCheckThisWeekQuestionnaire(clientId) {
     const dow = today.getDay();
     const mon = new Date(today);
     mon.setDate(today.getDate() - dow); // back to Sunday (Israeli week start)
-    const monStr = mon.toISOString().slice(0, 10);
+    const monStr = `${mon.getFullYear()}-${String(mon.getMonth()+1).padStart(2,'0')}-${String(mon.getDate()).padStart(2,'0')}`;
     const { data, error } = await db
         .from('weekly_questionnaire')
         .select('id')
