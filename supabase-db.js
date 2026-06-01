@@ -605,10 +605,10 @@ async function loadUserIntoApp(userId) {
     // ── מדדי ביצועים ──────────────────────────────────────
     if (performance) {
         performance.forEach(p => {
-            if (p.start_kg    != null) localStorage.setItem(`perf_${p.exercise}_start_kg`,  String(p.start_kg));
-            if (p.start_reps  != null) localStorage.setItem(`perf_${p.exercise}_start_reps`, String(p.start_reps));
-            if (p.current_kg  != null) localStorage.setItem(`perf_${p.exercise}_cur_kg`,    String(p.current_kg));
-            if (p.current_reps!= null) localStorage.setItem(`perf_${p.exercise}_cur_reps`,  String(p.current_reps));
+            if (p.start_kg    != null) localStorage.setItem(`perf_${uid}_${p.exercise}_start_kg`,  String(p.start_kg));
+            if (p.start_reps  != null) localStorage.setItem(`perf_${uid}_${p.exercise}_start_reps`, String(p.start_reps));
+            if (p.current_kg  != null) localStorage.setItem(`perf_${uid}_${p.exercise}_cur_kg`,    String(p.current_kg));
+            if (p.current_reps!= null) localStorage.setItem(`perf_${uid}_${p.exercise}_cur_reps`,  String(p.current_reps));
         });
     }
 
@@ -717,10 +717,10 @@ async function syncPerformanceNow(exercise) {
     if (!uid) return;
     try {
         await sbSavePerformance(uid, exercise, {
-            start_kg:     parseFloat(localStorage.getItem(`perf_${exercise}_start_kg`))   || null,
-            start_reps:   parseInt(localStorage.getItem(`perf_${exercise}_start_reps`))   || null,
-            current_kg:   parseFloat(localStorage.getItem(`perf_${exercise}_cur_kg`))     || null,
-            current_reps: parseInt(localStorage.getItem(`perf_${exercise}_cur_reps`))     || null,
+            start_kg:     parseFloat(localStorage.getItem(`perf_${uid}_${exercise}_start_kg`))   || null,
+            start_reps:   parseInt(localStorage.getItem(`perf_${uid}_${exercise}_start_reps`))   || null,
+            current_kg:   parseFloat(localStorage.getItem(`perf_${uid}_${exercise}_cur_kg`))     || null,
+            current_reps: parseInt(localStorage.getItem(`perf_${uid}_${exercise}_cur_reps`))     || null,
         });
     } catch (e) { console.warn('[SB] performance sync:', e.message); }
 }

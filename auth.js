@@ -202,15 +202,10 @@ async function doLogout() {
 }
 
 function _clearUserLocalStorage() {
-    const _n = new Date();
-    const todayStr = `${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,'0')}-${String(_n.getDate()).padStart(2,'0')}`;
-    const workoutDate = localStorage.getItem('workout_completed_date');
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
         if (k.startsWith('sb-')) continue;
-        if (k === 'workout_completed_date' && workoutDate === todayStr) continue;
-        if (k === 'workout_streak_incremented_date') continue;
         if (k === 'workout_popup_shown_date') continue;
         if (k.startsWith('survey_submitted_')) continue;
         if (k === 'pwa_prompt_shown') continue;

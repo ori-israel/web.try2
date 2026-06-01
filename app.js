@@ -1230,6 +1230,7 @@ async function renderWeeklyScore(userId) {
             db.from('weight_history').select('date')
               .eq('user_id', userId).gte('date', monStr).lte('date', sunStr).limit(1),
         ]);
+        if (getActiveUserId() !== userId) return;
 
         const workoutDates = new Set((workoutData || []).map(r => r.date));
 
@@ -1300,6 +1301,7 @@ async function renderScoreHistory(userId) {
             .lt('week_start', thisMonStr)
             .order('week_start', { ascending: false })
             .limit(7);
+        if (getActiveUserId() !== userId) return;
         const histData = (histRaw || []).reverse();
 
         // Current week — compute live from raw data
@@ -1310,6 +1312,7 @@ async function renderScoreHistory(userId) {
             db.from('daily_nutrition').select('date,protein,carbs,fat').eq('user_id', userId).gte('date', thisMonStr).lte('date', thisSunStr),
             db.from('weight_history').select('date').eq('user_id', userId).gte('date', thisMonStr).lte('date', thisSunStr),
         ]);
+        if (getActiveUserId() !== userId) return;
         let nutritionMet = 0;
         (nutData || []).forEach(r => {
             if (r.protein >= targets2.protein && r.carbs >= targets2.carbs && r.fat >= targets2.fat) nutritionMet++;
@@ -1332,6 +1335,7 @@ async function renderScoreHistory(userId) {
         const visible = firstReal >= 0 ? computed.slice(firstReal) : computed.slice(-1);
 
         await loadChartJs();
+        if (getActiveUserId() !== userId) return;
 
         container.innerHTML = `
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;direction:rtl;">
@@ -1875,7 +1879,6 @@ function initWorkoutTableWeights(targets = {}) {
         weightCell.onclick = null;
         weightCell.onclick = function() {
             const wCell = this;
-            const wKey = 'workout_weight_' + exKey;
             if (wCell.querySelector('input')) return;
             const current = wCell.innerText.replace(/[^\d.]/g, '');
             const input = document.createElement('input');
@@ -1888,13 +1891,15 @@ function initWorkoutTableWeights(targets = {}) {
             input.onblur = function() {
                 const val = this.value.trim();
                 wCell.innerText = val || '';
-                if (val) localStorage.setItem(wKey, val);
+                const _uid = getActiveUserId();
+                if (val && _uid) localStorage.setItem('workout_weight_' + exKey + '_' + _uid, val);
             };
             input.onkeydown = function(e) { if (e.key === 'Enter') this.blur(); };
         };
         // only fall back to localStorage when no Supabase target exists
         if (!targets[exerciseName]) {
-            const saved = localStorage.getItem('workout_weight_' + exKey);
+            const _uid = getActiveUserId();
+            const saved = _uid ? localStorage.getItem('workout_weight_' + exKey + '_' + _uid) : null;
             if (saved) weightCell.innerText = saved;
         }
     });
