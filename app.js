@@ -301,12 +301,10 @@ function closeCompleteMsg() {
 
     function loadPortions() {
         const saved = localStorage.getItem(_portionsKey());
-        if (saved) {
-            userPortions = JSON.parse(saved);
-            document.getElementById('protein-val').innerText = userPortions.protein;
-            document.getElementById('carbs-val').innerText = userPortions.carbs;
-            document.getElementById('fat-val').innerText = userPortions.fat;
-        }
+        userPortions = saved ? JSON.parse(saved) : { protein: 0, carbs: 0, fat: 0 };
+        document.getElementById('protein-val').innerText = userPortions.protein;
+        document.getElementById('carbs-val').innerText = userPortions.carbs;
+        document.getElementById('fat-val').innerText = userPortions.fat;
         setTimeout(updateAllPortionProgress, 50);
     }
 
