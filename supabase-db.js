@@ -557,6 +557,8 @@ async function loadUserIntoApp(userId) {
     const portions = todayNutrition
         ? { protein: todayNutrition.protein || 0, carbs: todayNutrition.carbs || 0, fat: todayNutrition.fat || 0 }
         : { protein: 0, carbs: 0, fat: 0 };
+    // ⚠️ CRITICAL: key MUST include userId — never use global 'user_portions_v3'
+    //    Changing this causes cross-user data contamination (client A sees client B's portions)
     const _portionsKey = 'user_portions_v3_' + userId;
     sessionStorage.setItem(_portionsKey, JSON.stringify(portions));
 
