@@ -306,6 +306,20 @@ function closeCompleteMsg() {
         document.getElementById('carbs-val').innerText = userPortions.carbs;
         document.getElementById('fat-val').innerText = userPortions.fat;
         setTimeout(updateAllPortionProgress, 50);
+
+        // טעינה מ-Supabase — מקור האמת האמיתי
+        const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+        if (uid && typeof sbFetchTodayNutrition === 'function') {
+            sbFetchTodayNutrition(uid).then(data => {
+                if (!data) return;
+                userPortions = { protein: data.protein || 0, carbs: data.carbs || 0, fat: data.fat || 0 };
+                localStorage.setItem(_portionsKey(), JSON.stringify(userPortions));
+                document.getElementById('protein-val').innerText = userPortions.protein;
+                document.getElementById('carbs-val').innerText = userPortions.carbs;
+                document.getElementById('fat-val').innerText = userPortions.fat;
+                updateAllPortionProgress();
+            }).catch(() => {});
+        }
     }
 
     function toggleTask(el) {
