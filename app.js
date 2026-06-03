@@ -2307,7 +2307,7 @@ function renderWeightChart() {
         ctx.font = '600 10px Heebo';
         ctx.textAlign = startX > W * 0.6 ? 'right' : 'left';
         ctx.textBaseline = 'top';
-        ctx.fillText(sdStr, startX + (startX > W * 0.6 ? -4 : 4), H - pad.bottom + 6);
+        ctx.fillText(sdStr, startX + (startX > W * 0.6 ? -4 : 4), H - 30);
     }
 
     if (history.length === 0) {
