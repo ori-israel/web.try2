@@ -120,6 +120,11 @@ async function _loadClientAndShowApp(userId) {
 
     _showApp();
 
+    // איפוס טאב לתזונה (tab1) בכל כניסה ללקוח
+    document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelector('.tab-btn[data-tab="tab1"]')?.classList.add('active');
+    document.getElementById('tab1')?.classList.add('active');
+
     // תמיד מגדיר last_reset_v4 לפני שmanagedDailyReset יכול לרוץ
     const _n = new Date();
     localStorage.setItem('last_reset_v4', `${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,'0')}-${String(_n.getDate()).padStart(2,'0')}`);

@@ -2288,6 +2288,25 @@ function renderWeightChart() {
         tickIdx++;
     }
 
+    // קו תחילת ליווי
+    const startX = toX(CLIENT.startDate);
+    if (startX >= pad.left && startX <= W - pad.right) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(100,200,100,0.5)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(startX, pad.top);
+        ctx.lineTo(startX, H - pad.bottom);
+        ctx.stroke();
+        ctx.restore();
+        ctx.fillStyle = 'rgba(100,200,100,0.8)';
+        ctx.font = '500 10px Heebo';
+        ctx.textAlign = startX > W / 2 ? 'right' : 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText('תחילת ליווי', startX + (startX > W / 2 ? -4 : 4), pad.top + 2);
+    }
+
     if (history.length === 0) {
         ctx.font = '500 14px Heebo';
         ctx.fillStyle = colors.empty;
