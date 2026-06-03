@@ -2352,7 +2352,7 @@ function renderWeightChart() {
     points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
     ctx.stroke();
 
-    points.forEach((p, i) => {
+    points.forEach((p) => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
         ctx.fillStyle = colors.dotRing;
@@ -2361,14 +2361,54 @@ function renderWeightChart() {
         ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
         ctx.fillStyle = colors.dot;
         ctx.fill();
-        if (i === points.length - 1) {
-            ctx.fillStyle = colors.label;
-            ctx.font = '600 11px Heebo';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'bottom';
-            ctx.fillText(sorted[i].weight + '', p.x, p.y - 10);
-        }
     });
+
+    // שמור נתוני נקודות ל-tooltip
+    canvas._weightPoints = sorted.map((p, i) => ({ x: points[i].x, y: points[i].y, weight: p.weight, date: p.date }));
+
+    // הוסף listener אחד בלבד
+    if (!canvas._weightTooltipReady) {
+        canvas._weightTooltipReady = true;
+        const _showWeightTip = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const mx = clientX - rect.left;
+            const my = clientY - rect.top;
+
+            const pts = canvas._weightPoints || [];
+            let nearest = null, minDist = 30;
+            pts.forEach(p => {
+                const d = Math.sqrt((p.x - mx) ** 2 + (p.y - my) ** 2);
+                if (d < minDist) { minDist = d; nearest = p; }
+            });
+
+            document.getElementById('weight-chart-tip')?.remove();
+            if (!nearest) return;
+
+            const monthNames = ['ינו','פבר','מרץ','אפר','מאי','יונ','יול','אוג','ספט','אוק','נוב','דצמ'];
+            const dt = new Date(nearest.date);
+            const dateStr = `${dt.getDate()} ${monthNames[dt.getMonth()]} ${dt.getFullYear()}`;
+
+            const tip = document.createElement('div');
+            tip.id = 'weight-chart-tip';
+            tip.innerHTML = `<div style="font-size:11px;color:var(--text-secondary);margin-bottom:2px">${dateStr}</div><div style="font-size:15px;font-weight:700">${nearest.weight} ק"ג</div>`;
+            tip.style.cssText = 'position:fixed;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:6px 12px;pointer-events:none;z-index:9999;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,0.35);direction:rtl;';
+            document.body.appendChild(tip);
+
+            const tipW = 100, tipH = 50;
+            let left = rect.left + nearest.x - tipW / 2;
+            let top  = rect.top  + nearest.y - tipH - 14 + window.scrollY;
+            left = Math.max(8, Math.min(left, window.innerWidth - tipW - 8));
+            tip.style.left = left + 'px';
+            tip.style.top  = top  + 'px';
+
+            clearTimeout(canvas._tipTimer);
+            canvas._tipTimer = setTimeout(() => tip.remove(), 2500);
+        };
+        canvas.addEventListener('click', _showWeightTip);
+        canvas.addEventListener('touchstart', _showWeightTip, { passive: true });
+    }
 }
 
 // ─── Food Scanner ───────────────────────────────────────────────
