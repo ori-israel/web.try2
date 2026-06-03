@@ -7,6 +7,13 @@ let _resolveAuthReady;
 window._authReady = new Promise(r => { _resolveAuthReady = r; });
 let _appInitDone = false;
 
+// בריחת טקסט שמקורו במשתמש לפני הזרקה ל-HTML (מניעת XSS)
+function _esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+}
+
 // ── UI helpers ──────────────────────────────────────────────
 
 function _showOverlay(id) {
@@ -214,6 +221,14 @@ function _clearUserLocalStorage() {
         keysToRemove.push(k);
     }
     keysToRemove.forEach(k => localStorage.removeItem(k));
+    // ניקוי sessionStorage גם — אחרת נתוני לקוח קודם דולפים במעבר בין לקוחות
+    ['weight_history', 'current_weight', 'ai_chat_history'].forEach(k => sessionStorage.removeItem(k));
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const k = sessionStorage.key(i);
+        if (k && k.startsWith('user_portions_v3_')) sessionStorage.removeItem(k);
+    }
+    // איפוס cache בזיכרון כדי שנתוני לקוח אחד לא ידלפו לאחר
+    window._workoutDataCache = { exercises: {}, tasks: [], exercise_weights: {} };
 }
 
 // ── Admin panel ──────────────────────────────────────────────
@@ -284,12 +299,12 @@ async function _renderArchiveMode(list) {
             row.innerHTML = `
                 <div class="coach-urgent-left">
                     <div class="coach-urgent-text">
-                        <span class="coach-urgent-name">${name}</span>
+                        <span class="coach-urgent-name">${_esc(name)}</span>
                         <span class="coach-urgent-reason" style="color:#888">נמחק: ${deletedDate}</span>
                     </div>
                 </div>
                 <div class="coach-urgent-right">
-                    <button class="admin-restore-btn" data-client-id="${client.id}" data-client-name="${name}" style="background:#4ade80;color:#000;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:bold;cursor:pointer;">שחזר</button>
+                    <button class="admin-restore-btn" data-client-id="${client.id}" data-client-name="${_esc(name)}" style="background:#4ade80;color:#000;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:bold;cursor:pointer;">שחזר</button>
                 </div>`;
             row.querySelector('.admin-restore-btn').addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -348,7 +363,7 @@ function _renderSubscribersMode(list) {
             <div class="coach-urgent-left">
                 ${_coachInitials(name, client.id)}
                 <div class="coach-urgent-text">
-                    <span class="coach-urgent-name">${name}</span>
+                    <span class="coach-urgent-name">${_esc(name)}</span>
                     <span class="coach-urgent-reason" style="color:#60a5fa;font-weight:600;">💳 מנוי פעיל — סיים ליווי</span>
                 </div>
             </div>
@@ -554,7 +569,7 @@ function _renderUrgentMode(list) {
             <div class="coach-urgent-left">
                 ${_coachInitials(name, client.id)}
                 <div class="coach-urgent-text">
-                    <span class="coach-urgent-name">${name}</span>
+                    <span class="coach-urgent-name">${_esc(name)}</span>
                     <span class="coach-urgent-reason ${cls}">${reason}</span>
                 </div>
             </div>
@@ -608,10 +623,10 @@ function _renderOverviewMode(list) {
         card.innerHTML = `
             <div class="coach-card-header" onclick="this.closest('.coach-overview-card').classList.toggle('expanded')">
                 ${client.avatar_url
-                    ? `<img src="${client.avatar_url}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span style="display:none">${_coachInitials(name, client.id)}</span>`
+                    ? `<img src="${_esc(client.avatar_url)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span style="display:none">${_coachInitials(name, client.id)}</span>`
                     : _coachInitials(name, client.id)}
                 <div style="display:flex;flex-direction:column;flex:1;min-width:0;">
-                    <div class="coach-card-name">${name}</div>
+                    <div class="coach-card-name">${_esc(name)}</div>
                     ${(() => {
                         if (!s.lastSeen) return '<span style="font-size:11px;color:#888;">כניסה אחרונה: לא ידוע</span>';
                         const days = Math.floor((Date.now() - new Date(s.lastSeen).getTime()) / 86400000);
@@ -640,7 +655,7 @@ function _renderOverviewMode(list) {
                 <button class="coach-q-btn" data-client-id="${client.id}">📋 שאלון אחרון</button>
                 <button class="admin-select-btn" data-client-id="${client.id}" style="width:100%;margin-top:6px">כניסה ›</button>
                 <button class="admin-move-subscriber-btn" data-client-id="${client.id}" style="width:100%;margin-top:6px;background:transparent;border:1px solid #60a5fa;color:#60a5fa;border-radius:8px;padding:8px;font-size:13px;cursor:pointer;">💳 העבר למנויים</button>
-                <button class="admin-delete-client-btn" data-client-id="${client.id}" data-client-name="${name}" style="width:100%;margin-top:6px">🗑️ מחק לקוח</button>
+                <button class="admin-delete-client-btn" data-client-id="${client.id}" data-client-name="${_esc(name)}" style="width:100%;margin-top:6px">🗑️ מחק לקוח</button>
             </div>`;
         card.querySelector('.coach-vac-icon').addEventListener('click', function(e) {
             e.stopPropagation();
@@ -812,10 +827,10 @@ async function showQuestionnaireModal(clientId) {
         const date = new Date(row.submitted_at).toLocaleDateString('he-IL', { day:'numeric', month:'long', year:'numeric' });
         body.innerHTML = `
             <p class="qmodal-date">נשלח: ${date}</p>
-            <div class="qmodal-q"><strong>1. ניצחון:</strong><p>${row.q1_win || '—'}</p></div>
-            <div class="qmodal-q"><strong>2. אתגר:</strong><p>${row.q2_challenge || '—'}</p></div>
+            <div class="qmodal-q"><strong>1. ניצחון:</strong><p>${_esc(row.q1_win) || '—'}</p></div>
+            <div class="qmodal-q"><strong>2. אתגר:</strong><p>${_esc(row.q2_challenge) || '—'}</p></div>
             <div class="qmodal-q"><strong>3. ציון עמידה:</strong><p>${row.q3_score != null ? row.q3_score + '/10' : '—'}</p></div>
-            <div class="qmodal-q"><strong>4. הערות:</strong><p>${row.q4_topic || '—'}</p></div>`;
+            <div class="qmodal-q"><strong>4. הערות:</strong><p>${_esc(row.q4_topic) || '—'}</p></div>`;
     } catch(e) {
         body.innerHTML = '<p style="color:#f87171">שגיאה בטעינה.</p>';
         console.error('[SB] questionnaire fetch:', e.message);
@@ -973,6 +988,8 @@ function weDeleteRow(letter, btn) {
 }
 
 async function saveWorkoutPlan() {
+    const confirmed = await showConfirmDanger('לשמור את תוכנית האימון? הנתונים הקיימים יוחלפו.');
+    if (!confirmed) return;
     const btn = document.getElementById('we-save-btn');
     btn.disabled    = true;
     btn.textContent = 'שומר...';

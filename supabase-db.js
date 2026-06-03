@@ -379,6 +379,9 @@ async function getExerciseTargets(clientId) {
 
 // ── רצפים ───────────────────────────────────────────────────
 
+window._streaksCache = { workout_streak: 0, nutrition_streak: 0, workout_completed_date: null, nutrition_completed_date: null };
+window._workoutDataCache = { exercises: {}, tasks: [], exercise_weights: {} };
+
 async function sbFetchStreaks(userId) {
     const { data, error } = await db
         .from('streaks')
@@ -530,7 +533,6 @@ async function loadUserIntoApp(userId) {
             avatarUrl:     profile.avatar_url     || null,
         };
         Object.assign(CLIENT, p);
-        localStorage.setItem('profile_data_v1', JSON.stringify(p));
         sessionStorage.setItem('current_weight', String(p.currentWeight));
 
         if (profile.workout_a  && profile.workout_a.length)  CLIENT.workoutA    = profile.workout_a;
@@ -550,7 +552,7 @@ async function loadUserIntoApp(userId) {
             portionValues.fat     = profile.portion_values.fat     ?? portionValues.fat;
         }
         if (profile.theme)          localStorage.setItem('theme', profile.theme);
-        if (profile.coaching_goal)  localStorage.setItem('coaching_goal', profile.coaching_goal);
+        if (profile.coaching_goal)  localStorage.setItem('coaching_goal_' + userId, profile.coaching_goal);
     }
 
     // ── תזונה יומית ───────────────────────────────────────
@@ -595,29 +597,31 @@ async function loadUserIntoApp(userId) {
         sessionStorage.setItem('weight_history', JSON.stringify(weightHist));
     }
 
-    // ── התקדמות אימון יומי ────────────────────────────────
-    if (todayWorkout) {
-        if (todayWorkout.exercises)        localStorage.setItem('workout_progress_v3', JSON.stringify(todayWorkout.exercises));
-        if (todayWorkout.tasks)            localStorage.setItem('tasks_v3',            JSON.stringify(todayWorkout.tasks));
-        if (todayWorkout.exercise_weights) sessionStorage.setItem('exercise_weights',    JSON.stringify(todayWorkout.exercise_weights));
-    }
+    // ── התקדמות אימון יומי — בזיכרון, מסתנכרן ישירות לסופאבייס ──
+    window._workoutDataCache = {
+        exercises:        todayWorkout?.exercises        || {},
+        tasks:            todayWorkout?.tasks            || [],
+        exercise_weights: todayWorkout?.exercise_weights || {},
+    };
 
     // ── מדדי ביצועים ──────────────────────────────────────
     if (performance) {
         performance.forEach(p => {
-            if (p.start_kg    != null) localStorage.setItem(`perf_${uid}_${p.exercise}_start_kg`,  String(p.start_kg));
-            if (p.start_reps  != null) localStorage.setItem(`perf_${uid}_${p.exercise}_start_reps`, String(p.start_reps));
-            if (p.current_kg  != null) localStorage.setItem(`perf_${uid}_${p.exercise}_cur_kg`,    String(p.current_kg));
-            if (p.current_reps!= null) localStorage.setItem(`perf_${uid}_${p.exercise}_cur_reps`,  String(p.current_reps));
+            if (p.start_kg    != null) localStorage.setItem(`perf_${userId}_${p.exercise}_start_kg`,  String(p.start_kg));
+            if (p.start_reps  != null) localStorage.setItem(`perf_${userId}_${p.exercise}_start_reps`, String(p.start_reps));
+            if (p.current_kg  != null) localStorage.setItem(`perf_${userId}_${p.exercise}_cur_kg`,    String(p.current_kg));
+            if (p.current_reps!= null) localStorage.setItem(`perf_${userId}_${p.exercise}_cur_reps`,  String(p.current_reps));
         });
     }
 
     // ── רצפים ─────────────────────────────────────────────
     if (streaks) {
-        localStorage.setItem('workout_streak',   String(streaks.workout_streak   || 0));
-        localStorage.setItem('nutrition_streak',  String(streaks.nutrition_streak || 0));
-        if (streaks.workout_completed_date)   localStorage.setItem('workout_streak_incremented_date_' + uid, streaks.workout_completed_date);
-        if (streaks.nutrition_completed_date) localStorage.setItem('nutrition_completed_date', streaks.nutrition_completed_date);
+        _streaksCache.workout_streak           = streaks.workout_streak           || 0;
+        _streaksCache.nutrition_streak         = streaks.nutrition_streak         || 0;
+        _streaksCache.workout_completed_date   = streaks.workout_completed_date   || null;
+        _streaksCache.nutrition_completed_date = streaks.nutrition_completed_date || null;
+        if (streaks.workout_completed_date)
+            localStorage.setItem('workout_streak_incremented_date_' + userId, streaks.workout_completed_date);
     }
 
     // ── מונע ש-manageDailyReset יפעיל location.reload() ─────
@@ -628,19 +632,6 @@ async function loadUserIntoApp(userId) {
 }
 
 // ── Sync helpers (נקראים מ-app.js ו-profile.js) ─────────────
-
-let _nutritionSyncTimer = null;
-function scheduleSyncNutrition() {
-    clearTimeout(_nutritionSyncTimer);
-    _nutritionSyncTimer = setTimeout(async () => {
-        const uid = getActiveUserId();
-        if (!uid) return;
-        try {
-            const p = JSON.parse(localStorage.getItem('user_portions_v3_' + uid) || '{}');
-            await sbSaveNutrition(uid, p.protein || 0, p.carbs || 0, p.fat || 0);
-        } catch (e) { showSupabaseError(); console.warn('[SB] nutrition sync:', e.message); }
-    }, 300);
-}
 
 async function syncProfileNow(data) {
     const uid = getActiveUserId();
@@ -687,29 +678,25 @@ async function syncStreaksNow() {
     if (!uid) return;
     try {
         await sbSaveStreaks(uid, {
-            workout_streak:           parseInt(localStorage.getItem('workout_streak')   || '0'),
-            nutrition_streak:         parseInt(localStorage.getItem('nutrition_streak') || '0'),
-            workout_completed_date:   localStorage.getItem('workout_streak_incremented_date_' + uid) || null,
-            nutrition_completed_date: localStorage.getItem('nutrition_completed_date')  || null,
+            workout_streak:           _streaksCache.workout_streak,
+            nutrition_streak:         _streaksCache.nutrition_streak,
+            workout_completed_date:   _streaksCache.workout_completed_date,
+            nutrition_completed_date: _streaksCache.nutrition_completed_date,
         });
     } catch (e) { console.warn('[SB] streaks sync:', e.message); }
 }
 
-let _workoutSyncTimer = null;
-function scheduleSyncWorkoutProgress() {
-    clearTimeout(_workoutSyncTimer);
-    _workoutSyncTimer = setTimeout(async () => {
-        const uid = getActiveUserId();
-        if (!uid) return;
-        try {
-            await sbSaveWorkoutProgress(
-                uid,
-                JSON.parse(localStorage.getItem('workout_progress_v3') || '{}'),
-                JSON.parse(localStorage.getItem('tasks_v3')            || '[]'),
-                JSON.parse(localStorage.getItem('exercise_weights')    || '{}')
-            );
-        } catch (e) { showSupabaseError(); console.warn('[SB] workout sync:', e.message); }
-    }, 1500);
+async function scheduleSyncWorkoutProgress() {
+    const uid = getActiveUserId();
+    if (!uid) return;
+    try {
+        await sbSaveWorkoutProgress(
+            uid,
+            window._workoutDataCache.exercises,
+            window._workoutDataCache.tasks,
+            window._workoutDataCache.exercise_weights
+        );
+    } catch (e) { showSupabaseError(); console.warn('[SB] workout sync:', e.message); }
 }
 
 async function syncPerformanceNow(exercise) {
@@ -728,6 +715,12 @@ async function syncPerformanceNow(exercise) {
 async function syncWorkoutPlanNow() {
     const uid = getActiveUserId();
     if (!uid) return;
+    // ⚠️ SAFETY: never save if all workout arrays are empty — prevents wiping real data
+    const hasData = (CLIENT.workoutA?.length || 0) + (CLIENT.workoutB?.length || 0) +
+                    (CLIENT.workoutC?.length || 0) + (CLIENT.workoutD?.length || 0) +
+                    (CLIENT.workoutE?.length || 0) + (CLIENT.workoutF?.length || 0) +
+                    (CLIENT.workoutG?.length || 0);
+    if (!hasData) { console.warn('[SB] syncWorkoutPlanNow blocked — all workout arrays empty'); return; }
     try {
         await sbUpsertProfile(uid, {
             workout_a:         CLIENT.workoutA,
@@ -756,13 +749,6 @@ async function syncCoachingGoalNow(goal) {
     if (!uid) return;
     try { await sbUpsertProfile(uid, { coaching_goal: goal }); }
     catch (e) { console.warn('[SB] coaching goal sync:', e.message); }
-}
-
-async function syncGeminiKeyNow(key) {
-    const uid = getActiveUserId();
-    if (!uid) return;
-    try { await sbUpsertProfile(uid, { gemini_api_key: key }); }
-    catch (e) { console.warn('[SB] gemini key sync:', e.message); }
 }
 
 // ── שאלון שבועי ─────────────────────────────────────────────

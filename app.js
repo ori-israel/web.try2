@@ -182,9 +182,14 @@ function showWorkout(workoutId) {
     initWorkoutTableWeights(_exerciseTargets);
 }
 
+function _ensureWorkoutCache() {
+    if (!window._workoutDataCache) window._workoutDataCache = { exercises: {}, tasks: [], exercise_weights: {} };
+    return window._workoutDataCache;
+}
+
     // פונקציה לניהול הצ'קליסט של האימונים
 function initWorkoutsChecklist() {
-    const savedState = JSON.parse(localStorage.getItem('workout_progress_v3')) || {};
+    const savedState = _ensureWorkoutCache().exercises || {};
     document.querySelectorAll('.workout-checkbox').forEach(cb => {
         const id = cb.getAttribute('data-id');
         if (savedState[id]) cb.checked = true;
@@ -194,20 +199,13 @@ function initWorkoutsChecklist() {
         if (!e.target.classList.contains('workout-checkbox')) return;
         const cb = e.target;
         const id = cb.getAttribute('data-id');
-        const currentState = JSON.parse(localStorage.getItem('workout_progress_v3')) || {};
-        currentState[id] = cb.checked;
-        localStorage.setItem('workout_progress_v3', JSON.stringify(currentState));
+        _ensureWorkoutCache().exercises[id] = cb.checked;
         if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
         checkWorkoutCompletion(cb);
     });
 }
 
 function checkWorkoutCompletion(clickedCheckbox) {
-    const storedDate = localStorage.getItem('workout_completed_date');
-    if (storedDate && storedDate !== localDateStr()) {
-        localStorage.removeItem('workout_completed_date');
-    }
-
     const id = clickedCheckbox.getAttribute('data-id');
     if (!id) return;
     const letter = id.split('_')[0];
@@ -221,8 +219,9 @@ function checkWorkoutCompletion(clickedCheckbox) {
         const today = localDateStr();
         const isScheduledToday = CLIENT.workoutDays?.[letter]?.includes(new Date().getDay());
         completeWorkoutStreak(letter);
-        if (localStorage.getItem('workout_popup_shown_date') !== today && isScheduledToday) {
-            localStorage.setItem('workout_popup_shown_date', today);
+        const _popupKey = 'workout_popup_shown_date_' + (getActiveUserId() || 'default');
+        if (localStorage.getItem(_popupKey) !== today && isScheduledToday) {
+            localStorage.setItem(_popupKey, today);
             const msg = document.getElementById('workout-complete-msg');
             if (msg) {
                 msg.style.cssText = "display:flex; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9999; align-items:center; justify-content:center;";
@@ -240,7 +239,7 @@ function closeCompleteMsg() {
 
     // --- לוגיקה של המונים ואיפוס ---
     let userPortions = { protein: 0, carbs: 0, fat: 0 };
-    function _portionsKey() { return 'user_portions_v3_' + (getActiveUserId() || 'default'); }
+    function _portionsKey()         { return 'user_portions_v3_'   + (getActiveUserId() || 'default'); }
 
     function manageDailyReset() {
         const now = new Date();
@@ -248,11 +247,9 @@ function closeCompleteMsg() {
         const lastReset = localStorage.getItem('last_reset_v4');
         if (lastReset === todayStr) return;
         localStorage.removeItem(_portionsKey());
-        localStorage.removeItem('tasks_v3');
-        localStorage.removeItem('workout_progress_v3');
-        localStorage.removeItem('workout_completed_date');
-        localStorage.removeItem('workout_popup_shown_date');
+        window._workoutDataCache = { exercises: {}, tasks: [], exercise_weights: {} };
         const _resetUid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+        localStorage.removeItem('workout_popup_shown_date_' + (_resetUid || 'default'));
         if (_resetUid) localStorage.removeItem('workout_streak_incremented_date_' + _resetUid);
         sessionStorage.removeItem('ai_chat_history');
         localStorage.setItem('last_reset_v4', todayStr);
@@ -345,11 +342,12 @@ function closeCompleteMsg() {
 
     function saveChecklist() {
         const states = Array.from(document.querySelectorAll('.checklist-item input')).map(i => i.checked);
-        localStorage.setItem('tasks_v3', JSON.stringify(states));
+        _ensureWorkoutCache().tasks = states;
+        if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
     }
 
     function loadChecklist() {
-        const savedTasks = JSON.parse(localStorage.getItem('tasks_v3'));
+        const savedTasks = _ensureWorkoutCache().tasks;
         if (savedTasks) {
             document.querySelectorAll('.checklist-item').forEach((el, i) => {
                 const checkbox = el.querySelector('input');
@@ -389,7 +387,8 @@ function closeCompleteMsg() {
                         formData.get('q4_topic')
                     );
                 }
-                localStorage.setItem('survey_submitted_' + _surveyWeekKey(), '1');
+                const _surveyUid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+                if (_surveyUid) localStorage.setItem('survey_submitted_' + _surveyUid + '_' + _surveyWeekKey(), '1');
                 await showAlert("השאלון נשלח בהצלחה!"); surveyForm.reset(); closeSurvey();
             } catch (error) {
                 console.warn('[SB] questionnaire save:', error.message);
@@ -506,7 +505,7 @@ function buildWorkoutAccordions(targets = {}) {
                     : String(t.target_weight);
                 repsDisplay = String(t.target_reps);
             } else {
-                const savedWeights = JSON.parse(localStorage.getItem('exercise_weights') || '{}');
+                const savedWeights = _ensureWorkoutCache().exercise_weights || {};
                 weightHtml = savedWeights[exId] || '—';
                 repsDisplay = cells[4]?.textContent.trim() || '—';
             }
@@ -555,9 +554,7 @@ function buildWorkoutAccordions(targets = {}) {
                 const id = checkbox.getAttribute('data-id');
                 const freshCb = document.querySelector(`.workout-checkbox[data-id="${id}"]`);
                 if (freshCb) freshCb.checked = accordCheckbox.checked;
-                const currentState = JSON.parse(localStorage.getItem('workout_progress_v3')) || {};
-                currentState[id] = accordCheckbox.checked;
-                localStorage.setItem('workout_progress_v3', JSON.stringify(currentState));
+                _ensureWorkoutCache().exercises[id] = accordCheckbox.checked;
                 if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
                 header.classList.toggle('checked', accordCheckbox.checked);
                 checkWorkoutCompletion(freshCb || checkbox);
@@ -599,7 +596,7 @@ function buildWorkoutAccordions(targets = {}) {
         const cardio = letter ? CLIENT.cardioPlan?.[letter] : null;
         if (cardio?.description) {
             const cardioId = `${letter}_cardio`;
-            const savedState = JSON.parse(localStorage.getItem('workout_progress_v3') || '{}');
+            const savedState = _ensureWorkoutCache().exercises || {};
             const isCardioChecked = !!savedState[cardioId];
             const cardioItem = document.createElement('div');
             cardioItem.className = 'workout-accord-item workout-cardio-item';
@@ -651,13 +648,13 @@ function buildWorkoutAccordions(targets = {}) {
         if (day < 4) return;
         if (day === 4 && hour < 19) return;
         // localStorage fast-check (set after successful submission)
-        if (localStorage.getItem('survey_submitted_' + _surveyWeekKey())) return;
         const uid = typeof SB_USER !== 'undefined' && SB_USER?.id;
         if (!uid) return;
+        if (localStorage.getItem('survey_submitted_' + uid + '_' + _surveyWeekKey())) return;
         try {
             const hasRow = await sbCheckThisWeekQuestionnaire(uid);
             if (hasRow) {
-                localStorage.setItem('survey_submitted_' + _surveyWeekKey(), '1');
+                localStorage.setItem('survey_submitted_' + uid + '_' + _surveyWeekKey(), '1');
                 return;
             }
             const banner = document.getElementById('weekly-survey-banner');
@@ -1127,28 +1124,6 @@ function loadSavedWeight() {
         pt.innerText = 'עברת כבר ' + percent + '% מהדרך ליעד!';
         pt.style.visibility = 'visible';
     }
-}
-
-function makeEditable(td) {
-    if (td.querySelector('input')) return;
-    const current = td.innerText;
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = current;
-    input.style.cssText = 'width:60px; text-align:center; border:1px solid var(--main-green); border-radius:4px; padding:2px; font-size:14px;';
-    td.innerText = '';
-    td.appendChild(input);
-    input.focus();
-    input.select();
-    input.setSelectionRange(0, input.value.length);
-    const save = () => {
-        const val = input.value.trim() || current;
-        td.innerText = val;
-        const key = 'perf_' + td.closest('tr').rowIndex + '_' + td.cellIndex;
-        localStorage.setItem(key, val);
-    };
-    input.addEventListener('blur', save);
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); });
 }
 
 // ── יומן ביצועי אימון ───────────────────────────────────────
@@ -1911,9 +1886,9 @@ function resetWorkout() {
     const activeLetter = activeBtn?.getAttribute('onclick')?.match(/'([A-G])'/)?.[1];
     if (!activeLetter) return;
 
-    const progress = JSON.parse(localStorage.getItem('workout_progress_v3') || '{}');
+    const progress = _ensureWorkoutCache().exercises;
     Object.keys(progress).forEach(key => { if (key.startsWith(activeLetter + '_')) delete progress[key]; });
-    localStorage.setItem('workout_progress_v3', JSON.stringify(progress));
+    if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
 
     document.querySelectorAll(`[data-id^="${activeLetter}_"]`).forEach(cb => cb.checked = false);
     document.querySelectorAll(`#workout-${activeLetter} .accord-checkbox`).forEach(cb => {
@@ -2028,13 +2003,14 @@ function showWeightUpdateToast() {
 function loadCoachingGoal() {
     const el = document.getElementById('coaching-goal-display');
     if (!el) return;
-    const saved = localStorage.getItem('coaching_goal');
+    const _cgUid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+    const saved = _cgUid ? localStorage.getItem('coaching_goal_' + _cgUid) : null;
     const rawGoal = saved || CLIENT.coachingGoal || '';
     el.value = rawGoal.slice(0, 300);
     el.addEventListener('input', () => {
         if (el.value.length > 300) el.value = el.value.slice(0, 300);
         const val = el.value.trim();
-        localStorage.setItem('coaching_goal', val);
+        if (_cgUid) localStorage.setItem('coaching_goal_' + _cgUid, val);
         if (typeof syncCoachingGoalNow === 'function') syncCoachingGoalNow(val);
     });
 }
@@ -2048,8 +2024,8 @@ function updateWorkoutStreak() {
     const today = new Date();
     const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-    let streak = parseInt(localStorage.getItem('workout_streak') || '0');
-    const lastCompleted = localStorage.getItem('workout_completed_date');
+    let streak = _streaksCache.workout_streak || 0;
+    const lastCompleted = _streaksCache.workout_completed_date;
 
     if (CLIENT.vacationMode) {
         const el = document.getElementById('workout-streak-count');
@@ -2066,11 +2042,6 @@ function updateWorkoutStreak() {
     const lastMidnight = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
     const daysDiff = Math.floor((todayMidnight - lastMidnight) / (1000 * 60 * 60 * 24));
 
-    if (daysDiff > 1) {
-        streak = 0;
-        localStorage.setItem('workout_streak', '0');
-    }
-
     document.getElementById('workout-streak-count').innerText = streak;
 }
 
@@ -2083,12 +2054,13 @@ function completeWorkoutStreak(letter) {
     if (!scheduledDays || !scheduledDays.includes(todayDay)) return;
     const _streakUid = getActiveUserId();
     if (!_streakUid) return;
+    if (_streaksCache.workout_completed_date === today) return;
     if (localStorage.getItem('workout_streak_incremented_date_' + _streakUid) === today) return;
 
     localStorage.setItem('workout_streak_incremented_date_' + _streakUid, today);
-    let streak = parseInt(localStorage.getItem('workout_streak') || '0');
-    streak++;
-    localStorage.setItem('workout_streak', streak);
+    let streak = (_streaksCache.workout_streak || 0) + 1;
+    _streaksCache.workout_streak = streak;
+    _streaksCache.workout_completed_date = today;
     document.getElementById('workout-streak-count').innerText = streak;
     if (typeof syncStreaksNow === 'function') syncStreaksNow();
     if (streak === 7 && typeof _showAchievementPopup === 'function') _showAchievementPopup('streak_7_workout');
@@ -2128,12 +2100,11 @@ function checkNutritionStreak() {
 async function completeNutritionStreak() {
     if (CLIENT.vacationMode) return;
     const today = localDateStr();
-    if (localStorage.getItem('nutrition_completed_date') === today) return;
+    if (_streaksCache.nutrition_completed_date === today) return;
 
-    localStorage.setItem('nutrition_completed_date', today);
-    let streak = parseInt(localStorage.getItem('nutrition_streak') || '0');
-    streak++;
-    localStorage.setItem('nutrition_streak', streak);
+    _streaksCache.nutrition_completed_date = today;
+    let streak = (_streaksCache.nutrition_streak || 0) + 1;
+    _streaksCache.nutrition_streak = streak;
     document.getElementById('nutrition-streak-count').innerText = streak;
     if (typeof syncStreaksNow === 'function') syncStreaksNow();
     if (streak === 7 && typeof _showAchievementPopup === 'function') _showAchievementPopup('streak_7_nutrition');
@@ -2165,8 +2136,8 @@ function updateNutritionStreak() {
     const today = new Date();
     const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-    let streak = parseInt(localStorage.getItem('nutrition_streak') || '0');
-    const lastCompleted = localStorage.getItem('nutrition_completed_date');
+    let streak = _streaksCache.nutrition_streak || 0;
+    const lastCompleted = _streaksCache.nutrition_completed_date;
 
     if (CLIENT.vacationMode) {
         const el = document.getElementById('nutrition-streak-count');
@@ -2182,11 +2153,6 @@ function updateNutritionStreak() {
     const lastDate = new Date(lastCompleted);
     const lastMidnight = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
     const daysDiff = Math.floor((todayMidnight - lastMidnight) / (1000 * 60 * 60 * 24));
-
-    if (daysDiff > 1) {
-        streak = 0;
-        localStorage.setItem('nutrition_streak', '0');
-    }
 
     document.getElementById('nutrition-streak-count').innerText = streak;
 }
