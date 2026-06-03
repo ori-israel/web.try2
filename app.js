@@ -2288,7 +2288,7 @@ function renderWeightChart() {
         tickIdx++;
     }
 
-    // קו תחילת ליווי
+    // קו תחילת ליווי + תווית בציר התחתון
     const startX = toX(CLIENT.startDate);
     if (startX >= pad.left && startX <= W - pad.right) {
         ctx.save();
@@ -2300,11 +2300,14 @@ function renderWeightChart() {
         ctx.lineTo(startX, H - pad.bottom);
         ctx.stroke();
         ctx.restore();
-        ctx.fillStyle = 'rgba(100,200,100,0.8)';
-        ctx.font = '500 10px Heebo';
-        ctx.textAlign = startX > W / 2 ? 'right' : 'left';
+        // תאריך תחילת ליווי בציר התחתון
+        const sd = new Date(CLIENT.startDate);
+        const sdStr = `${sd.getDate()}.${sd.getMonth() + 1}.${String(sd.getFullYear()).slice(2)}`;
+        ctx.fillStyle = 'rgba(100,200,100,0.9)';
+        ctx.font = '600 10px Heebo';
+        ctx.textAlign = startX > W * 0.6 ? 'right' : 'left';
         ctx.textBaseline = 'top';
-        ctx.fillText('תחילת ליווי', startX + (startX > W / 2 ? -4 : 4), pad.top + 2);
+        ctx.fillText(sdStr, startX + (startX > W * 0.6 ? -4 : 4), H - pad.bottom + 6);
     }
 
     if (history.length === 0) {
@@ -2377,7 +2380,7 @@ function renderWeightChart() {
             const my = clientY - rect.top;
 
             const pts = canvas._weightPoints || [];
-            let nearest = null, minDist = 30;
+            let nearest = null, minDist = 50;
             pts.forEach(p => {
                 const d = Math.sqrt((p.x - mx) ** 2 + (p.y - my) ** 2);
                 if (d < minDist) { minDist = d; nearest = p; }
@@ -2393,13 +2396,14 @@ function renderWeightChart() {
             const tip = document.createElement('div');
             tip.id = 'weight-chart-tip';
             tip.innerHTML = `<div style="font-size:11px;color:var(--text-secondary);margin-bottom:2px">${dateStr}</div><div style="font-size:15px;font-weight:700">${nearest.weight} ק"ג</div>`;
-            tip.style.cssText = 'position:fixed;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:6px 12px;pointer-events:none;z-index:9999;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,0.35);direction:rtl;';
+            tip.style.cssText = 'position:fixed;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:6px 12px;pointer-events:none;z-index:99999;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,0.35);direction:rtl;';
             document.body.appendChild(tip);
 
-            const tipW = 100, tipH = 50;
+            const tipW = 110;
             let left = rect.left + nearest.x - tipW / 2;
-            let top  = rect.top  + nearest.y - tipH - 14 + window.scrollY;
+            let top  = rect.top  + nearest.y - 60;
             left = Math.max(8, Math.min(left, window.innerWidth - tipW - 8));
+            top  = Math.max(8, top);
             tip.style.left = left + 'px';
             tip.style.top  = top  + 'px';
 
