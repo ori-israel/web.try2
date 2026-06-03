@@ -2202,8 +2202,11 @@ function renderWeightChart() {
     };
 
     const startDate = new Date(CLIENT.startDate);
-    const endDate = new Date(CLIENT.startDate);
-    endDate.setMonth(endDate.getMonth() + 6);
+    const endDate = new Date(Math.max(
+        new Date(CLIENT.startDate).setMonth(new Date(CLIENT.startDate).getMonth() + 6),
+        Date.now()
+    ));
+    endDate.setDate(endDate.getDate() + 14); // padding קטן בסוף
 
     const history = JSON.parse(sessionStorage.getItem('weight_history') || '[]')
         .filter(p => p.date && !isNaN(new Date(p.date).getTime()));
@@ -2264,15 +2267,25 @@ function renderWeightChart() {
     const months = ['ינו', 'פבר', 'מרץ', 'אפר', 'מאי', 'יונ', 'יול', 'אוג', 'ספט', 'אוק', 'נוב', 'דצמ'];
     ctx.fillStyle = colors.label;
     ctx.font = '500 11px Heebo';
-    ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    for (let i = 0; i <= 6; i++) {
-        const d = new Date(CLIENT.startDate);
-        if (!CLIENT.startDate || isNaN(d.getTime())) return;
-        d.setMonth(d.getMonth() + i);
-        d.setDate(1);
-        const x = Math.max(pad.left + 14, Math.min(W - pad.right - 14, toX(d.toISOString().split('T')[0])));
-        ctx.fillText(months[d.getMonth()], x, H - 30);
+    const totalMonths = (endDate.getFullYear() - startDate.getFullYear()) * 12 + endDate.getMonth() - startDate.getMonth();
+    const skipEvery = totalMonths > 12 ? 3 : totalMonths > 8 ? 2 : 1;
+    const tickStart = new Date(startDate);
+    tickStart.setDate(1);
+    tickStart.setMonth(tickStart.getMonth() + 1);
+    let tickIdx = 0;
+    let prevX = -999;
+    while (tickStart <= endDate) {
+        if (tickIdx % skipEvery === 0) {
+            const x = toX(tickStart.toISOString().split('T')[0]);
+            if (x >= pad.left + 10 && x <= W - pad.right - 10 && x - prevX > 30) {
+                ctx.textAlign = 'center';
+                ctx.fillText(months[tickStart.getMonth()], x, H - 30);
+                prevX = x;
+            }
+        }
+        tickStart.setMonth(tickStart.getMonth() + 1);
+        tickIdx++;
     }
 
     if (history.length === 0) {
