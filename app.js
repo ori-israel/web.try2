@@ -2271,7 +2271,7 @@ function renderWeightChart() {
         if (!CLIENT.startDate || isNaN(d.getTime())) return;
         d.setMonth(d.getMonth() + i);
         d.setDate(1);
-        const x = toX(d.toISOString().split('T')[0]);
+        const x = Math.max(pad.left + 14, Math.min(W - pad.right - 14, toX(d.toISOString().split('T')[0])));
         ctx.fillText(months[d.getMonth()], x, H - 30);
     }
 
