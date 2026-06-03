@@ -2305,9 +2305,9 @@ function renderWeightChart() {
         const sdStr = `${sd.getDate()}.${sd.getMonth() + 1}.${String(sd.getFullYear()).slice(2)}`;
         ctx.fillStyle = 'rgba(100,200,100,0.9)';
         ctx.font = '600 10px Heebo';
-        ctx.textAlign = startX > W * 0.6 ? 'right' : 'left';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        ctx.fillText(sdStr, startX + (startX > W * 0.6 ? -4 : 4), H - 30);
+        ctx.fillText(sdStr, startX, H - 30);
     }
 
     if (history.length === 0) {
