@@ -2021,66 +2021,51 @@ function updateVacationBanner() {
 }
 
 function updateWorkoutStreak() {
-    const today = new Date();
-    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    // הצגה מיידית מהמטמון, ואז חישוב מחדש אסינכרוני מהשרת
+    const streak = _streaksCache.workout_streak || 0;
+    const el = document.getElementById('workout-streak-count');
+    if (el) el.innerText = CLIENT.vacationMode ? streak + ' 🏖️' : streak;
+    refreshWorkoutStreak();
+}
 
-    let streak = _streaksCache.workout_streak || 0;
-    const lastCompleted = _streaksCache.workout_completed_date;
-
-    if (CLIENT.vacationMode) {
+async function refreshWorkoutStreak() {
+    const uid = getActiveUserId();
+    if (!uid || typeof sbFetchWorkoutStreak !== 'function') return;
+    try {
+        const streak = await sbFetchWorkoutStreak(uid);
+        if (getActiveUserId() !== uid) return;
+        _streaksCache.workout_streak = streak;
         const el = document.getElementById('workout-streak-count');
-        if (el) el.innerText = streak + ' 🏖️';
-        return;
-    }
-
-    if (!lastCompleted) {
-        document.getElementById('workout-streak-count').innerText = streak;
-        return;
-    }
-
-    const lastDate = new Date(lastCompleted);
-    const lastMidnight = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
-    const daysDiff = Math.floor((todayMidnight - lastMidnight) / (1000 * 60 * 60 * 24));
-
-    document.getElementById('workout-streak-count').innerText = streak;
+        if (el) el.innerText = CLIENT.vacationMode ? streak + ' 🏖️' : streak;
+        if (typeof syncStreaksNow === 'function') syncStreaksNow();
+    } catch (e) { console.warn('[streak] refresh failed:', e.message); }
 }
 
 function completeWorkoutStreak(letter) {
     if (CLIENT.vacationMode) return;
     const today = localDateStr();
-    const todayDay = new Date().getDay();
-
-    const scheduledDays = CLIENT.workoutDays?.[letter];
-    if (!scheduledDays || !scheduledDays.includes(todayDay)) return;
-    const _streakUid = getActiveUserId();
-    if (!_streakUid) return;
-    if (_streaksCache.workout_completed_date === today) return;
-    if (localStorage.getItem('workout_streak_incremented_date_' + _streakUid) === today) return;
-
-    localStorage.setItem('workout_streak_incremented_date_' + _streakUid, today);
-    let streak = (_streaksCache.workout_streak || 0) + 1;
-    _streaksCache.workout_streak = streak;
-    _streaksCache.workout_completed_date = today;
-    document.getElementById('workout-streak-count').innerText = streak;
-    if (typeof syncStreaksNow === 'function') syncStreaksNow();
-    if (streak === 7 && typeof _showAchievementPopup === 'function') _showAchievementPopup('streak_7_workout');
-    if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
-
-    // Mark workout as done in performance log so weekly score updates in real-time
     const uid = getActiveUserId();
-    if (uid) {
-        db.from('workout_performance_log').insert({
-            client_id: uid,
-            date: today,
-            exercise_name: '__workout_done__',
-            workout_letter: letter,
-            weight_kg: 0,
-            reps: 0
-        }).then(() => {
-            if (typeof _trackingWidgetCache !== 'undefined') delete _trackingWidgetCache['weekly_' + uid];
-            if (typeof renderWeeklyScore === 'function') renderWeeklyScore(uid);
-        }).catch(() => {});
-    }
+    if (!uid) return;
+
+    // סימון אימון כבוצע — פעם אחת ביום לכל אות אימון
+    const doneGuard = 'workout_done_' + uid + '_' + today + '_' + letter;
+    if (localStorage.getItem(doneGuard)) { refreshWorkoutStreak(); return; }
+    localStorage.setItem(doneGuard, '1');
+
+    db.from('workout_performance_log').insert({
+        client_id: uid,
+        date: today,
+        exercise_name: '__workout_done__',
+        workout_letter: letter,
+        weight_kg: 0,
+        reps: 0
+    }).then(() => {
+        if (typeof _trackingWidgetCache !== 'undefined') delete _trackingWidgetCache['weekly_' + uid];
+        if (typeof renderWeeklyScore === 'function') renderWeeklyScore(uid);
+        refreshWorkoutStreak();
+    }).catch(() => {});
+
+    if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
 }
 
 function checkNutritionStreak() {

@@ -392,6 +392,47 @@ async function sbFetchStreaks(userId) {
     return data;
 }
 
+// רצף אימונים שבועי: מספר השבועות הרצופים שבהם הושלם יעד האימונים השבועי
+async function sbFetchWorkoutStreak(userId) {
+    const weeklyTarget = (window.CLIENT && CLIENT.workoutsPerWeek) || 3;
+    const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+    // ראשון של השבוע הנוכחי (0=ראשון)
+    const today = new Date();
+    const curSun = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    curSun.setDate(curSun.getDate() - today.getDay());
+    const curSat = new Date(curSun);
+    curSat.setDate(curSun.getDate() + 6);
+
+    // ספירת ימי אימון ייחודיים בשבוע הנוכחי (חי, כי אין עדיין שורת weekly_scores)
+    const { data: logRows } = await db
+        .from('workout_performance_log').select('date')
+        .eq('client_id', userId).gte('date', fmt(curSun)).lte('date', fmt(curSat));
+    const curCount = new Set((logRows || []).map(r => r.date)).size;
+    const currentComplete = curCount >= weeklyTarget;
+
+    // ציוני אימונים של שבועות קודמים
+    const { data: scoreRows } = await db
+        .from('weekly_scores').select('week_start, workouts_score')
+        .eq('client_id', userId);
+    const scoreMap = {};
+    (scoreRows || []).forEach(r => { scoreMap[r.week_start] = r.workouts_score; });
+
+    let streak = 0;
+    const cursor = new Date(curSun);
+    if (currentComplete) streak++;
+    // לבדוק שבועות קודמים אחורה
+    cursor.setDate(cursor.getDate() - 7);
+    while (true) {
+        const score = scoreMap[fmt(cursor)];
+        if (score != null && score >= 100) {
+            streak++;
+            cursor.setDate(cursor.getDate() - 7);
+        } else break;
+    }
+    return streak;
+}
+
 async function sbSaveStreaks(userId, fields) {
     const { error } = await db.from('streaks').upsert(
         { user_id: userId, ...fields, updated_at: new Date().toISOString() },
