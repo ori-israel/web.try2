@@ -284,8 +284,7 @@ function _renderCoachList(list) {
 }
 
 async function _renderArchiveMode(list) {
-    const sb = document.getElementById('coach-search-bar');
-    if (sb) sb.style.display = 'none';
+    _ensureSearchBar(list);
     list.className = 'admin-client-list';
     list.innerHTML = '<div class="admin-loading">טוען ארכיון...</div>';
     try {
@@ -300,6 +299,7 @@ async function _renderArchiveMode(list) {
             const deletedDate = new Date(client.deleted_at).toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric' });
             const row = document.createElement('div');
             row.className = 'coach-urgent-row';
+            row.dataset.name = name.toLowerCase();
             row.style.opacity = '0.75';
             row.innerHTML = `
                 <div class="coach-urgent-left">
@@ -339,8 +339,7 @@ async function toggleSubscriberMode(clientId, current) {
 }
 
 function _renderSubscribersMode(list) {
-    const sb = document.getElementById('coach-search-bar');
-    if (sb) sb.style.display = 'none';
+    _ensureSearchBar(list);
     list.className = 'admin-client-list';
     list.innerHTML = '';
 
@@ -364,6 +363,7 @@ function _renderSubscribersMode(list) {
 
         const row = document.createElement('div');
         row.className = 'coach-urgent-row';
+        row.dataset.name = name.toLowerCase();
         row.innerHTML = `
             <div class="coach-urgent-left">
                 ${_coachInitials(name, client.id)}
@@ -527,17 +527,29 @@ async function toggleVacationMode(clientId, current) {
     if (list) _renderCoachList(list);
 }
 
+function _ensureSearchBar(list) {
+    let sb = document.getElementById('coach-search-bar');
+    if (!sb) {
+        sb = document.createElement('div');
+        sb.id = 'coach-search-bar';
+        sb.innerHTML = '<input type="text" placeholder="חיפוש לקוח..." oninput="_coachSearch(this.value)">';
+        list.parentElement.insertBefore(sb, list);
+    }
+    sb.style.display = '';
+    const inp = sb.querySelector('input');
+    if (inp) inp.value = '';
+}
+
 function _coachSearch(query) {
     const q = query.trim().toLowerCase();
-    document.querySelectorAll('#admin-client-list .coach-overview-card').forEach(card => {
-        card.style.display = (!q || card.dataset.name.includes(q)) ? '' : 'none';
+    document.querySelectorAll('#admin-client-list .coach-overview-card, #admin-client-list .coach-urgent-row').forEach(el => {
+        el.style.display = (!q || (el.dataset.name || '').includes(q)) ? '' : 'none';
     });
 }
 
 function _renderUrgentMode(list) {
     list.className = 'admin-client-list';
-    const sb = document.getElementById('coach-search-bar');
-    if (sb) sb.style.display = 'none';
+    _ensureSearchBar(list);
     const items = _coachClients.filter(c => !c.is_subscriber).map(client => {
         const s    = _buildClientStats(client);
         const name = client.name || client.nickname || '(ללא שם)';
@@ -570,6 +582,7 @@ function _renderUrgentMode(list) {
         const vac = s.vacationMode;
         const row = document.createElement('div');
         row.className = 'coach-urgent-row';
+        row.dataset.name = name.toLowerCase();
         row.innerHTML = `
             <div class="coach-urgent-left">
                 ${_coachInitials(name, client.id)}
@@ -598,18 +611,7 @@ function _renderUrgentMode(list) {
 }
 
 function _renderOverviewMode(list) {
-    // Search bar — insert once, reuse across re-renders
-    let sb = document.getElementById('coach-search-bar');
-    if (!sb) {
-        sb = document.createElement('div');
-        sb.id = 'coach-search-bar';
-        sb.innerHTML = '<input type="text" placeholder="חיפוש לקוח..." oninput="_coachSearch(this.value)">';
-        list.parentElement.insertBefore(sb, list);
-    }
-    sb.style.display = '';
-    const inp = sb.querySelector('input');
-    if (inp) inp.value = '';
-
+    _ensureSearchBar(list);
     list.className = 'admin-client-list coach-overview-list';
     list.innerHTML = '';
 
