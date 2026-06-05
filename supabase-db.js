@@ -421,10 +421,12 @@ async function sbFetchWorkoutStreak(userId) {
     let streak = 0;
     const cursor = new Date(curSun);
     if (currentComplete) streak++;
-    // לבדוק שבועות קודמים אחורה
+    // לבדוק שבועות קודמים אחורה — תומך גם בשורות ראשון וגם שני (שינוי עבר)
     cursor.setDate(cursor.getDate() - 7);
     while (true) {
-        const score = scoreMap[fmt(cursor)];
+        const sunKey = fmt(cursor);
+        const monKey = fmt(new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 1));
+        const score = scoreMap[sunKey] ?? scoreMap[monKey];
         if (score != null && score >= 100) {
             streak++;
             cursor.setDate(cursor.getDate() - 7);
