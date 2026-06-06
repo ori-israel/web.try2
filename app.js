@@ -7368,6 +7368,18 @@ function saveFoodLogEntries(entries) {
     localStorage.setItem(_foodLogKey(), JSON.stringify(entries));
 }
 
+// מוחק יומני אוכל של ימים שעברו — משאיר רק את היום
+function cleanupOldFoodLogs() {
+    const today = typeof localDateStr === 'function' ? localDateStr() : new Date().toISOString().slice(0, 10);
+    const suffix = '_' + today;
+    const toRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('food_log_') && !k.endsWith(suffix)) toRemove.push(k);
+    }
+    toRemove.forEach(k => localStorage.removeItem(k));
+}
+
 function loadFoodLogEntries() {
     try { return JSON.parse(localStorage.getItem(_foodLogKey()) || '[]'); } catch { return []; }
 }
@@ -7399,6 +7411,7 @@ function deleteFoodLogEntry(idx) {
 function renderFoodLog() {
     const el = document.getElementById('food-log-list');
     if (!el) return;
+    cleanupOldFoodLogs();
     const entries = loadFoodLogEntries();
     if (!entries.length) {
         el.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:12px 0;font-size:13px;">עוד לא הוזן אוכל היום</div>';
