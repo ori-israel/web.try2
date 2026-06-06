@@ -176,7 +176,7 @@ async function sendMagicLink() {
             : error.message;
     } else {
         errorEl.style.color = '#4ade80';
-        errorEl.textContent = 'קישור נשלח! בדוק את המייל שלך';
+        errorEl.textContent = 'קישור נשלח! יש לבדוק את המייל';
     }
 }
 
