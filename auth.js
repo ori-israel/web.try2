@@ -171,9 +171,16 @@ async function sendMagicLink() {
     if (!email) { errorEl.textContent = 'נא להכניס אימייל'; return; }
     const { error } = await db.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
     if (error) {
-        errorEl.textContent = error.message?.toLowerCase().includes('rate limit')
-            ? 'נשלחו יותר מדי קישורים — המתן כמה דקות ונסה שוב'
-            : error.message;
+        const msg = error.message?.toLowerCase() || '';
+        errorEl.textContent = msg.includes('rate limit')
+            ? 'נשלחו יותר מדי קישורים — יש להמתין כמה דקות'
+            : msg.includes('signups not allowed') || msg.includes('user not found')
+            ? 'המייל לא רשום במערכת'
+            : msg.includes('invalid email')
+            ? 'כתובת מייל לא תקינה'
+            : msg.includes('email not confirmed')
+            ? 'יש לאשר את המייל תחילה'
+            : 'שגיאה — יש לנסות שוב';
     } else {
         errorEl.style.color = '#4ade80';
         errorEl.textContent = 'קישור נשלח! יש לבדוק את המייל';
