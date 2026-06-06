@@ -7424,20 +7424,34 @@ function renderFoodLog() {
         totalCarbs   += e.portions_carbs   || 0;
         totalFat     += e.portions_fat     || 0;
     });
-    el.innerHTML = entries.map((e, i) => `
-        <div style="display:flex;flex-direction:row-reverse;align-items:flex-start;gap:8px;padding:10px 4px;border-bottom:1px solid var(--border-light);direction:rtl;">
-            <span style="color:var(--text-muted);font-size:12px;white-space:nowrap;min-width:38px;text-align:right;padding-top:1px;">${e.time}</span>
-            <div style="flex:1;min-width:0;text-align:right;">
+    // קיבוץ לפי דקה — כל פריטים באותה דקה = ארוחה אחת
+    let html = '';
+    let lastTime = null;
+    entries.forEach((e, i) => {
+        const isNewMeal = e.time !== lastTime;
+        if (isNewMeal) {
+            if (lastTime !== null) html += `</div>`; // סגור ארוחה קודמת
+            html += `<div style="margin-bottom:10px;">
+                <div style="font-size:11px;font-weight:700;color:var(--accent);padding:8px 4px 4px;text-align:right;letter-spacing:0.3px;">🕐 ${e.time}</div>`;
+            lastTime = e.time;
+        }
+        html += `
+        <div style="display:flex;align-items:center;gap:0;padding:7px 0;border-bottom:1px solid var(--border-light);direction:rtl;">
+            <div style="flex:1;min-width:0;text-align:right;padding-right:4px;">
                 <div style="font-size:13px;line-height:1.4;word-break:break-word;">${e.name}</div>
                 <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
                     ${e.grams ? `${e.grams}g` : ''}${e.portions_protein ? ` · 🥩${e.portions_protein}` : ''}${e.portions_carbs ? ` · 🍚${e.portions_carbs}` : ''}${e.portions_fat ? ` · 🥑${e.portions_fat}` : ''}
                 </div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;margin-right:auto;">
-                <button onclick="openFoodLogEdit(${i})" style="background:none;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;padding:0 4px;line-height:1;">✏️</button>
-                <button onclick="deleteFoodLogEntry(${i})" style="background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
+            <div style="display:flex;align-items:center;gap:2px;flex-shrink:0;border-right:1px solid var(--border-light);padding-right:8px;margin-right:8px;">
+                <button onclick="openFoodLogEdit(${i})" style="background:none;border:none;color:var(--accent);font-size:15px;cursor:pointer;padding:4px 6px;border-radius:6px;" title="עריכה">✏️</button>
+                <button onclick="deleteFoodLogEntry(${i})" style="background:none;border:none;color:var(--text-muted);font-size:15px;cursor:pointer;padding:4px 6px;border-radius:6px;" title="מחיקה">✕</button>
             </div>
-        </div>`).join('') +
+        </div>`;
+    });
+    if (lastTime !== null) html += `</div>`;
+
+    el.innerHTML = html +
         `<div style="padding:10px 4px 4px;font-size:12px;color:var(--text-secondary);display:flex;gap:12px;">
             <span>סה"כ:</span>
             ${totalProtein ? `<span>🥩 ${totalProtein} מנות</span>` : ''}
