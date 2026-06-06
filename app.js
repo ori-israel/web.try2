@@ -1051,7 +1051,6 @@ function initFAQ() {
     document.addEventListener('DOMContentLoaded', () => {
         initFAQ();
         initVideos();
-        manageDailyReset();      
         showWorkout('A'); 
 
         // לוגיקה לכפתור חזרה למעלה - הכנסנו אותה לכאן כדי לוודא שהכפתור כבר קיים ב-HTML
