@@ -251,10 +251,15 @@ function closeCompleteMsg() {
     let userPortions = { protein: 0, carbs: 0, fat: 0 };
     function _portionsKey()         { return 'user_portions_v3_'   + (getActiveUserId() || 'default'); }
 
+    function _resetKey() {
+        const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+        return 'last_reset_v4_' + (uid || 'default');
+    }
+
     function manageDailyReset() {
         const now = new Date();
         const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-        const lastReset = localStorage.getItem('last_reset_v4');
+        const lastReset = localStorage.getItem(_resetKey());
         if (lastReset === todayStr) return;
         localStorage.removeItem(_portionsKey());
         window._workoutDataCache = { exercises: {}, tasks: [], exercise_weights: {} };
@@ -262,7 +267,7 @@ function closeCompleteMsg() {
         localStorage.removeItem('workout_popup_shown_date_' + (_resetUid || 'default'));
         if (_resetUid) localStorage.removeItem('workout_streak_incremented_date_' + _resetUid);
         sessionStorage.removeItem('ai_chat_history');
-        localStorage.setItem('last_reset_v4', todayStr);
+        localStorage.setItem(_resetKey(), todayStr);
         location.reload();
     }
     setInterval(() => manageDailyReset(), 60 * 1000);
@@ -816,6 +821,7 @@ document.addEventListener('visibilitychange', () => {
         }
     }
     if (document.visibilityState === 'visible' && typeof loadPortions === 'function') {
+        manageDailyReset();
         loadPortions();
     }
 });
