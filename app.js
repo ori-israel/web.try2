@@ -257,6 +257,8 @@ function closeCompleteMsg() {
     }
 
     function manageDailyReset() {
+        // אדמין צופה בלקוח — לא לאפס
+        if (typeof SB_VIEW_ID !== 'undefined' && SB_VIEW_ID && typeof SB_USER !== 'undefined' && SB_USER && SB_VIEW_ID !== SB_USER.id) return;
         const now = new Date();
         const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
         const lastReset = localStorage.getItem(_resetKey());
