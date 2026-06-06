@@ -1,3 +1,13 @@
+// Disable double-tap zoom, keep pinch zoom
+(function() {
+    var lastTap = 0;
+    document.addEventListener('touchend', function(e) {
+        var now = Date.now();
+        if (now - lastTap < 300) e.preventDefault();
+        lastTap = now;
+    }, { passive: false });
+})();
+
 function localDateStr() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
