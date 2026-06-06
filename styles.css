@@ -898,7 +898,7 @@ th {
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    margin: 14px 0 8px;
+    margin: 0 0 10px;
     transition: all 0.2s ease;
     font-family: inherit;
     letter-spacing: -0.1px;

@@ -6996,6 +6996,7 @@ async function confirmAddItem() {
         const usdaItem = enrichItemMacros({ name, grams: amount, lookup_name: name });
         const foundInUSDA = usdaItem.protein_g > 0 || usdaItem.fat_g > 0 || usdaItem.carbs_g > 0;
         if (foundInUSDA) {
+            usdaItem.name = `${name} (${amount} ${unit})`;
             scannedItems.push(usdaItem);
             updateScannedTotals();
             renderScanDetails();
@@ -7030,7 +7031,7 @@ async function confirmAddItem() {
         if (!match) throw new Error('no json');
         const macros = JSON.parse(match[0]);
         scannedItems.push({
-            name: isGrams ? name : `${name} (${amount} ${unit})`,
+            name: `${name} (${amount} ${unit})`,
             grams: macros.grams || amount,
             protein_g: macros.protein_g || 0,
             fat_g: macros.fat_g || 0,
