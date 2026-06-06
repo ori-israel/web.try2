@@ -225,6 +225,8 @@ function _clearUserLocalStorage() {
         if (k === 'pwa_prompt_shown') continue;
         if (k === 'remember_me') continue;
         if (k === 'last_reset_v4') continue;
+        if (k.startsWith('last_reset_v4_')) continue;
+        if (k.startsWith('food_log_')) continue;
         keysToRemove.push(k);
     }
     keysToRemove.forEach(k => localStorage.removeItem(k));
