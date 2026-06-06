@@ -79,6 +79,7 @@ async function reinitApp() {
     if (typeof checkMeetingReminder     === 'function') checkMeetingReminder();
     if (typeof _applySubscriberMode     === 'function') _applySubscriberMode();
     if (typeof loadProgressPhotos       === 'function') loadProgressPhotos();
+    if (typeof renderFoodLog            === 'function') renderFoodLog();
 }
 
 // ── Auth flow ────────────────────────────────────────────────

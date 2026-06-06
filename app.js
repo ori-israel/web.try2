@@ -7411,15 +7411,18 @@ function renderFoodLog() {
         totalFat     += e.portions_fat     || 0;
     });
     el.innerHTML = entries.map((e, i) => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 4px;border-bottom:1px solid var(--border-light);">
-            <span style="color:var(--text-muted);font-size:12px;min-width:36px;">${e.time}</span>
-            <span style="flex:1;margin:0 8px;font-size:13px;">${e.name}${e.grams ? ` <span style="color:var(--text-muted);font-size:11px;">${e.grams}g</span>` : ''}</span>
-            <span style="font-size:11px;color:var(--text-muted);margin-left:8px;">
-                ${e.portions_protein ? `🥩${e.portions_protein}` : ''}
-                ${e.portions_carbs   ? `🍚${e.portions_carbs}`   : ''}
-                ${e.portions_fat     ? `🥑${e.portions_fat}`     : ''}
-            </span>
-            <button onclick="deleteFoodLogEntry(${i})" style="background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid var(--border-light);">
+            <span style="color:var(--text-muted);font-size:12px;white-space:nowrap;min-width:38px;">${e.time}</span>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.name}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+                    ${e.grams ? `${e.grams}g` : ''}
+                    ${e.portions_protein ? ` · 🥩${e.portions_protein}` : ''}
+                    ${e.portions_carbs   ? ` · 🍚${e.portions_carbs}`   : ''}
+                    ${e.portions_fat     ? ` · 🥑${e.portions_fat}`     : ''}
+                </div>
+            </div>
+            <button onclick="deleteFoodLogEntry(${i})" style="background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;padding:0 4px;flex-shrink:0;">✕</button>
         </div>`).join('') +
         `<div style="padding:10px 4px 4px;font-size:12px;color:var(--text-secondary);display:flex;gap:12px;">
             <span>סה"כ:</span>
