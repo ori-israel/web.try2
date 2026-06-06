@@ -7424,10 +7424,10 @@ function renderFoodLog() {
         totalFat     += e.portions_fat     || 0;
     });
     el.innerHTML = entries.map((e, i) => `
-        <div style="display:flex;flex-direction:row-reverse;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid var(--border-light);direction:rtl;">
-            <span style="color:var(--text-muted);font-size:12px;white-space:nowrap;min-width:38px;text-align:right;">${e.time}</span>
+        <div style="display:flex;flex-direction:row-reverse;align-items:flex-start;gap:8px;padding:10px 4px;border-bottom:1px solid var(--border-light);direction:rtl;">
+            <span style="color:var(--text-muted);font-size:12px;white-space:nowrap;min-width:38px;text-align:right;padding-top:1px;">${e.time}</span>
             <div style="flex:1;min-width:0;text-align:right;">
-                <div style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name}</div>
+                <div style="font-size:13px;line-height:1.4;word-break:break-word;">${e.name}</div>
                 <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
                     ${e.grams ? `${e.grams}g` : ''}${e.portions_protein ? ` · 🥩${e.portions_protein}` : ''}${e.portions_carbs ? ` · 🍚${e.portions_carbs}` : ''}${e.portions_fat ? ` · 🥑${e.portions_fat}` : ''}
                 </div>

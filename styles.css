@@ -886,6 +886,32 @@ th {
     margin-bottom: 10px;
 }
 
+/* יומן אוכל יומי — סגנון ייעודי */
+.food-log-btn {
+    width: 100%;
+    background: var(--accent-light);
+    color: var(--accent);
+    padding: 14px 15px;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: var(--radius);
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 14px 0 8px;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    letter-spacing: -0.1px;
+}
+.food-log-btn:hover  { background: rgba(59, 130, 246, 0.16); }
+.food-log-btn:active { transform: scale(0.98); }
+
+.food-log-content {
+    border-radius: var(--radius) !important;
+    margin-top: 0 !important;
+    border: 0.5px solid var(--border);
+}
+
 /* ============================================
    Food List
    ============================================ */
