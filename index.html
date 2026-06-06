@@ -1190,6 +1190,38 @@
 
 </div><!-- /app-container -->
 
+<!-- מודל עריכת פריט ביומן אוכל -->
+<div id="food-log-edit-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeFoodLogEdit()">
+  <div class="modal-card" style="direction:rtl;text-align:right;">
+    <button class="modal-close" onclick="closeFoodLogEdit()">✕</button>
+    <h3 style="margin:0 0 16px;font-size:17px;">✏️ עריכת פריט</h3>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:4px;">שם המאכל</label>
+        <input id="edit-food-name" type="text" class="profile-input" style="width:100%;box-sizing:border-box;" />
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1;">
+          <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:4px;">כמות</label>
+          <input id="edit-food-amount" type="number" class="profile-input" style="width:100%;box-sizing:border-box;" />
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:4px;">יחידה</label>
+          <select id="edit-food-unit" class="profile-input" style="width:100%;box-sizing:border-box;">
+            <option value="גרם">גרם</option>
+            <option value="יחידות">יחידות</option>
+            <option value="כוסות">כוסות</option>
+            <option value="כפות">כפות</option>
+          </select>
+        </div>
+      </div>
+      <div id="edit-food-loading" style="display:none;text-align:center;color:var(--text-muted);font-size:13px;padding:8px 0;">מחשב ערכים תזונתיים... ⏳</div>
+      <div id="edit-food-error" style="display:none;color:#ff6b6b;font-size:13px;"></div>
+      <button onclick="saveFoodLogEdit()" style="width:100%;padding:13px;background:var(--gradient-btn);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;">שמור ✅</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="client.js"></script>
 <script src="supabase-db.js"></script>

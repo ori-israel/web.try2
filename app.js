@@ -7433,7 +7433,10 @@ function renderFoodLog() {
                     ${e.grams ? `${e.grams}g` : ''}${e.portions_protein ? ` · 🥩${e.portions_protein}` : ''}${e.portions_carbs ? ` · 🍚${e.portions_carbs}` : ''}${e.portions_fat ? ` · 🥑${e.portions_fat}` : ''}
                 </div>
             </div>
-            <button onclick="deleteFoodLogEntry(${i})" style="background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;padding:0 4px;flex-shrink:0;margin-right:auto;">✕</button>
+            <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;margin-right:auto;">
+                <button onclick="openFoodLogEdit(${i})" style="background:none;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;padding:0 4px;line-height:1;">✏️</button>
+                <button onclick="deleteFoodLogEntry(${i})" style="background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
+            </div>
         </div>`).join('') +
         `<div style="padding:10px 4px 4px;font-size:12px;color:var(--text-secondary);display:flex;gap:12px;">
             <span>סה"כ:</span>
@@ -7441,6 +7444,120 @@ function renderFoodLog() {
             ${totalCarbs   ? `<span>🍚 ${totalCarbs} מנות</span>`   : ''}
             ${totalFat     ? `<span>🥑 ${totalFat} מנות</span>`     : ''}
         </div>`;
+}
+
+// ── עריכת פריט ביומן ────────────────────────────────────────────────────────
+
+let _editFoodLogIdx = null;
+
+function openFoodLogEdit(idx) {
+    const entries = loadFoodLogEntries();
+    const entry = entries[idx];
+    if (!entry) return;
+    _editFoodLogIdx = idx;
+
+    // פרסר שם + כמות + יחידה מהשם השמור — נסה לחלץ (X יחידות) בסוף
+    let name = entry.name;
+    let amount = entry.grams || 100;
+    let unit = 'גרם';
+    const match = name.match(/^(.*?)\s*\((\d+(?:\.\d+)?)\s*(גרם|יחידות|כוסות|כפות)\)$/);
+    if (match) { name = match[1].trim(); amount = parseFloat(match[2]); unit = match[3]; }
+
+    document.getElementById('edit-food-name').value   = name;
+    document.getElementById('edit-food-amount').value = amount;
+    document.getElementById('edit-food-unit').value   = unit;
+    document.getElementById('edit-food-loading').style.display = 'none';
+    document.getElementById('edit-food-error').style.display   = 'none';
+
+    const modal = document.getElementById('food-log-edit-modal');
+    modal.classList.remove('hidden');
+    modal.style.display = '';
+    document.getElementById('edit-food-name').focus();
+}
+
+function closeFoodLogEdit() {
+    document.getElementById('food-log-edit-modal').classList.add('hidden');
+    _editFoodLogIdx = null;
+}
+
+async function saveFoodLogEdit() {
+    const idx    = _editFoodLogIdx;
+    const nameEl = document.getElementById('edit-food-name');
+    const amtEl  = document.getElementById('edit-food-amount');
+    const unitEl = document.getElementById('edit-food-unit');
+    const loadEl = document.getElementById('edit-food-loading');
+    const errEl  = document.getElementById('edit-food-error');
+    if (idx === null || !nameEl) return;
+
+    const name   = nameEl.value.trim();
+    const amount = parseFloat(amtEl.value) || 100;
+    const unit   = unitEl.value;
+    if (!name) { nameEl.focus(); return; }
+
+    loadEl.style.display = 'block';
+    errEl.style.display  = 'none';
+
+    try {
+        const { data: { session } } = await db.auth.getSession();
+        const token  = session?.access_token;
+        const isGrams = unit === 'גרם';
+        const prompt  = isGrams
+            ? `מהם ערכי המאקרו של ${amount} גרם ${name}? החזר JSON בלבד: {"grams":${amount},"protein_g":X,"fat_g":X,"carbs_g":X}`
+            : `${amount} ${unit} של ${name} — כמה גרם וערכי מאקרו? החזר JSON בלבד: {"grams":X,"protein_g":X,"fat_g":X,"carbs_g":X}`;
+
+        const resp = await fetch('/api/claude', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+            body: JSON.stringify({ prompt })
+        });
+        if (!resp.ok) throw new Error('שגיאה בחישוב');
+        const { text } = await resp.json();
+        const jsonMatch = text.match(/\{[\s\S]*?\}/);
+        if (!jsonMatch) throw new Error('שגיאה בניתוח');
+        const macros = JSON.parse(jsonMatch[0]);
+
+        // חשב מנות לפי היעדים הקיימים
+        const newPortions = _calcPortionsFromMacros(macros.protein_g || 0, macros.carbs_g || 0, macros.fat_g || 0);
+
+        // הסר ישן, הוסף חדש
+        const entries = loadFoodLogEntries();
+        const oldEntry = entries[idx];
+        if (oldEntry.portions_protein) modifyPortion('protein', -oldEntry.portions_protein);
+        if (oldEntry.portions_carbs)   modifyPortion('carbs',   -oldEntry.portions_carbs);
+        if (oldEntry.portions_fat)     modifyPortion('fat',     -oldEntry.portions_fat);
+
+        entries[idx] = {
+            ...oldEntry,
+            name: `${name} (${amount} ${unit})`,
+            grams: Math.round(macros.grams || amount),
+            portions_protein: newPortions.protein || null,
+            portions_carbs:   newPortions.carbs   || null,
+            portions_fat:     newPortions.fat     || null
+        };
+        saveFoodLogEntries(entries);
+
+        if (newPortions.protein) modifyPortion('protein', newPortions.protein);
+        if (newPortions.carbs)   modifyPortion('carbs',   newPortions.carbs);
+        if (newPortions.fat)     modifyPortion('fat',     newPortions.fat);
+
+        renderFoodLog();
+        closeFoodLogEdit();
+    } catch (e) {
+        errEl.textContent    = e.message || 'שגיאה, נסה שוב';
+        errEl.style.display  = 'block';
+    } finally {
+        loadEl.style.display = 'none';
+    }
+}
+
+// חישוב מנות מגרמי מאקרו — אותה נוסחה כמו הסורק
+function _calcPortionsFromMacros(protein_g, carbs_g, fat_g) {
+    const round = v => Math.round(v * 2) / 2;
+    return {
+        protein: round(Math.max(0, (protein_g || 0) / 27.5)) || null,
+        carbs:   round(Math.max(0, (carbs_g   || 0) / 37.5)) || null,
+        fat:     round(Math.max(0, (fat_g     || 0) / 12.5)) || null
+    };
 }
 
 function addScannedPortions() {
