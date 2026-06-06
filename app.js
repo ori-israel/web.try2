@@ -1878,7 +1878,7 @@ function initWorkoutTableWeights(targets = {}) {
             const input = document.createElement('input');
             input.type = 'number';
             input.value = current || '';
-            input.style.cssText = 'width:60px;text-align:center;border:1px solid var(--main-green);border-radius:4px;padding:2px;font-size:14px;';
+            input.style.cssText = 'width:60px;text-align:center;border:1px solid var(--main-green);border-radius:4px;padding:2px;font-size:16px;';
             wCell.innerText = '';
             wCell.appendChild(input);
             input.focus();
@@ -6962,9 +6962,9 @@ function showAddItemForm() {
     if (!row) return;
     row.innerHTML = `
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-            <input id="add-item-name" type="text" placeholder="שם המאכל" style="flex:1;min-width:100px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:13px;padding:4px 8px;" />
-            <input id="add-item-amount" type="number" placeholder="כמות" value="100" style="width:60px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:13px;padding:4px 6px;text-align:center;" />
-            <select id="add-item-unit" style="background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:13px;padding:4px 6px;">
+            <input id="add-item-name" type="text" placeholder="שם המאכל" style="flex:1;min-width:100px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:16px;padding:4px 8px;" />
+            <input id="add-item-amount" type="number" placeholder="כמות" value="100" style="width:60px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:16px;padding:4px 6px;text-align:center;" />
+            <select id="add-item-unit" style="background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:16px;padding:4px 6px;">
                 <option value="גרם">גרם</option>
                 <option value="יחידות">יחידות</option>
                 <option value="כוסות">כוסות</option>
@@ -7077,7 +7077,7 @@ function editItemGrams(idx, el) {
     const input = document.createElement('input');
     input.type = 'number';
     input.value = current;
-    input.style.cssText = 'width:52px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:13px;padding:2px 4px;text-align:center;';
+    input.style.cssText = 'width:52px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:16px;padding:2px 4px;text-align:center;';
     el.replaceWith(input);
     input.focus();
     input.select();
