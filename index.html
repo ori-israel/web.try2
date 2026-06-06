@@ -34,11 +34,11 @@
     <div id="login-form-section" style="display:none; flex-direction:column; align-items:center; width:100%; max-width:360px; padding:24px;">
         <img src="/O.1024.559.png" alt="לוגו" width="1024" height="559" style="height:120px; margin-bottom:24px;" onerror="this.style.display='none'">
         <h2 style="margin:0 0 24px; font-size:22px; color:var(--text-primary,#fff);">כניסה לחשבון</h2>
-        <input id="login-email"    type="email"    placeholder="אימייל"  class="login-input" autocomplete="email">
-        <input id="login-password" type="password" placeholder="סיסמה"   class="login-input" autocomplete="current-password">
+        <input id="login-email"    type="email"    placeholder="אימייל"  class="login-input" autocomplete="email" aria-label="כתובת אימייל">
+        <input id="login-password" type="password" placeholder="סיסמה"   class="login-input" autocomplete="current-password" aria-label="סיסמה">
         <p id="login-error" style="color:#e55; font-size:14px; min-height:18px; margin:4px 0;"></p>
         <label style="display:flex;align-items:center;gap:8px;color:var(--text-secondary,#888);font-size:14px;cursor:pointer;align-self:flex-start;margin-bottom:4px;">
-            <input id="remember-me-cb" type="checkbox" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);">
+            <input id="remember-me-cb" type="checkbox" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);" aria-label="זכור אותי">
             זכור אותי
         </label>
         <button id="login-btn" class="login-btn" onclick="doLogin()">התחבר</button>
@@ -369,10 +369,10 @@
         </fieldset>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-            <input type="number" id="calc-age" placeholder="גיל" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-            <input type="number" id="calc-height" placeholder="גובה (ס״מ)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+            <input type="number" id="calc-age" placeholder="גיל" aria-label="גיל" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+            <input type="number" id="calc-height" placeholder="גובה (ס״מ)" aria-label="גובה בסנטימטרים" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
         </div>
-        <input type="number" id="calc-weight" placeholder="משקל נוכחי (ק״ג)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
+        <input type="number" id="calc-weight" placeholder="משקל נוכחי (ק״ג)" aria-label="משקל נוכחי בקילוגרמים" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
         
         <fieldset style="margin-bottom: 20px;">
         <legend style="margin-bottom: 8px; font-weight: bold;">רמת פעילות גופנית:</legend>
@@ -437,7 +437,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td><input type="checkbox" class="workout-checkbox" data-id="A_lat_pulldown"></td>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="A_lat_pulldown" aria-label="בוצע: פולי עליון"></td>
                     <td>פולי עליון</td>
                     <td>1</td>
                     <td>2</td>
@@ -446,7 +446,7 @@
                     <td class="video-cell"></td>
                 </tr>
                 <tr>
-                    <td><input type="checkbox" class="workout-checkbox" data-id="A_row_machine"></td>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="A_row_machine" aria-label="בוצע: חתירה במכשיר"></td>
                     <td>חתירה במכשיר</td>
                     <td>1</td>
                     <td>2</td>
@@ -455,7 +455,7 @@
                     <td class="video-cell"></td>
                 </tr>
                 <tr>
-                    <td><input type="checkbox" class="workout-checkbox" data-id="A_biceps_curl"></td>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="A_biceps_curl" aria-label="בוצע: יד קדמית עם משקולות בעמידה"></td>
                     <td>יד קדמית עם משקולות בעמידה</td>
                     <td>1</td>
                     <td>2</td>
@@ -464,7 +464,7 @@
                     <td class="video-cell"></td>
                 </tr>
                 <tr>
-                    <td><input type="checkbox" class="workout-checkbox" data-id="A_abs"></td>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="A_abs" aria-label="בוצע: כפיפות בטן"></td>
                     <td>כפיפות בטן</td>
                     <td>1</td>
                     <td>2</td>
@@ -494,7 +494,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td><input type="checkbox" class="workout-checkbox" data-id="B_bench_press"></td>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="B_bench_press" aria-label="בוצע: לחיצת חזה עם מוט"></td>
                     <td>לחיצת חזה עם מוט</td>
                     <td>1</td>
                     <td>2</td>
@@ -503,7 +503,7 @@
                     <td class="video-cell"></td>
                 </tr>
                 <tr>
-                    <td><input type="checkbox" class="workout-checkbox" data-id="B_shoulder_press"></td>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="B_shoulder_press" aria-label="בוצע: לחיצת כתפיים"></td>
                     <td>לחיצת כתפיים</td>
                     <td>1</td>
                     <td>2</td>
@@ -512,7 +512,7 @@
                     <td class="video-cell"></td>
                 </tr>
                 <tr>
-                    <td><input type="checkbox" class="workout-checkbox" data-id="B_triceps_cable"></td>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="B_triceps_cable" aria-label="בוצע: יד אחורית עם כבל"></td>
                     <td>יד אחורית עם כבל</td>
                     <td>1</td>
                     <td>2</td>
@@ -521,7 +521,7 @@
                     <td class="video-cell"></td>
                 </tr>
                 <tr>
-                    <td><input type="checkbox" class="workout-checkbox" data-id="B_pushups"></td>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="B_pushups" aria-label="בוצע: שכיבות סמיכה"></td>
                     <td>שכיבות סמיכה</td>
                     <td>1</td>
                     <td>2</td>
@@ -551,7 +551,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td><input type="checkbox" class="workout-checkbox" data-id="C_squat"></td>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="C_squat" aria-label="בוצע: סקוואט"></td>
                     <td>סקוואט</td>
                     <td>1</td>
                     <td>2</td>
@@ -560,7 +560,7 @@
                     <td class="video-cell"></td>
                 </tr>
                 <tr>
-                    <td><input type="checkbox" class="workout-checkbox" data-id="C_romanian_deadlift"></td>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="C_romanian_deadlift" aria-label="בוצע: דדליפט רומני"></td>
                     <td>דדליפט רומני</td>
                     <td>1</td>
                     <td>2</td>
@@ -569,7 +569,7 @@
                     <td class="video-cell"></td>
                 </tr>
                 <tr>
-                    <td><input type="checkbox" class="workout-checkbox" data-id="C_leg_extension"></td>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="C_leg_extension" aria-label="בוצע: פשיטת ברכיים"></td>
                     <td>פשיטת ברכיים</td>
                     <td>1</td>
                     <td>2</td>
@@ -578,7 +578,7 @@
                     <td class="video-cell"></td>
                 </tr>
                 <tr>
-                    <td><input type="checkbox" class="workout-checkbox" data-id="C_calf_raise"></td>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="C_calf_raise" aria-label="בוצע: עליות תאומים"></td>
                     <td>עליות תאומים</td>
                     <td>1</td>
                     <td>2</td>
@@ -718,7 +718,7 @@
   <div class="card">
     <!-- שורת החיפוש החדשה -->
     <div class="search-container" style="margin-bottom: 20px;">
-      <input type="text" id="infoSearch" placeholder="חפש מושג (למשל: חלבון, כשל, קלוריות)..." onkeyup="filterInfo()">
+      <input type="text" id="infoSearch" placeholder="חפש מושג (למשל: חלבון, כשל, קלוריות)..." aria-label="חיפוש מושג" onkeyup="filterInfo()">
     </div>
 
     <div class="info-center">
@@ -993,7 +993,7 @@
     </div>
     <div style="display:flex; align-items:center; gap:10px; padding-top:15px; border-top:1px solid var(--border);">
         <button onclick="sendAIMessage()" class="calc-btn" style="width:80px; height:48px; padding:0; margin:0; flex-shrink:0; order:1;">שלח</button>
-        <input type="text" id="ai-chat-input" placeholder="כתוב שאלה..." maxlength="500"
+        <input type="text" id="ai-chat-input" placeholder="כתוב שאלה..." maxlength="500" aria-label="הודעה לצ'אט AI"
             style="flex:1; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:16px; font-family:inherit; height:48px; order:2; background:var(--input-bg); color:var(--text-primary);"
             onkeydown="if(event.key==='Enter') sendAIMessage()">
     </div>
@@ -1019,7 +1019,7 @@
                 <span id="avatar-preview-placeholder">👤</span>
             </div>
             <span style="font-size:12px;color:var(--text-secondary);margin-top:6px;cursor:pointer;" onclick="document.getElementById('avatar-file-input').click()">שנה תמונה</span>
-            <input id="avatar-file-input" type="file" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleAvatarUpload(this)">
+            <input id="avatar-file-input" type="file" accept="image/jpeg,image/png,image/webp" style="display:none;" aria-label="העלאת תמונת פרופיל" onchange="handleAvatarUpload(this)">
         </div>
         <!-- Section 1: Client editable -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0;">
@@ -1164,8 +1164,8 @@
     <h3 id="scanner-modal-title" style="margin: 0 0 16px; text-align: center;">🍽️ הוספת מנות</h3>
 
     <div id="scanner-step-1">
-      <input type="file" id="food-image-input" accept="image/*" capture="environment" style="display:none">
-      <input type="file" id="food-gallery-input" accept="image/*" style="display:none">
+      <input type="file" id="food-image-input" accept="image/*" capture="environment" style="display:none" aria-label="צילום תמונת אוכל">
+      <input type="file" id="food-gallery-input" accept="image/*" style="display:none" aria-label="העלאת תמונת אוכל מהגלריה">
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
         <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-image-input').click()">צילום תמונה 📷</button>
         <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-gallery-input').click()">העלאה מהגלריה 🖼️</button>
@@ -1203,12 +1203,12 @@
     <div style="display:flex;flex-direction:column;gap:12px;">
       <div>
         <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:6px;">שם המאכל:</label>
-        <input id="edit-food-name" type="text" style="width:100%;box-sizing:border-box;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:16px;color:var(--text-primary);font-family:inherit;outline:none;text-align:right;" />
+        <input id="edit-food-name" type="text" aria-label="שם המאכל" style="width:100%;box-sizing:border-box;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:16px;color:var(--text-primary);font-family:inherit;outline:none;text-align:right;" />
       </div>
       <div style="display:flex;gap:8px;">
         <div style="flex:1;">
           <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:6px;">כמות:</label>
-          <input id="edit-food-amount" type="number" style="width:100%;box-sizing:border-box;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:16px;color:var(--text-primary);font-family:inherit;outline:none;text-align:right;" />
+          <input id="edit-food-amount" type="number" aria-label="כמות" style="width:100%;box-sizing:border-box;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:16px;color:var(--text-primary);font-family:inherit;outline:none;text-align:right;" />
         </div>
         <div style="flex:1;">
           <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:6px;">יחידת מידה:</label>
@@ -1240,7 +1240,7 @@
 <div id="app-dialog" class="modal-overlay hidden">
     <div class="modal-card app-dialog-card">
         <p id="app-dialog-msg" class="app-dialog-msg"></p>
-        <input id="app-dialog-input" type="text" class="profile-input app-dialog-input-field" style="display:none">
+        <input id="app-dialog-input" type="text" class="profile-input app-dialog-input-field" aria-label="שדה קלט" style="display:none">
         <div class="app-dialog-btns">
             <button id="app-dialog-cancel" class="app-dialog-btn secondary-btn" style="display:none"></button>
             <button id="app-dialog-ok" class="app-dialog-btn primary-btn">אישור</button>
