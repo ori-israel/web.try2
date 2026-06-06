@@ -792,6 +792,7 @@ function triggerPWAInstall() {
     updateCounter();
     initVideos();
     loadPortions();
+    renderFoodLog();
     loadChecklist();
     generatePortionGoals();
     updateGoalRecommendations();
@@ -7355,6 +7356,79 @@ ${itemsList}
     }
 }
 
+// ── יומן אוכל יומי ──────────────────────────────────────────────────────────
+
+function _foodLogKey() {
+    const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+    const today = typeof localDateStr === 'function' ? localDateStr() : new Date().toISOString().slice(0, 10);
+    return 'food_log_' + (uid || 'default') + '_' + today;
+}
+
+function saveFoodLogEntries(entries) {
+    localStorage.setItem(_foodLogKey(), JSON.stringify(entries));
+}
+
+function loadFoodLogEntries() {
+    try { return JSON.parse(localStorage.getItem(_foodLogKey()) || '[]'); } catch { return []; }
+}
+
+function addFoodLogEntry(entry) {
+    const entries = loadFoodLogEntries();
+    const now = new Date();
+    entries.push({
+        ...entry,
+        time: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+    });
+    saveFoodLogEntries(entries);
+    renderFoodLog();
+}
+
+function deleteFoodLogEntry(idx) {
+    const entries = loadFoodLogEntries();
+    const removed = entries.splice(idx, 1)[0];
+    saveFoodLogEntries(entries);
+    // הפחת מהמונים
+    if (removed) {
+        if (removed.portions_protein) modifyPortion('protein', -removed.portions_protein);
+        if (removed.portions_carbs)   modifyPortion('carbs',   -removed.portions_carbs);
+        if (removed.portions_fat)     modifyPortion('fat',     -removed.portions_fat);
+    }
+    renderFoodLog();
+}
+
+function renderFoodLog() {
+    const el = document.getElementById('food-log-list');
+    if (!el) return;
+    const entries = loadFoodLogEntries();
+    if (!entries.length) {
+        el.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:12px 0;font-size:13px;">עוד לא הוזן אוכל היום</div>';
+        return;
+    }
+    let totalProtein = 0, totalCarbs = 0, totalFat = 0;
+    entries.forEach(e => {
+        totalProtein += e.portions_protein || 0;
+        totalCarbs   += e.portions_carbs   || 0;
+        totalFat     += e.portions_fat     || 0;
+    });
+    el.innerHTML = entries.map((e, i) => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 4px;border-bottom:1px solid var(--border-light);">
+            <span style="color:var(--text-muted);font-size:12px;min-width:36px;">${e.time}</span>
+            <span style="flex:1;margin:0 8px;font-size:13px;">${e.name}${e.grams ? ` <span style="color:var(--text-muted);font-size:11px;">${e.grams}g</span>` : ''}</span>
+            <span style="font-size:11px;color:var(--text-muted);margin-left:8px;">
+                ${e.portions_protein ? `🥩${e.portions_protein}` : ''}
+                ${e.portions_carbs   ? `🍚${e.portions_carbs}`   : ''}
+                ${e.portions_fat     ? `🥑${e.portions_fat}`     : ''}
+            </span>
+            <button onclick="deleteFoodLogEntry(${i})" style="background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
+        </div>`).join('') +
+        `<div style="padding:10px 4px 4px;font-size:12px;color:var(--text-secondary);display:flex;gap:12px;">
+            <span>סה"כ:</span>
+            ${totalProtein ? `<span>🥩 ${totalProtein} מנות</span>` : ''}
+            ${totalCarbs   ? `<span>🍚 ${totalCarbs} מנות</span>`   : ''}
+            ${totalFat     ? `<span>🥑 ${totalFat} מנות</span>`     : ''}
+        </div>`;
+}
+
 function addScannedPortions() {
     const protein = scannedPortions.protein || 0;
     const carbs   = scannedPortions.carbs   || 0;
@@ -7363,6 +7437,30 @@ function addScannedPortions() {
     if (protein > 0) { modifyPortion('protein', protein); added.push(`חלבון +${protein}`); }
     if (carbs   > 0) { modifyPortion('carbs',   carbs);   added.push(`פחמימה +${carbs}`); }
     if (fat     > 0) { modifyPortion('fat',     fat);     added.push(`שומן +${fat}`); }
+
+    // שמור ליומן אוכל
+    if (scannedItems && scannedItems.length > 0) {
+        const totalGrams = Math.round(scannedItems.reduce((s, i) => s + (i.grams || 0), 0));
+        const name = scannedItems.length === 1
+            ? scannedItems[0].name
+            : scannedItems.map(i => i.name).join(', ');
+        addFoodLogEntry({
+            name,
+            grams: totalGrams || null,
+            portions_protein: protein || null,
+            portions_carbs:   carbs   || null,
+            portions_fat:     fat     || null
+        });
+    } else if (protein || carbs || fat) {
+        addFoodLogEntry({
+            name: 'ארוחה',
+            grams: null,
+            portions_protein: protein || null,
+            portions_carbs:   carbs   || null,
+            portions_fat:     fat     || null
+        });
+    }
+
     closeFoodScanner();
     const toast = document.createElement('div');
     toast.innerText = added.length ? '✅ נוסף: ' + added.join(' | ') : '⚠️ לא נוספו מנות';
