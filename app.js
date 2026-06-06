@@ -7569,18 +7569,20 @@ function addScannedPortions() {
     if (carbs   > 0) { modifyPortion('carbs',   carbs);   added.push(`פחמימה +${carbs}`); }
     if (fat     > 0) { modifyPortion('fat',     fat);     added.push(`שומן +${fat}`); }
 
-    // שמור ליומן אוכל
+    // שמור ליומן — כל מאכל בנפרד
     if (scannedItems && scannedItems.length > 0) {
-        const totalGrams = Math.round(scannedItems.reduce((s, i) => s + (i.grams || 0), 0));
-        const name = scannedItems.length === 1
-            ? scannedItems[0].name
-            : scannedItems.map(i => i.name).join(', ');
-        addFoodLogEntry({
-            name,
-            grams: totalGrams || null,
-            portions_protein: protein || null,
-            portions_carbs:   carbs   || null,
-            portions_fat:     fat     || null
+        const round = v => Math.round(v * 2) / 2;
+        scannedItems.forEach(item => {
+            const p = round(Math.max(0, (item.protein_g || 0) / 27.5)) || null;
+            const c = round(Math.max(0, (item.carbs_g   || 0) / 37.5)) || null;
+            const f = round(Math.max(0, (item.fat_g     || 0) / 12.5)) || null;
+            addFoodLogEntry({
+                name: item.name,
+                grams: Math.round(item.grams || 0) || null,
+                portions_protein: p,
+                portions_carbs:   c,
+                portions_fat:     f
+            });
         });
     } else if (protein || carbs || fat) {
         addFoodLogEntry({
