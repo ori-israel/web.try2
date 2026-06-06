@@ -126,9 +126,10 @@ async function _loadClientAndShowApp(userId) {
     document.querySelector('.tab-btn[data-tab="tab1"]')?.classList.add('active');
     document.getElementById('tab1')?.classList.add('active');
 
-    // תמיד מגדיר last_reset_v4 לפני שmanagedDailyReset יכול לרוץ
+    // מגדיר reset key פר-יוזר לפני שmanagedDailyReset יכול לרוץ
     const _n = new Date();
-    localStorage.setItem('last_reset_v4', `${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,'0')}-${String(_n.getDate()).padStart(2,'0')}`);
+    const _todayStr = `${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,'0')}-${String(_n.getDate()).padStart(2,'0')}`;
+    localStorage.setItem('last_reset_v4_' + userId, _todayStr);
 
     // פתרון ה-promise כדי ש-window.onload יוכל להמשיך
     _appInitDone = true;

@@ -7411,18 +7411,15 @@ function renderFoodLog() {
         totalFat     += e.portions_fat     || 0;
     });
     el.innerHTML = entries.map((e, i) => `
-        <div style="display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid var(--border-light);">
-            <span style="color:var(--text-muted);font-size:12px;white-space:nowrap;min-width:38px;">${e.time}</span>
-            <div style="flex:1;min-width:0;">
-                <div style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.name}</div>
+        <div style="display:flex;flex-direction:row-reverse;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid var(--border-light);direction:rtl;">
+            <span style="color:var(--text-muted);font-size:12px;white-space:nowrap;min-width:38px;text-align:right;">${e.time}</span>
+            <div style="flex:1;min-width:0;text-align:right;">
+                <div style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name}</div>
                 <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
-                    ${e.grams ? `${e.grams}g` : ''}
-                    ${e.portions_protein ? ` · 🥩${e.portions_protein}` : ''}
-                    ${e.portions_carbs   ? ` · 🍚${e.portions_carbs}`   : ''}
-                    ${e.portions_fat     ? ` · 🥑${e.portions_fat}`     : ''}
+                    ${e.grams ? `${e.grams}g` : ''}${e.portions_protein ? ` · 🥩${e.portions_protein}` : ''}${e.portions_carbs ? ` · 🍚${e.portions_carbs}` : ''}${e.portions_fat ? ` · 🥑${e.portions_fat}` : ''}
                 </div>
             </div>
-            <button onclick="deleteFoodLogEntry(${i})" style="background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;padding:0 4px;flex-shrink:0;">✕</button>
+            <button onclick="deleteFoodLogEntry(${i})" style="background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;padding:0 4px;flex-shrink:0;margin-right:auto;">✕</button>
         </div>`).join('') +
         `<div style="padding:10px 4px 4px;font-size:12px;color:var(--text-secondary);display:flex;gap:12px;">
             <span>סה"כ:</span>
