@@ -2629,7 +2629,7 @@ input[type="radio"] { accent-color: var(--accent); }
 .coach-card-header:hover { background: var(--bg-card-alt); }
 .coach-card-name { font-size: 14px; font-weight: 700; color: var(--text-primary); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: -0.2px; }
 .coach-card-score { font-size: 19px; font-weight: 700; line-height: 1; flex-shrink: 0; letter-spacing: -0.3px; }
-.coach-card-score-unit { font-size: 10px; font-weight: normal; margin-right: 2px; color: var(--text-muted); }
+.coach-card-score-unit { font-size: 10px; font-weight: normal; margin-right: 2px; color: var(--text-secondary); }
 
 .coach-card-body {
     display: none;
