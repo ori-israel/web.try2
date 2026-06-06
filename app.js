@@ -6961,43 +6961,56 @@ function showAddItemForm() {
     row.innerHTML = `
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
             <input id="add-item-name" type="text" placeholder="שם המאכל" style="flex:1;min-width:100px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:13px;padding:4px 8px;" />
-            <input id="add-item-grams" type="number" placeholder="גרם" value="100" style="width:60px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:13px;padding:4px 6px;text-align:center;" />
+            <input id="add-item-amount" type="number" placeholder="כמות" value="100" style="width:60px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:13px;padding:4px 6px;text-align:center;" />
+            <select id="add-item-unit" style="background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:13px;padding:4px 6px;">
+                <option value="גרם">גרם</option>
+                <option value="יחידות">יחידות</option>
+                <option value="כוסות">כוסות</option>
+                <option value="כפות">כפות</option>
+            </select>
             <button onclick="confirmAddItem()" style="background:#fff;color:#000;border:none;border-radius:4px;padding:4px 10px;font-size:13px;cursor:pointer;">✓</button>
             <button onclick="renderScanDetails()" style="background:none;border:none;color:#888;font-size:15px;cursor:pointer;padding:0 2px;">✕</button>
         </div>`;
     document.getElementById('add-item-name').focus();
-    document.getElementById('add-item-grams').addEventListener('focus', function() { this.select(); });
-    document.getElementById('add-item-grams').addEventListener('keydown', e => { if (e.key === 'Enter') confirmAddItem(); });
-    document.getElementById('add-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('add-item-grams').focus(); });
+    document.getElementById('add-item-amount').addEventListener('focus', function() { this.select(); });
+    document.getElementById('add-item-amount').addEventListener('keydown', e => { if (e.key === 'Enter') confirmAddItem(); });
+    document.getElementById('add-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('add-item-amount').focus(); });
 }
 
 async function confirmAddItem() {
-    const nameEl = document.getElementById('add-item-name');
-    const gramsEl = document.getElementById('add-item-grams');
-    if (!nameEl || !gramsEl) return;
-    const name = nameEl.value.trim();
-    const grams = parseInt(gramsEl.value) || 100;
+    const nameEl   = document.getElementById('add-item-name');
+    const amountEl = document.getElementById('add-item-amount');
+    const unitEl   = document.getElementById('add-item-unit');
+    if (!nameEl || !amountEl) return;
+    const name   = nameEl.value.trim();
+    const amount = parseFloat(amountEl.value) || 100;
+    const unit   = unitEl ? unitEl.value : 'גרם';
     if (!name) { nameEl.focus(); return; }
 
-    // Try USDA first
-    const usdaItem = enrichItemMacros({ name, grams, lookup_name: name });
-    const foundInUSDA = usdaItem.protein_g > 0 || usdaItem.fat_g > 0 || usdaItem.carbs_g > 0;
+    const isGrams = unit === 'גרם';
 
-    if (foundInUSDA) {
-        scannedItems.push(usdaItem);
-        updateScannedTotals();
-        renderScanDetails();
-        return;
+    // Try USDA first (only when unit is grams)
+    if (isGrams) {
+        const usdaItem = enrichItemMacros({ name, grams: amount, lookup_name: name });
+        const foundInUSDA = usdaItem.protein_g > 0 || usdaItem.fat_g > 0 || usdaItem.carbs_g > 0;
+        if (foundInUSDA) {
+            scannedItems.push(usdaItem);
+            updateScannedTotals();
+            renderScanDetails();
+            return;
+        }
     }
 
-    // Fallback: Claude text-only
+    // Claude — handles both grams and other units
     const row = document.getElementById('add-item-row');
     if (row) row.innerHTML = `<span style="color:#888;font-size:12px;">מחפש מידע תזונתי...</span>`;
 
     try {
         const { data: { session } } = await db.auth.getSession();
         const token = session?.access_token;
-        const prompt = `מהם ערכי המאקרו של ${grams} גרם ${name}? החזר JSON בלבד ללא הסברים: {"protein_g": X, "fat_g": X, "carbs_g": X}`;
+        const prompt = isGrams
+            ? `מהם ערכי המאקרו של ${amount} גרם ${name}? החזר JSON בלבד ללא הסברים: {"grams": ${amount}, "protein_g": X, "fat_g": X, "carbs_g": X}`
+            : `${amount} ${unit} של ${name} — כמה גרם זה וערכי מאקרו? החזר JSON בלבד ללא הסברים: {"grams": X, "protein_g": X, "fat_g": X, "carbs_g": X}`;
         const resp = await fetch('/api/claude', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
@@ -7015,14 +7028,14 @@ async function confirmAddItem() {
         if (!match) throw new Error('no json');
         const macros = JSON.parse(match[0]);
         scannedItems.push({
-            name,
-            grams,
+            name: isGrams ? name : `${name} (${amount} ${unit})`,
+            grams: macros.grams || amount,
             protein_g: macros.protein_g || 0,
             fat_g: macros.fat_g || 0,
             carbs_g: macros.carbs_g || 0
         });
     } catch (e) {
-        scannedItems.push({ name, grams, protein_g: 0, fat_g: 0, carbs_g: 0 });
+        scannedItems.push({ name, grams: amount, protein_g: 0, fat_g: 0, carbs_g: 0 });
     }
     updateScannedTotals();
     renderScanDetails();
