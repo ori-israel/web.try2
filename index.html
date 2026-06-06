@@ -165,10 +165,10 @@
         </div>
     </div>
 </div>
-<div class="container">
+<div class="container" role="main">
     <div class="header">
         <div class="top-right-logo" style="position:absolute;top:8px;right:-20px;"><img src="/O.1024.559.png" alt="לוגו" width="1024" height="559" onerror="this.style.display='none'"></div>
-        <div class="hamburger-menu">
+        <nav class="hamburger-menu" aria-label="תפריט ראשי">
             <button class="hamburger-btn" onclick="toggleHamburger(event)" title="תפריט">
                 <span></span><span></span><span></span>
             </button>
@@ -198,7 +198,7 @@
                 <button onclick="openProfileAsAdmin()" class="admin-panel-btn">👤 ערוך פרטים</button>
                 <button onclick="adminBackToList()"                       class="admin-panel-btn">🏠 לוח מנהל</button>
             </div>
-        </div>
+        </nav>
 
         <h1 style="visibility:hidden;">תוכנית הליווי של [שם הלקוח]</h1>
         <p class="sub-header" id="header-goal-display">טוען יעד...</p>
@@ -360,13 +360,13 @@
             <button onclick="closeCalc()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: #888;">&times;</button>
         </div>
 
-        <div style="margin-bottom: 15px;">
-            <span style="display: block; margin-bottom: 8px; font-weight: bold;">מין:</span>
+        <fieldset style="margin-bottom: 15px;">
+            <legend style="margin-bottom: 8px; font-weight: bold;">מין:</legend>
             <div style="display: flex; gap: 20px;">
                 <label><input type="radio" name="gender" value="male" checked> גבר</label>
                 <label><input type="radio" name="gender" value="female"> אישה</label>
             </div>
-        </div>
+        </fieldset>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
             <input type="number" id="calc-age" placeholder="גיל" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
@@ -374,14 +374,16 @@
         </div>
         <input type="number" id="calc-weight" placeholder="משקל נוכחי (ק״ג)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
         
-        <span style="display: block; margin-bottom: 8px; font-weight: bold;">רמת פעילות גופנית:</span>
-        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
+        <fieldset style="margin-bottom: 20px;">
+        <legend style="margin-bottom: 8px; font-weight: bold;">רמת פעילות גופנית:</legend>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
             <label><input type="radio" name="activity" value="1.2" checked> לא עושה פעילות גופנית בכלל</label>
             <label><input type="radio" name="activity" value="1.375"> 1-3 אימונים בשבוע</label>
             <label><input type="radio" name="activity" value="1.465"> 4-5 אימונים בשבוע</label>
             <label><input type="radio" name="activity" value="1.55"> 6 אימונים בשבוע</label>
             <label><input type="radio" name="activity" value="1.725"> פעילות אינטנסיבית יום יומית</label>
         </div>
+        </fieldset>
 
         <button class="calc-btn" onclick="calculateStats()" style="width: 100%; background-color: var(--dark-green); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">חשב נתונים</button>
         
@@ -925,7 +927,8 @@
         <label class="question-label">2. מה היה המכשול הכי גדול שלך בשבוע האחרון ואיך התמודדת איתו?</label>
         <textarea class="q-input" name="obstacle" rows="3" placeholder="מה היה לך הכי קשה?" required></textarea>
 
-        <label class="question-label">3. מ-1 עד 10, באיזו מידה עקבת אחרי התוכנית?</label>
+        <fieldset>
+        <legend class="question-label">3. מ-1 עד 10, באיזו מידה עקבת אחרי התוכנית?</legend>
         <div class="rating-grid">
             <label class="rating-option"><input type="radio" name="compliance_rating" value="1">1</label>
             <label class="rating-option"><input type="radio" name="compliance_rating" value="2">2</label>
@@ -938,6 +941,7 @@
             <label class="rating-option"><input type="radio" name="compliance_rating" value="9">9</label>
             <label class="rating-option"><input type="radio" name="compliance_rating" value="10">10</label>
         </div>
+        </fieldset>
 
         <label class="question-label">4. האם יש משהו שהיית רוצה לשאול או לספר לי?</label>
         <textarea class="q-input" name="q4_topic" rows="3" placeholder="כל דבר שאולי אוכל לעזור איתו..."></textarea>
@@ -1223,7 +1227,7 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0/dist/umd/supabase.js" integrity="sha384-CQbEv3UOeYwlaBLdPF5KqEagCP39Q1KpvJC6Gwa3UGjZAwMvpA+0TFxSSnrgb4MX" crossorigin="anonymous"></script>
 <script src="client.js"></script>
 <script src="supabase-db.js"></script>
 <script src="auth.js"></script>

@@ -2818,3 +2818,6 @@ input[type="radio"] { accent-color: var(--accent); }
     font-weight: 600;
     direction: rtl;
 }
+
+fieldset { border: none; margin: 0; padding: 0; min-width: 0; }
+legend { padding: 0; display: block; width: 100%; }
