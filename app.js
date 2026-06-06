@@ -7430,8 +7430,8 @@ function renderFoodLog() {
     entries.forEach((e, i) => {
         const isNewMeal = e.time !== lastTime;
         if (isNewMeal) {
-            if (lastTime !== null) html += `</div>`; // סגור ארוחה קודמת
-            html += `<div style="margin-bottom:10px;">
+            if (lastTime !== null) html += `</div><hr style="border:none;border-top:2px solid var(--border);margin:4px 0 10px;">`; // קו מפריד בין ארוחות
+            html += `<div style="margin-bottom:6px;">
                 <div style="font-size:11px;font-weight:700;color:var(--accent);padding:8px 4px 4px;text-align:right;letter-spacing:0.3px;">🕐 ${e.time}</div>`;
             lastTime = e.time;
         }
