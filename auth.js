@@ -411,21 +411,32 @@ function _buildClientStats(client) {
     const prevWeek    = clientScores.find(s => s.week_start === prevMonStr) || null;
     const last4       = clientScores.slice(-4).map(s => s.score);
 
-    const weight      = profile.current_weight || 80;
-    const pRatio      = profile.protein_ratio  || 2.0;
-    const proteinGoal = Math.round(weight * pRatio);
-    const calGoal     = 2000;
-
     const pv = profile.portion_values || {};
     const pvP = pv.protein ?? 27.5;
     const pvC = pv.carbs   ?? 37.5;
     const pvF = pv.fat     ?? 12.5;
 
-    const nutritionMeetsGoal = n => {
-        const proteinG = n.protein * pvP;
-        const kcal     = proteinG * 4 + (n.carbs * pvC) * 4 + (n.fat * pvF) * 9;
-        return proteinG >= proteinGoal && kcal >= calGoal * 0.85;
-    };
+    // Portion targets — same formula as app.js calcPortionTargets()
+    const weight   = profile.current_weight || 80;
+    const age      = profile.birth_date ? Math.floor((new Date() - new Date(profile.birth_date)) / (1000*60*60*24*365.25)) : 30;
+    const gender   = profile.gender || 'male';
+    const height   = profile.height || 170;
+    const activity = profile.activity_level || 1.4;
+    const goal     = profile.goal || 'maintain';
+    const pRatio   = profile.protein_ratio || 2.0;
+    let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+    bmr = gender === 'male' ? bmr + 5 : bmr - 161;
+    const tdee          = Math.round(bmr * activity);
+    const totalCal      = goal === 'cut' ? tdee - 250 : tdee + 250;
+    const proteinGrams  = weight * pRatio;
+    const remaining     = totalCal - proteinGrams * 4;
+    const carbCals      = goal === 'cut' ? remaining * 0.7 : remaining * 0.6;
+    const fatCals       = goal === 'cut' ? remaining * 0.3 : remaining * 0.4;
+    const tgProtein     = Math.round((proteinGrams / pvP) * 2) / 2;
+    const tgCarbs       = Math.round((carbCals / 4 / pvC) * 2) / 2;
+    const tgFat         = Math.round((fatCals / 9 / pvF) * 2) / 2;
+
+    const nutritionMeetsGoal = n => n.protein >= tgProtein && n.carbs >= tgCarbs && n.fat >= tgFat;
 
     const clientWorkouts  = workouts.filter(w => w.client_id === client.id);
     const clientNutrition = nutrition.filter(n => n.user_id  === client.id);
