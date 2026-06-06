@@ -74,7 +74,7 @@
 /* ============================================
    Base Reset
    ============================================ */
-* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; touch-action: manipulation; }
 
 body {
     font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
