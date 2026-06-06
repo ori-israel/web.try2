@@ -172,7 +172,7 @@ function addLoadingMessage() {
         align-items: center;
         gap: 8px;
     `;
-    div.innerHTML = '<span style="font-size:16px;">🤖</span><span></span>';
+    div.innerHTML = '<span style="font-size:16px;">🤖</span><span class="typing-dots"><span></span><span></span><span></span></span>';
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
     return id;
