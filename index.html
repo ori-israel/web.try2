@@ -41,9 +41,9 @@
             <input id="remember-me-cb" type="checkbox" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);" aria-label="זכור אותי">
             זכור אותי
         </label>
-        <label style="display:flex;align-items:center;gap:8px;color:var(--text-secondary,#888);font-size:14px;cursor:pointer;align-self:flex-start;margin-bottom:12px;">
-            <input id="terms-cb" type="checkbox" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);" aria-label="אישור תנאי שימוש ומדיניות פרטיות" onchange="document.getElementById('login-btn').disabled=!this.checked">
-            קראתי ואני מאשר/ת את <a href="/terms.html" style="color:var(--accent,#8aaafa);">תנאי השימוש</a> ו<a href="/privacy.html" style="color:var(--accent,#8aaafa);">מדיניות הפרטיות</a>
+        <label style="display:flex;align-items:flex-start;gap:8px;color:var(--text-secondary,#888);font-size:13px;cursor:pointer;align-self:stretch;margin-bottom:12px;line-height:1.4;">
+            <input id="terms-cb" type="checkbox" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);flex-shrink:0;margin-top:1px;" aria-label="אישור תנאי שימוש ומדיניות פרטיות" onchange="document.getElementById('login-btn').disabled=!this.checked">
+            <span>קראתי ואני מאשר/ת את <a href="/terms.html" style="color:var(--accent,#8aaafa);">תנאי השימוש</a> ו<a href="/privacy.html" style="color:var(--accent,#8aaafa);">מדיניות הפרטיות</a></span>
         </label>
         <button id="login-btn" class="login-btn" onclick="doLogin()" disabled style="opacity:0.5;cursor:not-allowed;">התחבר</button>
         <button onclick="sendMagicLink()" class="login-btn" style="background:transparent;border:1.5px solid #5b7cfa;color:#8aaafa;box-shadow:none;margin-top:8px;">שכחת סיסמה? שלח קישור כניסה</button>
