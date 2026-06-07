@@ -35,6 +35,20 @@ export default async function handler(req, res) {
     const { data: { user }, error: authErr } = await db.auth.getUser(token);
     if (authErr || !user) return res.status(401).json({ error: 'Unauthorized' });
 
+    // Global rate limit: max 12 requests/min across ALL users (Gemini free tier = 15/min)
+    const minAgo = new Date(Date.now() - 60 * 1000).toISOString();
+    const { count: globalCount } = await db.from('ai_global_log')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', minAgo);
+    if (globalCount >= 12) {
+        return res.status(429).json({ error: 'המערכת עמוסה כרגע, נסה שוב בעוד דקה 🙏' });
+    }
+    await db.from('ai_global_log').insert({});
+    // ניקוי שורות ישנות כדי שהטבלה תישאר קטנה (לא חוסם את התשובה)
+    db.from('ai_global_log').delete()
+        .lt('created_at', new Date(Date.now() - 2 * 60 * 1000).toISOString())
+        .then(() => {}, () => {});
+
     // Rate limit: 10 scans per hour per user
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const { count } = await db.from('scan_logs').select('*', { count: 'exact', head: true })
