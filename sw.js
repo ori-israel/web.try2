@@ -1,4 +1,4 @@
-const CACHE_NAME = 'oi-fitness-v36';
+const CACHE_NAME = 'oi-fitness-v37';
 const PRECACHE = [
     '/', '/index.html', '/styles.css', '/app.js', '/auth.js',
     '/supabase-db.js', '/client.js', '/data.js', '/profile.js',
