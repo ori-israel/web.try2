@@ -1,5 +1,79 @@
 const { createClient } = require('@supabase/supabase-js');
 
+const WEEKS_BACK = 8; // כמה שבועות שהסתיימו לבדוק ולהשלים בכל ריצה
+
+const fmt = d => d.toISOString().split('T')[0];
+
+// חישוב ציון של שבוע יחיד ללקוח יחיד. נוסחה זהה ל-app.js calcPortionTargets()/auth.js.
+async function computeScore(supabase, profile, weekStart, weekEnd) {
+    const userId = profile.id;
+
+    // אימונים (40%): ימי אימון ייחודיים ÷ יעד שבועי
+    const { data: workoutData } = await supabase
+        .from('workout_performance_log')
+        .select('date')
+        .eq('client_id', userId)
+        .gte('date', weekStart)
+        .lte('date', weekEnd);
+    const workoutDates  = new Set((workoutData || []).map(r => r.date));
+    const weeklyTarget  = profile.workouts_per_week || 3;
+    const workoutsScore = Math.min(workoutDates.size / weeklyTarget, 1);
+
+    // תזונה (40%): יום נספר רק אם כל 3 המנות עומדות ביעד האישי
+    const pv  = profile.portion_values || {};
+    const pvP = pv.protein ?? 27.5;
+    const pvC = pv.carbs   ?? 37.5;
+    const pvF = pv.fat     ?? 12.5;
+
+    const weight   = profile.current_weight || profile.start_weight || 80;
+    const age      = profile.birth_date ? Math.floor((new Date() - new Date(profile.birth_date)) / (1000*60*60*24*365.25)) : 30;
+    const gender   = profile.gender || 'male';
+    const height   = profile.height || 170;
+    const activity = profile.activity_level || 1.4;
+    const goal     = profile.goal || 'maintain';
+    const pRatio   = profile.protein_ratio || 2.0;
+    let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+    bmr = gender === 'male' ? bmr + 5 : bmr - 161;
+    const tdee         = Math.round(bmr * activity);
+    const totalCal     = goal === 'cut' ? tdee - 250 : tdee + 250;
+    const proteinGrams = weight * pRatio;
+    const remaining    = totalCal - proteinGrams * 4;
+    const carbCals     = goal === 'cut' ? remaining * 0.7 : remaining * 0.6;
+    const fatCals      = goal === 'cut' ? remaining * 0.3 : remaining * 0.4;
+    const tgProtein    = Math.round((proteinGrams / pvP) * 2) / 2;
+    const tgCarbs      = Math.round((carbCals / 4 / pvC) * 2) / 2;
+    const tgFat        = Math.round((fatCals / 9 / pvF) * 2) / 2;
+
+    const { data: nutritionData } = await supabase
+        .from('daily_nutrition')
+        .select('protein, carbs, fat')
+        .eq('user_id', userId)
+        .gte('date', weekStart)
+        .lte('date', weekEnd);
+    let nutritionMet = 0;
+    (nutritionData || []).forEach(r => {
+        if (r.protein >= tgProtein && r.carbs >= tgCarbs && r.fat >= tgFat) nutritionMet++;
+    });
+    const nutritionScore = Math.min(nutritionMet / 7, 1);
+
+    // הרגלים (20%): שקילה כלשהי השבוע
+    const { data: weightData } = await supabase
+        .from('weight_history')
+        .select('date')
+        .eq('user_id', userId)
+        .gte('date', weekStart)
+        .lte('date', weekEnd)
+        .limit(1);
+    const habitsScore = (weightData && weightData.length > 0) ? 1 : 0;
+
+    return {
+        score:           Math.round((workoutsScore * 0.4 + nutritionScore * 0.4 + habitsScore * 0.2) * 100),
+        workouts_score:  Math.round(workoutsScore  * 100),
+        nutrition_score: Math.round(nutritionScore * 100),
+        habits_score:    Math.round(habitsScore    * 100),
+    };
+}
+
 module.exports = async (req, res) => {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
@@ -14,19 +88,24 @@ module.exports = async (req, res) => {
         process.env.SUPABASE_SERVICE_KEY
     );
 
-    // Week that just ended: Sun–Sat (Israeli calendar). Cron runs Sun 00:02 UTC = Sat just ended.
+    // השבוע האחרון שהסתיים: ראשון–שבת. ה-cron רץ ראשון 00:02 UTC = שבת הרגע נגמרה.
     const now = new Date();
     now.setUTCHours(0, 0, 0, 0);
-    const sat = new Date(now);
-    sat.setUTCDate(now.getUTCDate() - 1); // yesterday = Saturday
-    const sun = new Date(sat);
-    sun.setUTCDate(sat.getUTCDate() - 6); // 6 days before Sat = Sunday
+    const lastSat = new Date(now);
+    lastSat.setUTCDate(now.getUTCDate() - 1); // אתמול = שבת
+    const lastSun = new Date(lastSat);
+    lastSun.setUTCDate(lastSat.getUTCDate() - 6); // 6 ימים לפני שבת = ראשון
 
-    const fmt = d => d.toISOString().split('T')[0];
-    const weekStart = fmt(sun);
-    const weekEnd   = fmt(sat);
+    // בניית רשימת 8 השבועות שהסתיימו (מהחדש לישן)
+    const weeks = [];
+    for (let i = 0; i < WEEKS_BACK; i++) {
+        const sun = new Date(lastSun); sun.setUTCDate(lastSun.getUTCDate() - 7 * i);
+        const sat = new Date(lastSat); sat.setUTCDate(lastSat.getUTCDate() - 7 * i);
+        weeks.push({ weekStart: fmt(sun), weekEnd: fmt(sat) });
+    }
+    const earliestStart = weeks[weeks.length - 1].weekStart;
 
-    console.log(`Saving weekly scores for ${weekStart} – ${weekEnd}`);
+    console.log(`Backfilling weekly scores from ${earliestStart} to ${weeks[0].weekStart}`);
 
     const { data: profiles, error: profErr } = await supabase
         .from('profiles')
@@ -38,117 +117,48 @@ module.exports = async (req, res) => {
         return res.status(500).json({ error: profErr.message });
     }
 
+    // שליפה אחת של כל הציונים הקיימים בטווח — כדי לדעת מה כבר שמור (לא לדרוס)
+    const clientIds = profiles.map(p => p.id);
+    const { data: existingRows } = await supabase
+        .from('weekly_scores')
+        .select('client_id, week_start')
+        .in('client_id', clientIds)
+        .gte('week_start', earliestStart);
+    const existingSet = new Set((existingRows || []).map(r => `${r.client_id}|${r.week_start}`));
+
     const results = [];
 
     for (const profile of profiles) {
         const userId = profile.id;
 
         if (profile.vacation_mode) {
-            console.log(`Skipping ${userId} — vacation mode active`);
             results.push({ userId, skipped: true, reason: 'vacation' });
             continue;
         }
 
-        // Skip if score already saved for this client + week
-        const { data: existing } = await supabase
-            .from('weekly_scores')
-            .select('id')
-            .eq('client_id', userId)
-            .eq('week_start', weekStart)
-            .maybeSingle();
+        for (const { weekStart, weekEnd } of weeks) {
+            // לדלג אם כבר קיים ציון לאותו שבוע — להשלים חסרים בלבד
+            if (existingSet.has(`${userId}|${weekStart}`)) continue;
 
-        if (existing) {
-            results.push({ userId, skipped: true });
-            continue;
-        }
+            try {
+                const s = await computeScore(supabase, profile, weekStart, weekEnd);
+                const { error: insertErr } = await supabase
+                    .from('weekly_scores')
+                    .insert({ client_id: userId, week_start: weekStart, ...s });
 
-        // Workouts (40%): distinct dates in workout_performance_log ÷ workouts_per_week
-        const { data: workoutData } = await supabase
-            .from('workout_performance_log')
-            .select('date')
-            .eq('client_id', userId)
-            .gte('date', weekStart)
-            .lte('date', weekEnd);
-
-        const workoutDates  = new Set((workoutData || []).map(r => r.date));
-        const weeklyTarget  = profile.workouts_per_week || 3;
-        const workoutsScore = Math.min(workoutDates.size / weeklyTarget, 1);
-
-        // Nutrition (40%): a day counts only if ALL 3 portions meet their target.
-        // Formula identical to app.js calcPortionTargets() / auth.js coach dashboard — keep them in sync.
-        const pv  = profile.portion_values || {};
-        const pvP = pv.protein ?? 27.5;
-        const pvC = pv.carbs   ?? 37.5;
-        const pvF = pv.fat     ?? 12.5;
-
-        const weight   = profile.current_weight || profile.start_weight || 80;
-        const age      = profile.birth_date ? Math.floor((new Date() - new Date(profile.birth_date)) / (1000*60*60*24*365.25)) : 30;
-        const gender   = profile.gender || 'male';
-        const height   = profile.height || 170;
-        const activity = profile.activity_level || 1.4;
-        const goal     = profile.goal || 'maintain';
-        const pRatio   = profile.protein_ratio || 2.0;
-        let bmr = (10 * weight) + (6.25 * height) - (5 * age);
-        bmr = gender === 'male' ? bmr + 5 : bmr - 161;
-        const tdee         = Math.round(bmr * activity);
-        const totalCal     = goal === 'cut' ? tdee - 250 : tdee + 250;
-        const proteinGrams = weight * pRatio;
-        const remaining    = totalCal - proteinGrams * 4;
-        const carbCals     = goal === 'cut' ? remaining * 0.7 : remaining * 0.6;
-        const fatCals      = goal === 'cut' ? remaining * 0.3 : remaining * 0.4;
-        const tgProtein    = Math.round((proteinGrams / pvP) * 2) / 2;
-        const tgCarbs      = Math.round((carbCals / 4 / pvC) * 2) / 2;
-        const tgFat        = Math.round((fatCals / 9 / pvF) * 2) / 2;
-
-        const { data: nutritionData } = await supabase
-            .from('daily_nutrition')
-            .select('protein, carbs, fat')
-            .eq('user_id', userId)
-            .gte('date', weekStart)
-            .lte('date', weekEnd);
-
-        let nutritionMet = 0;
-        (nutritionData || []).forEach(r => {
-            if (r.protein >= tgProtein && r.carbs >= tgCarbs && r.fat >= tgFat) nutritionMet++;
-        });
-        const nutritionScore = Math.min(nutritionMet / 7, 1);
-
-        // Habits (20%): any weight entry this week
-        const { data: weightData } = await supabase
-            .from('weight_history')
-            .select('date')
-            .eq('user_id', userId)
-            .gte('date', weekStart)
-            .lte('date', weekEnd)
-            .limit(1);
-
-        const habitsScore = (weightData && weightData.length > 0) ? 1 : 0;
-
-        // Final weighted score (0–100)
-        const score             = Math.round((workoutsScore * 0.4 + nutritionScore * 0.4 + habitsScore * 0.2) * 100);
-        const workoutsScorePct  = Math.round(workoutsScore  * 100);
-        const nutritionScorePct = Math.round(nutritionScore * 100);
-        const habitsScorePct    = Math.round(habitsScore    * 100);
-
-        const { error: insertErr } = await supabase
-            .from('weekly_scores')
-            .insert({
-                client_id:       userId,
-                week_start:      weekStart,
-                score,
-                workouts_score:  workoutsScorePct,
-                nutrition_score: nutritionScorePct,
-                habits_score:    habitsScorePct,
-            });
-
-        if (insertErr) {
-            console.error(`Error saving score for ${userId}:`, insertErr);
-            results.push({ userId, error: insertErr.message });
-        } else {
-            console.log(`Saved score ${score} for ${userId}`);
-            results.push({ userId, score, weekStart });
+                if (insertErr) {
+                    console.error(`Error saving ${userId} ${weekStart}:`, insertErr.message);
+                    results.push({ userId, weekStart, error: insertErr.message });
+                } else {
+                    console.log(`Saved ${s.score} for ${userId} ${weekStart}`);
+                    results.push({ userId, weekStart, score: s.score, backfilled: true });
+                }
+            } catch (e) {
+                console.error(`Failed ${userId} ${weekStart}:`, e.message);
+                results.push({ userId, weekStart, error: e.message });
+            }
         }
     }
 
-    return res.status(200).json({ week: weekStart, results });
+    return res.status(200).json({ weeksChecked: weeks.map(w => w.weekStart), filled: results.filter(r => r.backfilled).length, results });
 };
