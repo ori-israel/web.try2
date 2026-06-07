@@ -88,6 +88,8 @@ async function handleLoginSuccess(user) {
     SB_USER = user;
     showLoadingScreen('טוען פרופיל...');
     sbUpdateLastSeen(user.id).catch(() => {});
+    // תיעוד אישור התנאים — ראיה משפטית. נרשם פעם אחת לכל גרסת תנאים
+    sbLogConsent(user.id, user.email);
     try {
         const profile = await sbFetchProfile(user.id);
         SB_IS_ADMIN = profile?.is_admin || false;
@@ -210,7 +212,7 @@ async function doLogin() {
     } catch {
         errorEl.textContent = 'אימייל או סיסמה שגויים';
         btn.disabled    = false;
-        btn.textContent = 'התחבר';
+        btn.textContent = 'התחברות';
     }
 }
 

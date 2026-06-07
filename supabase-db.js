@@ -110,6 +110,22 @@ async function sbSignOut() {
     if (error) throw error;
 }
 
+// ── תיעוד אישור תנאים (ראיה משפטית) ────────────────────────
+// גרסת המסמכים הנוכחית — לעדכן אם משנים תנאי שימוש/פרטיות
+const TERMS_VERSION = 'v1.0';
+
+async function sbLogConsent(userId, email) {
+    // upsert עם ignoreDuplicates — נרשם רק בפעם הראשונה לכל גרסת תנאים
+    const { error } = await db
+        .from('consent_log')
+        .upsert(
+            { user_id: userId, email: email, terms_version: TERMS_VERSION },
+            { onConflict: 'user_id,terms_version', ignoreDuplicates: true }
+        );
+    // לא זורקים שגיאה — כשל בתיעוד לא צריך לחסום התחברות
+    if (error) console.warn('[consent] failed to log:', error.message);
+}
+
 async function sbGetSession() {
     const { data: { session } } = await db.auth.getSession();
     return session;
