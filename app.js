@@ -7123,7 +7123,8 @@ function openFoodScanner() {
     document.getElementById('scanner-step-2').classList.add('hidden');
     document.getElementById('scanner-loading').classList.add('hidden');
     document.getElementById('food-preview').classList.add('hidden');
-    document.getElementById('scan-correction').value = '';
+    const _scanCorr = document.getElementById('scan-correction');
+    if (_scanCorr) _scanCorr.value = '';
     document.getElementById('scan-food-label').style.display = '';
     document.getElementById('scan-food-name').style.display = '';
     scannedImageBase64 = null;
@@ -7294,7 +7295,7 @@ function toggleScanDetails() {
 }
 
 async function recalculate() {
-    const correction = document.getElementById('scan-correction').value.trim();
+    const correction = document.getElementById('scan-correction')?.value.trim() || '';
     if (!correction) return;
 
     document.getElementById('scanner-step-2').classList.add('hidden');
@@ -7346,7 +7347,8 @@ ${itemsList}
             `<div>🥑 שומן: <b>${scannedPortions.fat} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span></div>` +
             `</div>`;
         renderScanDetails();
-        document.getElementById('scan-correction').value = '';
+        const _sc = document.getElementById('scan-correction');
+        if (_sc) _sc.value = '';
     } catch (err) {
         const errMsg2 = err.message?.includes('מגבלת') ? err.message : 'שגיאה בחישוב מחדש';
         const errEl2 = document.getElementById('scanner-error');
