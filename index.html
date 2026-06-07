@@ -37,13 +37,15 @@
         <input id="login-email"    type="email"    placeholder="אימייל"  class="login-input" autocomplete="email" aria-label="כתובת אימייל">
         <input id="login-password" type="password" placeholder="סיסמה"   class="login-input" autocomplete="current-password" aria-label="סיסמה">
         <p id="login-error" style="color:#e55; font-size:14px; min-height:18px; margin:4px 0;"></p>
-        <label style="display:flex;align-items:center;gap:8px;color:var(--text-secondary,#888);font-size:14px;cursor:pointer;align-self:flex-start;margin-bottom:4px;">
-            <input id="remember-me-cb" type="checkbox" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);" aria-label="זכור אותי">
-            זכור אותי
-        </label>
-        <div style="display:flex;align-items:center;gap:8px;width:100%;margin-bottom:12px;">
-            <input id="terms-cb" type="checkbox" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);flex-shrink:0;" aria-label="אישור תנאי שימוש ומדיניות פרטיות" onchange="document.getElementById('login-btn').disabled=!this.checked">
-            <span style="font-size:13px;color:var(--text-secondary,#888);cursor:pointer;" onclick="document.getElementById('terms-cb').click()">קראתי ואני מאשר/ת את <a href="/terms.html" style="color:var(--accent,#8aaafa);" onclick="event.stopPropagation()">תנאי השימוש</a> ו<a href="/privacy.html" style="color:var(--accent,#8aaafa);" onclick="event.stopPropagation()">מדיניות הפרטיות</a></span>
+        <div style="display:flex;flex-direction:column;gap:6px;width:100%;margin-bottom:12px;">
+            <label style="display:flex;align-items:center;gap:8px;color:var(--text-secondary,#888);font-size:14px;cursor:pointer;">
+                <input id="remember-me-cb" type="checkbox" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);flex-shrink:0;" aria-label="זכור אותי">
+                זכור אותי
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;color:var(--text-secondary,#888);font-size:13px;cursor:pointer;">
+                <input id="terms-cb" type="checkbox" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);flex-shrink:0;" aria-label="אישור תנאי שימוש ומדיניות פרטיות" onchange="document.getElementById('login-btn').disabled=!this.checked">
+                מאשר/ת <a href="/terms.html" style="color:var(--accent,#8aaafa);" onclick="event.stopPropagation()">תנאי שימוש</a> ו<a href="/privacy.html" style="color:var(--accent,#8aaafa);" onclick="event.stopPropagation()">פרטיות</a>
+            </label>
         </div>
         <button id="login-btn" class="login-btn" onclick="doLogin()" disabled style="opacity:0.5;cursor:not-allowed;">התחבר</button>
         <button onclick="sendMagicLink()" class="login-btn" style="background:transparent;border:1.5px solid #5b7cfa;color:#8aaafa;box-shadow:none;margin-top:8px;">שכחת סיסמה? שלח קישור כניסה</button>
