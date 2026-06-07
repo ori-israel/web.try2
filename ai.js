@@ -27,18 +27,19 @@ async function sendAIMessage() {
     }
     localStorage.setItem(_countKey, _count + 1);
 
+    // הגבלת 6 שניות בין הודעות — נשלח מיד ומחכים ברקע (בלי הודעת "המתן")
     const now = Date.now();
-    if (now - (window.lastMessageTime || 0) < 6000) {
-        addChatMessage('נא להמתין כמה שניות בין הודעות 🙏', 'assistant');
-        return;
-    }
-    window.lastMessageTime = now;
+    const _sinceLast = now - (window.lastMessageTime || 0);
+    const _waitMs = _sinceLast < 6000 ? 6000 - _sinceLast : 0;
+    window.lastMessageTime = now + _waitMs; // שומר תור גם להודעות מהירות רצופות
 
     input.value = '';
     addChatMessage(msg, 'user');
     aiChatHistory.push({ role: 'user', content: msg });
 
     const loadingId = addLoadingMessage();
+
+    if (_waitMs) await new Promise(r => setTimeout(r, _waitMs));
 
     const bubbleStyle = `
         padding: 10px 15px;
