@@ -41,10 +41,13 @@
             <input id="remember-me-cb" type="checkbox" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);" aria-label="זכור אותי">
             זכור אותי
         </label>
-        <button id="login-btn" class="login-btn" onclick="doLogin()">התחבר</button>
+        <label style="display:flex;align-items:center;gap:8px;color:var(--text-secondary,#888);font-size:14px;cursor:pointer;align-self:flex-start;margin-bottom:12px;">
+            <input id="terms-cb" type="checkbox" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);" aria-label="אישור תנאי שימוש ומדיניות פרטיות" onchange="document.getElementById('login-btn').disabled=!this.checked">
+            קראתי ואני מאשר/ת את <a href="/terms.html" style="color:var(--accent,#8aaafa);">תנאי השימוש</a> ו<a href="/privacy.html" style="color:var(--accent,#8aaafa);">מדיניות הפרטיות</a>
+        </label>
+        <button id="login-btn" class="login-btn" onclick="doLogin()" disabled style="opacity:0.5;cursor:not-allowed;">התחבר</button>
         <button onclick="sendMagicLink()" class="login-btn" style="background:transparent;border:1.5px solid #5b7cfa;color:#8aaafa;box-shadow:none;margin-top:8px;">שכחת סיסמה? שלח קישור כניסה</button>
         <div style="margin-top:22px; text-align:center; font-size:12px; line-height:1.8; color:var(--text-secondary,#888);">
-            <p style="margin:0 0 6px;">בהתחברות את/ה מאשר/ת את <a href="/terms.html" style="color:var(--accent,#8aaafa);">תנאי השימוש</a> ו<a href="/privacy.html" style="color:var(--accent,#8aaafa);">מדיניות הפרטיות</a>.</p>
             <p style="margin:0;">© 2026 אורי ישראל · <a href="/terms.html" style="color:var(--accent,#8aaafa);">תנאי שימוש</a> · <a href="/privacy.html" style="color:var(--accent,#8aaafa);">פרטיות</a> · <a href="/accessibility.html" style="color:var(--accent,#8aaafa);">נגישות</a></p>
         </div>
     </div>

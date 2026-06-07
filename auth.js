@@ -1089,7 +1089,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Enter בשדה סיסמה = לחיצה על כניסה
     document.getElementById('login-password')?.addEventListener('keydown', e => {
-        if (e.key === 'Enter') doLogin();
+        if (e.key === 'Enter' && document.getElementById('terms-cb')?.checked) doLogin();
     });
 
     try {
