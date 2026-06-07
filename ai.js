@@ -339,14 +339,27 @@ async function buildSystemPrompt() {
     const curWeightData  = curWeightRes.status  === 'fulfilled' ? curWeightRes.value.data  : null;
     if (curWorkoutData !== null) {
         const weeklyTarget  = CLIENT.workoutsPerWeek || 3;
-        const proteinGoal   = Math.round((CLIENT.currentWeight || CLIENT.startWeight || 80) * (CLIENT.proteinRatio || 2));
         const pv            = typeof portionValues !== 'undefined' ? portionValues : { protein: 27.5, carbs: 37.5, fat: 12.5 };
         const workoutCount  = new Set((curWorkoutData || []).map(r => r.date)).size;
+
+        // יעדי מנות אישיים — נוסחה זהה ל-calcPortionTargets()/cron/auth.js
+        const _w   = CLIENT.currentWeight || CLIENT.startWeight || 80;
+        const _age = CLIENT.birthDate ? Math.floor((new Date() - new Date(CLIENT.birthDate)) / (1000*60*60*24*365.25)) : 30;
+        let _bmr   = (10 * _w) + (6.25 * (CLIENT.height || 170)) - (5 * _age);
+        _bmr       = (CLIENT.gender || 'male') === 'male' ? _bmr + 5 : _bmr - 161;
+        const _tdee  = Math.round(_bmr * (CLIENT.activityLevel || 1.4));
+        const _total = CLIENT.goal === 'cut' ? _tdee - 250 : _tdee + 250;
+        const _pg    = _w * (CLIENT.proteinRatio || 2);
+        const _rem   = _total - _pg * 4;
+        const _cc    = CLIENT.goal === 'cut' ? _rem * 0.7 : _rem * 0.6;
+        const _fc    = CLIENT.goal === 'cut' ? _rem * 0.3 : _rem * 0.4;
+        const tgProtein = Math.round((_pg / pv.protein) * 2) / 2;
+        const tgCarbs   = Math.round((_cc / 4 / pv.carbs) * 2) / 2;
+        const tgFat     = Math.round((_fc / 9 / pv.fat) * 2) / 2;
+
         let nutritionMet = 0;
         (curNutData || []).forEach(r => {
-            const proteinG = r.protein * pv.protein;
-            const kcal = proteinG * 4 + (r.carbs * pv.carbs) * 4 + (r.fat * pv.fat) * 9;
-            if (proteinG >= proteinGoal && kcal >= 1700) nutritionMet++;
+            if (r.protein >= tgProtein && r.carbs >= tgCarbs && r.fat >= tgFat) nutritionMet++;
         });
         const hasWeightThisWeek = curWeightData && curWeightData.length > 0;
         const ws = Math.min(workoutCount / weeklyTarget, 1);
