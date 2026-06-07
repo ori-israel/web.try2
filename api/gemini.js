@@ -35,28 +35,6 @@ export default async function handler(req, res) {
     const { data: { user }, error: authErr } = await db.auth.getUser(token);
     if (authErr || !user) return res.status(401).json({ error: 'Unauthorized' });
 
-    // Global rate limit: max 12 requests/min across ALL users (Gemini free tier = 15/min)
-    const minAgo = new Date(Date.now() - 60 * 1000).toISOString();
-    const { count: globalCount } = await db.from('ai_global_log')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', minAgo);
-    if (globalCount >= 12) {
-        return res.status(429).json({ error: 'המערכת עמוסה כרגע, נסה שוב בעוד דקה 🙏' });
-    }
-    await db.from('ai_global_log').insert({});
-    // ניקוי שורות ישנות כדי שהטבלה תישאר קטנה (לא חוסם את התשובה)
-    db.from('ai_global_log').delete()
-        .lt('created_at', new Date(Date.now() - 2 * 60 * 1000).toISOString())
-        .then(() => {}, () => {});
-
-    // Rate limit: 10 scans per hour per user
-    const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { count } = await db.from('scan_logs').select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id).gte('created_at', hourAgo);
-    if (count >= 10) return res.status(429).json({ error: 'הגעת למגבלת 10 סריקות בשעה. נסה שוב מאוחר יותר.' });
-
-    await db.from('scan_logs').insert({ user_id: user.id });
-
     const { model = 'gemini-2.5-flash-lite', payload } = req.body || {};
 
     if (!ALLOWED_MODELS.has(model)) {
@@ -65,6 +43,32 @@ export default async function handler(req, res) {
 
     if (!payload || typeof payload !== 'object') {
         return res.status(400).json({ error: 'Missing payload' });
+    }
+
+    // סריקת תמונה מזוהה לפי inline_data בתוכן; צ'אט טקסט — לא
+    const isScan = JSON.stringify(payload.contents || '').includes('inline_data');
+
+    // Global rate limit: max 12 requests/min across ALL users (Gemini free tier = 15/min)
+    const minAgo = new Date(Date.now() - 60 * 1000).toISOString();
+    const { count: globalCount } = await db.from('ai_global_log')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', minAgo);
+    if (globalCount >= 12) {
+        return res.status(429).json({ error: 'המערכת עמוסה כרגע, נסה שוב בעוד דקה 🙏' });
+    }
+    await db.from('ai_global_log').insert({ created_at: new Date().toISOString() });
+    // ניקוי שורות ישנות כדי שהטבלה תישאר קטנה (לא חוסם את התשובה)
+    db.from('ai_global_log').delete()
+        .lt('created_at', new Date(Date.now() - 2 * 60 * 1000).toISOString())
+        .then(() => {}, () => {});
+
+    // Rate limit: 10 סריקות תמונה בשעה למשתמש (לא חל על צ'אט)
+    if (isScan) {
+        const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        const { count } = await db.from('scan_logs').select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id).gte('created_at', hourAgo);
+        if (count >= 10) return res.status(429).json({ error: 'הגעת למגבלת 10 סריקות בשעה. נסה שוב מאוחר יותר.' });
+        await db.from('scan_logs').insert({ user_id: user.id });
     }
 
     if (!payload.contents) {
