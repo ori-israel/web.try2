@@ -43,12 +43,12 @@
                 זכור אותי
             </label>
             <label style="display:flex;align-items:flex-start;gap:8px;color:var(--text-secondary,#888);font-size:13px;cursor:pointer;line-height:1.5;">
-                <input id="terms-cb" type="checkbox" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);flex-shrink:0;margin-top:2px;" aria-label="אישור תנאי שימוש ומדיניות פרטיות" onchange="['login-btn','magic-link-btn'].forEach(id=>{const b=document.getElementById(id);if(!b)return;b.disabled=!this.checked;b.style.opacity=this.checked?'1':'0.35';b.style.cursor=this.checked?'pointer':'not-allowed';});">
+                <input id="terms-cb" type="checkbox" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);flex-shrink:0;margin-top:2px;" aria-label="אישור תנאי שימוש ומדיניות פרטיות" onchange="const b=document.getElementById('login-btn');b.disabled=!this.checked;b.style.opacity=this.checked?'1':'0.35';b.style.cursor=this.checked?'pointer':'not-allowed';">
                 <span>קראתי ואני מאשר/ת את <a href="/terms.html" style="color:var(--accent,#8aaafa);" onclick="event.stopPropagation()">תנאי השימוש</a> ו<a href="/privacy.html" style="color:var(--accent,#8aaafa);" onclick="event.stopPropagation()">מדיניות הפרטיות</a></span>
             </label>
         </div>
         <button id="login-btn" class="login-btn" onclick="doLogin()" disabled style="opacity:0.35;cursor:not-allowed;">התחברות</button>
-        <button id="magic-link-btn" onclick="sendMagicLink()" class="login-btn" disabled style="background:transparent;border:1.5px solid #5b7cfa;color:#8aaafa;box-shadow:none;margin-top:8px;opacity:0.35;cursor:not-allowed;">שכחת סיסמה? שלח קישור כניסה</button>
+        <button id="magic-link-btn" onclick="sendMagicLink()" class="login-btn" style="background:transparent;border:1.5px solid #5b7cfa;color:#8aaafa;box-shadow:none;margin-top:8px;">שכחת סיסמה? שלח קישור כניסה</button>
         <div style="margin-top:22px; text-align:center; font-size:12px; line-height:1.8; color:var(--text-secondary,#888);">
             <p style="margin:0;">© 2026 אורי ישראל · <a href="/terms.html" style="color:var(--accent,#8aaafa);">תנאי שימוש</a> · <a href="/privacy.html" style="color:var(--accent,#8aaafa);">פרטיות</a> · <a href="/accessibility.html" style="color:var(--accent,#8aaafa);">נגישות</a></p>
         </div>
