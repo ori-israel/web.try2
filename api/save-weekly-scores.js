@@ -88,6 +88,20 @@ module.exports = async (req, res) => {
         process.env.SUPABASE_SERVICE_KEY
     );
 
+    // ניקוי יומן מאכלים ישן — מוחק כל מה שמעל 7 ימים (שומר על הטבלה קטנה)
+    try {
+        const cutoff = new Date();
+        cutoff.setUTCDate(cutoff.getUTCDate() - 7);
+        const { error: foodDelErr } = await supabase
+            .from('food_log')
+            .delete()
+            .lt('date', fmt(cutoff));
+        if (foodDelErr) console.error('food_log cleanup error:', foodDelErr.message);
+        else console.log(`food_log cleanup: removed entries older than ${fmt(cutoff)}`);
+    } catch (e) {
+        console.error('food_log cleanup failed:', e.message);
+    }
+
     // השבוע האחרון שהסתיים: ראשון–שבת. ה-cron רץ ראשון 00:02 UTC = שבת הרגע נגמרה.
     const now = new Date();
     now.setUTCHours(0, 0, 0, 0);

@@ -7389,12 +7389,16 @@ function loadFoodLogEntries() {
 function addFoodLogEntry(entry) {
     const entries = loadFoodLogEntries();
     const now = new Date();
-    entries.push({
+    const newEntry = {
         ...entry,
+        id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()),
         time: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
-    });
+    };
+    entries.push(newEntry);
     saveFoodLogEntries(entries);
     renderFoodLog();
+    // שמירה גם בסופאבייס (היסטוריה ל-AI) — לא חוסם, נכשל בשקט
+    if (typeof sbAddFoodLog === 'function') sbAddFoodLog(newEntry).catch(() => {});
 }
 
 function deleteFoodLogEntry(idx) {
@@ -7406,6 +7410,8 @@ function deleteFoodLogEntry(idx) {
         if (removed.portions_protein) modifyPortion('protein', -removed.portions_protein);
         if (removed.portions_carbs)   modifyPortion('carbs',   -removed.portions_carbs);
         if (removed.portions_fat)     modifyPortion('fat',     -removed.portions_fat);
+        // מחיקה גם בסופאבייס
+        if (removed.id && typeof sbDeleteFoodLog === 'function') sbDeleteFoodLog(removed.id).catch(() => {});
     }
     renderFoodLog();
 }
@@ -7550,6 +7556,16 @@ async function saveFoodLogEdit() {
             portions_fat:     newPortions.fat     || null
         };
         saveFoodLogEntries(entries);
+
+        // עדכון גם בסופאבייס
+        if (entries[idx].id && typeof sbUpdateFoodLog === 'function') {
+            sbUpdateFoodLog(entries[idx].id, {
+                food:             entries[idx].name,
+                portions_protein: entries[idx].portions_protein || 0,
+                portions_carbs:   entries[idx].portions_carbs   || 0,
+                portions_fat:     entries[idx].portions_fat     || 0
+            }).catch(() => {});
+        }
 
         if (newPortions.protein) modifyPortion('protein', newPortions.protein);
         if (newPortions.carbs)   modifyPortion('carbs',   newPortions.carbs);

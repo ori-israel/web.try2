@@ -394,6 +394,34 @@ async function buildSystemPrompt() {
         prompt += '\n\nהיסטוריית משקל גוף (10 אחרונים):\n' + wRows.map(r => `• ${r.date}: ${r.weight} ק״ג`).join('\n');
     }
 
+    // יומן מאכלים — מה/כמה/מתי אכל ב-7 הימים האחרונים (לתובנות תזונה מדויקות)
+    if (typeof sbFetchFoodLogRange === 'function') {
+        try {
+            const fromDate = new Date();
+            fromDate.setDate(fromDate.getDate() - 6); // היום + 6 ימים אחורה = 7 ימים
+            const _fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            const foodRows = await sbFetchFoodLogRange(userId, _fmt(fromDate));
+            if (foodRows && foodRows.length) {
+                const byDay = {};
+                foodRows.forEach(r => {
+                    (byDay[r.date] = byDay[r.date] || []).push(r);
+                });
+                const dayLines = Object.keys(byDay).sort().map(date => {
+                    const items = byDay[date].map(r => {
+                        const macros = [];
+                        if (r.portions_protein) macros.push(`ח${r.portions_protein}`);
+                        if (r.portions_carbs)   macros.push(`פ${r.portions_carbs}`);
+                        if (r.portions_fat)     macros.push(`ש${r.portions_fat}`);
+                        const m = macros.length ? ` (${macros.join('/')})` : '';
+                        return `${r.time || '--:--'} ${r.food}${m}`;
+                    }).join(', ');
+                    return `• ${date}: ${items}`;
+                });
+                prompt += '\n\nיומן מאכלים (7 ימים אחרונים — ח=חלבון פ=פחמימה ש=שומן, במנות):\n' + dayLines.join('\n');
+            }
+        } catch (e) { /* נכשל בשקט */ }
+    }
+
     return prompt;
 }
 

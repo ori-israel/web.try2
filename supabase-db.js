@@ -258,6 +258,49 @@ async function sbSaveNutrition(userId, protein, carbs, fat) {
     if (error) throw error;
 }
 
+// ── יומן מאכלים (food_log) ──────────────────────────────────
+
+async function sbAddFoodLog(entry) {
+    const uid = getActiveUserId();
+    if (!uid || !entry || !entry.id) return;
+    const { error } = await db.from('food_log').insert({
+        id:               entry.id,
+        user_id:          uid,
+        date:             _localDate(),
+        time:             entry.time || null,
+        food:             entry.name || 'ארוחה',
+        portions_protein: entry.portions_protein || 0,
+        portions_carbs:   entry.portions_carbs   || 0,
+        portions_fat:     entry.portions_fat     || 0
+    });
+    if (error) console.warn('sbAddFoodLog:', error.message);
+}
+
+async function sbDeleteFoodLog(id) {
+    const uid = getActiveUserId();
+    if (!uid || !id) return;
+    const { error } = await db.from('food_log').delete().eq('id', id).eq('user_id', uid);
+    if (error) console.warn('sbDeleteFoodLog:', error.message);
+}
+
+async function sbUpdateFoodLog(id, fields) {
+    const uid = getActiveUserId();
+    if (!uid || !id) return;
+    const { error } = await db.from('food_log').update(fields).eq('id', id).eq('user_id', uid);
+    if (error) console.warn('sbUpdateFoodLog:', error.message);
+}
+
+async function sbFetchFoodLogRange(userId, fromDate) {
+    const { data, error } = await db.from('food_log')
+        .select('date, time, food, portions_protein, portions_carbs, portions_fat')
+        .eq('user_id', userId)
+        .gte('date', fromDate)
+        .order('date', { ascending: true })
+        .order('time', { ascending: true });
+    if (error) { console.warn('sbFetchFoodLogRange:', error.message); return []; }
+    return data || [];
+}
+
 // ── היסטוריית משקל ──────────────────────────────────────────
 
 async function sbFetchWeightHistory(userId) {
