@@ -6,9 +6,6 @@
       "schedule": "2 0 * * 0"
     }
   ],
-  "env": {
-    "CRON_SECRET": "213f544eaa6d6a437b312e8178c563a3da9d521858a0bac0"
-  },
   "headers": [
     {
       "source": "/manifest.json",
