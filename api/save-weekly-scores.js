@@ -30,7 +30,7 @@ module.exports = async (req, res) => {
 
     const { data: profiles, error: profErr } = await supabase
         .from('profiles')
-        .select('id, workouts_per_week, protein_ratio, current_weight, start_weight, vacation_mode, portion_values')
+        .select('id, workouts_per_week, protein_ratio, current_weight, start_weight, vacation_mode, portion_values, birth_date, gender, height, activity_level, goal')
         .eq('is_admin', false);
 
     if (profErr) {
@@ -74,15 +74,31 @@ module.exports = async (req, res) => {
         const weeklyTarget  = profile.workouts_per_week || 3;
         const workoutsScore = Math.min(workoutDates.size / weeklyTarget, 1);
 
-        // Nutrition (40%): days where protein >= weight*ratio AND kcal >= calorieGoal*0.85
-        const weight      = profile.current_weight || profile.start_weight || 80;
-        const proteinGoal = Math.round(weight * (profile.protein_ratio || 2));
-        const calorieGoal = 2000;
-
+        // Nutrition (40%): a day counts only if ALL 3 portions meet their target.
+        // Formula identical to app.js calcPortionTargets() / auth.js coach dashboard — keep them in sync.
         const pv  = profile.portion_values || {};
         const pvP = pv.protein ?? 27.5;
         const pvC = pv.carbs   ?? 37.5;
         const pvF = pv.fat     ?? 12.5;
+
+        const weight   = profile.current_weight || profile.start_weight || 80;
+        const age      = profile.birth_date ? Math.floor((new Date() - new Date(profile.birth_date)) / (1000*60*60*24*365.25)) : 30;
+        const gender   = profile.gender || 'male';
+        const height   = profile.height || 170;
+        const activity = profile.activity_level || 1.4;
+        const goal     = profile.goal || 'maintain';
+        const pRatio   = profile.protein_ratio || 2.0;
+        let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+        bmr = gender === 'male' ? bmr + 5 : bmr - 161;
+        const tdee         = Math.round(bmr * activity);
+        const totalCal     = goal === 'cut' ? tdee - 250 : tdee + 250;
+        const proteinGrams = weight * pRatio;
+        const remaining    = totalCal - proteinGrams * 4;
+        const carbCals     = goal === 'cut' ? remaining * 0.7 : remaining * 0.6;
+        const fatCals      = goal === 'cut' ? remaining * 0.3 : remaining * 0.4;
+        const tgProtein    = Math.round((proteinGrams / pvP) * 2) / 2;
+        const tgCarbs      = Math.round((carbCals / 4 / pvC) * 2) / 2;
+        const tgFat        = Math.round((fatCals / 9 / pvF) * 2) / 2;
 
         const { data: nutritionData } = await supabase
             .from('daily_nutrition')
@@ -93,9 +109,7 @@ module.exports = async (req, res) => {
 
         let nutritionMet = 0;
         (nutritionData || []).forEach(r => {
-            const proteinG = r.protein * pvP;
-            const kcal = proteinG * 4 + (r.carbs * pvC) * 4 + (r.fat * pvF) * 9;
-            if (proteinG >= proteinGoal && kcal >= calorieGoal * 0.85) nutritionMet++;
+            if (r.protein >= tgProtein && r.carbs >= tgCarbs && r.fat >= tgFat) nutritionMet++;
         });
         const nutritionScore = Math.min(nutritionMet / 7, 1);
 
