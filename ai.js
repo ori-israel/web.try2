@@ -311,11 +311,10 @@ async function buildSystemPrompt() {
 
     const { monStr, sunStr } = typeof getWeekRange === 'function' ? getWeekRange() : (() => {
         const now = new Date();
-        const day = now.getDay();
-        const mon = new Date(now); mon.setDate(now.getDate() - ((day + 6) % 7));
-        const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
-        const fmt = d => d.toISOString().split('T')[0];
-        return { monStr: fmt(mon), sunStr: fmt(sun) };
+        const sun = new Date(now); sun.setDate(now.getDate() - now.getDay()); // back to Sunday
+        const sat = new Date(sun); sat.setDate(sun.getDate() + 6);
+        const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        return { monStr: fmt(sun), sunStr: fmt(sat) };
     })();
 
     const [logsRes, scoresRes, qRes, weightRes, curWorkoutRes, curNutRes, curWeightRes] = await Promise.allSettled([

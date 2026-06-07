@@ -651,10 +651,9 @@ function buildWorkoutAccordions(targets = {}) {
 
    function _surveyWeekKey() {
         const today = new Date();
-        const dow = today.getDay();
-        const mon = new Date(today);
-        mon.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
-        return `${mon.getFullYear()}-${String(mon.getMonth()+1).padStart(2,'0')}-${String(mon.getDate()).padStart(2,'0')}`;
+        const sun = new Date(today);
+        sun.setDate(today.getDate() - today.getDay()); // back to Sunday (week starts Sunday)
+        return `${sun.getFullYear()}-${String(sun.getMonth()+1).padStart(2,'0')}-${String(sun.getDate()).padStart(2,'0')}`;
     }
 
     async function checkThursdayBanner() {
