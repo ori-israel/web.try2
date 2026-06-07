@@ -383,7 +383,7 @@ async function buildSystemPrompt() {
     }
 
     if (scoreRows && scoreRows.length) {
-        prompt += '\n\nהיסטוריית ציונים שבועיים:\n' + scoreRows.map(r => `• ${r.week_start}: ${Math.round(r.score)} נק׳ | אימונים: ${Math.round(r.workouts_score)} | תזונה: ${Math.round(r.nutrition_score)} | הרגלים: ${Math.round(r.habits_score)}`).join('\n');
+        prompt += '\n\nהיסטוריית ציונים שבועיים (8 אחרונים):\n' + scoreRows.slice(0, 8).map(r => `• ${r.week_start}: ${Math.round(r.score)} נק׳ | אימונים: ${Math.round(r.workouts_score)} | תזונה: ${Math.round(r.nutrition_score)} | הרגלים: ${Math.round(r.habits_score)}`).join('\n');
     }
 
     if (qRow) {
@@ -417,8 +417,8 @@ async function buildSystemPrompt() {
                     }).join(', ');
                     return `• ${date}: ${items}`;
                 });
-                prompt += '\n\nיומן מאכלים (7 ימים אחרונים — ח=חלבון פ=פחמימה ש=שומן, ביחידות מנה):\n' + dayLines.join('\n');
-                prompt += '\nהמרת קלוריות למנה (השתמש אך ורק בהמרה הזו, אל תנחש לפי גרמים): מנת חלבון=110 קלוריות | מנת פחמימה=150 קלוריות | מנת שומן=112.5 קלוריות. סכום קלוריות = מנות×הערך לעיל. אל תמיר מנות לגרמים ואל תחשב בדרך אחרת.';
+                prompt += '\n\nיומן מאכלים (7 ימים, במנות; ח=חלבון פ=פחמימה ש=שומן):\n' + dayLines.join('\n');
+                prompt += '\nהמרה קבועה (אל תנחש): מנה=110/150/112.5 קל׳ (ח/פ/ש), או 27.5/37.5/12.5 גרם מאקרו.';
             }
         } catch (e) { /* נכשל בשקט */ }
     }
