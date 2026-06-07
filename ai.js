@@ -151,9 +151,12 @@ async function sendAIMessage() {
     }
 }
 
+let _msgIdCounter = 0;
+function _uniqueMsgId() { return 'msg-' + Date.now() + '-' + (++_msgIdCounter); }
+
 function addLoadingMessage() {
     const container = document.getElementById('ai-chat-messages');
-    const id = 'msg-' + Date.now();
+    const id = _uniqueMsgId();
     const div = document.createElement('div');
     div.id = id;
     div.className = 'typing-indicator';
@@ -181,7 +184,7 @@ function addLoadingMessage() {
 
 function addChatMessage(text, role, isLoading = false) {
     const container = document.getElementById('ai-chat-messages');
-    const id = 'msg-' + Date.now();
+    const id = _uniqueMsgId();
     const div = document.createElement('div');
     div.id = id;
     div.style.cssText = `
