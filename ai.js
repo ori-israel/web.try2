@@ -19,7 +19,13 @@ window.aiWebSearch = false;
 function _buildUSDAContext(text) {
     if (typeof USDA_TABLE === 'undefined') return '';
     const t = text.toLowerCase();
-    const hits = USDA_TABLE.filter(r => text.includes(r.name) || t.includes(r.name_en.toLowerCase()));
+    const hits = USDA_TABLE.filter(r => {
+        if (text.includes(r.name)) return true;
+        if (t.includes(r.name_en.toLowerCase())) return true;
+        // בדוק אם שתי המילים הראשונות של שם USDA נמצאות בהודעה (למשל "חזה עוף" ← "חזה עוף ללא עור")
+        const firstTwo = r.name.split(' ').slice(0, 2).join(' ');
+        return firstTwo.length > 3 && text.includes(firstTwo);
+    });
     if (!hits.length) return '';
     return hits.slice(0, 5).map(r => `${r.name} — חלבון ${r.protein}g שומן ${r.fat}g פחמימות ${r.carbs}g ל-100ג`).join(' | ');
 }
