@@ -71,9 +71,9 @@ async function sendAIMessage() {
 
     input.value = '';
     addChatMessage(msg, 'user');
+    aiChatHistory.push({ role: 'user', content: msg });
     const usdaCtx = _buildUSDAContext(msg);
     const msgWithUSDA = usdaCtx ? `${msg}\n\n[נתוני USDA: ${usdaCtx}]` : msg;
-    aiChatHistory.push({ role: 'user', content: msgWithUSDA });
 
     const loadingId = addLoadingMessage();
 
@@ -97,13 +97,11 @@ async function sendAIMessage() {
     `;
 
     try {
-        const messages = aiChatHistory
-            .slice(-6)
-            .filter((m, i) => !(i === 0 && m.role === 'assistant'))
-            .map(m => ({
-                role: m.role === 'assistant' ? 'model' : 'user',
-                parts: [{ text: m.content }]
-            }));
+        const historySlice = aiChatHistory.slice(-6).filter((m, i) => !(i === 0 && m.role === 'assistant'));
+        const messages = historySlice.map((m, i) => ({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: (i === historySlice.length - 1 && m.role === 'user') ? msgWithUSDA : m.content }]
+        }));
 
         const { data: { session: _aiSession } } = await db.auth.getSession();
         if (!_aiSession) throw new Error('לא מחובר');
