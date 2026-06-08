@@ -7467,9 +7467,129 @@ function deleteFoodLogEntry(idx) {
     renderFoodLog();
 }
 
+let _flDate = null; // null = היום
+let _flCalOpen = false;
+
+function _flToday() { return typeof localDateStr === 'function' ? localDateStr() : new Date().toISOString().slice(0,10); }
+function _flMinDate() { const d = new Date(_flToday() + 'T12:00:00'); d.setDate(d.getDate()-6); return d.toISOString().slice(0,10); }
+function _flIsToday() { return !_flDate || _flDate === _flToday(); }
+
+function _renderFoodLogNav() {
+    const nav = document.getElementById('food-log-nav');
+    if (!nav) return;
+    const today = _flToday();
+    const isToday = _flIsToday();
+    const dateStr = _flDate || today;
+    const minDate = _flMinDate();
+    const atMin = dateStr <= minDate;
+    const d = new Date(dateStr + 'T12:00:00');
+    const dayNames = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+    const dateLabel = isToday ? 'היום' : `יום ${dayNames[d.getDay()]} · ${d.toLocaleDateString('he-IL',{day:'numeric',month:'numeric'})}`;
+    const btnStyle = 'background:#5b7cfa;color:#fff;border:none;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;font-family:inherit;';
+
+    // 7 ימים לבחירה
+    let days = '';
+    for (let i = 6; i >= 0; i--) {
+        const dd = new Date(today + 'T12:00:00'); dd.setDate(dd.getDate() - i);
+        const ds = dd.toISOString().slice(0,10);
+        const lbl = i === 0 ? 'היום' : `${dayNames[dd.getDay()]} ${dd.getDate()}/${dd.getMonth()+1}`;
+        const sel = ds === dateStr;
+        days += `<div onclick="_flSelectDate('${ds}')" style="padding:7px 12px;cursor:pointer;font-size:13px;background:${sel?'var(--accent)':'transparent'};color:${sel?'#fff':'var(--text-primary)'};border-radius:8px;">${lbl}</div>`;
+    }
+
+    nav.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+        <button onclick="_flPrev()" ${atMin?'disabled':''} style="${btnStyle}opacity:${atMin?'.35':'1'}">◀</button>
+        <div style="position:relative;flex:1;text-align:center;">
+            <button onclick="_flToggleCal()" style="background:transparent;border:none;border-bottom:2px solid #5b7cfa;color:var(--text-primary);font-size:14px;font-weight:bold;cursor:pointer;padding:3px 8px;font-family:inherit;">${dateLabel}</button>
+            <div id="fl-cal" style="display:none;position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:1000;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:8px;min-width:180px;box-shadow:0 4px 20px rgba(0,0,0,0.2);">${days}</div>
+        </div>
+        <button onclick="_flNext()" ${isToday?'disabled':''} style="${btnStyle}opacity:${isToday?'.35':'1'}">▶</button>
+    </div>
+    ${!isToday ? `<div style="text-align:center;margin-bottom:8px;"><button onclick="_flGoToday()" style="${btnStyle}font-size:12px;">חזרה להיום</button></div>` : ''}`;
+
+    const cal = document.getElementById('fl-cal');
+    if (cal) {
+        cal.addEventListener('click', e => e.stopPropagation());
+        document.addEventListener('click', function _flOutside(e) {
+            if (!cal.contains(e.target) && !e.target.closest('[onclick*="_flToggleCal"]')) {
+                cal.style.display = 'none'; _flCalOpen = false;
+            }
+        }, { once: true });
+    }
+}
+
+function _flToggleCal() {
+    _flCalOpen = !_flCalOpen;
+    const cal = document.getElementById('fl-cal');
+    if (cal) cal.style.display = _flCalOpen ? 'block' : 'none';
+}
+
+function _flSelectDate(ds) {
+    _flDate = ds === _flToday() ? null : ds;
+    _flCalOpen = false;
+    const cal = document.getElementById('fl-cal');
+    if (cal) cal.style.display = 'none';
+    if (_flIsToday()) { renderFoodLog(); } else { _renderFoodLogPastDay(ds); }
+}
+
+function _flPrev() {
+    const d = new Date((_flDate || _flToday()) + 'T12:00:00');
+    d.setDate(d.getDate() - 1);
+    const ds = d.toISOString().slice(0,10);
+    if (ds < _flMinDate()) return;
+    _flSelectDate(ds);
+}
+
+function _flNext() {
+    if (_flIsToday()) return;
+    const d = new Date(_flDate + 'T12:00:00');
+    d.setDate(d.getDate() + 1);
+    _flSelectDate(d.toISOString().slice(0,10));
+}
+
+function _flGoToday() { _flSelectDate(_flToday()); }
+
+async function _renderFoodLogPastDay(dateStr) {
+    _renderFoodLogNav();
+    const el = document.getElementById('food-log-list');
+    if (!el) return;
+    el.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:12px 0;font-size:13px;">טוען...</div>';
+    try {
+        const userId = getActiveUserId();
+        const rows = await sbFetchFoodLogRange(userId, dateStr);
+        const items = (rows || []).filter(r => r.date === dateStr);
+        if (!items.length) {
+            el.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:12px 0;font-size:13px;">אין רישומים ביום זה</div>';
+            return;
+        }
+        let totalP=0,totalC=0,totalF=0;
+        let html='', lastTime=null;
+        items.forEach(r => {
+            totalP+=r.portions_protein||0; totalC+=r.portions_carbs||0; totalF+=r.portions_fat||0;
+            if (r.time !== lastTime) {
+                if (lastTime!==null) html+=`</div><hr style="border:none;border-top:2px solid var(--border);margin:4px 0 10px;">`;
+                html+=`<div style="margin-bottom:6px;"><div style="font-size:11px;font-weight:700;color:var(--accent);padding:8px 4px 4px;text-align:right;">🕐 ${r.time||''}</div>`;
+                lastTime=r.time;
+            }
+            html+=`<div style="padding:7px 4px;border-bottom:1px solid var(--border-light);font-size:13px;text-align:right;">
+                <div>${r.food}</div>
+                <div style="font-size:11px;color:var(--text-muted);">${r.portions_protein?`🥩${r.portions_protein} `:''}${r.portions_carbs?`🍚${r.portions_carbs} `:''}${r.portions_fat?`🥑${r.portions_fat}`:''}
+                </div></div>`;
+        });
+        if (lastTime!==null) html+='</div>';
+        el.innerHTML = html + `<div style="padding:10px 4px 4px;font-size:12px;color:var(--text-secondary);display:flex;gap:12px;">
+            <span>סה"כ:</span>${totalP?`<span>🥩 ${totalP} מנות</span>`:''}${totalC?`<span>🍚 ${totalC} מנות</span>`:''}${totalF?`<span>🥑 ${totalF} מנות</span>`:''}
+        </div>`;
+    } catch(e) {
+        el.innerHTML = '<div style="text-align:center;color:#e55;padding:12px;">שגיאה בטעינה</div>';
+    }
+}
+
 function renderFoodLog() {
     const el = document.getElementById('food-log-list');
     if (!el) return;
+    _flDate = null; // תמיד מאפס להיום כשנקרא ישירות
+    _renderFoodLogNav();
     cleanupOldFoodLogs();
     const entries = loadFoodLogEntries();
     if (!entries.length) {
@@ -7841,89 +7961,4 @@ function _showProgressPhotoToast(msg, success = true) {
 }
 
 
-// ── יומן אוכל 7 ימים ────────────────────────────────────────────────────────
-
-let _fwlDate = null;
-let _fwlCache = {};
-const _fwlFmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-
-async function openFoodWeekLog() {
-    _fwlDate = _fwlFmt(new Date());
-    _fwlCache = {};
-    document.getElementById('food-week-modal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    await _renderFoodWeekDay();
-}
-
-function closeFoodWeekLog() {
-    document.getElementById('food-week-modal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-}
-
-async function _fwlNav(delta) {
-    const d = new Date(_fwlDate + 'T12:00:00');
-    d.setDate(d.getDate() + delta);
-    _fwlDate = _fwlFmt(d);
-    await _renderFoodWeekDay();
-}
-
-async function _renderFoodWeekDay() {
-    const content = document.getElementById('food-week-content');
-    const today = _fwlFmt(new Date());
-    const minDate = (() => { const d = new Date(today + 'T12:00:00'); d.setDate(d.getDate() - 6); return _fwlFmt(d); })();
-    const isToday = _fwlDate === today;
-    const isMin   = _fwlDate <= minDate;
-    const navStyle = 'background:#5b7cfa;color:#fff;border:none;border-radius:20px;padding:8px 14px;font-size:13px;font-weight:bold;cursor:pointer;font-family:inherit;';
-
-    const d = new Date(_fwlDate + 'T12:00:00');
-    const dayNames = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
-    const label = isToday ? 'היום' : `יום ${dayNames[d.getDay()]} · ${d.toLocaleDateString('he-IL', { day:'numeric', month:'numeric' })}`;
-
-    let nav = `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
-        <button onclick="_fwlNav(-1)" ${isMin?'disabled':''} style="${navStyle}opacity:${isMin?'.35':'1'}">יום קודם</button>
-        <strong style="flex:1;text-align:center;font-size:15px;color:var(--text-primary);">${label}</strong>
-        <button onclick="_fwlNav(1)" ${isToday?'disabled':''} style="${navStyle}opacity:${isToday?'.35':'1'}">יום הבא</button>
-    </div>`;
-
-    content.innerHTML = nav + '<div style="text-align:center;padding:16px;color:var(--text-secondary);font-size:13px;">טוען...</div>';
-
-    try {
-        if (!Object.keys(_fwlCache).length) {
-            const userId = getActiveUserId();
-            const rows = await sbFetchFoodLogRange(userId, minDate);
-            const byDay = {};
-            (rows || []).forEach(r => { (byDay[r.date] = byDay[r.date] || []).push(r); });
-            _fwlCache = byDay;
-        }
-
-        const items = _fwlCache[_fwlDate] || [];
-        let body = '';
-
-        if (!items.length) {
-            body = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">אין רישומים ביום זה</div>';
-        } else {
-            let totalP = 0, totalC = 0, totalF = 0;
-            items.forEach(r => { totalP += r.portions_protein||0; totalC += r.portions_carbs||0; totalF += r.portions_fat||0; });
-            body += '<div style="display:flex;flex-direction:column;gap:8px;">';
-            items.forEach(r => {
-                const macros = [];
-                if (r.portions_protein) macros.push(`🥩${r.portions_protein}`);
-                if (r.portions_carbs)   macros.push(`🍚${r.portions_carbs}`);
-                if (r.portions_fat)     macros.push(`🥑${r.portions_fat}`);
-                body += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg-card-alt);border-radius:8px;font-size:14px;">
-                    <span>${r.time ? `<span style="color:var(--text-muted);font-size:12px;margin-left:4px;">${r.time}</span>` : ''}${r.food}</span>
-                    <span style="color:var(--text-secondary);font-size:13px;white-space:nowrap;margin-right:6px;">${macros.join(' ')}</span>
-                </div>`;
-            });
-            body += '</div>';
-            body += `<div style="margin-top:12px;padding:10px;background:var(--bg-card-alt);border-radius:8px;display:flex;justify-content:center;gap:16px;font-size:14px;font-weight:600;">
-                <span>🥩 ${totalP}</span><span>🍚 ${totalC}</span><span>🥑 ${totalF}</span>
-            </div>`;
-        }
-
-        content.innerHTML = nav + body;
-    } catch (e) {
-        content.innerHTML = nav + '<div style="text-align:center;padding:16px;color:#e55;">שגיאה בטעינה</div>';
-    }
-}
 
