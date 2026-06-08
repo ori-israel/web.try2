@@ -173,8 +173,12 @@ async function sendAIMessage() {
             }
         }
 
+        // זיהוי FOOD_ADD והסרתו מהטקסט המוצג
+        const foodAddMatch = fullText.match(/FOOD_ADD:(\{[\s\S]*?\})/);
+        const displayText = fullText.replace(/FOOD_ADD:\{[\s\S]*?\}/, '').trim();
+
         if (replyTextDiv) {
-            replyTextDiv.innerHTML = fullText
+            replyTextDiv.innerHTML = displayText
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\n/g, '<br>');
 
@@ -187,9 +191,30 @@ async function sendAIMessage() {
             if (links) {
                 replyTextDiv.innerHTML += `<div style="font-size:12px;margin-top:8px;color:var(--text-muted);">מקורות: ${links}</div>`;
             }
+
+            // הוספה ליומן אם יש FOOD_ADD
+            if (foodAddMatch) {
+                try {
+                    const foodData = JSON.parse(foodAddMatch[1]);
+                    const portions = _calcPortionsFromMacros(foodData.protein_g || 0, foodData.carbs_g || 0, foodData.fat_g || 0);
+                    addFoodLogEntry({
+                        name:             foodData.name,
+                        grams:            Math.round(foodData.grams || 0),
+                        portions_protein: portions.protein || null,
+                        portions_carbs:   portions.carbs   || null,
+                        portions_fat:     portions.fat     || null
+                    });
+                    if (portions.protein) modifyPortion('protein', portions.protein);
+                    if (portions.carbs)   modifyPortion('carbs',   portions.carbs);
+                    if (portions.fat)     modifyPortion('fat',     portions.fat);
+                    replyTextDiv.innerHTML += `<div style="margin-top:8px;padding:6px 10px;background:var(--accent);color:#fff;border-radius:8px;font-size:14px;display:inline-block;">✅ נוסף ליומן</div>`;
+                } catch (e) {
+                    console.warn('FOOD_ADD parse error:', e);
+                }
+            }
         }
 
-        aiChatHistory.push({ role: 'assistant', content: fullText });
+        aiChatHistory.push({ role: 'assistant', content: displayText });
         sessionStorage.setItem('ai_chat_history', JSON.stringify(aiChatHistory));
 
     } catch (err) {
@@ -360,7 +385,8 @@ async function buildSystemPrompt() {
 יעד פגישה: ${localStorage.getItem('coaching_goal') || CLIENT.coachingGoal} | זום הבא: ${nextMeetingStr}
 אלרגיות: ${allergies} | לא אוהב: ${dislikedFoods} | אוהב: ${likedFoods}
 לוח אימונים: ${workoutsCompact}
-כללים: שאלות_מורכבות→ווטסאפ_לאורי | ללא_ייעוץ_רפואי | עודד_תמיד | תאריך_מהנתונים_בלבד | תשובות_קצרות | אל_תשתמש_בסימן_@ | אימון_מחר_לפי_שדה_מחר_בלבד_אל_תחשב_לבד | שאלה_על_ערכי_מוצר→רק_קלוריות+חלבון+פחמימה+שומן_ל-100ג_בלי_פירוט_נוסף`;
+כללים: שאלות_מורכבות→ווטסאפ_לאורי | ללא_ייעוץ_רפואי | עודד_תמיד | תאריך_מהנתונים_בלבד | תשובות_קצרות | אל_תשתמש_בסימן_@ | אימון_מחר_לפי_שדה_מחר_בלבד_אל_תחשב_לבד | שאלה_על_ערכי_מוצר→רק_קלוריות+חלבון+פחמימה+שומן_ל-100ג_בלי_פירוט_נוסף
+הוספה_ליומן: כשמשתמש מבקש להוסיף מאכל ליומן — קודם שאל לאישור: "אוסיף [שם] [כמות] — חלבון Xג, פחמימות Xג, שומן Xג. להוסיף?" | רק אחרי שהמשתמש אישר — כתוב בסוף התשובה בדיוק: FOOD_ADD:{"name":"שם (כמות יחידה)","grams":X,"protein_g":X,"fat_g":X,"carbs_g":X} | אם אמר לא או תיקן — עדכן ושאל שוב | אל תוסיף FOOD_ADD ללא אישור מפורש`;
 
     // בלוק משתנה — מתעדכן תוך כדי שיחה (מאקרו חי + ציון נוכחי). מצורף בסוף כדי לא לשבור מטמון.
     let volatile = '';

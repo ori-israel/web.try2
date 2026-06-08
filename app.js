@@ -291,6 +291,7 @@ function closeCompleteMsg() {
             }
         }
     }
+    window.modifyPortion = modifyPortion;
 
     function updatePortionProgress(type) {
         const val = userPortions[type];
