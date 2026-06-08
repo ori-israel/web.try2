@@ -6980,6 +6980,58 @@ function showAddItemForm() {
     document.getElementById('add-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('add-item-amount').focus(); });
 }
 
+// בירור מאקרו דרך Gemini + חיפוש באינטרנט (להזנה בכתב בלבד).
+// מחזיר את הטקסט המלא (מכיל JSON). זורק שגיאה אם נכשל / חריגה ממגבלה.
+async function geminiMacroLookup(prompt) {
+    const { data: { session } } = await db.auth.getSession();
+    const token = session?.access_token;
+    if (!token) throw new Error('לא מחובר');
+
+    const resp = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+            model: 'gemini-2.5-flash',
+            kind: 'macro',
+            payload: {
+                generation_config: { response_modalities: ["TEXT"] },
+                tools: [{ google_search: {} }],
+                contents: [{ role: 'user', parts: [{ text: prompt }] }]
+            }
+        })
+    });
+    if (resp.status === 429) {
+        const e = await resp.json().catch(() => ({}));
+        const err = new Error(e.error || 'הגעת למגבלת הבירורים בשעה');
+        err.code = 429;
+        throw err;
+    }
+    if (!resp.ok) throw new Error('שגיאה בחישוב');
+
+    // קריאת ה-stream והרכבת הטקסט המלא
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '', buffer = '';
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+        for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const jsonStr = line.slice(6).trim();
+            if (!jsonStr || jsonStr === '[DONE]') continue;
+            try {
+                const parsed = JSON.parse(jsonStr);
+                const t = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (t) fullText += t;
+            } catch {}
+        }
+    }
+    return fullText;
+}
+
 async function confirmAddItem() {
     const nameEl   = document.getElementById('add-item-name');
     const amountEl = document.getElementById('add-item-amount');
@@ -7005,29 +7057,25 @@ async function confirmAddItem() {
         }
     }
 
-    // Claude — handles both grams and other units
+    // Gemini + חיפוש באינטרנט — תומך בגרמים וביחידות אחרות
     const row = document.getElementById('add-item-row');
     if (row) row.innerHTML = `<span style="color:#888;font-size:12px;">מחפש מידע תזונתי...</span>`;
 
     try {
-        const { data: { session } } = await db.auth.getSession();
-        const token = session?.access_token;
         const prompt = isGrams
-            ? `מהם ערכי המאקרו של ${amount} גרם ${name}? החזר JSON בלבד ללא הסברים: {"grams": ${amount}, "protein_g": X, "fat_g": X, "carbs_g": X}`
-            : `${amount} ${unit} של ${name} — כמה גרם זה וערכי מאקרו? החזר JSON בלבד ללא הסברים: {"grams": X, "protein_g": X, "fat_g": X, "carbs_g": X}`;
-        const resp = await fetch('/api/claude', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
-            body: JSON.stringify({ prompt })
-        });
-        if (resp.status === 429) {
-            const errData = await resp.json().catch(() => ({}));
-            const row2 = document.getElementById('add-item-row');
-            if (row2) row2.innerHTML = `<span style="color:#ff6b6b;font-size:12px;">${errData.error || 'הגעת למגבלת הבירורים בשעה'}</span>`;
-            return;
+            ? `מהם ערכי המאקרו של ${amount} גרם ${name}? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. החזר JSON בלבד ללא הסברים: {"grams": ${amount}, "protein_g": X, "fat_g": X, "carbs_g": X}`
+            : `${amount} ${unit} של ${name} — כמה גרם זה וערכי מאקרו? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. החזר JSON בלבד ללא הסברים: {"grams": X, "protein_g": X, "fat_g": X, "carbs_g": X}`;
+        let text;
+        try {
+            text = await geminiMacroLookup(prompt);
+        } catch (e) {
+            if (e.code === 429) {
+                const row2 = document.getElementById('add-item-row');
+                if (row2) row2.innerHTML = `<span style="color:#ff6b6b;font-size:12px;">${e.message}</span>`;
+                return;
+            }
+            throw e;
         }
-        if (!resp.ok) throw new Error('claude error');
-        const { text } = await resp.json();
         const match = text.match(/\{[\s\S]*?\}/);
         if (!match) throw new Error('no json');
         const macros = JSON.parse(match[0]);
@@ -7521,20 +7569,18 @@ async function saveFoodLogEdit() {
     errEl.style.display  = 'none';
 
     try {
-        const { data: { session } } = await db.auth.getSession();
-        const token  = session?.access_token;
         const isGrams = unit === 'גרם';
         const prompt  = isGrams
-            ? `מהם ערכי המאקרו של ${amount} גרם ${name}? החזר JSON בלבד: {"grams":${amount},"protein_g":X,"fat_g":X,"carbs_g":X}`
-            : `${amount} ${unit} של ${name} — כמה גרם וערכי מאקרו? החזר JSON בלבד: {"grams":X,"protein_g":X,"fat_g":X,"carbs_g":X}`;
+            ? `מהם ערכי המאקרו של ${amount} גרם ${name}? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. החזר JSON בלבד: {"grams":${amount},"protein_g":X,"fat_g":X,"carbs_g":X}`
+            : `${amount} ${unit} של ${name} — כמה גרם וערכי מאקרו? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. החזר JSON בלבד: {"grams":X,"protein_g":X,"fat_g":X,"carbs_g":X}`;
 
-        const resp = await fetch('/api/claude', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
-            body: JSON.stringify({ prompt })
-        });
-        if (!resp.ok) throw new Error('שגיאה בחישוב');
-        const { text } = await resp.json();
+        let text;
+        try {
+            text = await geminiMacroLookup(prompt);
+        } catch (e) {
+            if (e.code === 429) throw new Error(e.message);
+            throw new Error('שגיאה בחישוב');
+        }
         const jsonMatch = text.match(/\{[\s\S]*?\}/);
         if (!jsonMatch) throw new Error('שגיאה בניתוח');
         const macros = JSON.parse(jsonMatch[0]);

@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     const { data: { user }, error: authErr } = await db.auth.getUser(token);
     if (authErr || !user) return res.status(401).json({ error: 'Unauthorized' });
 
-    const { model = 'gemini-2.5-flash-lite', payload } = req.body || {};
+    const { model = 'gemini-2.5-flash-lite', payload, kind } = req.body || {};
 
     if (!ALLOWED_MODELS.has(model)) {
         return res.status(400).json({ error: 'Invalid model' });
@@ -63,22 +63,31 @@ export default async function handler(req, res) {
         .lt('created_at', new Date(Date.now() - 2 * 60 * 1000).toISOString())
         .then(() => {}, () => {});
 
+    // זיהוי חיפוש (צ'אט או מאקרו) — משמש להעברת google_search ל-Gemini
+    const isSearch = Array.isArray(payload.tools)
+        && payload.tools.some(t => t && (t.google_search || t.googleSearch));
+
     // Rate limit: 10 סריקות תמונה בשעה למשתמש (לא חל על צ'אט)
     if (isScan) {
         const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
         const { count } = await db.from('scan_logs').select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id).gte('created_at', hourAgo);
+            .eq('user_id', user.id).eq('type', 'scan').gte('created_at', hourAgo);
         if (count >= 10) return res.status(429).json({ error: 'הגעת למגבלת 10 סריקות בשעה. נסה שוב מאוחר יותר.' });
-        await db.from('scan_logs').insert({ user_id: user.id });
+        await db.from('scan_logs').insert({ user_id: user.id, type: 'scan' });
+    }
+
+    // Rate limit: 50 בירורי מאקרו בשעה למשתמש (הזנה בכתב — לא נספר במכסת הצ'אט)
+    if (kind === 'macro') {
+        const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        const { count } = await db.from('scan_logs').select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id).eq('type', 'macro').gte('created_at', hourAgo);
+        if (count >= 50) return res.status(429).json({ error: 'הגעת למגבלת 50 בירורי מאקרו בשעה. נסה שוב מאוחר יותר.' });
+        await db.from('scan_logs').insert({ user_id: user.id, type: 'macro' });
     }
 
     // ── מגבלות צ'אט יומיות (אכיפה בשרת, מתאפס בחצות ישראל) ──────
-    // צ'אט בלבד (לא סריקת תמונה). 50 הודעות/יום, 20 חיפושים/יום.
-    let isSearch = false;
-    if (!isScan) {
-        isSearch = Array.isArray(payload.tools)
-            && payload.tools.some(t => t && (t.google_search || t.googleSearch));
-
+    // צ'אט בלבד (לא סריקת תמונה, לא בירור מאקרו). 50 הודעות/יום, 20 חיפושים/יום.
+    if (!isScan && kind !== 'macro') {
         // תאריך לפי שעון ישראל → איפוס אוטומטי בחצות מקומית
         const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
 
