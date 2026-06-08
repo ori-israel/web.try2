@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 export const config = { api: { bodyParser: { sizeLimit: '10mb' } } };
 
 const ALLOWED_MODELS = new Set([
+    'gemini-2.5-flash',
     'gemini-2.5-flash-lite',
     'gemini-2.0-flash',
     'gemini-1.5-flash',
@@ -71,15 +72,51 @@ export default async function handler(req, res) {
         await db.from('scan_logs').insert({ user_id: user.id });
     }
 
+    // ── מגבלות צ'אט יומיות (אכיפה בשרת, מתאפס בחצות ישראל) ──────
+    // צ'אט בלבד (לא סריקת תמונה). 50 הודעות/יום, 20 חיפושים/יום.
+    let isSearch = false;
+    if (!isScan) {
+        isSearch = Array.isArray(payload.tools)
+            && payload.tools.some(t => t && (t.google_search || t.googleSearch));
+
+        // תאריך לפי שעון ישראל → איפוס אוטומטי בחצות מקומית
+        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
+
+        const { data: usage } = await db.from('daily_usage')
+            .select('messages, searches').eq('user_id', user.id).eq('date', today).maybeSingle();
+        const curMsg = usage?.messages || 0;
+        const curSearch = usage?.searches || 0;
+
+        if (curMsg >= 50)
+            return res.status(429).json({ error: 'הגעת למגבלת ההודעות היומית (50). נסה שוב מחר.' });
+        if (isSearch && curSearch >= 20)
+            return res.status(429).json({ error: 'הגעת למגבלת החיפושים היומית (20). נסה שוב מחר.' });
+
+        await db.from('daily_usage').upsert({
+            user_id: user.id,
+            date: today,
+            messages: curMsg + 1,
+            searches: curSearch + (isSearch ? 1 : 0),
+        }, { onConflict: 'user_id,date' });
+
+        // ניקוי שורות ישנות ברקע (לא חוסם תשובה) — שומר רק היום + אתמול
+        const cutoff = new Date(Date.now() - 36 * 60 * 60 * 1000)
+            .toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
+        db.from('daily_usage').delete().lt('date', cutoff).then(() => {}, () => {});
+    }
+
     if (!payload.contents) {
         return res.status(400).json({ error: 'Missing contents in payload' });
     }
 
     // Only forward known-safe fields — block safetySettings overrides
+    // tools: רק google_search מותר (חוסם הזרקת tools אחרים)
+    const safeTools = isSearch ? [{ google_search: {} }] : null;
     const safePayload = {
         contents: payload.contents,
         ...(payload.system_instruction ? { system_instruction: payload.system_instruction } : {}),
         ...(payload.generation_config  ? { generation_config:  payload.generation_config  } : {}),
+        ...(safeTools ? { tools: safeTools } : {}),
     };
 
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;

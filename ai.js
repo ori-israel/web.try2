@@ -14,6 +14,21 @@ function closeAIChat() {
 
 let aiChatHistory = JSON.parse(sessionStorage.getItem('ai_chat_history') || '[]');
 
+// מצב חיפוש באינטרנט — כבוי כברירת מחדל
+window.aiWebSearch = false;
+function toggleWebSearch(btn) {
+    window.aiWebSearch = !window.aiWebSearch;
+    if (window.aiWebSearch) {
+        btn.style.background = 'var(--accent)';
+        btn.style.color = '#fff';
+        btn.title = 'חיפוש באינטרנט: פעיל';
+    } else {
+        btn.style.background = 'var(--bg-card-alt)';
+        btn.style.color = '';
+        btn.title = 'חיפוש באינטרנט: כבוי';
+    }
+}
+
 async function sendAIMessage() {
     const input = document.getElementById('ai-chat-input');
     const msg = input.value.trim();
@@ -77,16 +92,30 @@ async function sendAIMessage() {
                 'Authorization': `Bearer ${_aiSession.access_token}`,
             },
             body: JSON.stringify({
-                model: 'gemini-2.5-flash-lite',
+                model: 'gemini-2.5-flash',
                 payload: {
                     system_instruction: { parts: [{ text: await buildSystemPrompt() }] },
                     generation_config: { response_modalities: ["TEXT"] },
-                    contents: messages
+                    contents: messages,
+                    ...(window.aiWebSearch ? { tools: [{ google_search: {} }] } : {})
                 }
             })
         });
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) {
+            let _msg = 'שגיאה בחיבור, נסה שוב.';
+            if (response.status === 429) {
+                const _e = await response.json().catch(() => ({}));
+                _msg = _e.error || 'הגעת למגבלה היומית. נסה שוב מחר.';
+            }
+            const loadingEl = document.getElementById(loadingId);
+            if (loadingEl) {
+                loadingEl.className = '';
+                loadingEl.style.cssText = bubbleStyle;
+                loadingEl.innerHTML = `<span style="font-size:16px;">🤖</span><span>${_msg}</span>`;
+            }
+            return;
+        }
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
@@ -107,6 +136,7 @@ async function sendAIMessage() {
 
         let fullText = '';
         let buffer = '';
+        let lastGrounding = null;
 
         while (true) {
             const { done, value } = await reader.read();
@@ -127,6 +157,8 @@ async function sendAIMessage() {
                         fullText += text;
                         if (replyTextDiv) replyTextDiv.textContent = fullText;
                     }
+                    const gm = parsed.candidates?.[0]?.groundingMetadata;
+                    if (gm) lastGrounding = gm;
                 } catch {}
             }
         }
@@ -135,6 +167,16 @@ async function sendAIMessage() {
             replyTextDiv.innerHTML = fullText
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\n/g, '<br>');
+
+            // הצגת מקורות (חובה לפי תנאי Google כשמשתמשים בחיפוש)
+            const chunks = lastGrounding?.groundingChunks || [];
+            const links = chunks
+                .filter(c => c.web?.uri)
+                .map(c => `<a href="${c.web.uri}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">🔗 ${c.web.title || 'מקור'}</a>`)
+                .join(' · ');
+            if (links) {
+                replyTextDiv.innerHTML += `<div style="font-size:12px;margin-top:8px;color:var(--text-muted);">מקורות: ${links}</div>`;
+            }
         }
 
         aiChatHistory.push({ role: 'assistant', content: fullText });
