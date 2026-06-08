@@ -349,9 +349,11 @@ async function buildSystemPrompt() {
 סטריקים: אימון ${workoutStreak} | תזונה ${nutritionStreak}
 יעד פגישה: ${localStorage.getItem('coaching_goal') || CLIENT.coachingGoal} | זום הבא: ${nextMeetingStr}
 אלרגיות: ${allergies} | לא אוהב: ${dislikedFoods} | אוהב: ${likedFoods}
-תזונה היום (מנות נצרך מתוך יעד): חלבון נצרך ${pVal} יעד ${pTgt} | פחמימה נצרך ${cVal} יעד ${cTgt} | שומן נצרך ${fVal} יעד ${fTgt} (כמות שאכל=נצרך בלבד, היעד אינו כמות שנאכלה. גרם למנה: חלבון=27.5 פחמימה=37.5 שומן=12.5)
 לוח אימונים: ${workoutsCompact}
 כללים: שאלות_מורכבות→ווטסאפ_לאורי | ללא_ייעוץ_רפואי | עודד_תמיד | תאריך_מהנתונים_בלבד | תשובות_קצרות | אל_תשתמש_בסימן_@ | אימון_מחר_לפי_שדה_מחר_בלבד_אל_תחשב_לבד | שאלה_על_ערכי_מוצר→רק_קלוריות+חלבון+פחמימה+שומן_ל-100ג_בלי_פירוט_נוסף`;
+
+    // בלוק משתנה — מתעדכן תוך כדי שיחה (מאקרו חי + ציון נוכחי). מצורף בסוף כדי לא לשבור מטמון.
+    let volatile = '';
 
     const userId = getActiveUserId();
 
@@ -411,7 +413,7 @@ async function buildSystemPrompt() {
         const ns = Math.min(nutritionMet / 7, 1);
         const hs = hasWeightThisWeek ? 1 : 0;
         const curScore = Math.round((ws * 0.4 + ns * 0.4 + hs * 0.2) * 100);
-        prompt += `\n\nציון שבועי נוכחי (${monStr} – ${sunStr}): ${curScore}% | אימונים: ${workoutCount}/${weeklyTarget} | תזונה: ${nutritionMet}/7 ימים | שקילה: ${hasWeightThisWeek ? 'כן' : 'לא'}`;
+        volatile += `\n\nציון שבועי נוכחי (${monStr} – ${sunStr}): ${curScore}% | אימונים: ${workoutCount}/${weeklyTarget} | תזונה: ${nutritionMet}/7 ימים | שקילה: ${hasWeightThisWeek ? 'כן' : 'לא'}`;
     }
 
     if (logs && logs.length) {
@@ -469,7 +471,11 @@ async function buildSystemPrompt() {
         } catch (e) { /* נכשל בשקט */ }
     }
 
-    return prompt;
+    // מאקרו חי של היום — משתנה תוך כדי שיחה, לכן בבלוק המשתנה בסוף
+    volatile += `\n\nתזונה היום (מנות נצרך מתוך יעד): חלבון נצרך ${pVal} יעד ${pTgt} | פחמימה נצרך ${cVal} יעד ${cTgt} | שומן נצרך ${fVal} יעד ${fTgt} (כמות שאכל=נצרך בלבד, היעד אינו כמות שנאכלה. גרם למנה: חלבון=27.5 פחמימה=37.5 שומן=12.5)`;
+
+    // קבוע (נשמר במטמון) + משתנה (בסוף) = אותו מידע בדיוק, סדר ממוטב למטמון
+    return prompt + volatile;
 }
 
 function checkBirthday() {
