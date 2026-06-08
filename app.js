@@ -7570,6 +7570,31 @@ async function saveFoodLogEdit() {
 
     try {
         const isGrams = unit === 'גרם';
+
+        // בדיקת USDA לפני Gemini — חינם ומדויק
+        if (isGrams) {
+            const usdaItem = enrichItemMacros({ name, grams: amount, lookup_name: name });
+            if (usdaItem.protein_g > 0 || usdaItem.fat_g > 0 || usdaItem.carbs_g > 0) {
+                const newPortions = _calcPortionsFromMacros(usdaItem.protein_g, usdaItem.carbs_g, usdaItem.fat_g);
+                const entries = loadFoodLogEntries();
+                const oldEntry = entries[idx];
+                if (oldEntry.portions_protein) modifyPortion('protein', -oldEntry.portions_protein);
+                if (oldEntry.portions_carbs)   modifyPortion('carbs',   -oldEntry.portions_carbs);
+                if (oldEntry.portions_fat)     modifyPortion('fat',     -oldEntry.portions_fat);
+                entries[idx] = { ...oldEntry, name: `${name} (${amount} ${unit})`, grams: amount, portions_protein: newPortions.protein || null, portions_carbs: newPortions.carbs || null, portions_fat: newPortions.fat || null };
+                saveFoodLogEntries(entries);
+                if (entries[idx].id && typeof sbUpdateFoodLog === 'function') {
+                    sbUpdateFoodLog(entries[idx].id, { food: entries[idx].name, portions_protein: entries[idx].portions_protein || 0, portions_carbs: entries[idx].portions_carbs || 0, portions_fat: entries[idx].portions_fat || 0 }).catch(() => {});
+                }
+                if (newPortions.protein) modifyPortion('protein', newPortions.protein);
+                if (newPortions.carbs)   modifyPortion('carbs',   newPortions.carbs);
+                if (newPortions.fat)     modifyPortion('fat',     newPortions.fat);
+                renderFoodLog();
+                closeFoodLogEdit();
+                return;
+            }
+        }
+
         const prompt  = isGrams
             ? `מהם ערכי המאקרו של ${amount} גרם ${name}? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. החזר JSON בלבד: {"grams":${amount},"protein_g":X,"fat_g":X,"carbs_g":X}`
             : `${amount} ${unit} של ${name} — כמה גרם וערכי מאקרו? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. החזר JSON בלבד: {"grams":X,"protein_g":X,"fat_g":X,"carbs_g":X}`;

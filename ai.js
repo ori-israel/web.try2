@@ -16,6 +16,14 @@ let aiChatHistory = JSON.parse(sessionStorage.getItem('ai_chat_history') || '[]'
 
 // מצב חיפוש באינטרנט — כבוי כברירת מחדל
 window.aiWebSearch = false;
+function _buildUSDAContext(text) {
+    if (typeof USDA_TABLE === 'undefined') return '';
+    const t = text.toLowerCase();
+    const hits = USDA_TABLE.filter(r => text.includes(r.name) || t.includes(r.name_en.toLowerCase()));
+    if (!hits.length) return '';
+    return hits.slice(0, 5).map(r => `${r.name} — חלבון ${r.protein}g שומן ${r.fat}g פחמימות ${r.carbs}g ל-100ג`).join(' | ');
+}
+
 function toggleWebSearch(btn) {
     window.aiWebSearch = !window.aiWebSearch;
     if (window.aiWebSearch) {
@@ -50,7 +58,9 @@ async function sendAIMessage() {
 
     input.value = '';
     addChatMessage(msg, 'user');
-    aiChatHistory.push({ role: 'user', content: msg });
+    const usdaCtx = _buildUSDAContext(msg);
+    const msgWithUSDA = usdaCtx ? `${msg}\n\n[נתוני USDA: ${usdaCtx}]` : msg;
+    aiChatHistory.push({ role: 'user', content: msgWithUSDA });
 
     const loadingId = addLoadingMessage();
 
