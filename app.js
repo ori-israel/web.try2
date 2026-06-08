@@ -7840,3 +7840,77 @@ function _showProgressPhotoToast(msg, success = true) {
     setTimeout(() => t.remove(), 3000);
 }
 
+
+// ── יומן אוכל 7 ימים ────────────────────────────────────────────────────────
+
+async function openFoodWeekLog() {
+    const modal = document.getElementById('food-week-modal');
+    const content = document.getElementById('food-week-content');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    content.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">טוען...</div>';
+
+    try {
+        const userId = getActiveUserId();
+        const fromDate = new Date();
+        fromDate.setDate(fromDate.getDate() - 6);
+        const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const rows = await sbFetchFoodLogRange(userId, fmt(fromDate));
+
+        if (!rows || !rows.length) {
+            content.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">אין נתונים ל-7 הימים האחרונים</div>';
+            return;
+        }
+
+        const byDay = {};
+        rows.forEach(r => { (byDay[r.date] = byDay[r.date] || []).push(r); });
+
+        const dayNames = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+        let html = '';
+
+        Object.keys(byDay).sort().reverse().forEach(date => {
+            const items = byDay[date];
+            const d = new Date(date + 'T12:00:00');
+            const dayName = dayNames[d.getDay()];
+            const dateLabel = d.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+            const isToday = date === fmt(new Date());
+
+            let totalP = 0, totalC = 0, totalF = 0;
+            items.forEach(r => {
+                totalP += r.portions_protein || 0;
+                totalC += r.portions_carbs   || 0;
+                totalF += r.portions_fat     || 0;
+            });
+
+            html += `<div style="margin-bottom:14px;border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+                <div style="background:var(--bg-card-alt);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+                    <strong style="color:var(--dark-green);">${isToday ? 'היום' : `יום ${dayName}`} · ${dateLabel}</strong>
+                    <span style="font-size:13px;color:var(--text-secondary);">🥩${totalP} · 🍚${totalC} · 🥑${totalF}</span>
+                </div>
+                <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px;">`;
+
+            items.forEach(r => {
+                const macros = [];
+                if (r.portions_protein) macros.push(`🥩${r.portions_protein}`);
+                if (r.portions_carbs)   macros.push(`🍚${r.portions_carbs}`);
+                if (r.portions_fat)     macros.push(`🥑${r.portions_fat}`);
+                html += `<div style="display:flex;justify-content:space-between;font-size:14px;">
+                    <span style="color:var(--text-primary);">${r.time ? `<span style="color:var(--text-muted);font-size:12px;">${r.time}</span> ` : ''}${r.food}</span>
+                    <span style="color:var(--text-secondary);font-size:13px;white-space:nowrap;margin-right:8px;">${macros.join(' ')}</span>
+                </div>`;
+            });
+
+            html += '</div></div>';
+        });
+
+        content.innerHTML = html;
+    } catch (e) {
+        content.innerHTML = '<div style="text-align:center;padding:20px;color:#e55;">שגיאה בטעינת הנתונים</div>';
+        console.error('food week log:', e);
+    }
+}
+
+function closeFoodWeekLog() {
+    document.getElementById('food-week-modal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}

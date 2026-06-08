@@ -273,7 +273,10 @@
 
 
         <!-- יומן אוכל יומי -->
-        <button class="food-log-btn" onclick="toggleAccordion('food-log-accordion')">📋 מה אכלתי היום:</button>
+        <div style="display:flex;gap:8px;align-items:stretch;">
+            <button class="food-log-btn" style="flex:1;" onclick="toggleAccordion('food-log-accordion')">📋 מה אכלתי היום:</button>
+            <button onclick="openFoodWeekLog()" style="background:var(--bg-card-alt);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:14px;cursor:pointer;color:var(--text-primary);white-space:nowrap;">📅 7 ימים</button>
+        </div>
         <div id="food-log-accordion" class="accordion-content food-log-content">
             <div id="food-log-list" style="font-size:14px;"></div>
         </div>
@@ -1387,5 +1390,14 @@ function dismissMeetingReminder() {
 
 // checkMeetingReminder is called from reinitApp() in auth.js after data loads
 </script>
+<!-- מודל יומן אוכל 7 ימים -->
+<div id="food-week-modal" style="display:none;position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,0.6);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;" onclick="if(event.target===this)closeFoodWeekLog()">
+    <div style="background:var(--bg-card);border-radius:16px;padding:20px;width:100%;max-width:520px;position:relative;box-shadow:0 8px 32px rgba(0,0,0,0.3);margin:auto;">
+        <button onclick="closeFoodWeekLog()" style="position:absolute;top:10px;left:12px;background:transparent;border:none;font-size:22px;cursor:pointer;color:var(--text-primary);line-height:1;">×</button>
+        <h3 style="text-align:center;margin:0 0 16px;color:var(--dark-green);">📅 יומן אוכל — 7 ימים אחרונים</h3>
+        <div id="food-week-content"><div style="text-align:center;padding:20px;color:var(--text-secondary);">טוען...</div></div>
+    </div>
+</div>
+
 </body>
 </html>
