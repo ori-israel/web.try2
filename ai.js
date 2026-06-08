@@ -186,9 +186,9 @@ async function sendAIMessage() {
             }
         }
 
-        // זיהוי FOOD_ADD והסרתו מהטקסט המוצג
-        const foodAddMatch = fullText.match(/FOOD_ADD:(\{[\s\S]*?\})/);
-        const displayText = fullText.replace(/FOOD_ADD:\{[\s\S]*?\}/, '').trim();
+        // זיהוי כל FOOD_ADD והסרתם מהטקסט המוצג
+        const foodAddMatches = [...fullText.matchAll(/FOOD_ADD:(\{[\s\S]*?\})/g)];
+        const displayText = fullText.replace(/FOOD_ADD:\{[\s\S]*?\}/g, '').trim();
 
         if (replyTextDiv) {
             replyTextDiv.innerHTML = displayText
@@ -206,8 +206,9 @@ async function sendAIMessage() {
             }
 
             // הוספה ליומן אם יש FOOD_ADD
-            if (foodAddMatch) {
+            if (foodAddMatches.length > 0) {
                 try {
+                    for (const foodAddMatch of foodAddMatches) {
                     const foodData = JSON.parse(foodAddMatch[1]);
                     const portions = _calcPortionsFromMacros(foodData.protein_g || 0, foodData.carbs_g || 0, foodData.fat_g || 0);
                     addFoodLogEntry({
@@ -220,6 +221,7 @@ async function sendAIMessage() {
                     if (portions.protein) modifyPortion('protein', portions.protein);
                     if (portions.carbs)   modifyPortion('carbs',   portions.carbs);
                     if (portions.fat)     modifyPortion('fat',     portions.fat);
+                    }
                     replyTextDiv.innerHTML += `<div style="margin-top:8px;padding:6px 10px;background:var(--accent);color:#fff;border-radius:8px;font-size:14px;display:inline-block;">✅ נוסף ליומן</div>`;
                 } catch (e) {
                     console.warn('FOOD_ADD parse error:', e);
