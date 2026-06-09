@@ -46,6 +46,14 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Missing payload' });
     }
 
+    // הגבלת אורך הודעה — מקסימום 500 תווים
+    const contents = payload.contents || [];
+    const lastContent = contents[contents.length - 1];
+    const lastText = lastContent?.parts?.find(p => p.text)?.text || '';
+    if (lastText.length > 500) {
+        return res.status(400).json({ error: 'ההודעה ארוכה מדי (מקסימום 500 תווים).' });
+    }
+
     // סריקת תמונה מזוהה לפי inline_data בתוכן; צ'אט טקסט — לא
     const isScan = JSON.stringify(payload.contents || '').includes('inline_data');
 
