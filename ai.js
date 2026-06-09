@@ -116,7 +116,7 @@ async function sendAIMessage() {
                 model: 'gemini-2.5-flash',
                 payload: {
                     system_instruction: { parts: [{ text: await buildSystemPrompt() }] },
-                    generation_config: { response_modalities: ["TEXT"] },
+                    generation_config: { response_modalities: ["TEXT"], thinking_config: { thinking_budget: 0 } },
                     contents: messages,
                     ...(window.aiWebSearch ? { tools: [{ google_search: {} }] } : {})
                 }
@@ -186,7 +186,10 @@ async function sendAIMessage() {
 
         // זיהוי כל FOOD_ADD והסרתם מהטקסט המוצג
         const foodAddMatches = [...fullText.matchAll(/FOOD_ADD:(\{[\s\S]*?\})/g)];
-        const displayText = fullText.replace(/FOOD_ADD:\{[\s\S]*?\}/g, '').trim();
+        const displayText = fullText
+            .replace(/FOOD_ADD:\{[\s\S]*?\}/g, '')
+            .replace(/THOUGHT:[\s\S]*?(?=\n\n|$)/gi, '') // רשת ביטחון: הסרת מחשבה פנימית שדלפה
+            .trim();
 
         if (replyTextDiv) {
             replyTextDiv.innerHTML = displayText
