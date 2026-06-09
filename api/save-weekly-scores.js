@@ -16,7 +16,7 @@ async function computeScore(supabase, profile, weekStart, weekEnd) {
         .gte('date', weekStart)
         .lte('date', weekEnd);
     const workoutDates  = new Set((workoutData || []).map(r => r.date));
-    const weeklyTarget  = profile.workouts_per_week || 3;
+    const weeklyTarget  = Object.values(profile.workout_days || {}).reduce((s, days) => s + days.length, 0) || profile.workouts_per_week || 3;
     const workoutsScore = Math.min(workoutDates.size / weeklyTarget, 1);
 
     // תזונה (40%): יום נספר רק אם כל 3 המנות עומדות ביעד האישי
@@ -123,7 +123,7 @@ module.exports = async (req, res) => {
 
     const { data: profiles, error: profErr } = await supabase
         .from('profiles')
-        .select('id, workouts_per_week, protein_ratio, current_weight, start_weight, vacation_mode, portion_values, birth_date, gender, height, activity_level, goal')
+        .select('id, workouts_per_week, workout_days, protein_ratio, current_weight, start_weight, vacation_mode, portion_values, birth_date, gender, height, activity_level, goal')
         .eq('is_admin', false);
 
     if (profErr) {

@@ -453,7 +453,7 @@ async function sbFetchStreaks(userId) {
 
 // רצף אימונים שבועי: מספר השבועות הרצופים שבהם הושלם יעד האימונים השבועי
 async function sbFetchWorkoutStreak(userId) {
-    const weeklyTarget = CLIENT.workoutsPerWeek || 3;
+    const weeklyTarget = Object.values(CLIENT.workoutDays || {}).reduce((s, days) => s + days.length, 0) || CLIENT.workoutsPerWeek || 3;
     const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
     // ראשון של השבוע הנוכחי (0=ראשון)

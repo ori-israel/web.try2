@@ -1215,7 +1215,7 @@ async function renderWeeklyScore(userId) {
 
     const { monStr, sunStr } = getWeekRange();
     try {
-        const weeklyTarget = CLIENT.workoutsPerWeek || 3;
+        const weeklyTarget = Object.values(CLIENT.workoutDays || {}).reduce((s, days) => s + days.length, 0) || CLIENT.workoutsPerWeek || 3;
         const targets = calcPortionTargets();
 
         const [{ data: workoutData }, { data: nutritionRows }, { data: weightData }] = await Promise.all([
@@ -1301,7 +1301,7 @@ async function renderScoreHistory(userId) {
         const histData = (histRaw || []).reverse();
 
         // Current week — compute live from raw data
-        const weeklyTarget = CLIENT.workoutsPerWeek || 3;
+        const weeklyTarget = Object.values(CLIENT.workoutDays || {}).reduce((s, days) => s + days.length, 0) || CLIENT.workoutsPerWeek || 3;
         const targets2 = calcPortionTargets();
         const [{ data: wkData }, { data: nutData }, { data: wtData }] = await Promise.all([
             db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', thisMonStr).lte('date', thisSunStr),
