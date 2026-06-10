@@ -363,6 +363,7 @@ async function buildSystemPrompt() {
     const cTgt = document.getElementById('carbs-target')?.innerText?.replace('/ ','') || '?';
     const fVal = document.getElementById('fat-val')?.innerText || '0';
     const fTgt = document.getElementById('fat-target')?.innerText?.replace('/ ','') || '?';
+    const pv   = typeof portionValues !== 'undefined' ? portionValues : { protein: 27.5, carbs: 37.5, fat: 12.5 };
     const workoutTargets = (typeof _exerciseTargets !== 'undefined') ? _exerciseTargets : {};
 
     // בניית לוח אימונים לפי ימים (ללא אותיות)
@@ -443,7 +444,6 @@ async function buildSystemPrompt() {
     const curWeightData  = curWeightRes.status  === 'fulfilled' ? curWeightRes.value.data  : null;
     if (curWorkoutData !== null) {
         const weeklyTarget  = CLIENT.workoutsPerWeek || 3;
-        const pv            = typeof portionValues !== 'undefined' ? portionValues : { protein: 27.5, carbs: 37.5, fat: 12.5 };
         const workoutCount  = new Set((curWorkoutData || []).map(r => r.date)).size;
 
         // יעדי מנות אישיים — נוסחה זהה ל-calcPortionTargets()/cron/auth.js
@@ -529,7 +529,17 @@ async function buildSystemPrompt() {
     }
 
     // מאקרו חי של היום — משתנה תוך כדי שיחה, לכן בבלוק המשתנה בסוף
-    volatile += `\n\nתזונה היום (מנות נצרך מתוך יעד): חלבון נצרך ${pVal} יעד ${pTgt} | פחמימה נצרך ${cVal} יעד ${cTgt} | שומן נצרך ${fVal} יעד ${fTgt} (כמות שאכל=נצרך בלבד, היעד אינו כמות שנאכלה. גרם למנה: חלבון=27.5 פחמימה=37.5 שומן=12.5)`;
+    const _p = parseFloat(pVal) || 0;
+    const _c = parseFloat(cVal) || 0;
+    const _f = parseFloat(fVal) || 0;
+    const _pG    = Math.round(_p * pv.protein * 10) / 10;
+    const _cG    = Math.round(_c * pv.carbs   * 10) / 10;
+    const _fG    = Math.round(_f * pv.fat      * 10) / 10;
+    const _pKcal = Math.round(_p * pv.protein * 4);
+    const _cKcal = Math.round(_c * pv.carbs   * 4);
+    const _fKcal = Math.round(_f * pv.fat      * 9);
+    const _total = _pKcal + _cKcal + _fKcal;
+    volatile += `\n\nתזונה היום: חלבון ${_p} מנות = ${_pG}ג = ${_pKcal} קק"ל | פחמימה ${_c} מנות = ${_cG}ג = ${_cKcal} קק"ל | שומן ${_f} מנות = ${_fG}ג = ${_fKcal} קק"ל | סה"כ ${_total} קק"ל (יעד יומי: ${targetCalories} קק"ל)`;
 
     // קבוע (נשמר במטמון) + משתנה (בסוף) = אותו מידע בדיוק, סדר ממוטב למטמון
     return prompt + volatile;
