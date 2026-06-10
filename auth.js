@@ -117,9 +117,10 @@ async function _loadClientAndShowApp(userId) {
 
     // החל ערכת צבעים מה-localStorage שנטען
     const theme = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', theme);
-    const themeBtn = document.querySelector('.theme-toggle');
-    if (themeBtn) themeBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    if (typeof _applyThemeSetting === 'function') _applyThemeSetting(theme);
+    else document.documentElement.setAttribute('data-theme', theme === 'auto'
+        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : (theme === 'light' ? 'light' : 'dark'));
 
     _showApp();
 

@@ -63,26 +63,46 @@ document.addEventListener('click', function(e) {
     }
 });
 
-function _setThemeBtn(theme) {
+function _resolveTheme(setting) {
+    // 'auto' → עוקב אחרי הגדרת הטלפון
+    if (setting === 'auto') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return setting === 'light' ? 'light' : 'dark';
+}
+
+function _setThemeBtn(setting) {
     const btn = document.getElementById('theme-toggle-profile-btn');
-    if (btn) btn.textContent = theme === 'dark' ? '☀️ מצב יום' : '🌙 מצב לילה';
+    if (!btn) return;
+    if (setting === 'light')     btn.textContent = '🌙 מצב לילה';
+    else if (setting === 'auto') btn.textContent = '☀️ מצב יום';
+    else                         btn.textContent = '🔄 אוטומטי';
+}
+
+function _applyThemeSetting(setting) {
+    const actual = _resolveTheme(setting);
+    document.documentElement.setAttribute('data-theme', actual);
+    _setThemeBtn(setting);
 }
 
 function toggleTheme() {
-    const html = document.documentElement;
-    const current = html.getAttribute('data-theme');
-    const next = current === 'dark' ? 'light' : 'dark';
-    html.setAttribute('data-theme', next);
+    const current = localStorage.getItem('theme') || 'dark';
+    const next = current === 'dark' ? 'light' : current === 'light' ? 'auto' : 'dark';
     localStorage.setItem('theme', next);
-    _setThemeBtn(next);
+    _applyThemeSetting(next);
     if (typeof syncThemeNow === 'function') syncThemeNow(next);
     renderWeightChart();
 }
 
 (function initTheme() {
     const saved = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', saved);
-    _setThemeBtn(saved);
+    _applyThemeSetting(saved);
+    // במצב אוטומטי — להאזין לשינויים בהגדרת הטלפון בזמן אמת
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if ((localStorage.getItem('theme') || 'dark') === 'auto') {
+            _applyThemeSetting('auto');
+        }
+    });
 })();
 
     function calcPortionTargets() {
