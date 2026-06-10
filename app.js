@@ -256,6 +256,12 @@ function closeCompleteMsg() {
         return 'last_reset_v4_' + (uid || 'default');
     }
 
+    // מעקב פעילות משתמש — לאיפוס יומי חכם
+    let _lastUserActivity = Date.now();
+    ['click', 'keydown', 'touchstart', 'scroll'].forEach(evt =>
+        document.addEventListener(evt, () => { _lastUserActivity = Date.now(); }, { passive: true })
+    );
+
     function manageDailyReset() {
         // אדמין צופה בלקוח — לא לאפס
         if (typeof SB_VIEW_ID !== 'undefined' && SB_VIEW_ID && typeof SB_USER !== 'undefined' && SB_USER && SB_VIEW_ID !== SB_USER.id) return;
@@ -263,6 +269,9 @@ function closeCompleteMsg() {
         const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
         const lastReset = localStorage.getItem(_resetKey());
         if (lastReset === todayStr) return;
+        // לא לרענן אם המשתמש פעיל ב-3 הדקות האחרונות — לחכות עד שיפסיק
+        const IDLE_MS = 3 * 60 * 1000;
+        if (Date.now() - _lastUserActivity < IDLE_MS) return;
         localStorage.removeItem(_portionsKey());
         window._workoutDataCache = { exercises: {}, tasks: [], exercise_weights: {} };
         const _resetUid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
@@ -328,10 +337,19 @@ function closeCompleteMsg() {
         if (uid && typeof sbFetchTodayNutrition === 'function') {
             sbFetchTodayNutrition(uid).then(data => {
                 if (getActiveUserId() !== uid) return; // משתמש השתנה בינתיים
-                // אין רשומה ליום הנוכחי בסופאבייס = יום חדש → איפוס ל-0 (סופאבייס הוא מקור האמת)
-                userPortions = data
-                    ? { protein: data.protein || 0, carbs: data.carbs || 0, fat: data.fat || 0 }
-                    : { protein: 0, carbs: 0, fat: 0 };
+                // מיזוג: אם סופאבייס החזיר ערך — קח את המקסימום מול localStorage
+                // (מגן מפני מצב שהשמירה לשרת טרם הגיעה, ו-localStorage מכיל ערך עדכני יותר)
+                if (data) {
+                    const local = JSON.parse(localStorage.getItem(_portionsKey()) || '{}');
+                    userPortions = {
+                        protein: Math.max(data.protein || 0, local.protein || 0),
+                        carbs:   Math.max(data.carbs   || 0, local.carbs   || 0),
+                        fat:     Math.max(data.fat      || 0, local.fat      || 0),
+                    };
+                } else {
+                    // אין רשומה לסופאבייס היום = יום חדש → איפוס
+                    userPortions = { protein: 0, carbs: 0, fat: 0 };
+                }
                 localStorage.setItem(_portionsKey(), JSON.stringify(userPortions));
                 document.getElementById('protein-val').innerText = userPortions.protein;
                 document.getElementById('carbs-val').innerText = userPortions.carbs;
