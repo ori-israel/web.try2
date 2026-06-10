@@ -74,9 +74,10 @@ function _resolveTheme(setting) {
 function _setThemeBtn(setting) {
     const btn = document.getElementById('theme-toggle-profile-btn');
     if (!btn) return;
-    if (setting === 'light')     btn.textContent = '🌙 מצב לילה';
-    else if (setting === 'auto') btn.textContent = '☀️ מצב יום';
-    else                         btn.textContent = '🔄 אוטומטי';
+    // הכפתור מראה לאן הולכים בלחיצה הבאה (dark→light→auto→dark)
+    if (setting === 'dark')      btn.textContent = '☀️ מצב יום';
+    else if (setting === 'light') btn.textContent = '🔄 אוטומטי';
+    else                          btn.textContent = '🌙 מצב לילה';
 }
 
 function _applyThemeSetting(setting) {

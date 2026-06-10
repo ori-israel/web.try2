@@ -108,6 +108,8 @@ async function handleLoginSuccess(user) {
 
 async function _loadClientAndShowApp(userId) {
     SB_VIEW_ID = userId;
+    // ניקוי מיידי של תמונת הפרופיל — מונע הצגת תמונה של לקוח קודם
+    if (typeof _refreshAvatarUI === 'function') _refreshAvatarUI(null);
     showLoadingScreen('טוען נתונים...');
     try {
         await loadUserIntoApp(userId);
