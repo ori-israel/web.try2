@@ -54,7 +54,7 @@ async function reinitApp() {
     console.log('[reinitApp] called');
     if (typeof manageDailyReset       === 'function') manageDailyReset();
     if (typeof updateCounter          === 'function') updateCounter();
-    if (typeof initWorkoutsFromClient === 'function') await initWorkoutsFromClient();
+    if (typeof initWorkoutsFromClient === 'function') await initWorkoutsFromClient().catch(() => {});
     if (typeof initWorkoutsChecklist  === 'function') initWorkoutsChecklist();
     if (typeof initVideos             === 'function') initVideos();
     if (typeof buildWorkoutAccordions === 'function') buildWorkoutAccordions();
