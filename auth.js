@@ -119,8 +119,7 @@ async function _loadClientAndShowApp(userId) {
 
     // החל ערכת צבעים מה-localStorage שנטען
     const theme = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', theme);
-    if (typeof _setThemeBtn === 'function') _setThemeBtn(theme);
+    if (typeof _applyTheme === 'function') _applyTheme(theme);
 
     // איפוס טאב לתזונה (tab1) בכל כניסה ללקוח
     document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));

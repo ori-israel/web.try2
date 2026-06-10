@@ -63,26 +63,38 @@ document.addEventListener('click', function(e) {
     }
 });
 
-function _setThemeBtn(theme) {
+function _setThemeBtn(setting) {
     const btn = document.getElementById('theme-toggle-profile-btn');
-    if (btn) btn.textContent = theme === 'dark' ? '☀️ מצב יום' : '🌙 מצב לילה';
+    if (!btn) return;
+    if (setting === 'light')      btn.textContent = '☀️ מצב יום';
+    else if (setting === 'auto')  btn.textContent = '🔄 אוטומטי';
+    else                          btn.textContent = '🌙 מצב לילה';
+}
+
+function _applyTheme(setting) {
+    let actual = setting;
+    if (setting === 'auto') {
+        actual = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', actual);
+    _setThemeBtn(setting);
 }
 
 function toggleTheme() {
-    const html = document.documentElement;
-    const current = html.getAttribute('data-theme');
-    const next = current === 'dark' ? 'light' : 'dark';
-    html.setAttribute('data-theme', next);
+    const current = localStorage.getItem('theme') || 'dark';
+    const next = current === 'dark' ? 'light' : current === 'light' ? 'auto' : 'dark';
     localStorage.setItem('theme', next);
-    _setThemeBtn(next);
+    _applyTheme(next);
     if (typeof syncThemeNow === 'function') syncThemeNow(next);
     renderWeightChart();
 }
 
 (function initTheme() {
     const saved = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', saved);
-    _setThemeBtn(saved);
+    _applyTheme(saved);
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if ((localStorage.getItem('theme') || 'dark') === 'auto') _applyTheme('auto');
+    });
 })();
 
     function calcPortionTargets() {
