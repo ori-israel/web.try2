@@ -63,47 +63,26 @@ document.addEventListener('click', function(e) {
     }
 });
 
-function _resolveTheme(setting) {
-    // 'auto' → עוקב אחרי הגדרת הטלפון
-    if (setting === 'auto') {
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return setting === 'light' ? 'light' : 'dark';
-}
-
-function _setThemeBtn(setting) {
+function _setThemeBtn(theme) {
     const btn = document.getElementById('theme-toggle-profile-btn');
-    if (!btn) return;
-    // הכפתור מראה לאן הולכים בלחיצה הבאה (dark→light→auto→dark)
-    if (setting === 'dark')      btn.textContent = '☀️ מצב יום';
-    else if (setting === 'light') btn.textContent = '🔄 אוטומטי';
-    else                          btn.textContent = '🌙 מצב לילה';
-}
-
-function _applyThemeSetting(setting) {
-    const actual = _resolveTheme(setting);
-    document.documentElement.setAttribute('data-theme', actual);
-    _setThemeBtn(setting);
+    if (btn) btn.textContent = theme === 'dark' ? '☀️ מצב יום' : '🌙 מצב לילה';
 }
 
 function toggleTheme() {
-    const current = localStorage.getItem('theme') || 'dark';
-    const next = current === 'dark' ? 'light' : current === 'light' ? 'auto' : 'dark';
+    const html = document.documentElement;
+    const current = html.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
     localStorage.setItem('theme', next);
-    _applyThemeSetting(next);
+    _setThemeBtn(next);
     if (typeof syncThemeNow === 'function') syncThemeNow(next);
     renderWeightChart();
 }
 
 (function initTheme() {
     const saved = localStorage.getItem('theme') || 'dark';
-    _applyThemeSetting(saved);
-    // במצב אוטומטי — להאזין לשינויים בהגדרת הטלפון בזמן אמת
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if ((localStorage.getItem('theme') || 'dark') === 'auto') {
-            _applyThemeSetting('auto');
-        }
-    });
+    document.documentElement.setAttribute('data-theme', saved);
+    _setThemeBtn(saved);
 })();
 
     function calcPortionTargets() {

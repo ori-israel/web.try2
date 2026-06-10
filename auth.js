@@ -119,12 +119,8 @@ async function _loadClientAndShowApp(userId) {
 
     // החל ערכת צבעים מה-localStorage שנטען
     const theme = localStorage.getItem('theme') || 'dark';
-    if (typeof _applyThemeSetting === 'function') _applyThemeSetting(theme);
-    else document.documentElement.setAttribute('data-theme', theme === 'auto'
-        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-        : (theme === 'light' ? 'light' : 'dark'));
-
-    _showApp();
+    document.documentElement.setAttribute('data-theme', theme);
+    if (typeof _setThemeBtn === 'function') _setThemeBtn(theme);
 
     // איפוס טאב לתזונה (tab1) בכל כניסה ללקוח
     document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
@@ -140,10 +136,12 @@ async function _loadClientAndShowApp(userId) {
     _appInitDone = true;
     _resolveAuthReady();
 
-    // אם window.onload כבר רץ — נריץ ידנית את פונקציות האתחול
+    // אם window.onload כבר רץ — מריצים reinitApp קודם ורק אחרי מציגים את האפליקציה
+    // כך המשתמש לא רואה לרגע נתונים של לקוח קודם
     if (document.readyState === 'complete') {
-        reinitApp();
+        await reinitApp();
     }
+    _showApp();
 
     // הצגת כפתור מנהל בתפריט המבורגר אם צריך
     if (SB_IS_ADMIN) {
