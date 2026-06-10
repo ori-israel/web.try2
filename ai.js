@@ -398,7 +398,7 @@ async function buildSystemPrompt() {
 מטרה: ${goal==='bulk'?'מסה':'חיטוב'} | TDEE: ${tdee} | יעד קלורי: ${targetCalories} (${goal==='cut'?'-250':'+250'})
 פעילות: מכפיל ${activityLevel} | ${CLIENT.workoutsPerWeek||3} אימונים/שבוע
 סטריקים: אימון ${workoutStreak} | תזונה ${nutritionStreak}
-יעד פגישה: ${localStorage.getItem('coaching_goal') || CLIENT.coachingGoal} | זום הבא: ${nextMeetingStr}
+יעד פגישה: ${CLIENT.coachingGoal} | זום הבא: ${nextMeetingStr}
 אלרגיות: ${allergies} | לא אוהב: ${dislikedFoods} | אוהב: ${likedFoods}
 לוח אימונים: ${workoutsCompact}
 כללים: שאלות_מורכבות→ווטסאפ_לאורי | ללא_ייעוץ_רפואי | עודד_תמיד | תאריך_מהנתונים_בלבד | תשובות_קצרות | אל_תשתמש_בסימן_@ | אימון_מחר_לפי_שדה_מחר_בלבד_אל_תחשב_לבד | שאלה_על_ערכי_מוצר→רק_קלוריות+חלבון+פחמימה+שומן_ל-100ג_בלי_פירוט_נוסף

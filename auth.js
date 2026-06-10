@@ -247,6 +247,10 @@ function _clearUserLocalStorage() {
     }
     // איפוס cache בזיכרון כדי שנתוני לקוח אחד לא ידלפו לאחר
     window._workoutDataCache = { exercises: {}, tasks: [], exercise_weights: {} };
+    // איפוס היסטוריית צ'אט AI בזיכרון
+    if (typeof aiChatHistory !== 'undefined') aiChatHistory = [];
+    // איפוס streaks cache
+    if (window._streaksCache) window._streaksCache = { workout_streak: 0, nutrition_streak: 0, workout_completed_date: null, nutrition_completed_date: null };
 }
 
 // ── Admin panel ──────────────────────────────────────────────
