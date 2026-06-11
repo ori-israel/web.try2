@@ -483,7 +483,7 @@ async function buildSystemPrompt() {
         const [logsRes, scoresRes, qRes, weightRes] = await Promise.allSettled([
             db.from('workout_performance_log').select('exercise_name, date, weight_kg, reps').eq('client_id', userId).order('date', { ascending: false }),
             db.from('weekly_scores').select('week_start, score, workouts_score, nutrition_score, habits_score').eq('client_id', userId).order('week_start', { ascending: false }),
-            db.from('weekly_questionnaire').select('submitted_at, q1_win, q2_challenge, q3_score, q4_topic').eq('client_id', userId).order('submitted_at', { ascending: false }).limit(1).single(),
+            db.from('weekly_questionnaire').select('submitted_at, q1_win, q2_challenge, q3_score, q4_topic').eq('client_id', userId).order('submitted_at', { ascending: false }).limit(1).maybeSingle(),
             db.from('weight_history').select('date, weight').eq('user_id', userId).order('date', { ascending: false }).limit(10),
         ]);
 
