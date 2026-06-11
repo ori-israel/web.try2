@@ -402,7 +402,7 @@ async function buildSystemPrompt() {
         : `${tomorrowShort} — יום מנוחה`;
 
     let prompt = `מאמן כושר: אורי ישראל. עברית בלבד. ${isMale ? 'פנה בזכר' : 'פנה בנקבה'}.
-לקוח: ${fullName}(${nickname}), ${isMale?'גבר':'אישה'}, ${age||'?'}י, ${height}ס"מ
+לקוח: ${fullName}(${nickname}), ${isMale?'גבר':'אישה'}, ${age||'?'}י (ת.לידה: ${birthDate||'לא ידוע'}), ${height}ס"מ
 ליווי: יום ${dayNumber}/${CLIENT.coachingDurationMonths ? CLIENT.coachingDurationMonths*30 : '?'} | התחלה: ${startDate} | היום: ${todayShort} | ${todayWorkoutInfo}
 מחר: ${tomorrowInfo}
 משקל: נוכחי ${weight} | התחלה ${CLIENT.startWeight} | יעד ${goalWeight} ק"ג
