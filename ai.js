@@ -55,19 +55,11 @@ async function sendAIMessage() {
     const msg = input.value.trim();
     if (!msg) return;
 
-    const _countKey = 'ai_message_count_' + localDateStr();
-    const _count = parseInt(localStorage.getItem(_countKey) || '0');
-    if (_count >= 50) {
-        addChatMessage('הגעת למגבלת ההודעות היומית (50)', 'assistant');
-        return;
-    }
-    localStorage.setItem(_countKey, _count + 1);
-
     // הגבלת 6 שניות בין הודעות — נשלח מיד ומחכים ברקע (בלי הודעת "המתן")
     const now = Date.now();
-    const _sinceLast = now - (window.lastMessageTime || 0);
+    const _sinceLast = now - (parseInt(sessionStorage.getItem('ai_last_msg_time') || '0'));
     const _waitMs = _sinceLast < 6000 ? 6000 - _sinceLast : 0;
-    window.lastMessageTime = now + _waitMs; // שומר תור גם להודעות מהירות רצופות
+    sessionStorage.setItem('ai_last_msg_time', now + _waitMs); // שומר תור גם להודעות מהירות רצופות
 
     input.value = '';
     addChatMessage(msg, 'user');
@@ -443,7 +435,7 @@ async function buildSystemPrompt() {
     const curNutData     = curNutRes.status     === 'fulfilled' ? curNutRes.value.data     : null;
     const curWeightData  = curWeightRes.status  === 'fulfilled' ? curWeightRes.value.data  : null;
     if (curWorkoutData !== null) {
-        const weeklyTarget  = CLIENT.workoutsPerWeek || 3;
+        const weeklyTarget  = Object.values(CLIENT.workoutDays || {}).reduce((s, days) => s + days.length, 0) || CLIENT.workoutsPerWeek || 3;
         const workoutCount  = new Set((curWorkoutData || []).map(r => r.date)).size;
 
         // יעדי מנות אישיים — נוסחה זהה ל-calcPortionTargets()/cron/auth.js
