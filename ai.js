@@ -1,4 +1,5 @@
 function openAIChat() {
+    _aiStableCtx = { userId: null, loaded: false, text: '' };
     document.getElementById('ai-chat-overlay').style.display = 'flex';
     document.body.style.overflow = 'hidden';
     loadChatHistory();
@@ -13,6 +14,7 @@ function closeAIChat() {
 }
 
 let aiChatHistory = JSON.parse(sessionStorage.getItem('ai_chat_history') || '[]');
+let _aiStableCtx = { userId: null, loaded: false, text: '' };
 
 // מצב חיפוש באינטרנט — כבוי כברירת מחדל
 window.aiWebSearch = false;
@@ -431,20 +433,12 @@ async function buildSystemPrompt() {
         return { monStr: fmt(sun), sunStr: fmt(sat) };
     })();
 
-    const [logsRes, scoresRes, qRes, weightRes, curWorkoutRes, curNutRes, curWeightRes] = await Promise.allSettled([
-        db.from('workout_performance_log').select('exercise_name, date, weight_kg, reps').eq('client_id', userId).order('date', { ascending: false }),
-        db.from('weekly_scores').select('week_start, score, workouts_score, nutrition_score, habits_score').eq('client_id', userId).order('week_start', { ascending: false }),
-        db.from('weekly_questionnaire').select('submitted_at, q1_win, q2_challenge, q3_score, q4_topic').eq('client_id', userId).order('submitted_at', { ascending: false }).limit(1).single(),
-        db.from('weight_history').select('date, weight').eq('user_id', userId).order('date', { ascending: false }).limit(10),
+    // קבוצה משתנה — תמיד חיה
+    const [curWorkoutRes, curNutRes, curWeightRes] = await Promise.allSettled([
         db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', monStr).lte('date', sunStr),
         db.from('daily_nutrition').select('date, protein, carbs, fat').eq('user_id', userId).gte('date', monStr).lte('date', sunStr),
         db.from('weight_history').select('date').eq('user_id', userId).gte('date', monStr).lte('date', sunStr).limit(1),
     ]);
-
-    const logs      = logsRes.status   === 'fulfilled' ? logsRes.value.data   : null;
-    const scoreRows = scoresRes.status === 'fulfilled' ? scoresRes.value.data : null;
-    const qRow      = qRes.status      === 'fulfilled' ? qRes.value.data      : null;
-    const wRows     = weightRes.status === 'fulfilled' ? weightRes.value.data : null;
 
     // ציון שבועי נוכחי
     const curWorkoutData = curWorkoutRes.status === 'fulfilled' ? curWorkoutRes.value.data : null;
@@ -481,31 +475,53 @@ async function buildSystemPrompt() {
         volatile += `\n\nציון שבועי נוכחי (${monStr} – ${sunStr}): ${curScore}% | אימונים: ${workoutCount}/${weeklyTarget} | תזונה: ${nutritionMet}/7 ימים | שקילה: ${hasWeightThisWeek ? 'כן' : 'לא'}`;
     }
 
-    if (logs && logs.length) {
-        const byExercise = {};
-        logs.forEach(r => {
-            if (!byExercise[r.exercise_name]) byExercise[r.exercise_name] = [];
-            byExercise[r.exercise_name].push(r);
-        });
-        const lines = Object.entries(byExercise).map(([name, rows]) => {
-            const latest = rows[0];
-            const bestWeight = Math.max(...rows.map(r => r.weight_kg));
-            return `• ${name}: אחרון ${latest.date} — ${latest.weight_kg}ק״ג x ${latest.reps} חזרות. שיא: ${bestWeight}ק״ג`;
-        });
-        prompt += '\n\nנתוני ביצועי אימון אחרונים:\n' + lines.join('\n');
+    // קבוצה יציבה — ממטמון או שליפה חד-פעמית
+    let stableText = '';
+    if (_aiStableCtx.loaded && _aiStableCtx.userId === userId) {
+        stableText = _aiStableCtx.text;
+    } else {
+        const [logsRes, scoresRes, qRes, weightRes] = await Promise.allSettled([
+            db.from('workout_performance_log').select('exercise_name, date, weight_kg, reps').eq('client_id', userId).order('date', { ascending: false }),
+            db.from('weekly_scores').select('week_start, score, workouts_score, nutrition_score, habits_score').eq('client_id', userId).order('week_start', { ascending: false }),
+            db.from('weekly_questionnaire').select('submitted_at, q1_win, q2_challenge, q3_score, q4_topic').eq('client_id', userId).order('submitted_at', { ascending: false }).limit(1).single(),
+            db.from('weight_history').select('date, weight').eq('user_id', userId).order('date', { ascending: false }).limit(10),
+        ]);
+
+        const logs      = logsRes.status   === 'fulfilled' ? logsRes.value.data   : null;
+        const scoreRows = scoresRes.status === 'fulfilled' ? scoresRes.value.data : null;
+        const qRow      = qRes.status      === 'fulfilled' ? qRes.value.data      : null;
+        const wRows     = weightRes.status === 'fulfilled' ? weightRes.value.data : null;
+
+        if (logs && logs.length) {
+            const byExercise = {};
+            logs.forEach(r => {
+                if (!byExercise[r.exercise_name]) byExercise[r.exercise_name] = [];
+                byExercise[r.exercise_name].push(r);
+            });
+            const lines = Object.entries(byExercise).map(([name, rows]) => {
+                const latest = rows[0];
+                const bestWeight = Math.max(...rows.map(r => r.weight_kg));
+                return `• ${name}: אחרון ${latest.date} — ${latest.weight_kg}ק״ג x ${latest.reps} חזרות. שיא: ${bestWeight}ק״ג`;
+            });
+            stableText += '\n\nנתוני ביצועי אימון אחרונים:\n' + lines.join('\n');
+        }
+
+        if (scoreRows && scoreRows.length) {
+            stableText += '\n\nהיסטוריית ציונים שבועיים (8 אחרונים):\n' + scoreRows.slice(0, 8).map(r => `• ${r.week_start}: ${Math.round(r.score)} נק׳ | אימונים: ${Math.round(r.workouts_score)} | תזונה: ${Math.round(r.nutrition_score)} | הרגלים: ${Math.round(r.habits_score)}`).join('\n');
+        }
+
+        if (qRow) {
+            stableText += `\n\nשאלון שבועי אחרון (${new Date(qRow.submitted_at).toLocaleDateString('he-IL')}):\n- ניצחון: ${qRow.q1_win}\n- אתגר: ${qRow.q2_challenge}\n- ציון עמידה: ${qRow.q3_score}/10\n- הערות: ${qRow.q4_topic}`;
+        }
+
+        if (wRows && wRows.length) {
+            stableText += '\n\nהיסטוריית משקל גוף (10 אחרונים):\n' + wRows.map(r => `• ${r.date}: ${r.weight} ק״ג`).join('\n');
+        }
+
+        _aiStableCtx = { userId, loaded: true, text: stableText };
     }
 
-    if (scoreRows && scoreRows.length) {
-        prompt += '\n\nהיסטוריית ציונים שבועיים (8 אחרונים):\n' + scoreRows.slice(0, 8).map(r => `• ${r.week_start}: ${Math.round(r.score)} נק׳ | אימונים: ${Math.round(r.workouts_score)} | תזונה: ${Math.round(r.nutrition_score)} | הרגלים: ${Math.round(r.habits_score)}`).join('\n');
-    }
-
-    if (qRow) {
-        prompt += `\n\nשאלון שבועי אחרון (${new Date(qRow.submitted_at).toLocaleDateString('he-IL')}):\n- ניצחון: ${qRow.q1_win}\n- אתגר: ${qRow.q2_challenge}\n- ציון עמידה: ${qRow.q3_score}/10\n- הערות: ${qRow.q4_topic}`;
-    }
-
-    if (wRows && wRows.length) {
-        prompt += '\n\nהיסטוריית משקל גוף (10 אחרונים):\n' + wRows.map(r => `• ${r.date}: ${r.weight} ק״ג`).join('\n');
-    }
+    prompt += stableText;
 
     // יומן מאכלים — מה/כמה/מתי אכל ב-7 הימים האחרונים (לתובנות תזונה מדויקות)
     if (typeof sbFetchFoodLogRange === 'function') {
@@ -573,6 +589,7 @@ if (localStorage.getItem('birthday_shown') !== todayStr) {
 }
 
 function resetAIChat() {
+    _aiStableCtx = { userId: null, loaded: false, text: '' };
     aiChatHistory = [];
     sessionStorage.removeItem('ai_chat_history');
     const container = document.getElementById('ai-chat-messages');
