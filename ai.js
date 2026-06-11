@@ -184,18 +184,31 @@ async function sendAIMessage() {
             .trim();
 
         if (replyTextDiv) {
-            replyTextDiv.innerHTML = displayText
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\n/g, '<br>');
+            // בניית HTML בטוח — הטקסט עובר escaping, רק bold ושורות מותרים
+            const safeHtml = displayText
+                .split(/\*\*(.*?)\*\*/g)
+                .map((part, i) => {
+                    const escaped = part.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                    return i % 2 === 1 ? `<strong>${escaped}</strong>` : escaped.replace(/\n/g, '<br>');
+                })
+                .join('');
+            replyTextDiv.innerHTML = safeHtml;
 
             // הצגת מקורות (חובה לפי תנאי Google כשמשתמשים בחיפוש)
             const chunks = lastGrounding?.groundingChunks || [];
             const links = chunks
                 .filter(c => c.web?.uri)
-                .map(c => `<a href="${c.web.uri}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">🔗 ${c.web.title || 'מקור'}</a>`)
+                .map(c => {
+                    const safeTitle = (c.web.title || 'מקור').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                    const safeUri   = c.web.uri.replace(/"/g, '%22');
+                    return `<a href="${safeUri}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">🔗 ${safeTitle}</a>`;
+                })
                 .join(' · ');
             if (links) {
-                replyTextDiv.innerHTML += `<div style="font-size:12px;margin-top:8px;color:var(--text-muted);">מקורות: ${links}</div>`;
+                const sourcesDiv = document.createElement('div');
+                sourcesDiv.style.cssText = 'font-size:12px;margin-top:8px;color:var(--text-muted);';
+                sourcesDiv.innerHTML = `מקורות: ${links}`;
+                replyTextDiv.appendChild(sourcesDiv);
             }
 
             // הוספה ליומן אם יש FOOD_ADD
@@ -215,7 +228,10 @@ async function sendAIMessage() {
                     if (portions.carbs)   modifyPortion('carbs',   portions.carbs);
                     if (portions.fat)     modifyPortion('fat',     portions.fat);
                     }
-                    replyTextDiv.innerHTML += `<div style="margin-top:8px;padding:6px 10px;background:var(--accent);color:#fff;border-radius:8px;font-size:14px;display:inline-block;">✅ נוסף ליומן</div>`;
+                    const addedDiv = document.createElement('div');
+                    addedDiv.style.cssText = 'margin-top:8px;padding:6px 10px;background:var(--accent);color:#fff;border-radius:8px;font-size:14px;display:inline-block;';
+                    addedDiv.textContent = '✅ נוסף ליומן';
+                    replyTextDiv.appendChild(addedDiv);
                 } catch (e) {
                     console.warn('FOOD_ADD parse error:', e);
                 }
