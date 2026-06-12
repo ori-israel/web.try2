@@ -20,7 +20,6 @@
             window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
         }
     </script>
-    <script src="https://assets.calendly.com/assets/external/widget.js" async></script>
 </head>
 <body>
 
@@ -1300,14 +1299,20 @@ function openCalendlyModal() {
     const modal = document.getElementById('calendly-modal');
     const container = document.getElementById('calendly-inline-container');
     container.innerHTML = '';
+    modal.style.display = 'flex';
+    document.querySelector('.hamburger-menu') && document.querySelector('.hamburger-menu').classList.remove('open');
+
     if (window.Calendly) {
         Calendly.initInlineWidget({ url: CALENDLY_URL, parentElement: container });
     } else {
-        // fallback if SDK not loaded yet
-        container.innerHTML = `<iframe src="${CALENDLY_URL}" width="100%" height="100%" style="border:none;" allow="payment"></iframe>`;
+        const script = document.createElement('script');
+        script.src = 'https://assets.calendly.com/assets/external/widget.js';
+        script.onload = () => Calendly.initInlineWidget({ url: CALENDLY_URL, parentElement: container });
+        script.onerror = () => {
+            container.innerHTML = `<iframe src="${CALENDLY_URL}" width="100%" height="100%" style="border:none;" allow="payment"></iframe>`;
+        };
+        document.head.appendChild(script);
     }
-    modal.style.display = 'flex';
-    document.querySelector('.hamburger-menu') && document.querySelector('.hamburger-menu').classList.remove('open');
 }
 
 function closeCalendlyModal() {
