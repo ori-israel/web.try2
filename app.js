@@ -371,9 +371,9 @@ function closeCompleteMsg() {
         }
     }
 
-    function toggleTask(el) {
+    function toggleTask(el, event) {
         const checkbox = el.querySelector('input');
-        const evt = window.event;
+        const evt = event || null;
         if (!evt || evt.target !== checkbox) checkbox.checked = !checkbox.checked;
         el.classList.toggle('done', checkbox.checked);
         updateDailyProgress(); 
