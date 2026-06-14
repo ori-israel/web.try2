@@ -124,6 +124,7 @@ function toggleTheme() {
     document.getElementById('protein-target').innerText = `/ ${pPortions}`;
     document.getElementById('carbs-target').innerText = `/ ${cPortions}`;
     document.getElementById('fat-target').innerText = `/ ${fPortions}`;
+    window._getPortionTargets = () => ({ protein: pPortions, carbs: cPortions, fat: fPortions });
 
     const goalText = CLIENT.goal === 'cut' ? 'חיטוב' : 'מסה';
     document.getElementById('header-goal-display').innerText = `${goalText} | ${totalCalories} קק"ל`;
@@ -313,6 +314,7 @@ function closeCompleteMsg() {
         }
     }
     window.modifyPortion = modifyPortion;
+    window._getUserPortions = () => ({ ...userPortions });
 
     function updatePortionProgress(type) {
         const val = userPortions[type];

@@ -367,12 +367,14 @@ async function buildSystemPrompt() {
 
     const todayShort = new Date().toLocaleDateString('he-IL', {weekday:'short', day:'numeric', month:'numeric'});
     const nextMeetingStr = CLIENT.nextMeetingDate ? new Date(CLIENT.nextMeetingDate).toLocaleDateString('he-IL', {weekday:'short', day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit'}) : 'טרם נקבעה';
-    const pVal = document.getElementById('protein-val')?.innerText || '0';
-    const pTgt = document.getElementById('protein-target')?.innerText?.replace('/ ','') || '?';
-    const cVal = document.getElementById('carbs-val')?.innerText || '0';
-    const cTgt = document.getElementById('carbs-target')?.innerText?.replace('/ ','') || '?';
-    const fVal = document.getElementById('fat-val')?.innerText || '0';
-    const fTgt = document.getElementById('fat-target')?.innerText?.replace('/ ','') || '?';
+    const _up  = (typeof window._getUserPortions  === 'function') ? window._getUserPortions()  : {};
+    const _tgt = (typeof window._getPortionTargets === 'function') ? window._getPortionTargets() : {};
+    const pVal = String(_up.protein  ?? document.getElementById('protein-val')?.innerText  ?? '0');
+    const cVal = String(_up.carbs    ?? document.getElementById('carbs-val')?.innerText    ?? '0');
+    const fVal = String(_up.fat      ?? document.getElementById('fat-val')?.innerText      ?? '0');
+    const pTgt = String(_tgt.protein ?? document.getElementById('protein-target')?.innerText?.replace('/ ','') ?? '0');
+    const cTgt = String(_tgt.carbs   ?? document.getElementById('carbs-target')?.innerText?.replace('/ ','')  ?? '0');
+    const fTgt = String(_tgt.fat     ?? document.getElementById('fat-target')?.innerText?.replace('/ ','')    ?? '0');
     const pv   = typeof portionValues !== 'undefined' ? portionValues : { protein: 27.5, carbs: 37.5, fat: 12.5 };
     const workoutTargets = (typeof _exerciseTargets !== 'undefined') ? _exerciseTargets : {};
 
