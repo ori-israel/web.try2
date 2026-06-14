@@ -563,7 +563,14 @@ async function buildSystemPrompt() {
     const _cKcal = Math.round(_c * pv.carbs   * 4);
     const _fKcal = Math.round(_f * pv.fat      * 9);
     const _total = _pKcal + _cKcal + _fKcal;
-    volatile += `\n\nתזונה היום: חלבון ${_p} מנות = ${_pG}ג = ${_pKcal} קק"ל | פחמימה ${_c} מנות = ${_cG}ג = ${_cKcal} קק"ל | שומן ${_f} מנות = ${_fG}ג = ${_fKcal} קק"ל | סה"כ ${_total} קק"ל (יעד יומי: ${targetCalories} קק"ל)`;
+    const _ptgt = parseFloat(pTgt) || 0;
+    const _ctgt = parseFloat(cTgt) || 0;
+    const _ftgt = parseFloat(fTgt) || 0;
+    const _pRem = Math.round((_ptgt - _p) * 10) / 10;
+    const _cRem = Math.round((_ctgt - _c) * 10) / 10;
+    const _fRem = Math.round((_ftgt - _f) * 10) / 10;
+    volatile += `\n\nתזונה היום: חלבון ${_p}/${_ptgt} מנות (נשאר: ${_pRem}) | פחמימה ${_c}/${_ctgt} מנות (נשאר: ${_cRem}) | שומן ${_f}/${_ftgt} מנות (נשאר: ${_fRem}) | סה"כ ${_total} קק"ל (יעד: ${targetCalories} קק"ל)`;
+    volatile += `\nכשנשאלים "כמה נשאר" — תן תשובה ישירה בלי חישובים: "נשאר X מנות חלבון, Y פחמימה, Z שומן" בלבד.`;
 
     // קבוע (נשמר במטמון) + משתנה (בסוף) = אותו מידע בדיוק, סדר ממוטב למטמון
     return prompt + volatile;
