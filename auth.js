@@ -51,6 +51,7 @@ function showSignupForm() {
     document.getElementById('login-pending-section').style.display = 'none';
     document.getElementById('signup-error').textContent = '';
     document.getElementById('login-signup-section').style.display = 'flex';
+    document.getElementById('login-overlay').scrollTop = 0;
 }
 
 // מסך "החשבון ממתין לאישור המנהל"
