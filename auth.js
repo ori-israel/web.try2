@@ -117,7 +117,8 @@ async function handleLoginSuccess(user) {
         SB_IS_ADMIN = profile?.is_admin || false;
 
         // חסימת כניסה למשתמש שטרם אושר ע"י המנהל (אדמין תמיד נכנס)
-        if (!SB_IS_ADMIN && profile?.status && profile.status !== 'approved') {
+        // נחסם כל מי שאינו בדיוק 'approved' — כולל סטטוס ריק/חסר (ברירת מחדל בטוחה)
+        if (!SB_IS_ADMIN && (!profile || profile.status !== 'approved')) {
             await sbSignOut().catch(() => {});
             SB_USER = null;
             showPendingScreen();
@@ -409,7 +410,7 @@ async function _renderPendingMode(list) {
                 `<div style="font-weight:bold;font-size:15px;color:var(--text-primary,#fff);">${_esc(name)}</div>` +
                 `<div style="font-size:13px;color:var(--text-secondary,#888);margin:2px 0 10px;">${_esc(c.email || '')} · נרשם ${date}</div>` +
                 `<div style="display:flex;gap:8px;">` +
-                  `<button class="admin-approve-btn" data-id="${c.id}" style="flex:1;background:#4ade80;color:#000;border:none;border-radius:8px;padding:9px;font-weight:bold;cursor:pointer;">אשר ✓</button>` +
+                  `<button class="admin-approve-btn" data-id="${c.id}" style="flex:1;background:var(--gradient-btn);color:#fff;border:none;border-radius:8px;padding:9px;font-weight:bold;cursor:pointer;">אשר ✓</button>` +
                   `<button class="admin-reject-btn" data-id="${c.id}" data-name="${_esc(name)}" style="flex:1;background:transparent;border:1px solid #e55;color:#e55;border-radius:8px;padding:9px;font-weight:bold;cursor:pointer;">דחה ✕</button>` +
                 `</div>`;
             row.querySelector('.admin-approve-btn').addEventListener('click', async function () {

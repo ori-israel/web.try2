@@ -510,8 +510,9 @@ async function sbFetchAllClients() {
         .is('deleted_at', null)
         .order('created_at', { ascending: true });
     if (error) throw error;
-    // רק לקוחות מאושרים מופיעים ברשימה הראשית; ממתינים מופיעים במצב "ממתינים"
-    return (data || []).filter(u => !u.is_admin && u.status !== 'pending');
+    // רק לקוחות מאושרים בדיוק (approved) מופיעים ברשימה הראשית.
+    // כל סטטוס אחר (pending / ריק / לא-מוכר) לא יופיע כלקוח רגיל — מניעת זליגה.
+    return (data || []).filter(u => !u.is_admin && u.status === 'approved');
 }
 
 // משתמשים שנרשמו לבד וממתינים לאישור המנהל
