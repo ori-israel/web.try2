@@ -251,8 +251,19 @@ async function doLogin() {
             sessionStorage.setItem('remember_me', 'session');
         }
         await handleLoginSuccess(user);
-    } catch {
-        errorEl.textContent = 'אימייל או סיסמה שגויים';
+    } catch (err) {
+        const msg  = (err?.message || '').toLowerCase();
+        const code = (err?.code || '').toLowerCase();
+        // משתמש חסום = ממתין לאישור המנהל → מסך ההמתנה במקום שגיאה
+        if (code === 'user_banned' || msg.includes('banned')) {
+            showPendingScreen();
+            return;
+        }
+        if (msg.includes('email not confirmed') || code === 'email_not_confirmed') {
+            errorEl.textContent = 'יש לאשר תחילה את קישור האימות שנשלח למייל';
+        } else {
+            errorEl.textContent = 'אימייל או סיסמה שגויים';
+        }
         btn.disabled    = false;
         btn.textContent = 'התחברות';
     }
