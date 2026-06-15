@@ -561,7 +561,7 @@ function _renderSubscribersMode(list) {
                 ${_coachInitials(name, client.id)}
                 <div class="coach-urgent-text">
                     <span class="coach-urgent-name">${_esc(name)}</span>
-                    <span class="coach-urgent-reason" style="color:#60a5fa;font-weight:600;">💳 מנוי פעיל — סיים ליווי</span>
+                    <span class="coach-urgent-reason" style="color:#60a5fa;font-weight:600;">💳 מנוי פעיל</span>
                 </div>
             </div>
             <div class="coach-urgent-right">
