@@ -76,8 +76,17 @@
    ============================================ */
 * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; touch-action: manipulation; }
 
+@font-face {
+    font-family: 'Heebo Fallback';
+    src: local('Arial');
+    ascent-override: 105%;
+    descent-override: 28%;
+    line-gap-override: 0%;
+    size-adjust: 99%;
+}
+
 body {
-    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    font-family: 'Heebo', 'Heebo Fallback', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
     background-color: var(--bg);
     color: var(--text-primary);
     margin: 0;
