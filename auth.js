@@ -138,6 +138,17 @@ async function handleLoginSuccess(user) {
 }
 
 async function _loadClientAndShowApp(userId) {
+    // הגנה כפולה: משתמש רגיל (לא אדמין) שאינו מאושר לעולם לא יראה את האפליקציה.
+    // אדמין שצופה בלקוח עובר (SB_IS_ADMIN=true). זה גם חוסם מסלולי כניסה עתידיים.
+    if (!SB_IS_ADMIN) {
+        const _p = await sbFetchProfile(userId).catch(() => null);
+        if (!_p || _p.status !== 'approved') {
+            await sbSignOut().catch(() => {});
+            SB_USER = null;
+            showPendingScreen();
+            return;
+        }
+    }
     SB_VIEW_ID = userId;
     // ניקוי מיידי של תמונת הפרופיל — מונע הצגת תמונה של לקוח קודם
     if (typeof _refreshAvatarUI === 'function') _refreshAvatarUI(null);
