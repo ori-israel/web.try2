@@ -66,6 +66,7 @@ module.exports = async (req, res) => {
         nickname:          name.split(' ')[0],
         start_date:        startDate   || new Date().toISOString().slice(0, 10),
         is_admin:          false,
+        status:            'approved',
         workouts_per_week: 3,
         birth_date:        birthDate   || null,
         start_weight:      startWeight || null,

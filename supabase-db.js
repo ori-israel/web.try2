@@ -506,11 +506,30 @@ async function sbSaveStreaks(userId, fields) {
 async function sbFetchAllClients() {
     const { data, error } = await db
         .from('profiles')
-        .select('id, name, nickname, email, is_admin, is_subscriber, created_at, avatar_url')
+        .select('id, name, nickname, email, is_admin, is_subscriber, created_at, avatar_url, status')
         .is('deleted_at', null)
         .order('created_at', { ascending: true });
     if (error) throw error;
-    return (data || []).filter(u => !u.is_admin);
+    // רק לקוחות מאושרים מופיעים ברשימה הראשית; ממתינים מופיעים במצב "ממתינים"
+    return (data || []).filter(u => !u.is_admin && u.status !== 'pending');
+}
+
+// משתמשים שנרשמו לבד וממתינים לאישור המנהל
+async function sbFetchPendingClients() {
+    const { data, error } = await db
+        .from('profiles')
+        .select('id, name, nickname, email, created_at')
+        .eq('status', 'pending')
+        .is('deleted_at', null)
+        .order('created_at', { ascending: true });
+    if (error) throw error;
+    return data || [];
+}
+
+// אישור משתמש — מאפשר לו להיכנס לאפליקציה
+async function sbApproveClient(clientId) {
+    const { error } = await db.from('profiles').update({ status: 'approved' }).eq('id', clientId);
+    if (error) throw error;
 }
 
 async function sbFetchDeletedClients() {

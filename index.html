@@ -52,9 +52,31 @@
         </div>
         <button id="login-btn" class="login-btn" onclick="doLogin()" disabled style="opacity:0.35;cursor:not-allowed;">התחברות</button>
         <button id="magic-link-btn" onclick="sendMagicLink()" class="login-btn" style="background:transparent;border:1.5px solid #5b7cfa;color:#8aaafa;box-shadow:none;margin-top:8px;">שכחת סיסמה? שלח קישור כניסה</button>
+        <button id="signup-toggle-btn" onclick="showSignupForm()" class="login-btn" style="background:transparent;border:1.5px solid #4ade80;color:#4ade80;box-shadow:none;margin-top:8px;">משתמש חדש? יצירת חשבון</button>
         <div style="margin-top:22px; text-align:center; font-size:12px; line-height:1.8; color:var(--text-secondary,#888);">
             <p style="margin:0;">© 2026 אורי ישראל · <a href="/terms.html" style="color:var(--accent,#8aaafa);">תנאי שימוש</a> · <a href="/privacy.html" style="color:var(--accent,#8aaafa);">פרטיות</a> · <a href="/accessibility.html" style="color:var(--accent,#8aaafa);">נגישות</a></p>
         </div>
+    </div>
+
+    <!-- טופס הרשמת משתמש חדש -->
+    <div id="login-signup-section" style="display:none; flex-direction:column; align-items:center; width:100%; max-width:360px; padding:24px;">
+        <img src="/O.1024.559.png" alt="לוגו" width="1024" height="559" style="height:120px; width:auto; margin-bottom:24px;" onerror="this.style.display='none'">
+        <h2 style="margin:0 0 24px; font-size:22px; color:var(--text-primary,#fff);">יצירת חשבון חדש</h2>
+        <input id="signup-name"     type="text"     placeholder="שם מלא" class="login-input" autocomplete="name" aria-label="שם מלא">
+        <input id="signup-email"    type="email"    placeholder="אימייל" class="login-input" autocomplete="email" aria-label="כתובת אימייל">
+        <input id="signup-password" type="password" placeholder="סיסמה (לפחות 6 תווים)" class="login-input" autocomplete="new-password" aria-label="סיסמה">
+        <p id="signup-error" style="color:#e55; font-size:14px; min-height:18px; margin:4px 0; text-align:center;"></p>
+        <button id="signup-btn" class="login-btn" onclick="doSignup()">יצירת חשבון</button>
+        <button onclick="showLoginForm()" class="login-btn" style="background:transparent;border:1.5px solid #5b7cfa;color:#8aaafa;box-shadow:none;margin-top:8px;">חזרה לכניסה</button>
+    </div>
+
+    <!-- מסך המתנה לאישור המנהל -->
+    <div id="login-pending-section" style="display:none; flex-direction:column; align-items:center; width:100%; max-width:360px; padding:24px; text-align:center;">
+        <img src="/O.1024.559.png" alt="לוגו" width="1024" height="559" style="height:120px; width:auto; margin-bottom:24px;" onerror="this.style.display='none'">
+        <div style="font-size:48px; margin-bottom:8px;">⏳</div>
+        <h2 style="margin:0 0 12px; font-size:22px; color:var(--text-primary,#fff);">החשבון ממתין לאישור</h2>
+        <p style="color:var(--text-secondary,#888); font-size:15px; line-height:1.7; margin:0 0 24px;">נרשמת בהצלחה! החשבון שלך ממתין לאישור המנהל. תקבל גישה מלאה לאפליקציה מיד לאחר האישור.</p>
+        <button onclick="showLoginForm()" class="login-btn">חזרה למסך הכניסה</button>
     </div>
 </div>
 
@@ -71,6 +93,7 @@
         <button onclick="adminViewClient(SB_USER.id)" class="admin-self-btn">כניסה לפרופיל שלי ›</button>
         <div class="coach-mode-toggle">
             <button class="coach-mode-btn active" data-mode="overview" onclick="setCoachMode('overview')">סקירה</button>
+            <button class="coach-mode-btn" data-mode="pending" onclick="setCoachMode('pending')">ממתינים <span id="pending-count-badge" style="display:none;background:#e55;color:#fff;border-radius:10px;padding:0 6px;font-size:11px;font-weight:bold;margin-right:2px;"></span></button>
             <button class="coach-mode-btn" data-mode="urgent" onclick="setCoachMode('urgent')">דחוף 🔴</button>
             <button class="coach-mode-btn" data-mode="subscribers" onclick="setCoachMode('subscribers')">💳 מנויים</button>
             <button class="coach-mode-btn" data-mode="archive" onclick="setCoachMode('archive')">🗃️ ארכיון</button>

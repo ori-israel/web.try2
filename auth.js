@@ -38,7 +38,28 @@ function showLoginForm(errorMsg) {
     _showOverlay('login-overlay');
     document.getElementById('login-form-section').style.display    = 'flex';
     document.getElementById('login-loading-section').style.display = 'none';
+    const sg = document.getElementById('login-signup-section');  if (sg) sg.style.display = 'none';
+    const pd = document.getElementById('login-pending-section'); if (pd) pd.style.display = 'none';
     if (errorMsg) document.getElementById('login-error').textContent = errorMsg;
+}
+
+// מסך הרשמת משתמש חדש
+function showSignupForm() {
+    _showOverlay('login-overlay');
+    document.getElementById('login-form-section').style.display    = 'none';
+    document.getElementById('login-loading-section').style.display = 'none';
+    document.getElementById('login-pending-section').style.display = 'none';
+    document.getElementById('signup-error').textContent = '';
+    document.getElementById('login-signup-section').style.display = 'flex';
+}
+
+// מסך "החשבון ממתין לאישור המנהל"
+function showPendingScreen() {
+    _showOverlay('login-overlay');
+    document.getElementById('login-form-section').style.display    = 'none';
+    document.getElementById('login-loading-section').style.display = 'none';
+    document.getElementById('login-signup-section').style.display  = 'none';
+    document.getElementById('login-pending-section').style.display = 'flex';
 }
 
 function showLoadingScreen(msg) {
@@ -93,6 +114,14 @@ async function handleLoginSuccess(user) {
     try {
         const profile = await sbFetchProfile(user.id);
         SB_IS_ADMIN = profile?.is_admin || false;
+
+        // חסימת כניסה למשתמש שטרם אושר ע"י המנהל (אדמין תמיד נכנס)
+        if (!SB_IS_ADMIN && profile?.status && profile.status !== 'approved') {
+            await sbSignOut().catch(() => {});
+            SB_USER = null;
+            showPendingScreen();
+            return;
+        }
 
         if (SB_IS_ADMIN) {
             await renderAdminPanel();
@@ -216,6 +245,38 @@ async function doLogin() {
     }
 }
 
+// הרשמה עצמית — יצירת משתמש חדש שממתין לאישור המנהל
+async function doSignup() {
+    const name     = document.getElementById('signup-name').value.trim();
+    const email    = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const errorEl  = document.getElementById('signup-error');
+    const btn      = document.getElementById('signup-btn');
+
+    errorEl.style.color = '#e55';
+    if (!name || !email || !password) { errorEl.textContent = 'יש למלא את כל השדות'; return; }
+    if (password.length < 6)          { errorEl.textContent = 'הסיסמה חייבת להכיל לפחות 6 תווים'; return; }
+
+    btn.disabled    = true;
+    btn.textContent = 'יוצר חשבון...';
+    const { error } = await db.auth.signUp({ email, password, options: { data: { name } } });
+    if (error) {
+        const msg = error.message?.toLowerCase() || '';
+        errorEl.textContent =
+              msg.includes('already') ? 'המייל כבר רשום במערכת'
+            : msg.includes('signups not allowed') ? 'ההרשמה אינה זמינה כרגע'
+            : msg.includes('invalid email') ? 'כתובת מייל לא תקינה'
+            : msg.includes('password') ? 'הסיסמה חלשה מדי (לפחות 6 תווים)'
+            : 'שגיאה — יש לנסות שוב';
+        btn.disabled    = false;
+        btn.textContent = 'יצירת חשבון';
+        return;
+    }
+    errorEl.style.color = '#4ade80';
+    errorEl.textContent = 'נשלח אליך מייל אימות. אשר אותו, ולאחר מכן המתן לאישור המנהל.';
+    btn.textContent = 'נשלח ✓';
+}
+
 async function doLogout() {
     if (!await showConfirmDanger('להתנתק?')) return;
     _clearUserLocalStorage();
@@ -265,6 +326,7 @@ async function renderAdminPanel() {
     list.className = 'admin-client-list';
     list.innerHTML = '<div class="admin-loading">טוען נתונים...</div>';
     _syncCoachToggle();
+    _refreshPendingBadge();
     try {
         _coachClients = await sbFetchAllClients();
         if (!_coachClients.length) {
@@ -285,6 +347,7 @@ function setCoachMode(mode) {
     const list = document.getElementById('admin-client-list');
     if (!list) return;
     if (mode === 'archive') _renderArchiveMode(list);
+    else if (mode === 'pending') _renderPendingMode(list);
     else if (mode === 'subscribers') _renderSubscribersMode(list);
     else if (_coachClients && _coachDashData) _renderCoachList(list);
 }
@@ -293,6 +356,66 @@ function _syncCoachToggle() {
     document.querySelectorAll('.coach-mode-btn').forEach(b => {
         b.classList.toggle('active', b.dataset.mode === _coachMode);
     });
+}
+
+// עדכון מונה הממתינים על כפתור "ממתינים"
+async function _refreshPendingBadge() {
+    const badge = document.getElementById('pending-count-badge');
+    if (!badge) return;
+    try {
+        const pend = await sbFetchPendingClients();
+        if (pend.length) { badge.textContent = pend.length; badge.style.display = 'inline-block'; }
+        else { badge.style.display = 'none'; }
+    } catch { badge.style.display = 'none'; }
+}
+
+// מצב "ממתינים לאישור" בלוח המנהל
+async function _renderPendingMode(list) {
+    list.className = 'admin-client-list';
+    list.innerHTML = '<div class="admin-loading">טוען...</div>';
+    try {
+        const pend = await sbFetchPendingClients();
+        if (!pend.length) {
+            list.innerHTML = '<div class="admin-empty">אין משתמשים שממתינים לאישור</div>';
+            return;
+        }
+        list.innerHTML = '';
+        pend.forEach(c => {
+            const name = c.name || c.nickname || '(ללא שם)';
+            const date = c.created_at ? new Date(c.created_at).toLocaleDateString('he-IL') : '';
+            const row = document.createElement('div');
+            row.className = 'coach-overview-card';
+            row.innerHTML =
+                `<div style="font-weight:bold;font-size:15px;color:var(--text-primary,#fff);">${_esc(name)}</div>` +
+                `<div style="font-size:13px;color:var(--text-secondary,#888);margin:2px 0 10px;">${_esc(c.email || '')} · נרשם ${date}</div>` +
+                `<div style="display:flex;gap:8px;">` +
+                  `<button class="admin-approve-btn" data-id="${c.id}" style="flex:1;background:#4ade80;color:#000;border:none;border-radius:8px;padding:9px;font-weight:bold;cursor:pointer;">אשר ✓</button>` +
+                  `<button class="admin-reject-btn" data-id="${c.id}" data-name="${_esc(name)}" style="flex:1;background:transparent;border:1px solid #e55;color:#e55;border-radius:8px;padding:9px;font-weight:bold;cursor:pointer;">דחה ✕</button>` +
+                `</div>`;
+            row.querySelector('.admin-approve-btn').addEventListener('click', async function () {
+                this.disabled = true; this.textContent = 'מאשר...';
+                try {
+                    await sbApproveClient(this.dataset.id);
+                    _showToast('✅ המשתמש אושר');
+                    await _renderPendingMode(list);
+                    _refreshPendingBadge();
+                } catch (e) { this.disabled = false; this.textContent = 'אשר ✓'; await showAlert('שגיאה: ' + e.message); }
+            });
+            row.querySelector('.admin-reject-btn').addEventListener('click', async function () {
+                const nm = this.dataset.name;
+                if (!await showConfirmDanger(`לדחות את ${nm}? המשתמש יועבר לארכיון.`)) return;
+                try {
+                    await _authedPost('/api/delete-user', { userId: this.dataset.id });
+                    _showToast(`🗃️ ${nm} נדחה והועבר לארכיון`);
+                    await _renderPendingMode(list);
+                    _refreshPendingBadge();
+                } catch (e) { await showAlert('שגיאה: ' + e.message); }
+            });
+            list.appendChild(row);
+        });
+    } catch (err) {
+        list.innerHTML = `<div class="admin-error">שגיאה: ${err.message}</div>`;
+    }
 }
 
 function _renderCoachList(list) {
