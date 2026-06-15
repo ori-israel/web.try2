@@ -448,8 +448,8 @@ async function _renderPendingMode(list) {
                     // אישור דרך השרת: מסיר את החסימה + מסמן approved
                     await _authedPost('/api/approve-user', { userId: this.dataset.id });
                     _showToast('✅ המשתמש אושר');
-                    await _renderPendingMode(list);
-                    _refreshPendingBadge();
+                    // רענון מלא: מרענן את רשימת הלקוחות במטמון כך שיופיע מיד בסקירה
+                    await renderAdminPanel();
                 } catch (e) { this.disabled = false; this.textContent = 'אשר ✓'; await showAlert('שגיאה: ' + e.message); }
             });
             row.querySelector('.admin-reject-btn').addEventListener('click', async function () {
@@ -458,8 +458,8 @@ async function _renderPendingMode(list) {
                 try {
                     await _authedPost('/api/delete-user', { userId: this.dataset.id });
                     _showToast(`🗃️ ${nm} נדחה והועבר לארכיון`);
-                    await _renderPendingMode(list);
-                    _refreshPendingBadge();
+                    // רענון מלא של הלוח
+                    await renderAdminPanel();
                 } catch (e) { await showAlert('שגיאה: ' + e.message); }
             });
             list.appendChild(row);

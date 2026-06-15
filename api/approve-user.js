@@ -34,8 +34,11 @@ module.exports = async (req, res) => {
     const { userId } = req.body || {};
     if (!userId || !UUID_RE.test(userId)) return res.status(400).json({ error: 'Invalid userId' });
 
-    // אישור: הסרת החסימה + סימון approved
-    const { error: unbanErr } = await db.auth.admin.updateUserById(userId, { ban_duration: 'none' });
+    // אישור: הסרת החסימה + אימות מייל אוטומטי (כדי שיוכל להתחבר תמיד)
+    const { error: unbanErr } = await db.auth.admin.updateUserById(userId, {
+        ban_duration: 'none',
+        email_confirm: true,
+    });
     if (unbanErr) return res.status(400).json({ error: 'Unban failed' });
 
     const { error: profileErr } = await db
