@@ -315,9 +315,15 @@ async function doSignup() {
         btn.textContent = 'יצירת חשבון';
         return;
     }
-    errorEl.style.color = '#4ade80';
-    errorEl.textContent = 'נשלח אליך מייל אימות. אשר אותו, ולאחר מכן המתן לאישור המנהל.';
-    btn.textContent = 'נשלח ✓';
+    // יציאה מכל חיבור שאולי נוצר (אם אימות מייל כבוי) — המשתמש לא נכנס עד אישור
+    await sbSignOut().catch(() => {});
+    // איפוס הטופס לפעם הבאה
+    errorEl.textContent = '';
+    btn.disabled = false;
+    btn.textContent = 'יצירת חשבון';
+    ['signup-name','signup-email','signup-password','signup-birth-date','signup-start-weight','signup-goal-weight','signup-height'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    // מעבר ישיר למסך "ממתין לאישור"
+    showPendingScreen();
 }
 
 async function doLogout() {
