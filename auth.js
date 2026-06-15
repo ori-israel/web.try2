@@ -26,6 +26,8 @@ function _showOverlay(id) {
 }
 
 function _showApp() {
+    // משתמש שנכנס לאפליקציה בוודאי אינו "ממתין" יותר
+    try { sessionStorage.removeItem('oi_pending_signup'); } catch (e) {}
     ['login-overlay', 'admin-overlay'].forEach(oid => {
         const el = document.getElementById(oid);
         if (el) el.style.display = 'none';
@@ -56,11 +58,19 @@ function showSignupForm() {
 
 // מסך "החשבון ממתין לאישור המנהל"
 function showPendingScreen() {
+    // זוכר שהמשתמש ממתין — כדי שהמסך יישאר גם אחרי רענון (למשל עדכון SW)
+    try { sessionStorage.setItem('oi_pending_signup', '1'); } catch (e) {}
     _showOverlay('login-overlay');
     document.getElementById('login-form-section').style.display    = 'none';
     document.getElementById('login-loading-section').style.display = 'none';
     document.getElementById('login-signup-section').style.display  = 'none';
     document.getElementById('login-pending-section').style.display = 'flex';
+}
+
+// יציאה ממסך ההמתנה (לחיצה על "חזרה למסך הכניסה")
+function leavePendingScreen() {
+    try { sessionStorage.removeItem('oi_pending_signup'); } catch (e) {}
+    showLoginForm();
 }
 
 function showLoadingScreen(msg) {
@@ -330,6 +340,7 @@ async function doSignup() {
 async function doLogout() {
     if (!await showConfirmDanger('להתנתק?')) return;
     _clearUserLocalStorage();
+    try { sessionStorage.removeItem('oi_pending_signup'); } catch (e) {}
     localStorage.removeItem('remember_me');
     sessionStorage.removeItem('remember_me');
     sbSignOut().finally(() => location.reload());
@@ -1284,6 +1295,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 await handleLoginSuccess(session.user);
             }
+        } else if (sessionStorage.getItem('oi_pending_signup')) {
+            // נרשם זה עתה וממתין לאישור — נשאר במסך ההמתנה גם אחרי רענון
+            showPendingScreen();
         } else {
             showLoginForm();
         }
