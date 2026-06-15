@@ -406,6 +406,7 @@ async function _renderPendingMode(list) {
             const date = c.created_at ? new Date(c.created_at).toLocaleDateString('he-IL') : '';
             const row = document.createElement('div');
             row.className = 'coach-overview-card';
+            row.style.padding = '13px';
             row.innerHTML =
                 `<div style="font-weight:bold;font-size:15px;color:var(--text-primary,#fff);">${_esc(name)}</div>` +
                 `<div style="font-size:13px;color:var(--text-secondary,#888);margin:2px 0 10px;">${_esc(c.email || '')} · נרשם ${date}</div>` +
