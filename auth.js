@@ -310,7 +310,8 @@ async function doSignup() {
             : msg.includes('signups not allowed') ? 'ההרשמה אינה זמינה כרגע'
             : msg.includes('invalid email') ? 'כתובת מייל לא תקינה'
             : msg.includes('password') ? 'הסיסמה חלשה מדי (לפחות 6 תווים)'
-            : 'שגיאה — יש לנסות שוב';
+            : (msg.includes('rate limit') || msg.includes('rate_limit') || msg.includes('too many')) ? 'יותר מדי ניסיונות — יש להמתין כשעה ולנסות שוב'
+            : ('שגיאה: ' + (error.message || 'יש לנסות שוב'));
         btn.disabled    = false;
         btn.textContent = 'יצירת חשבון';
         return;
