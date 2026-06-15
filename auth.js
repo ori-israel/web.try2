@@ -428,7 +428,8 @@ async function _renderPendingMode(list) {
             row.querySelector('.admin-approve-btn').addEventListener('click', async function () {
                 this.disabled = true; this.textContent = 'מאשר...';
                 try {
-                    await sbApproveClient(this.dataset.id);
+                    // אישור דרך השרת: מסיר את החסימה + מסמן approved
+                    await _authedPost('/api/approve-user', { userId: this.dataset.id });
                     _showToast('✅ המשתמש אושר');
                     await _renderPendingMode(list);
                     _refreshPendingBadge();
