@@ -1,4 +1,4 @@
-const CACHE_NAME = 'oi-fitness-v39';
+const CACHE_NAME = 'oi-fitness-v40';
 const PRECACHE = [
     '/', '/index.html', '/styles.css', '/app.js', '/auth.js',
     '/supabase-db.js', '/client.js', '/data.js', '/profile.js',
@@ -74,7 +74,10 @@ async function syncNutrition() {
 self.addEventListener('install', e => {
     e.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(PRECACHE))
+            // התקנה חסינה: כל קובץ נשמר בנפרד; כישלון בקובץ אחד לא מפיל את ההתקנה
+            .then(cache => Promise.all(
+                PRECACHE.map(url => cache.add(url).catch(() => {}))
+            ))
             .then(() => self.skipWaiting())
     );
 });
@@ -110,6 +113,9 @@ self.addEventListener('message', e => {
 self.addEventListener('fetch', e => {
     if (e.request.method !== 'GET') return;
     const url = new URL(e.request.url);
+
+    // התעלם מבקשות שאינן http/https (למשל chrome-extension) — לא ניתן לשמור אותן במטמון
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
 
     if (url.hostname.includes('googleapis.com') || url.hostname.includes('gstatic.com') || url.hostname.includes('calendly.com')) {
         e.respondWith(fetch(e.request));

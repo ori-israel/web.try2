@@ -18,7 +18,23 @@
     <link rel="apple-touch-icon" href="/OI.512.512.png">
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+            window.addEventListener('load', async () => {
+                try {
+                    // updateViaCache:'none' — תמיד לבדוק את sw.js מהרשת, לא מהמטמון
+                    const reg = await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
+                    // מכריח בדיקת עדכון בכל טעינה
+                    reg.update().catch(() => {});
+                    // בודק שוב כל 60 שניות כל עוד הדף פתוח
+                    setInterval(() => reg.update().catch(() => {}), 60000);
+                } catch (e) { /* ignore */ }
+            });
+            // כשגרסה חדשה משתלטת — רענון פעם אחת כדי לטעון קוד טרי (עם נעילה נגד לולאה)
+            let _swReloaded = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (_swReloaded) return;
+                _swReloaded = true;
+                window.location.reload();
+            });
         }
     </script>
 </head>
