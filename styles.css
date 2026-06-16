@@ -2848,3 +2848,8 @@ select.login-input:focus {
 
 fieldset { border: none; margin: 0; padding: 0; min-width: 0; }
 legend { padding: 0; display: block; width: 100%; }
+
+/* מניעת זום אוטומטי של iOS בלחיצה על שדה — גופן 16px במובייל (זום ידני בצביטה נשמר) */
+@media (max-width: 768px) {
+    input, select, textarea { font-size: 16px !important; }
+}
