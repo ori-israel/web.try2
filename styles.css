@@ -2883,7 +2883,7 @@ legend { padding: 0; display: block; width: 100%; }
 .tour-text  { margin: 0 0 14px; font-size: 0.97rem; line-height: 1.55; }
 .tour-foot  { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .tour-foot-end { justify-content: center; }
-.tour-prog  { font-size: 0.8rem; color: var(--text-secondary); }
+.tour-prog  { font-size: 0.8rem; color: var(--text-secondary); direction: ltr; }
 .tour-next, .tour-skip {
     font-family: inherit; font-size: 0.92rem; font-weight: 600; cursor: pointer;
     border-radius: var(--radius-sm); padding: 9px 18px; transition: transform .15s ease;

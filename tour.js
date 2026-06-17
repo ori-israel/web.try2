@@ -93,6 +93,13 @@
     document.body.appendChild(blocker);
     document.body.appendChild(highlight);
     document.body.appendChild(bubble);
+    // חסימת גלילה ידנית בזמן המדריך (גלילה אוטומטית לאלמנט עדיין מותרת)
+    const block = function (e) {
+      if (e.target.closest && e.target.closest('.tour-bubble')) return; // בועה עצמה לא נחסמת
+      e.preventDefault();
+    };
+    blocker.addEventListener('wheel', block, { passive: false });
+    blocker.addEventListener('touchmove', block, { passive: false });
     els = true;
   }
   function showLayer(on) {
@@ -272,8 +279,20 @@
     const el = resolve(step.sel);
     if (el) positionTo(el, step.text);
   }
-  function bindResize()   { if (!resizeBound) { window.addEventListener('resize', onResize); resizeBound = true; } }
-  function unbindResize()  { if (resizeBound)  { window.removeEventListener('resize', onResize); resizeBound = false; } }
+  function bindResize() {
+    if (!resizeBound) {
+      window.addEventListener('resize', onResize);
+      window.addEventListener('scroll', onResize, true); // ביטחון: יישור הזרקור אם בכל זאת קרתה גלילה
+      resizeBound = true;
+    }
+  }
+  function unbindResize() {
+    if (resizeBound) {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('scroll', onResize, true);
+      resizeBound = false;
+    }
+  }
 
   // ---------- דגל "נצפה" למדריך הכללי ----------
   function uid() {
