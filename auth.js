@@ -507,7 +507,7 @@ async function _renderArchiveMode(list) {
             row.innerHTML = `
                 <div class="coach-urgent-left">
                     <div class="coach-urgent-text">
-                        <span class="coach-urgent-name">${_fromMeDot(client)}${_esc(name)}</span>
+                        <span class="coach-urgent-name">${_esc(name)}</span>
                         <span class="coach-urgent-reason" style="color:#888">נמחק: ${deletedDate}</span>
                     </div>
                 </div>
