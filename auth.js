@@ -507,7 +507,7 @@ async function _renderArchiveMode(list) {
             row.innerHTML = `
                 <div class="coach-urgent-left">
                     <div class="coach-urgent-text">
-                        <span class="coach-urgent-name">${_esc(name)}</span>
+                        <span class="coach-urgent-name">${_fromMeDot(client)}${_esc(name)}</span>
                         <span class="coach-urgent-reason" style="color:#888">נמחק: ${deletedDate}</span>
                     </div>
                 </div>
@@ -568,11 +568,10 @@ function _renderSubscribersMode(list) {
         row.className = 'coach-urgent-row';
         row.dataset.name = name.toLowerCase();
         row.innerHTML = `
-            ${_fromMeDot(client)}
             <div class="coach-urgent-left">
                 ${_coachAvatar(client)}
                 <div class="coach-urgent-text">
-                    <span class="coach-urgent-name">${_esc(name)}</span>
+                    <span class="coach-urgent-name">${_fromMeDot(client)}${_esc(name)}</span>
                     <span class="coach-urgent-reason" style="color:#60a5fa;font-weight:600;">💳 מנוי פעיל</span>
                 </div>
             </div>
@@ -711,13 +710,45 @@ async function _toggleFromMe(btn) {
     }
 }
 
-// מחבר מאזין ללחיצה על הנקודה בתוך כרטיס (עוצר התפשטות כדי לא לפתוח/להיכנס)
+// מחבר מאזין ללחיצה על הנקודה — פותח תפריט אישור (לא משנה צבע ישירות)
 function _wireFromMeDot(row) {
     const dot = row.querySelector('.from-me-dot');
     if (dot) dot.addEventListener('click', function (e) {
         e.stopPropagation();
-        _toggleFromMe(this);
+        _openFromMeMenu(this);
     });
+}
+
+let _fromMeMenuEl = null;
+function _closeFromMeMenu() {
+    if (_fromMeMenuEl) { _fromMeMenuEl.remove(); _fromMeMenuEl = null; }
+    document.removeEventListener('click', _closeFromMeMenu);
+}
+function _openFromMeMenu(dot) {
+    _closeFromMeMenu();
+    const on = dot.dataset.fromMe === '1';
+    const targetColor = on ? '#ef4444' : '#3b82f6';
+    const targetLabel = on ? 'שנה לאדום (לא ממני)' : 'שנה לכחול (ממני)';
+    const menu = document.createElement('div');
+    menu.className = 'from-me-menu';
+    menu.innerHTML = `<button class="from-me-menu-btn"><span class="from-me-menu-swatch" style="background:${targetColor}"></span>${targetLabel}</button>`;
+    document.body.appendChild(menu);
+    _fromMeMenuEl = menu;
+    // מיקום מתחת לנקודה, צמוד לימין, עם הצמדה לגבולות המסך
+    const r = dot.getBoundingClientRect();
+    const mw = menu.offsetWidth, vw = window.innerWidth, m = 8;
+    let left = r.right - mw;
+    if (left + mw + m > vw) left = vw - mw - m;
+    if (left < m) left = m;
+    menu.style.top = (r.bottom + 6) + 'px';
+    menu.style.left = left + 'px';
+    menu.querySelector('.from-me-menu-btn').addEventListener('click', function (e) {
+        e.stopPropagation();
+        _toggleFromMe(dot);
+        _closeFromMeMenu();
+    });
+    // לחיצה בכל מקום אחר סוגרת בלי לשנות
+    setTimeout(function () { document.addEventListener('click', _closeFromMeMenu); }, 0);
 }
 
 function _coachSparkline(scores) {
@@ -846,11 +877,10 @@ function _renderUrgentMode(list) {
         row.className = 'coach-urgent-row';
         row.dataset.name = name.toLowerCase();
         row.innerHTML = `
-            ${_fromMeDot(client)}
             <div class="coach-urgent-left">
                 ${_coachAvatar(client)}
                 <div class="coach-urgent-text">
-                    <span class="coach-urgent-name">${_esc(name)}</span>
+                    <span class="coach-urgent-name">${_fromMeDot(client)}${_esc(name)}</span>
                     <span class="coach-urgent-reason ${cls}">${reason}</span>
                 </div>
             </div>
@@ -892,11 +922,10 @@ function _renderOverviewMode(list) {
         card.dataset.name = name.toLowerCase();
         card.style.borderColor = bClr;
         card.innerHTML = `
-            ${_fromMeDot(client)}
             <div class="coach-card-header" onclick="this.closest('.coach-overview-card').classList.toggle('expanded')">
                 ${_coachAvatar(client)}
                 <div style="display:flex;flex-direction:column;flex:1;min-width:0;">
-                    <div class="coach-card-name">${_esc(name)}</div>
+                    <div class="coach-card-name">${_fromMeDot(client)}${_esc(name)}</div>
                     ${(() => {
                         if (!s.lastSeen) return '<span style="font-size:11px;color:#888;">כניסה אחרונה: לא ידוע</span>';
                         const days = Math.floor((Date.now() - new Date(s.lastSeen).getTime()) / 86400000);

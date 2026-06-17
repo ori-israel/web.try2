@@ -2943,14 +2943,30 @@ legend { padding: 0; display: block; width: 100%; }
 .workout-header-top .workout-title      { justify-self: center; text-align: center; }
 
 /* ===== נקודת מקור לקוח בלוח המנהל (כחול=ממני, אדום=לא ממני) ===== */
-.coach-urgent-row, .coach-overview-card { position: relative; }
 .from-me-dot {
-    position: absolute; top: 8px; right: 8px; z-index: 3;
-    width: 14px; height: 14px; border-radius: 50%;
-    border: 2px solid var(--bg-card, #1e1e1e);
-    padding: 0; cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+    display: inline-block; vertical-align: middle;
+    width: 11px; height: 11px; border-radius: 50%;
+    margin-left: 7px; /* RTL: רווח בין הנקודה לשם */
+    border: none; padding: 0; cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
     transition: transform .15s ease;
 }
-.from-me-dot:hover  { transform: scale(1.18); }
+.from-me-dot:hover  { transform: scale(1.25); }
 .from-me-dot:active { transform: scale(0.85); }
+
+/* תפריט אישור החלפת צבע (כדי לא לשנות בטעות) */
+.from-me-menu {
+    position: fixed; z-index: 2147483050;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; box-shadow: var(--shadow-lg); padding: 5px;
+    direction: rtl;
+}
+.from-me-menu-btn {
+    display: flex; align-items: center; gap: 8px;
+    background: transparent; border: none; color: var(--text-primary);
+    font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+    padding: 8px 12px; border-radius: 8px; white-space: nowrap; width: 100%;
+    transition: background .15s ease;
+}
+.from-me-menu-btn:hover { background: var(--bg-card-alt); }
+.from-me-menu-swatch { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
