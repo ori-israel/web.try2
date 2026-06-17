@@ -1326,54 +1326,54 @@ async function renderScoreHistory(userId) {
         const weeklyTarget = Object.values(CLIENT.workoutDays || {}).reduce((s, days) => s + days.length, 0) || CLIENT.workoutsPerWeek || 3;
         const targets2 = calcPortionTargets();
 
-        // חישוב חי של ציון שבוע בודד מהנתונים הגולמיים — אותה נוסחה לעבר ולהווה
-        async function _computeWeekScore(weekStart, weekEnd) {
-            const [{ data: wk }, { data: nut }, { data: wt }] = await Promise.all([
-                db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', weekStart).lte('date', weekEnd),
-                db.from('daily_nutrition').select('date,protein,carbs,fat').eq('user_id', userId).gte('date', weekStart).lte('date', weekEnd),
-                db.from('weight_history').select('date').eq('user_id', userId).gte('date', weekStart).lte('date', weekEnd),
-            ]);
-            let nutMet = 0;
-            (nut || []).forEach(r => {
-                if (r.protein >= targets2.protein && r.carbs >= targets2.carbs && r.fat >= targets2.fat) nutMet++;
-            });
-            return Math.round((
-                Math.min(new Set((wk || []).map(r => r.date)).size / weeklyTarget, 1) * 0.4 +
-                Math.min(nutMet / 7, 1) * 0.4 +
-                ((wt || []).length > 0 ? 1 : 0) * 0.2
-            ) * 100);
-        }
-
-        // רצף קבוע של 7 השבועות שקדמו לשבוע הנוכחי (מהישן לחדש) — לפי תאריך, אף שבוע לא מדולג
+        // רצף קבוע: 7 שבועות עבר + השבוע הנוכחי, לפי תאריך — אף שבוע לא מדולג
         const PAST_WEEKS = 7;
         const weeks = [];
         for (let i = PAST_WEEKS; i >= 1; i--) {
             const s = new Date(thisSun.getTime() - i * 7 * 86400000);
             const e = new Date(s.getTime() + 6 * 86400000);
-            weeks.push({ start: fmt(s), end: fmt(e), label: fmtLabel(s) });
+            weeks.push({ start: fmt(s), end: fmt(e), label: fmtLabel(s), current: false });
         }
+        const curStart = fmt(thisSun);
+        const curEnd   = fmt(new Date(thisSun.getTime() + 6 * 86400000));
+        const allWeeks = [...weeks, { start: curStart, end: curEnd, label: 'השבוע', current: true }];
+        const rangeStart = weeks[0].start; // השבוע הישן ביותר
 
-        // ציונים שמורים לשבועות האלה (שאילתה אחת)
-        const { data: histRaw } = await db
-            .from('weekly_scores')
-            .select('week_start, score')
-            .eq('client_id', userId)
-            .in('week_start', weeks.map(w => w.start));
+        // שליפה אחת לכל סוג נתון לכל הטווח (במקום פנייה נפרדת לכל שבוע) — מהיר בהרבה, אותן תוצאות בדיוק
+        const [scoresRes, wkRes, nutRes, wtRes] = await Promise.all([
+            db.from('weekly_scores').select('week_start, score').eq('client_id', userId).gte('week_start', rangeStart).lt('week_start', curStart),
+            db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', rangeStart).lte('date', curEnd),
+            db.from('daily_nutrition').select('date,protein,carbs,fat').eq('user_id', userId).gte('date', rangeStart).lte('date', curEnd),
+            db.from('weight_history').select('date').eq('user_id', userId).gte('date', rangeStart).lte('date', curEnd),
+        ]);
         if (getActiveUserId() !== userId) return;
-        const storedMap = new Map((histRaw || []).map(r => [r.week_start, r.score]));
 
-        // לכל שבוע: ציון שמור אם קיים, אחרת חישוב חי — במקביל
-        const pastPoints = await Promise.all(weeks.map(async w => {
-            const score = storedMap.has(w.start) ? storedMap.get(w.start) : await _computeWeekScore(w.start, w.end);
-            return { label: w.label, score, current: false };
+        const storedMap = new Map((scoresRes.data || []).map(r => [r.week_start, r.score]));
+        const wkRows  = wkRes.data  || [];
+        const nutRows = nutRes.data || [];
+        const wtRows  = wtRes.data  || [];
+
+        // חישוב ציון שבוע מהנתונים שכבר נשלפו (בזיכרון, בלי פניות נוספות) — אותה נוסחה
+        const scoreFromMem = (start, end) => {
+            const days = new Set(wkRows.filter(r => r.date >= start && r.date <= end).map(r => r.date)).size;
+            let nutMet = 0;
+            nutRows.forEach(r => {
+                if (r.date >= start && r.date <= end && r.protein >= targets2.protein && r.carbs >= targets2.carbs && r.fat >= targets2.fat) nutMet++;
+            });
+            const hasWt = wtRows.some(r => r.date >= start && r.date <= end);
+            return Math.round((
+                Math.min(days / weeklyTarget, 1) * 0.4 +
+                Math.min(nutMet / 7, 1) * 0.4 +
+                (hasWt ? 1 : 0) * 0.2
+            ) * 100);
+        };
+
+        // עבר: ציון שמור אם קיים, אחרת חי. נוכחי: תמיד חי (דינמי).
+        const computed = allWeeks.map(w => ({
+            label: w.label,
+            current: w.current,
+            score: (!w.current && storedMap.has(w.start)) ? storedMap.get(w.start) : scoreFromMem(w.start, w.end),
         }));
-        if (getActiveUserId() !== userId) return;
-
-        // השבוע הנוכחי — תמיד חי
-        const curScore = await _computeWeekScore(fmt(thisSun), fmt(new Date(thisSun.getTime() + 6 * 86400000)));
-        if (getActiveUserId() !== userId) return;
-
-        const computed = [...pastPoints, { label: 'השבוע', score: curScore, current: true }];
 
         // קיצוץ שבועות פתיחה עם ציון 0 (לפני שהלקוח התחיל), תמיד שומרים את השבוע הנוכחי
         const firstReal = computed.findIndex(w => w.score > 0 || w.current);
