@@ -728,7 +728,7 @@ function _openFromMeMenu(dot) {
     _closeFromMeMenu();
     const on = dot.dataset.fromMe === '1';
     const targetColor = on ? '#ef4444' : '#3b82f6';
-    const targetLabel = on ? 'שנה לאדום (לא ממני)' : 'שנה לכחול (ממני)';
+    const targetLabel = on ? 'שנה לאדום (לא הגיע ממני)' : 'שנה לכחול (הגיע ממני)';
     const menu = document.createElement('div');
     menu.className = 'from-me-menu';
     menu.innerHTML = `<button class="from-me-menu-btn"><span class="from-me-menu-swatch" style="background:${targetColor}"></span>${targetLabel}</button>`;
