@@ -2900,7 +2900,7 @@ legend { padding: 0; display: block; width: 100%; }
 /* כפתור מדריך בכל טאב — ספר קטן בפינה הימנית העליונה */
 .tab-content { position: relative; }
 .tour-tab-btn {
-    position: absolute; top: 6px; right: 6px; z-index: 5;
+    position: absolute; top: 18px; right: 20px; z-index: 5;
     background: var(--bg-card-alt);
     border: 1.5px solid var(--accent);
     border-radius: var(--radius-sm); cursor: pointer;
