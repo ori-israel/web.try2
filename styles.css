@@ -2924,6 +2924,7 @@ legend { padding: 0; display: block; width: 100%; }
 }
 .tour-inline-btn:hover { box-shadow: var(--shadow); }
 .tour-inline-btn:active { transform: scale(0.9); }
-.workout-header-top .tour-inline-btn   { justify-self: start; align-self: start; }  /* RTL: צד ימין, גבוה */
-.workout-header-top .workout-reset-btn { justify-self: end; }    /* RTL: צד שמאל */
-.workout-header-top .workout-title     { justify-self: center; text-align: center; }
+.workout-header-top .tour-inline-btn    { align-self: start; }   /* גבוה */
+.workout-header-top > .tour-inline-btn:first-child { justify-self: start; }  /* ספר — RTL צד ימין */
+.workout-header-top .workout-reset-icon { justify-self: end; }   /* איפוס — RTL צד שמאל */
+.workout-header-top .workout-title      { justify-self: center; text-align: center; }
