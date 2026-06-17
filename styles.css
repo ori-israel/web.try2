@@ -2853,3 +2853,56 @@ legend { padding: 0; display: block; width: 100%; }
 @media (max-width: 768px) {
     input, select, textarea { font-size: 16px !important; }
 }
+
+/* ===================== מדריך מודרך (Tour) ===================== */
+.tour-blocker {
+    position: fixed; inset: 0; z-index: 2147483000;
+    display: none; background: transparent;
+}
+.tour-blocker.solid { background: rgba(0,0,0,0.72); }
+.tour-highlight {
+    position: fixed; z-index: 2147483001; display: none;
+    border-radius: 12px; pointer-events: none;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.72), 0 0 0 2px var(--main-green, #25D366);
+    transition: top .3s cubic-bezier(0.16,1,0.3,1), left .3s cubic-bezier(0.16,1,0.3,1),
+                width .3s cubic-bezier(0.16,1,0.3,1), height .3s cubic-bezier(0.16,1,0.3,1);
+}
+.tour-bubble {
+    position: fixed; z-index: 2147483002; display: none;
+    width: min(320px, calc(100vw - 24px));
+    background: var(--bg-card, #1e1e1e); color: var(--text-primary, #fff);
+    border: 1px solid var(--main-green, #25D366); border-radius: 14px;
+    padding: 16px 16px 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    direction: rtl; text-align: right;
+}
+.tour-bubble.tour-center {
+    top: 50% !important; left: 50% !important; transform: translate(-50%, -50%);
+    width: min(340px, calc(100vw - 32px)); text-align: center;
+}
+.tour-title { margin: 0 0 8px; font-size: 1.15rem; font-weight: 700; color: var(--main-green, #25D366); }
+.tour-text  { margin: 0 0 14px; font-size: 0.97rem; line-height: 1.55; }
+.tour-foot  { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.tour-foot-end { justify-content: center; }
+.tour-prog  { font-size: 0.8rem; color: var(--text-secondary, #aaa); }
+.tour-next, .tour-skip {
+    font-family: inherit; font-size: 0.92rem; font-weight: 600; cursor: pointer;
+    border-radius: 9px; padding: 9px 18px; transition: transform .15s ease;
+}
+.tour-next {
+    background: var(--main-green, #25D366); color: #fff; border: none;
+}
+.tour-skip {
+    background: transparent; color: var(--text-secondary, #aaa);
+    border: 1px solid var(--border, #444);
+}
+.tour-next:active, .tour-skip:active { transform: scale(0.97); }
+
+/* כפתור מדריך בכל טאב — ספר קטן בפינה הימנית העליונה */
+.tab-content { position: relative; }
+.tour-tab-btn {
+    position: absolute; top: 6px; right: 6px; z-index: 5;
+    background: transparent; border: none; cursor: pointer;
+    font-size: 22px; line-height: 1; padding: 4px;
+    transition: transform .15s ease;
+}
+.tour-tab-btn:active { transform: scale(0.9); }

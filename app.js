@@ -840,6 +840,7 @@ function triggerPWAInstall() {
     checkThursdayBanner();
     _showPWAPromptIfNeeded();
     _applySubscriberMode();
+    if (window.Tour && typeof Tour.maybeAutoRun === 'function') Tour.maybeAutoRun();
 };
 
 document.addEventListener('visibilitychange', () => {

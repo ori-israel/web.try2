@@ -1,8 +1,8 @@
-const CACHE_NAME = 'oi-fitness-v48';
+const CACHE_NAME = 'oi-fitness-v49';
 const PRECACHE = [
     '/', '/index.html', '/styles.css', '/app.js', '/auth.js',
     '/supabase-db.js', '/client.js', '/data.js', '/profile.js',
-    '/ai.js', '/achievements.js',
+    '/ai.js', '/achievements.js', '/tour.js',
 ];
 
 const IDB_NAME  = 'pf-sw-db';
