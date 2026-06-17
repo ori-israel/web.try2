@@ -2910,3 +2910,17 @@ legend { padding: 0; display: block; width: 100%; }
 }
 .tour-tab-btn:hover { box-shadow: var(--shadow); }
 .tour-tab-btn:active { transform: scale(0.9); }
+
+/* כפתור ספר פנימי (בטאב אימונים) — בתוך שורת הכותרת, לא צף */
+.tour-inline-btn {
+    flex-shrink: 0;
+    background: var(--bg-card-alt);
+    border: 1.5px solid var(--accent);
+    border-radius: var(--radius-sm); cursor: pointer;
+    font-size: 20px; line-height: 1; padding: 5px 9px;
+    box-shadow: var(--shadow-sm);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.tour-inline-btn:hover { box-shadow: var(--shadow); }
+.tour-inline-btn:active { transform: scale(0.9); }
+.workout-header-top .workout-title { flex: 1; text-align: center; }
