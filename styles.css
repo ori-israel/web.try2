@@ -1153,16 +1153,17 @@ mark {
 }
 
 .workout-reset-btn {
-    padding: 5px 12px;
-    border-radius: 20px;
+    padding: 6px 14px;
+    border-radius: 16px;
     border: 0.5px solid var(--border);
     background: var(--bg-card-alt);
     color: var(--text-muted);
     cursor: pointer;
     display: flex;
+    flex-direction: column-reverse;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 3px;
     font-size: 12px;
     font-weight: 500;
     transition: all 0.2s ease;
@@ -2923,6 +2924,6 @@ legend { padding: 0; display: block; width: 100%; }
 }
 .tour-inline-btn:hover { box-shadow: var(--shadow); }
 .tour-inline-btn:active { transform: scale(0.9); }
-.workout-header-top .tour-inline-btn   { justify-self: start; }  /* RTL: צד ימין */
+.workout-header-top .tour-inline-btn   { justify-self: start; align-self: start; }  /* RTL: צד ימין, גבוה */
 .workout-header-top .workout-reset-btn { justify-self: end; }    /* RTL: צד שמאל */
 .workout-header-top .workout-title     { justify-self: center; text-align: center; }
