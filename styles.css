@@ -2901,8 +2901,12 @@ legend { padding: 0; display: block; width: 100%; }
 .tab-content { position: relative; }
 .tour-tab-btn {
     position: absolute; top: 6px; right: 6px; z-index: 5;
-    background: transparent; border: none; cursor: pointer;
-    font-size: 22px; line-height: 1; padding: 4px;
-    transition: transform .15s ease;
+    background: var(--bg-card-alt, #2a2a2a);
+    border: 1.5px solid var(--main-green, #25D366);
+    border-radius: 10px; cursor: pointer;
+    font-size: 20px; line-height: 1; padding: 5px 9px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    transition: transform .15s ease, box-shadow .15s ease;
 }
+.tour-tab-btn:hover { box-shadow: 0 2px 8px rgba(37,211,102,0.3); }
 .tour-tab-btn:active { transform: scale(0.9); }
