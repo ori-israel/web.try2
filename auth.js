@@ -170,7 +170,7 @@ async function _loadClientAndShowApp(userId) {
     }
 
     // החל ערכת צבעים מה-localStorage שנטען
-    const theme = localStorage.getItem('theme') || 'dark';
+    const theme = localStorage.getItem('theme') || 'auto';
     if (typeof _applyTheme === 'function') _applyTheme(theme);
 
     // איפוס טאב לתזונה (tab1) בכל כניסה ללקוח

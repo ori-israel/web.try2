@@ -81,7 +81,7 @@ function _applyTheme(setting) {
 }
 
 function toggleTheme() {
-    const current = localStorage.getItem('theme') || 'dark';
+    const current = localStorage.getItem('theme') || 'auto';
     const next = current === 'dark' ? 'light' : current === 'light' ? 'auto' : 'dark';
     localStorage.setItem('theme', next);
     _applyTheme(next);
@@ -90,10 +90,10 @@ function toggleTheme() {
 }
 
 (function initTheme() {
-    const saved = localStorage.getItem('theme') || 'dark';
+    const saved = localStorage.getItem('theme') || 'auto';
     _applyTheme(saved);
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if ((localStorage.getItem('theme') || 'dark') === 'auto') _applyTheme('auto');
+        if ((localStorage.getItem('theme') || 'auto') === 'auto') _applyTheme('auto');
     });
 })();
 
