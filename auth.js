@@ -569,7 +569,7 @@ function _renderSubscribersMode(list) {
         row.dataset.name = name.toLowerCase();
         row.innerHTML = `
             <div class="coach-urgent-left">
-                ${_coachInitials(name, client.id)}
+                ${_coachAvatar(client)}
                 <div class="coach-urgent-text">
                     <span class="coach-urgent-name">${_esc(name)}</span>
                     <span class="coach-urgent-reason" style="color:#60a5fa;font-weight:600;">💳 מנוי פעיל</span>
@@ -670,6 +670,15 @@ function _coachInitials(name, id) {
     const words  = (name || '?').trim().split(/\s+/);
     const init   = ((words[0]?.[0] || '') + (words[1]?.[0] || '')).toUpperCase() || '?';
     return `<div class="coach-avatar" style="background:${color}">${init}</div>`;
+}
+
+// תמונת פרופיל אם הלקוח העלה אחת, אחרת ראשי תיבות — לשימוש בכל מסכי לוח המנהל
+function _coachAvatar(client) {
+    const name = client.name || client.nickname || '(ללא שם)';
+    if (client.avatar_url) {
+        return `<img src="${_esc(client.avatar_url)}" alt="תמונת פרופיל של ${_esc(name)}" class="coach-avatar-img" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span style="display:none">${_coachInitials(name, client.id)}</span>`;
+    }
+    return _coachInitials(name, client.id);
 }
 
 function _coachSparkline(scores) {
@@ -799,7 +808,7 @@ function _renderUrgentMode(list) {
         row.dataset.name = name.toLowerCase();
         row.innerHTML = `
             <div class="coach-urgent-left">
-                ${_coachInitials(name, client.id)}
+                ${_coachAvatar(client)}
                 <div class="coach-urgent-text">
                     <span class="coach-urgent-name">${_esc(name)}</span>
                     <span class="coach-urgent-reason ${cls}">${reason}</span>
@@ -843,9 +852,7 @@ function _renderOverviewMode(list) {
         card.style.borderColor = bClr;
         card.innerHTML = `
             <div class="coach-card-header" onclick="this.closest('.coach-overview-card').classList.toggle('expanded')">
-                ${client.avatar_url
-                    ? `<img src="${_esc(client.avatar_url)}" alt="תמונת פרופיל של ${_esc(name)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span style="display:none">${_coachInitials(name, client.id)}</span>`
-                    : _coachInitials(name, client.id)}
+                ${_coachAvatar(client)}
                 <div style="display:flex;flex-direction:column;flex:1;min-width:0;">
                     <div class="coach-card-name">${_esc(name)}</div>
                     ${(() => {
