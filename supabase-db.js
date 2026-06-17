@@ -589,21 +589,23 @@ async function sbFetchCoachDashData(clientIds) {
         db.from('workout_performance_log')
           .select('client_id, date')
           .in('client_id', clientIds)
-          .gte('date', monStr),
+          .gte('date', fourAgoStr),
         db.from('daily_nutrition')
           .select('user_id, date, protein, carbs, fat')
           .in('user_id', clientIds)
-          .gte('date', monStr),
+          .gte('date', fourAgoStr),
         db.from('weight_history')
           .select('user_id, date')
           .in('user_id', clientIds)
           .order('date', { ascending: false }),
     ]);
 
-    // Build map: user_id → most recent weight date
+    // Build map: user_id → most recent weight date, + סט תאריכי שקילה ב-4 השבועות האחרונים (לחישוב הרגלים לכל שבוע)
     const lastWeightDates = {};
+    const weightDatesByClient = {};
     (whRes.data || []).forEach(r => {
         if (!lastWeightDates[r.user_id]) lastWeightDates[r.user_id] = r.date;
+        if (r.date >= fourAgoStr) (weightDatesByClient[r.user_id] ||= new Set()).add(r.date);
     });
 
     console.log('[CoachDash] scores raw:', sRes.data, '| sRes.error:', sRes.error);
@@ -615,8 +617,10 @@ async function sbFetchCoachDashData(clientIds) {
         workouts:        wRes.data  || [],
         nutrition:       nRes.data  || [],
         lastWeightDates,
+        weightDatesByClient,
         monStr,
         prevMonStr,
+        fourAgoStr,
     };
 }
 

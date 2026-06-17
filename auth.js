@@ -593,7 +593,7 @@ function _renderSubscribersMode(list) {
 }
 
 function _buildClientStats(client) {
-    const { profiles, scores, workouts, nutrition, monStr, prevMonStr, lastWeightDates } = _coachDashData;
+    const { profiles, scores, workouts, nutrition, monStr, prevMonStr, lastWeightDates, weightDatesByClient } = _coachDashData;
     const profile = profiles.find(p => p.id === client.id) || {};
 
     const clientScores = scores
@@ -602,7 +602,6 @@ function _buildClientStats(client) {
 
     const currentWeek = clientScores.find(s => s.week_start === monStr)  || null;
     const prevWeek    = clientScores.find(s => s.week_start === prevMonStr) || null;
-    const last4       = clientScores.slice(-4).map(s => s.score);
 
     const pv = profile.portion_values || {};
     const pvP = pv.protein ?? 27.5;
@@ -633,20 +632,41 @@ function _buildClientStats(client) {
 
     const clientWorkouts  = workouts.filter(w => w.client_id === client.id);
     const clientNutrition = nutrition.filter(n => n.user_id  === client.id);
+    // תת-קבוצות לשבוע הנוכחי בלבד (הנתונים נשלפים כעת ל-4 שבועות אחורה)
+    const clientWorkoutsCur  = clientWorkouts.filter(w => w.date >= monStr);
+    const clientNutritionCur = clientNutrition.filter(n => n.date >= monStr);
 
-    const hasWorkout = clientWorkouts.length > 0;
+    const hasWorkout = clientWorkoutsCur.length > 0;
 
-    const nutritionBadDays = clientNutrition.filter(n => !nutritionMeetsGoal(n)).length;
+    const nutritionBadDays = clientNutritionCur.filter(n => !nutritionMeetsGoal(n)).length;
 
     // Live scores for current week (cron only saves at week end)
     const weeklyTarget      = profile.workouts_per_week || 3;
-    const workoutDates      = new Set(clientWorkouts.map(w => w.date));
+    const workoutDates      = new Set(clientWorkoutsCur.map(w => w.date));
     const liveWorkouts      = Math.min(Math.round(workoutDates.size / weeklyTarget * 100), 100);
-    const nutritionMet      = clientNutrition.filter(nutritionMeetsGoal).length;
+    const nutritionMet      = clientNutritionCur.filter(nutritionMeetsGoal).length;
     const liveNutrition     = Math.min(Math.round(nutritionMet / 7 * 100), 100);
     const lastWeight        = lastWeightDates?.[client.id];
     const liveHabits        = (lastWeight && lastWeight >= monStr) ? 100 : 0;
     const liveScore         = Math.round(liveWorkouts * 0.4 + liveNutrition * 0.4 + liveHabits * 0.2);
+
+    // רצף רציף של 4 השבועות האחרונים + השבוע הנוכחי לפי תאריך — אף שבוע לא מדולג.
+    // ציון שמור אם קיים, אחרת חישוב חי מאותם נתונים (אותה נוסחה).
+    const weightSet = weightDatesByClient?.[client.id];
+    const baseMs = Date.parse(monStr);
+    const last4 = [];
+    for (let i = 4; i >= 1; i--) {
+        const startMs = baseMs - i * 7 * 86400000;
+        const start = new Date(startMs).toISOString().slice(0, 10);
+        const end   = new Date(startMs + 6 * 86400000).toISOString().slice(0, 10);
+        const stored = clientScores.find(s => s.week_start === start);
+        if (stored) { last4.push(stored.score); continue; }
+        const wkDays = new Set(clientWorkouts.filter(w => w.date >= start && w.date <= end).map(w => w.date)).size;
+        const nMet   = clientNutrition.filter(n => n.date >= start && n.date <= end && nutritionMeetsGoal(n)).length;
+        const hasWt  = weightSet ? [...weightSet].some(d => d >= start && d <= end) : false;
+        last4.push(Math.round((Math.min(wkDays / weeklyTarget, 1) * 0.4 + Math.min(nMet / 7, 1) * 0.4 + (hasWt ? 1 : 0) * 0.2) * 100));
+    }
+    last4.push(currentWeek ? currentWeek.score : liveScore);
 
     return {
         currentScore:    currentWeek?.score           ?? liveScore,
