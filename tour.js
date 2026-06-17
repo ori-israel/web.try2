@@ -136,7 +136,7 @@
     }
 
     blocker.classList.remove('solid');
-    highlight.style.display = 'block';
+    highlight.style.display = 'none'; // יוצג רק אחרי שמוקם, למניעת הבהוב
 
     // המתנה קצרה אם pre פתח משהו (תפריט/פרופיל), ואז גלילה ומיקום
     const delay = step.pre ? 280 : 0;
