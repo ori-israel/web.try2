@@ -1314,52 +1314,68 @@ async function renderScoreHistory(userId) {
     try {
         const today = new Date();
         const dow   = today.getDay();
-        const fmt   = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        const thisMon = new Date(today);
-        thisMon.setDate(today.getDate() - dow); // back to Sunday
-        thisMon.setHours(0, 0, 0, 0);
-        const thisMonStr = fmt(thisMon);
-        const thisSunStr = fmt(new Date(thisMon.getTime() + 6 * 86400000));
+        const fmt      = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const fmtLabel = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
 
-        // Past weeks from weekly_scores (same source as admin panel)
-        // Order descending + limit so we always get the MOST RECENT weeks, then reverse for display
+        // ראשון של השבוע הנוכחי
+        const thisSun = new Date(today);
+        thisSun.setDate(today.getDate() - dow);
+        thisSun.setHours(0, 0, 0, 0);
+
+        // פרמטרים משותפים לחישוב ציון (זהים לנוסחה בכל מקום)
+        const weeklyTarget = Object.values(CLIENT.workoutDays || {}).reduce((s, days) => s + days.length, 0) || CLIENT.workoutsPerWeek || 3;
+        const targets2 = calcPortionTargets();
+
+        // חישוב חי של ציון שבוע בודד מהנתונים הגולמיים — אותה נוסחה לעבר ולהווה
+        async function _computeWeekScore(weekStart, weekEnd) {
+            const [{ data: wk }, { data: nut }, { data: wt }] = await Promise.all([
+                db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', weekStart).lte('date', weekEnd),
+                db.from('daily_nutrition').select('date,protein,carbs,fat').eq('user_id', userId).gte('date', weekStart).lte('date', weekEnd),
+                db.from('weight_history').select('date').eq('user_id', userId).gte('date', weekStart).lte('date', weekEnd),
+            ]);
+            let nutMet = 0;
+            (nut || []).forEach(r => {
+                if (r.protein >= targets2.protein && r.carbs >= targets2.carbs && r.fat >= targets2.fat) nutMet++;
+            });
+            return Math.round((
+                Math.min(new Set((wk || []).map(r => r.date)).size / weeklyTarget, 1) * 0.4 +
+                Math.min(nutMet / 7, 1) * 0.4 +
+                ((wt || []).length > 0 ? 1 : 0) * 0.2
+            ) * 100);
+        }
+
+        // רצף קבוע של 7 השבועות שקדמו לשבוע הנוכחי (מהישן לחדש) — לפי תאריך, אף שבוע לא מדולג
+        const PAST_WEEKS = 7;
+        const weeks = [];
+        for (let i = PAST_WEEKS; i >= 1; i--) {
+            const s = new Date(thisSun.getTime() - i * 7 * 86400000);
+            const e = new Date(s.getTime() + 6 * 86400000);
+            weeks.push({ start: fmt(s), end: fmt(e), label: fmtLabel(s) });
+        }
+
+        // ציונים שמורים לשבועות האלה (שאילתה אחת)
         const { data: histRaw } = await db
             .from('weekly_scores')
             .select('week_start, score')
             .eq('client_id', userId)
-            .lt('week_start', thisMonStr)
-            .order('week_start', { ascending: false })
-            .limit(7);
+            .in('week_start', weeks.map(w => w.start));
         if (getActiveUserId() !== userId) return;
-        const histData = (histRaw || []).reverse();
+        const storedMap = new Map((histRaw || []).map(r => [r.week_start, r.score]));
 
-        // Current week — compute live from raw data
-        const weeklyTarget = Object.values(CLIENT.workoutDays || {}).reduce((s, days) => s + days.length, 0) || CLIENT.workoutsPerWeek || 3;
-        const targets2 = calcPortionTargets();
-        const [{ data: wkData }, { data: nutData }, { data: wtData }] = await Promise.all([
-            db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', thisMonStr).lte('date', thisSunStr),
-            db.from('daily_nutrition').select('date,protein,carbs,fat').eq('user_id', userId).gte('date', thisMonStr).lte('date', thisSunStr),
-            db.from('weight_history').select('date').eq('user_id', userId).gte('date', thisMonStr).lte('date', thisSunStr),
-        ]);
+        // לכל שבוע: ציון שמור אם קיים, אחרת חישוב חי — במקביל
+        const pastPoints = await Promise.all(weeks.map(async w => {
+            const score = storedMap.has(w.start) ? storedMap.get(w.start) : await _computeWeekScore(w.start, w.end);
+            return { label: w.label, score, current: false };
+        }));
         if (getActiveUserId() !== userId) return;
-        let nutritionMet = 0;
-        (nutData || []).forEach(r => {
-            if (r.protein >= targets2.protein && r.carbs >= targets2.carbs && r.fat >= targets2.fat) nutritionMet++;
-        });
-        const curScore = Math.round((
-            Math.min(new Set((wkData||[]).map(r=>r.date)).size / weeklyTarget, 1) * 0.4 +
-            Math.min(nutritionMet / 7, 1) * 0.4 +
-            ((wtData||[]).length > 0 ? 1 : 0) * 0.2
-        ) * 100);
 
-        // Merge: past weeks + current week
-        const pastPoints = (histData || []).map(r => {
-            const [, m, d] = r.week_start.split('-');
-            return { label: `${d}/${m}`, score: r.score, current: false };
-        });
+        // השבוע הנוכחי — תמיד חי
+        const curScore = await _computeWeekScore(fmt(thisSun), fmt(new Date(thisSun.getTime() + 6 * 86400000)));
+        if (getActiveUserId() !== userId) return;
+
         const computed = [...pastPoints, { label: 'השבוע', score: curScore, current: true }];
 
-        // Trim leading all-zero past weeks, always keep current week
+        // קיצוץ שבועות פתיחה עם ציון 0 (לפני שהלקוח התחיל), תמיד שומרים את השבוע הנוכחי
         const firstReal = computed.findIndex(w => w.score > 0 || w.current);
         const visible = firstReal >= 0 ? computed.slice(firstReal) : computed.slice(-1);
 
