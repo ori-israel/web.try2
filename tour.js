@@ -178,7 +178,8 @@
     }
 
     blocker.classList.remove('solid');
-    highlight.style.display = 'none'; // יוצג רק אחרי שמוקם, למניעת הבהוב
+    bubble.classList.add('is-hidden');     // הבהוב החוצה לפני מעבר לשלב הבא
+    highlight.style.display = 'none';       // יוצג רק אחרי שמוקם, למניעת הבהוב
 
     // המתנה קצרה אם pre פתח משהו (תפריט/פרופיל), ואז גלילה ומיקום
     const delay = step.pre ? 420 : 0; // זמן לפתיחת תפריט/פרופיל (אנימציה ~0.35s) לפני מדידה
@@ -207,6 +208,8 @@
     highlight.style.width = (r.width + pad * 2) + 'px';
     highlight.style.height = (r.height + pad * 2) + 'px';
     placeBubbleNear(r, text);
+    // הבהוב פנימה רך אחרי שהבועה מוקמה במקום החדש
+    requestAnimationFrame(function () { bubble.classList.remove('is-hidden'); });
   }
 
   function bubbleHTML(text, isLast) {
@@ -243,11 +246,16 @@
 
   function placeBubbleCenter(text) {
     const isLast = idx === queue.length - 1;
+    bubble.classList.add('is-hidden');
     bubble.innerHTML = bubbleHTML(text, isLast);
     bubble.classList.add('tour-center');
     bubble.style.display = 'block';
     bubble.style.top = ''; bubble.style.left = '';
     wireBubble();
+    // הבהוב פנימה רך (double rAF כדי שמצב המוסתר ייצבע קודם)
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { bubble.classList.remove('is-hidden'); });
+    });
   }
 
   function wireBubble() {
@@ -283,11 +291,16 @@
     } else {
       btns = '<button class="tour-next" data-act="done">סיום</button>';
     }
+    bubble.classList.add('is-hidden');
     bubble.classList.add('tour-center');
     bubble.style.display = 'block';
+    bubble.style.top = ''; bubble.style.left = '';
     bubble.innerHTML = '<p class="tour-title">' + title + '</p>' +
                        '<p class="tour-text">' + msg + '</p>' +
                        '<div class="tour-foot tour-foot-end">' + btns + '</div>';
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { bubble.classList.remove('is-hidden'); });
+    });
     const go = bubble.querySelector('[data-act="gonext"]');
     const done = bubble.querySelector('[data-act="done"]');
     if (done) done.onclick = close;
@@ -304,6 +317,7 @@
     closeMenu();
     showLayer(false);
     if (blocker) blocker.classList.remove('solid');
+    if (bubble) bubble.classList.remove('is-hidden', 'tour-center');
     unlockScroll();
     unbindResize();
     queue = []; idx = 0; ctx = null;

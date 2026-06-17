@@ -2875,11 +2875,24 @@ legend { padding: 0; display: block; width: 100%; }
     border: 1px solid var(--accent); border-radius: var(--radius);
     padding: 16px 16px 12px; box-shadow: var(--shadow-lg);
     direction: rtl; text-align: right;
+    transition: opacity .26s ease, transform .32s cubic-bezier(0.16, 1, 0.3, 1);
 }
+/* מצב מוסתר למעבר חלק בין שלבים (ממוקם רגיל) */
+.tour-bubble.is-hidden { opacity: 0; transform: translateY(10px); }
+
 .tour-bubble.tour-center {
     top: 50% !important; left: 50% !important; transform: translate(-50%, -50%);
     width: min(340px, calc(100vw - 32px)); text-align: center;
 }
+/* מצב מוסתר לבועה ממורכזת — שומר על המירכוז */
+.tour-bubble.tour-center.is-hidden { transform: translate(-50%, calc(-50% + 10px)); }
+
+/* פעימה עדינה של מסגרת הזרקור (לא משנה את שכבת ההכהיה) */
+@keyframes tourPulse {
+    0%, 100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.72), 0 0 0 2px var(--accent); }
+    50%      { box-shadow: 0 0 0 9999px rgba(0,0,0,0.72), 0 0 0 5px rgba(59,130,246,0.40); }
+}
+.tour-highlight { animation: tourPulse 2.2s ease-in-out infinite; }
 .tour-title { margin: 0 0 8px; font-size: 1.15rem; font-weight: 700; color: var(--accent); }
 .tour-text  { margin: 0 0 14px; font-size: 0.97rem; line-height: 1.55; }
 .tour-foot  { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
