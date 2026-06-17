@@ -49,7 +49,11 @@
     general: [
       { center: true, text: 'ברוכים הבאים לאפליקציית OI. סיור קצר שמראה איך הכל עובד' },
       { sel: '.tabs',         text: 'ארבעה אזורים: תזונה, אימונים, מעקב ויעדים, ומרכז המידע. מעבר ביניהם בלחיצה', pre: closeMenu },
-      { sel: '.hamburger-btn',text: 'התפריט העליון. כאן נמצאים הפרופיל, מאמן ה-AI, וקביעת פגישה', pre: closeMenu },
+      { sel: '.hamburger-btn', pre: closeMenu, text: function () {
+          return isSubscriber()
+            ? 'התפריט העליון. כאן נמצאים הפרופיל ומאמן ה-AI'
+            : 'התפריט העליון. כאן נמצאים הפרופיל, מאמן ה-AI, וקביעת פגישה';
+        } },
       { sel: 'button[onclick="openAIChat()"]', text: 'מאמן חכם שזמין בכל שעה לשאלות על תזונה, אימונים והתהליך. עונה בהתאמה אישית למידע האישי', pre: openMenu },
       { sel: '.whatsapp-top-btn',  text: 'כפתור לשליחת הודעה ישירה למאמן בוואטסאפ בכל שאלה או עדכון', coachOnly: true, pre: openMenu },
       { sel: '#calendly-hamburger-btn', text: 'קביעת פגישה אישית עם המאמן ישירות מהאפליקציה', coachOnly: true, pre: openMenu },
@@ -68,6 +72,8 @@
     // CLIENT מוגדר כ-const גלובלי (לא על window) — לכן ניגשים אליו ישירות
     return (typeof CLIENT !== 'undefined') && !!CLIENT.isSubscriber;
   }
+  // טקסט יכול להיות מחרוזת או פונקציה שמחזירה טקסט לפי סוג המשתמש
+  function txtOf(step) { return typeof step.text === 'function' ? step.text() : step.text; }
   function visible(list) { return list.filter(s => !(s.coachOnly && isSubscriber())); }
 
   // ---------- עזרי תפריט/פרופיל ----------
@@ -167,7 +173,7 @@
     if (step.center) {
       blocker.classList.add('solid');
       highlight.style.display = 'none';
-      placeBubbleCenter(step.text);
+      placeBubbleCenter(txtOf(step));
       return;
     }
 
@@ -183,7 +189,7 @@
         idx++; render(); return;
       }
       try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
-      setTimeout(function () { positionTo(el, step.text); }, 320);
+      setTimeout(function () { positionTo(el, txtOf(step)); }, 320);
     }, delay);
   }
 
@@ -310,7 +316,7 @@
     const step = queue[idx];
     if (!step || step.center) return;
     const el = resolve(step.sel);
-    if (el) positionTo(el, step.text);
+    if (el) positionTo(el, txtOf(step));
   }
   function bindResize() {
     if (!resizeBound) {
