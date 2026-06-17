@@ -47,7 +47,7 @@
       { sel: '#faq-categories-container',  text: 'תשובות לשאלות שחוזרות הרבה, מסודרות לפי קטגוריות' },
     ],
     general: [
-      { center: true, text: 'ברוכים הבאים לפורטל. סיור קצר שמראה איך הכל עובד' },
+      { center: true, text: 'ברוכים הבאים לאפליקציית OI. סיור קצר שמראה איך הכל עובד' },
       { sel: '.tabs',         text: 'ארבעה אזורים: תזונה, אימונים, מעקב ויעדים, ומרכז המידע. מעבר ביניהם בלחיצה', pre: closeMenu },
       { sel: '.hamburger-btn',text: 'התפריט העליון. כאן נמצאים הפרופיל, מאמן ה-AI, וקביעת פגישה', pre: closeMenu },
       { sel: 'button[onclick="openAIChat()"]', text: 'מאמן חכם שזמין בכל שעה לשאלות על תזונה, אימונים והתהליך. עונה בהתאמה אישית למידע האישי', pre: openMenu },
@@ -71,7 +71,11 @@
   function visible(list) { return list.filter(s => !(s.coachOnly && isSubscriber())); }
 
   // ---------- עזרי תפריט/פרופיל ----------
-  function openMenu()  { const m = document.querySelector('.hamburger-menu'); if (m) m.classList.add('open'); }
+  function openMenu()  {
+    // דחייה: כך מאזין "לחיצה מחוץ לתפריט" (שרץ על אותה לחיצת "הבא") לא סוגר את התפריט מיד
+    const m = document.querySelector('.hamburger-menu');
+    if (m) setTimeout(function () { m.classList.add('open'); }, 0);
+  }
   function closeMenu() { const m = document.querySelector('.hamburger-menu'); if (m) m.classList.remove('open'); }
   function openProfileForTour() {
     closeMenu();
@@ -112,6 +116,25 @@
     blocker.style.display = d; highlight.style.display = d; bubble.style.display = d;
   }
 
+  // נעילת גלילה מלאה בזמן מדריך (גלילה אוטומטית לאלמנט עדיין מותרת — היא לא אירוע משתמש)
+  function preventScroll(e) {
+    if (e.target.closest && e.target.closest('.tour-bubble')) return; // גלילה בתוך הבועה מותרת
+    e.preventDefault();
+  }
+  let scrollLocked = false;
+  function lockScroll() {
+    if (scrollLocked) return;
+    document.addEventListener('wheel', preventScroll, { passive: false, capture: true });
+    document.addEventListener('touchmove', preventScroll, { passive: false, capture: true });
+    scrollLocked = true;
+  }
+  function unlockScroll() {
+    if (!scrollLocked) return;
+    document.removeEventListener('wheel', preventScroll, { capture: true });
+    document.removeEventListener('touchmove', preventScroll, { capture: true });
+    scrollLocked = false;
+  }
+
   // ---------- מצב ריצה ----------
   let queue = [], idx = 0, ctx = null; // ctx = 'tab1'/'general' וכו'
 
@@ -121,6 +144,7 @@
     idx = 0;
     if (!queue.length) return;
     build(); showLayer(true);
+    lockScroll();
     bindResize();
     render();
   }
@@ -129,6 +153,7 @@
     queue = visible(STEPS.general);
     idx = 0;
     build(); showLayer(true);
+    lockScroll();
     bindResize();
     render();
   }
@@ -150,7 +175,7 @@
     highlight.style.display = 'none'; // יוצג רק אחרי שמוקם, למניעת הבהוב
 
     // המתנה קצרה אם pre פתח משהו (תפריט/פרופיל), ואז גלילה ומיקום
-    const delay = step.pre ? 280 : 0;
+    const delay = step.pre ? 420 : 0; // זמן לפתיחת תפריט/פרופיל (אנימציה ~0.35s) לפני מדידה
     setTimeout(function () {
       const el = resolve(step.sel);
       // דילוג אם האלמנט לא קיים או מוסתר/ריק (למשל פיצ'ר ליווי אצל מנוי)
@@ -273,6 +298,7 @@
     closeMenu();
     showLayer(false);
     if (blocker) blocker.classList.remove('solid');
+    unlockScroll();
     unbindResize();
     queue = []; idx = 0; ctx = null;
   }
