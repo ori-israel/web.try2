@@ -1139,9 +1139,9 @@ mark {
 }
 
 .workout-header-top {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
     margin-bottom: 14px;
 }
 
@@ -2923,4 +2923,6 @@ legend { padding: 0; display: block; width: 100%; }
 }
 .tour-inline-btn:hover { box-shadow: var(--shadow); }
 .tour-inline-btn:active { transform: scale(0.9); }
-.workout-header-top .workout-title { flex: 1; text-align: center; }
+.workout-header-top .tour-inline-btn   { justify-self: start; }  /* RTL: צד ימין */
+.workout-header-top .workout-reset-btn { justify-self: end; }    /* RTL: צד שמאל */
+.workout-header-top .workout-title     { justify-self: center; text-align: center; }
