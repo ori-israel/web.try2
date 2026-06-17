@@ -31,8 +31,9 @@
     ],
     tab4: [
       { sel: function () {
-          return document.getElementById('score-widgets-anchor')
-              || document.getElementById('score-history-anchor');
+          return document.getElementById('weekly-score-container')
+              || document.getElementById('score-history-container')
+              || document.getElementById('score-widgets-anchor');
         },
         text: 'ציון שבועי שמסכם את ההתקדמות, וגרף "היסטוריית ציונים שבועיים" שמראה את המגמה לאורך הזמן 📈' },
       { sel: '.weight-card',          text: 'משקל התחלה, נוכחי ויעד. לחיצה על המשקל הנוכחי מעדכנת אותו, ויש גרף 📈 של ההתקדמות' },
@@ -63,7 +64,10 @@
   const TAB_ORDER = ['tab1', 'tab2', 'tab4', 'tab5'];
 
   // ---------- עזרי סוג משתמש ----------
-  function isSubscriber() { return !!(window.CLIENT && window.CLIENT.isSubscriber); }
+  function isSubscriber() {
+    // CLIENT מוגדר כ-const גלובלי (לא על window) — לכן ניגשים אליו ישירות
+    return (typeof CLIENT !== 'undefined') && !!CLIENT.isSubscriber;
+  }
   function visible(list) { return list.filter(s => !(s.coachOnly && isSubscriber())); }
 
   // ---------- עזרי תפריט/פרופיל ----------
@@ -149,7 +153,10 @@
     const delay = step.pre ? 280 : 0;
     setTimeout(function () {
       const el = resolve(step.sel);
-      if (!el) { idx++; render(); return; }
+      // דילוג אם האלמנט לא קיים או מוסתר/ריק (למשל פיצ'ר ליווי אצל מנוי)
+      if (!el || el.offsetParent === null || (el.offsetWidth === 0 && el.offsetHeight === 0)) {
+        idx++; render(); return;
+      }
       try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
       setTimeout(function () { positionTo(el, step.text); }, 320);
     }, delay);
