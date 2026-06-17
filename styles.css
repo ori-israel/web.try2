@@ -2941,3 +2941,16 @@ legend { padding: 0; display: block; width: 100%; }
 .workout-header-top > .tour-inline-btn:first-child { justify-self: start; }  /* ספר — RTL צד ימין */
 .workout-header-top .workout-reset-icon { justify-self: end; }   /* איפוס — RTL צד שמאל */
 .workout-header-top .workout-title      { justify-self: center; text-align: center; }
+
+/* ===== נקודת מקור לקוח בלוח המנהל (כחול=ממני, אדום=לא ממני) ===== */
+.coach-urgent-row, .coach-overview-card { position: relative; }
+.from-me-dot {
+    position: absolute; top: 8px; right: 8px; z-index: 3;
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid var(--bg-card, #1e1e1e);
+    padding: 0; cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+    transition: transform .15s ease;
+}
+.from-me-dot:hover  { transform: scale(1.18); }
+.from-me-dot:active { transform: scale(0.85); }

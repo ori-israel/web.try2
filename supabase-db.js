@@ -506,7 +506,7 @@ async function sbSaveStreaks(userId, fields) {
 async function sbFetchAllClients() {
     const { data, error } = await db
         .from('profiles')
-        .select('id, name, nickname, email, is_admin, is_subscriber, created_at, avatar_url, status')
+        .select('id, name, nickname, email, is_admin, is_subscriber, created_at, avatar_url, status, from_me')
         .is('deleted_at', null)
         .order('created_at', { ascending: true });
     if (error) throw error;
@@ -550,6 +550,12 @@ async function sbSetVacationMode(clientId, value) {
 
 async function sbSetSubscriberMode(clientId, value) {
     const { error } = await db.from('profiles').update({ is_subscriber: value }).eq('id', clientId);
+    if (error) throw error;
+}
+
+// סימון מקור הלקוח: כחול = ממני (true), אדום = לא ממני (false)
+async function sbSetFromMe(clientId, value) {
+    const { error } = await db.from('profiles').update({ from_me: value }).eq('id', clientId);
     if (error) throw error;
 }
 

@@ -568,6 +568,7 @@ function _renderSubscribersMode(list) {
         row.className = 'coach-urgent-row';
         row.dataset.name = name.toLowerCase();
         row.innerHTML = `
+            ${_fromMeDot(client)}
             <div class="coach-urgent-left">
                 ${_coachAvatar(client)}
                 <div class="coach-urgent-text">
@@ -587,6 +588,7 @@ function _renderSubscribersMode(list) {
             e.stopPropagation();
             toggleSubscriberMode(this.dataset.clientId, true);
         });
+        _wireFromMeDot(row);
         list.appendChild(row);
     });
 }
@@ -679,6 +681,43 @@ function _coachAvatar(client) {
         return `<img src="${_esc(client.avatar_url)}" alt="תמונת פרופיל של ${_esc(name)}" class="coach-avatar-img" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span style="display:none">${_coachInitials(name, client.id)}</span>`;
     }
     return _coachInitials(name, client.id);
+}
+
+// נקודת מקור: כחול = ממני, אדום = לא ממני. לחיצה מחליפה ושומרת.
+function _fromMeDot(client) {
+    const on    = !!client.from_me;
+    const color = on ? '#3b82f6' : '#ef4444';
+    const title = on ? 'הגיע ממני (כחול) — לחצו לשינוי' : 'לא הגיע ממני (אדום) — לחצו לשינוי';
+    return `<button class="from-me-dot" data-client-id="${client.id}" data-from-me="${on ? '1' : '0'}" title="${title}" aria-label="${title}" style="background:${color}"></button>`;
+}
+
+async function _toggleFromMe(btn) {
+    const id   = btn.dataset.clientId;
+    const next = btn.dataset.fromMe !== '1';
+    // עדכון מיידי בתצוגה
+    btn.dataset.fromMe = next ? '1' : '0';
+    btn.style.background = next ? '#3b82f6' : '#ef4444';
+    btn.title = next ? 'הגיע ממני (כחול) — לחצו לשינוי' : 'לא הגיע ממני (אדום) — לחצו לשינוי';
+    const c = (_coachClients || []).find(x => x.id === id);
+    if (c) c.from_me = next;
+    try {
+        await sbSetFromMe(id, next);
+    } catch (e) {
+        // החזרה למצב קודם בכישלון
+        btn.dataset.fromMe = next ? '0' : '1';
+        btn.style.background = next ? '#ef4444' : '#3b82f6';
+        if (c) c.from_me = !next;
+        _showToast('שגיאה בשמירת הסימון');
+    }
+}
+
+// מחבר מאזין ללחיצה על הנקודה בתוך כרטיס (עוצר התפשטות כדי לא לפתוח/להיכנס)
+function _wireFromMeDot(row) {
+    const dot = row.querySelector('.from-me-dot');
+    if (dot) dot.addEventListener('click', function (e) {
+        e.stopPropagation();
+        _toggleFromMe(this);
+    });
 }
 
 function _coachSparkline(scores) {
@@ -807,6 +846,7 @@ function _renderUrgentMode(list) {
         row.className = 'coach-urgent-row';
         row.dataset.name = name.toLowerCase();
         row.innerHTML = `
+            ${_fromMeDot(client)}
             <div class="coach-urgent-left">
                 ${_coachAvatar(client)}
                 <div class="coach-urgent-text">
@@ -825,6 +865,7 @@ function _renderUrgentMode(list) {
         row.querySelector('.admin-select-btn').addEventListener('click', function() {
             adminViewClient(this.dataset.clientId);
         });
+        _wireFromMeDot(row);
         list.appendChild(row);
     });
 
@@ -851,6 +892,7 @@ function _renderOverviewMode(list) {
         card.dataset.name = name.toLowerCase();
         card.style.borderColor = bClr;
         card.innerHTML = `
+            ${_fromMeDot(client)}
             <div class="coach-card-header" onclick="this.closest('.coach-overview-card').classList.toggle('expanded')">
                 ${_coachAvatar(client)}
                 <div style="display:flex;flex-direction:column;flex:1;min-width:0;">
@@ -906,6 +948,7 @@ function _renderOverviewMode(list) {
             e.stopPropagation();
             deleteClient(this.dataset.clientId, this.dataset.clientName);
         });
+        _wireFromMeDot(card);
         list.appendChild(card);
     });
 }
