@@ -218,7 +218,7 @@
     return (
       '<p class="tour-text">' + text + '</p>' +
       '<div class="tour-foot">' +
-      '<button class="tour-skip" data-act="skip">דלג</button>' +
+      '<button class="tour-skip" data-act="skip">דילוג</button>' +
       '<span class="tour-prog">' + cur + ' / ' + n + '</span>' +
       '<button class="tour-next" data-act="next">' + nextLabel + '</button>' +
       '</div>'
