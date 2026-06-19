@@ -19,7 +19,7 @@
       { sel: 'button[onclick="openCalc()"]', text: 'חישוב כמות הקלוריות והחלבון הדרושה לפי המטרה' },
     ],
     tab2: [
-      { sel: '#workout-streak-display', text: 'מספר השבועות ברצף עם אימון שהושלם 🔥' },
+      { sel: '#workout-streak-display', text: 'מספר השבועות ברצף שבהם עמדת ביעד האימונים השבועי 🔥' },
       { sel: '#workout-selector',       text: 'בחירת האימון להיום: ראשון, שני, שלישי וכן הלאה לפי התוכנית' },
       { sel: function () {
           const v = Array.from(document.querySelectorAll('.workout-container'))
