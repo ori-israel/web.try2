@@ -112,7 +112,7 @@ async function sbSignOut() {
 
 // ── תיעוד אישור תנאים (ראיה משפטית) ────────────────────────
 // גרסת המסמכים הנוכחית — לעדכן אם משנים תנאי שימוש/פרטיות
-const TERMS_VERSION = 'v1.0';
+const TERMS_VERSION = 'v2.0';
 
 async function sbLogConsent(userId, email) {
     // upsert עם ignoreDuplicates — נרשם רק בפעם הראשונה לכל גרסת תנאים
