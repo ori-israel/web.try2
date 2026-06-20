@@ -786,7 +786,7 @@ async function syncProfileNow(data) {
             liked_foods:    data.likedFoods,
             disliked_foods: data.dislikedFoods,
             coaching_goal:            data.coachingGoal,
-            coaching_duration_months: data.coachingDurationMonths || null,
+            coaching_duration_months: 'coachingDurationMonths' in data ? (data.coachingDurationMonths || null) : undefined,
         });
     } catch (e) { console.error('[SB] profile sync failed:', e.message); }
 }
