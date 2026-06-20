@@ -92,7 +92,7 @@
         <input id="signup-goal-weight" type="number" step="0.1" placeholder="ק״ג" class="login-input" aria-label="משקל יעד">
 
         <label for="signup-height" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">גובה (ס״מ)</label>
-        <input id="signup-height" type="number" placeholder="ס״מ" class="login-input" aria-label="גובה">
+        <input id="signup-height" type="number" placeholder="ס״מ" class="login-input" aria-label="גובה" step="1" onkeydown="if(event.key==='.'||event.key===',')event.preventDefault()">
 
         <label for="signup-gender" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">מין</label>
         <select id="signup-gender" class="login-input" aria-label="מין">

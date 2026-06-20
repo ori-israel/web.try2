@@ -298,6 +298,7 @@ async function doSignup() {
         errorEl.textContent = 'יש למלא את כל השדות'; return;
     }
     if (password.length < 6) { errorEl.textContent = 'הסיסמה חייבת להכיל לפחות 6 תווים'; return; }
+    if (!Number.isInteger(parseFloat(height)) || parseFloat(height) < 100) { errorEl.textContent = 'יש להכניס גובה בסנטימטרים, לדוגמה: 172'; return; }
 
     btn.disabled    = true;
     btn.textContent = 'יוצר חשבון...';
