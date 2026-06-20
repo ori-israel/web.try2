@@ -46,6 +46,13 @@
       { sel: '#info-chapters',             text: 'מאגר מסודר לפי נושאים. לחיצה על פרק פותחת אותו, ולחיצה על מושג מציגה הסבר פשוט' },
       { sel: '#faq-categories-container',  text: 'תשובות לשאלות שחוזרות הרבה, מסודרות לפי קטגוריות' },
     ],
+    ai: [
+      { center: true, text: 'זהו המאמן AI. הוא מכיר אותך אישית: יודע את תוכנית האימון שלך, כמה אכלת היום, ואת ההתקדמות שלך. אפשר לשאול אותו כל שאלה על תזונה, אימונים והתאוששות' },
+      { sel: '#ai-websearch-btn', text: 'הפעלת חיפוש אינטרנט בזמן אמת. כשפעיל, הסוכן מחפש מידע עדכני ומביא מקורות. כבוי כברירת מחדל לתשובות מהירות יותר' },
+      { sel: 'button[onclick="resetAIChat()"]', text: 'איפוס השיחה ופתיחת שיחה חדשה. הסוכן לא זוכר שיחות קודמות בין כניסות' },
+      { sel: '#ai-chat-input', text: 'אפשר לשאול כל שאלה על תזונה ואימונים. בנוסף: לבקש להוסיף מזון ישירות ליומן, למשל: "הוסף לי 150 גרם אורז"' },
+      { sel: '#ai-chat-overlay > p', text: 'הסוכן עשוי לטעות. לשאלות חשובות על תוכנית האימון או התזונה האישית, עדיף לפנות לאורי ישירות' },
+    ],
     general: [
       { center: true, text: 'ברוכים הבאים לאפליקציית OI. סיור קצר שמראה איך הכל עובד' },
       { sel: '.tabs',         text: 'ארבעה אזורים: תזונה, אימונים, מעקב ויעדים, ומרכז המידע. מעבר ביניהם בלחיצה', pre: closeMenu },
@@ -364,7 +371,22 @@
   }
 
   // ---------- חשיפה גלובלית ----------
+  function startAI() {
+    const ov = document.getElementById('ai-chat-overlay');
+    if (ov && ov.style.display === 'none') {
+      if (typeof openAIChat === 'function') openAIChat();
+    }
+    ctx = 'ai';
+    queue = STEPS.ai;
+    idx = 0;
+    build(); showLayer(true);
+    lockScroll();
+    bindResize();
+    render();
+  }
+
   window.startTabTour = startTab;
   window.startGeneralTour = startGeneral;
-  window.Tour = { startTab: startTab, startGeneral: startGeneral, maybeAutoRun: maybeAutoRun };
+  window.startAITour = startAI;
+  window.Tour = { startTab: startTab, startGeneral: startGeneral, maybeAutoRun: maybeAutoRun, startAI: startAI };
 })();
