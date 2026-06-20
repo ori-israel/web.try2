@@ -1414,9 +1414,14 @@ window.addEventListener('message', async function(e) {
 
     if (eventUri) {
         try {
+            const { data: { session: _calSession } } = await db.auth.getSession();
+            const _calToken = _calSession?.access_token;
             const resp = await fetch('/api/calendly-event', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(_calToken ? { 'Authorization': `Bearer ${_calToken}` } : {})
+                },
                 body: JSON.stringify({ eventUri })
             });
             const json = await resp.json();
