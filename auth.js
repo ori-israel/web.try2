@@ -2,6 +2,20 @@
 // auth.js — Authentication, login UI, admin panel
 // ============================================================
 
+function _showHeightInInches(val) {
+    const el = document.getElementById('height-inches-hint');
+    if (!el) return;
+    const cm = parseInt(val);
+    if (cm >= 100 && cm <= 250) {
+        const totalInches = cm / 2.54;
+        const feet = Math.floor(totalInches / 12);
+        const inches = Math.round(totalInches % 12);
+        el.textContent = '≈ ' + feet + '′' + inches + '″';
+    } else {
+        el.textContent = '';
+    }
+}
+
 // Promise שמ-window.onload של app.js ממתין לו לפני אתחול
 let _resolveAuthReady;
 window._authReady = new Promise(r => { _resolveAuthReady = r; });
