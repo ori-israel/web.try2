@@ -93,7 +93,7 @@
 
         <label for="signup-height" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">גובה (ס״מ)</label>
         <input id="signup-height" type="number" placeholder="ס״מ" class="login-input" aria-label="גובה" step="1" onkeydown="if(event.key==='.'||event.key===',')event.preventDefault()" oninput="const cm=parseInt(this.value);const el=document.getElementById('height-inches-hint');if(cm>=100&&cm<=250){const t=cm/2.54;el.textContent='≈ '+Math.floor(t/12)+'\''+Math.round(t%12)+'"';}else{el.textContent='';}">
-        <span id="height-inches-hint" style="font-size:12px;color:var(--text-secondary,#888);align-self:flex-end;min-height:16px;"></span>
+        <span id="height-inches-hint" style="font-size:12px;color:var(--text-secondary,#888);width:100%;text-align:right;min-height:16px;display:block;"></span>
 
         <label for="signup-gender" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">מין</label>
         <select id="signup-gender" class="login-input" aria-label="מין">
