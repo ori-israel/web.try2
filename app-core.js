@@ -241,8 +241,6 @@ function _applySubscriberMode() {
         const el = document.getElementById(id);
         if (el && hide) el.style.display = 'none';
     });
-    const whatsappBtn = document.querySelector('.whatsapp-top-btn');
-    if (whatsappBtn) whatsappBtn.style.display = hide ? 'none' : '';
 }
 
 function _showPWAPromptIfNeeded() {

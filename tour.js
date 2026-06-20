@@ -55,7 +55,7 @@
             : 'התפריט העליון. כאן נמצאים הפרופיל, מאמן ה-AI, וואטסאפ למאמן, וקביעת פגישה';
         } },
       { sel: 'button[onclick="openAIChat()"]', text: 'מאמן חכם שזמין בכל שעה לשאלות על תזונה, אימונים והתהליך. עונה בהתאמה אישית למידע האישי', pre: openMenu },
-      { sel: '.whatsapp-top-btn',  text: 'כפתור לשליחת הודעה ישירה למאמן בוואטסאפ בכל שאלה או עדכון', coachOnly: true, pre: openMenu },
+      { sel: '.whatsapp-top-btn',  text: 'כפתור לשליחת הודעה ישירה למאמן בוואטסאפ בכל שאלה או עדכון', pre: openMenu },
       { sel: '#calendly-hamburger-btn', text: 'קביעת פגישה אישית עם המאמן ישירות מהאפליקציה', coachOnly: true, pre: openMenu },
       { sel: function () { return document.querySelector('#profile-overlay .profile-group'); },
         text: 'כל הפרטים האישיים. אפשר לעדכן שם, משקל, אלרגיות ומאכלים מועדפים, שעוזרים למאמן ה-AI להתאים המלצות', pre: openProfileForTour },
