@@ -336,6 +336,9 @@ document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && typeof loadPortions === 'function') {
         manageDailyReset();
         loadPortions();
+        // בדיקת באנרים כשהמשתמש חוזר לאפליקציה — תופס מעבר שעת ההצגה בלי רענון
+        if (typeof checkThursdayBanner  === 'function') checkThursdayBanner();
+        if (typeof checkMeetingReminder === 'function') checkMeetingReminder();
     }
 });
 
