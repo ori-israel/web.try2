@@ -285,6 +285,8 @@
     if (ctx === 'general') {
       msg = 'סיימת את הסיור הכללי. אפשר לפתוח כל מדריך שוב מתי שרוצים מהכפתורים.';
       markGeneralSeen();
+    } else if (ctx === 'ai') {
+      msg = 'סיימת את הסיור של הסוכן AI';
     } else {
       const i = TAB_ORDER.indexOf(ctx);
       nextTab = (i >= 0 && i < TAB_ORDER.length - 1) ? TAB_ORDER[i + 1] : null;
