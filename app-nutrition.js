@@ -892,7 +892,17 @@ function _calcPortionsFromMacros(protein_g, carbs_g, fat_g) {
     };
 }
 
-function addScannedPortions() {
+async function addScannedPortions() {
+    const btn = document.querySelector('.scan-action-btn.primary');
+    if (btn && btn.disabled) return;
+
+    const pendingInput = document.getElementById('add-item-name');
+    if (pendingInput && pendingInput.value.trim()) {
+        if (btn) { btn.disabled = true; btn.textContent = 'מחשב...'; }
+        await confirmAddItem();
+        if (btn) { btn.disabled = false; btn.textContent = 'הוספת מנות ✅'; }
+    }
+
     const protein = scannedPortions.protein || 0;
     const carbs   = scannedPortions.carbs   || 0;
     const fat     = scannedPortions.fat     || 0;
