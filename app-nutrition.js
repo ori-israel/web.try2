@@ -51,7 +51,7 @@ function renderScanDetails() {
         detailsBox.innerHTML = scannedItems.map((item, i) =>
             `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
                 <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:#888;font-size:18px;cursor:pointer;padding:0 6px;line-height:1;min-width:32px;">✕</button>
-                <span style="flex:1;text-align:right;font-size:15px;">${item.name} — <span onclick="editItemGrams(${i}, this)" style="color:#aaa;cursor:pointer;text-decoration:underline dotted;">${Math.round(item.grams)}g</span></span>
+                <span style="flex:1;text-align:right;font-size:15px;">${_esc(item.name)} — <span onclick="editItemGrams(${i}, this)" style="color:#aaa;cursor:pointer;text-decoration:underline dotted;">${Math.round(item.grams)}g</span></span>
             </div>`
         ).join('') + `<div id="add-item-row" style="margin-top:6px;">
             <button onclick="showAddItemForm()" style="background:none;border:none;color:#888;font-size:15px;cursor:pointer;padding:8px 0;width:100%;text-align:right;">+ הוסף פריט</button>
@@ -679,7 +679,7 @@ async function _renderFoodLogPastDay(dateStr) {
                 lastTime=r.time;
             }
             html+=`<div style="padding:7px 4px;border-bottom:1px solid var(--border-light);font-size:13px;text-align:right;">
-                <div>${r.food}</div>
+                <div>${_esc(r.food)}</div>
                 <div style="font-size:11px;color:var(--text-muted);">${r.portions_protein?`🥩${r.portions_protein} `:''}${r.portions_carbs?`🍚${r.portions_carbs} `:''}${r.portions_fat?`🥑${r.portions_fat}`:''}
                 </div></div>`;
         });

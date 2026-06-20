@@ -309,7 +309,7 @@ function addChatMessage(text, role, isLoading = false) {
     icon.style.cssText = 'font-size: 16px; flex-shrink: 0; margin-top: 2px;';
     icon.innerText = role === 'user' ? '👤' : '🤖';
     const textDiv = document.createElement('div');
-    textDiv.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+    textDiv.innerHTML = _esc(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
     div.appendChild(icon);
     div.appendChild(textDiv);
     container.appendChild(div);
