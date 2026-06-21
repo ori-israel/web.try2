@@ -696,6 +696,11 @@ function renderFoodLog() {
     const el = document.getElementById('food-log-list');
     if (!el) return;
     _flDate = null; // תמיד מאפס להיום כשנקרא ישירות
+    // אדמין שצופה בלקוח: אין נתון מקומי במכשיר האדמין, לכן טוענים את היום מסופאבייס (קריאה בלבד)
+    if (typeof SB_IS_ADMIN !== 'undefined' && SB_IS_ADMIN) {
+        _renderFoodLogPastDay(_flToday());
+        return;
+    }
     _renderFoodLogNav();
     cleanupOldFoodLogs();
     const entries = loadFoodLogEntries();
