@@ -21,21 +21,33 @@ window.aiWebSearch = false;
 function _buildUSDAContext(text) {
     if (typeof USDA_TABLE === 'undefined') return '';
     const t = text.toLowerCase();
-    const allHits = USDA_TABLE.filter(r => {
-        if (text.includes(r.name)) return true;
-        if (t.includes(r.name_en.toLowerCase())) return true;
-        const firstTwo = r.name.split(' ').slice(0, 2).join(' ');
-        return firstTwo.length > 3 && text.includes(firstTwo);
-    });
-    if (!allHits.length) return '';
-    // קבץ לפי שתי המילים הראשונות — שמור רק את ההתאמה הטובה ביותר לכל שם
+    // מילות ההודעה (אורך > 2) — בסיס לחיפוש לפי מילה בודדת
+    const msgWords = text.replace(/[()״׳,.?!]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+    const msgWordsLow = msgWords.map(w => w.toLowerCase());
+    // נקד כל שורה: כמה ממילות השם מופיעות בהודעה
+    const scored = [];
+    for (const r of USDA_TABLE) {
+        let score = 0;
+        // התאמה מלאה של שם (עברית/אנגלית) — משקל גבוה
+        if (text.includes(r.name) || t.includes(r.name_en.toLowerCase())) score += 100;
+        // התאמה לפי מילים בודדות משם המאכל
+        const nameWords = r.name.replace(/[()״׳,.]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+        const enWords = r.name_en.toLowerCase().replace(/[(),.]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+        for (const nw of nameWords) if (msgWords.includes(nw)) score += 10;
+        for (const ew of enWords) if (msgWordsLow.includes(ew)) score += 5;
+        if (score > 0) scored.push({ r, score });
+    }
+    if (!scored.length) return '';
+    scored.sort((a, b) => b.score - a.score);
+    // קבץ לפי המילה הראשונה בשם — שמור רק את ההתאמה הטובה ביותר לכל מאכל
     const seen = {};
-    const hits = allHits.filter(r => {
-        const key = r.name.split(' ').slice(0, 2).join(' ');
-        if (seen[key]) return false;
+    const hits = [];
+    for (const { r } of scored) {
+        const key = r.name.split(' ')[0];
+        if (seen[key]) continue;
         seen[key] = true;
-        return true;
-    });
+        hits.push(r);
+    }
     return hits.slice(0, 5).map(r => `${r.name} — חלבון ${r.protein}g שומן ${r.fat}g פחמימות ${r.carbs}g ל-100ג`).join(' | ');
 }
 

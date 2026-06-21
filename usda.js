@@ -896,6 +896,20 @@ const USDA_TABLE = [
     "carbs": 28.2
   },
   {
+    "name": "כוסמת מבושלת",
+    "name_en": "Buckwheat groats, cooked",
+    "protein": 3.4,
+    "fat": 0.6,
+    "carbs": 19.9
+  },
+  {
+    "name": "כוסמת יבשה",
+    "name_en": "Buckwheat groats, dry",
+    "protein": 13.3,
+    "fat": 3.4,
+    "carbs": 71.5
+  },
+  {
     "name": "שיבולת שועל (גלגלת)",
     "name_en": "Rolled oats, dry",
     "protein": 13.2,
