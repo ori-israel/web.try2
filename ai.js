@@ -471,8 +471,9 @@ async function buildSystemPrompt() {
         const _total = CLIENT.goal === 'cut' ? _tdee - 250 : _tdee + 250;
         const _pg    = _w * (CLIENT.proteinRatio || 2);
         const _rem   = _total - _pg * 4;
-        const _cc    = CLIENT.goal === 'cut' ? _rem * 0.7 : _rem * 0.6;
-        const _fc    = CLIENT.goal === 'cut' ? _rem * 0.3 : _rem * 0.4;
+        const _cr    = (CLIENT.carbRatio != null) ? CLIENT.carbRatio : (CLIENT.goal === 'cut' ? 0.7 : 0.6);
+        const _cc    = _rem * _cr;
+        const _fc    = _rem * (1 - _cr);
         const tgProtein = Math.round((_pg / pv.protein) * 2) / 2;
         const tgCarbs   = Math.round((_cc / 4 / pv.carbs) * 2) / 2;
         const tgFat     = Math.round((_fc / 9 / pv.fat) * 2) / 2;

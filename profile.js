@@ -81,6 +81,7 @@ function populateProfileForm() {
     document.getElementById('prof-height').value               = CLIENT.height                 || '';
     document.getElementById('prof-gender').value       = CLIENT.gender         || 'male';
     document.getElementById('prof-goal').value         = CLIENT.goal           || 'bulk';
+    document.getElementById('prof-carb-ratio').value   = (CLIENT.carbRatio != null) ? String(CLIENT.carbRatio) : '';
     setCoachFieldsState(false);
     _refreshAvatarUI(CLIENT.avatarUrl || null);
 }
@@ -210,6 +211,7 @@ function saveProfile() {
             height:                parseFloat(document.getElementById('prof-height').value),
             gender:                document.getElementById('prof-gender').value,
             goal:                  document.getElementById('prof-goal').value,
+            carbRatio:             document.getElementById('prof-carb-ratio').value === '' ? null : parseFloat(document.getElementById('prof-carb-ratio').value),
         });
     }
 

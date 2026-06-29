@@ -38,8 +38,9 @@ async function computeScore(supabase, profile, weekStart, weekEnd) {
     const totalCal     = goal === 'cut' ? tdee - 250 : tdee + 250;
     const proteinGrams = weight * pRatio;
     const remaining    = totalCal - proteinGrams * 4;
-    const carbCals     = goal === 'cut' ? remaining * 0.7 : remaining * 0.6;
-    const fatCals      = goal === 'cut' ? remaining * 0.3 : remaining * 0.4;
+    const carbRatio    = (profile.carb_ratio != null) ? profile.carb_ratio : (goal === 'cut' ? 0.7 : 0.6);
+    const carbCals     = remaining * carbRatio;
+    const fatCals      = remaining * (1 - carbRatio);
     const tgProtein    = Math.round((proteinGrams / pvP) * 2) / 2;
     const tgCarbs      = Math.round((carbCals / 4 / pvC) * 2) / 2;
     const tgFat        = Math.round((fatCals / 9 / pvF) * 2) / 2;
@@ -123,7 +124,7 @@ module.exports = async (req, res) => {
 
     const { data: profiles, error: profErr } = await supabase
         .from('profiles')
-        .select('id, workouts_per_week, workout_days, protein_ratio, current_weight, start_weight, vacation_mode, portion_values, birth_date, gender, height, activity_level, goal')
+        .select('id, workouts_per_week, workout_days, protein_ratio, carb_ratio, current_weight, start_weight, vacation_mode, portion_values, birth_date, gender, height, activity_level, goal')
         .eq('is_admin', false);
 
     if (profErr) {

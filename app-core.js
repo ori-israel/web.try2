@@ -109,8 +109,9 @@ function toggleTheme() {
     const proteinGrams = weight * CLIENT.proteinRatio;
     const proteinCals = proteinGrams * 4;
     const remainingCals = totalCalories - proteinCals;
-    const carbCals = CLIENT.goal === 'cut' ? remainingCals * 0.7 : remainingCals * 0.6;
-    const fatCals = CLIENT.goal === 'cut' ? remainingCals * 0.3 : remainingCals * 0.4;
+    const carbRatio = (CLIENT.carbRatio != null) ? CLIENT.carbRatio : (CLIENT.goal === 'cut' ? 0.7 : 0.6);
+    const carbCals = remainingCals * carbRatio;
+    const fatCals = remainingCals * (1 - carbRatio);
     return {
         protein: Math.round((proteinGrams / portionValues.protein) * 2) / 2,
         carbs:   Math.round((carbCals / 4 / portionValues.carbs) * 2) / 2,

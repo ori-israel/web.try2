@@ -579,7 +579,7 @@ async function sbFetchCoachDashData(clientIds) {
 
     const [pRes, sRes, wRes, nRes, whRes] = await Promise.all([
         db.from('profiles')
-          .select('id, current_weight, protein_ratio, workouts_per_week, vacation_mode, last_seen, portion_values, is_subscriber')
+          .select('id, current_weight, protein_ratio, carb_ratio, workouts_per_week, vacation_mode, last_seen, portion_values, is_subscriber')
           .in('id', clientIds),
         db.from('weekly_scores')
           .select('client_id, week_start, score, workouts_score, nutrition_score, habits_score')
@@ -652,6 +652,7 @@ async function loadUserIntoApp(userId) {
             goal:          profile.goal           || 'bulk',
             activityLevel: profile.activity_level || 1.465,
             proteinRatio:  profile.protein_ratio  || 2.0,
+            carbRatio:     (profile.carb_ratio != null) ? profile.carb_ratio : null,
             allergies:     profile.allergies      || '',
             likedFoods:    profile.liked_foods    || '',
             dislikedFoods: profile.disliked_foods || '',
@@ -776,6 +777,7 @@ async function syncProfileNow(data) {
             goal:           data.goal,
             activity_level: data.activityLevel,
             protein_ratio:  data.proteinRatio,
+            carb_ratio:     'carbRatio' in data ? data.carbRatio : undefined,
             allergies:      data.allergies,
             liked_foods:    data.likedFoods,
             disliked_foods: data.dislikedFoods,
