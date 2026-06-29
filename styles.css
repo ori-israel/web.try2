@@ -3081,7 +3081,6 @@ legend { padding: 0; display: block; width: 100%; }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    direction: ltr;
     margin-bottom: 10px;
 }
 .dp-month-label {
