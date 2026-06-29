@@ -2969,4 +2969,90 @@ legend { padding: 0; display: block; width: 100%; }
     transition: background .15s ease;
 }
 .from-me-menu-btn:hover { background: var(--bg-card-alt); }
+
+/* ══ Custom Select Component ══════════════════════════════════ */
+.cs-trigger {
+    appearance: none;
+    -webkit-appearance: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    direction: rtl;
+    text-align: right;
+    cursor: pointer;
+    margin: 0;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, color 0.15s ease;
+}
+.cs-trigger:focus { outline: none; }
+.cs-trigger.cs-open,
+.cs-trigger:focus  { color: var(--text-primary); }
+.cs-trigger.cs-disabled { cursor: default; opacity: 0.55; }
+
+.cs-label {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.cs-arrow {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 6px;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cs-arrow::after {
+    content: '';
+    display: block;
+    width: 7px;
+    height: 7px;
+    border-right: 1.5px solid var(--text-secondary);
+    border-bottom: 1.5px solid var(--text-secondary);
+    transform: rotate(45deg);
+    margin-top: -4px;
+}
+.cs-trigger.cs-open .cs-arrow { transform: rotate(180deg); }
+
+/* Panel */
+.cs-panel {
+    position: fixed;
+    z-index: 10050;
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.08);
+    max-height: 248px;
+    overflow-y: auto;
+    direction: rtl;
+    padding: 4px 0;
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+    transform-origin: top center;
+    transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cs-panel.cs-panel-open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.cs-option {
+    padding: 11px 16px;
+    font-size: 0.93rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align: right;
+    direction: rtl;
+    font-family: inherit;
+    outline: none;
+    transition: background 0.1s;
+}
+.cs-option:hover,
+.cs-option:focus   { background: var(--bg-card-alt); }
+.cs-option.cs-selected { color: var(--accent); font-weight: 600; }
 .from-me-menu-swatch { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
