@@ -3056,3 +3056,86 @@ legend { padding: 0; display: block; width: 100%; }
 .cs-option:focus   { background: var(--bg-card-alt); }
 .cs-option.cs-selected { color: var(--accent); font-weight: 600; }
 .from-me-menu-swatch { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+/* ══ Custom Date Picker ════════════════════════════════════════ */
+.dp-placeholder { color: var(--text-secondary); }
+
+.dp-panel {
+    position: fixed;
+    z-index: 10050;
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 12px;
+    direction: rtl;
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+    transform-origin: top center;
+    transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dp-panel.dp-panel-open { opacity: 1; transform: translateY(0) scale(1); }
+
+.dp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.dp-month-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.dp-nav {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+    font-family: inherit;
+    transition: opacity 0.15s;
+}
+.dp-nav:hover { opacity: 0.85; }
+
+.dp-daynames {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 4px;
+}
+.dp-daynames > div {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 3px 0;
+}
+
+.dp-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+.dp-day {
+    text-align: center;
+    padding: 6px 2px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-primary);
+    cursor: pointer;
+    outline: none;
+    transition: background 0.1s;
+}
+.dp-day:hover,
+.dp-day:focus     { background: var(--bg-card-alt); }
+.dp-day-today     { background: var(--accent); color: #fff; }
+.dp-day-today:hover,
+.dp-day-today:focus { opacity: 0.85; }
+.dp-day-sel       { background: var(--accent); color: #fff; font-weight: 600; }
+.dp-day-sel.dp-day-today { outline: 2px solid var(--text-primary); outline-offset: 1px; }
