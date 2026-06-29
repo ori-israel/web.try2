@@ -153,9 +153,9 @@
 
         let html = `
         <div class="dp-header">
-            <button class="dp-nav dp-nav-prev" type="button">›</button>
+            <button class="dp-nav dp-nav-prev" type="button">‹</button>
             <span class="dp-month-label">${MONTHS[month]} ${year}</span>
-            <button class="dp-nav dp-nav-next" type="button">‹</button>
+            <button class="dp-nav dp-nav-next" type="button">›</button>
         </div>
         <div class="dp-daynames">
             ${DAYS.map(d => `<div>${d}</div>`).join('')}
