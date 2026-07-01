@@ -198,6 +198,12 @@ function _renderSubscribersMode(list) {
                 <div class="coach-urgent-text">
                     <span class="coach-urgent-name">${_fromMeDot(client)}${_esc(name)}</span>
                     <span class="coach-urgent-reason" style="color:#60a5fa;font-weight:600;">💳 מנוי פעיל</span>
+                    ${(() => {
+                        const sub = _subscriptionUrgency(client);
+                        if (!sub) return '';
+                        const clr = sub.level === 'expired' ? '#f87171' : '#fb923c';
+                        return `<span class="coach-urgent-reason" style="color:${clr};font-weight:600;">${sub.text}</span>`;
+                    })()}
                 </div>
             </div>
             <div class="coach-urgent-right">
@@ -215,6 +221,15 @@ function _renderSubscribersMode(list) {
         _wireFromMeDot(row);
         list.appendChild(row);
     });
+}
+
+// דחיפות מנוי — פג תוקף / מתקרב לסיום (14 ימים ומטה)
+function _subscriptionUrgency(client) {
+    if (!client.subscription_end_date) return null;
+    const days = Math.floor((new Date(client.subscription_end_date + 'T00:00:00').getTime() - Date.now()) / 86400000);
+    if (days < 0)  return { level: 'expired', text: 'פג תוקף המנוי' };
+    if (days <= 14) return { level: 'warning', text: `נשארו ${days} ימים למנוי` };
+    return null;
 }
 
 function _buildClientStats(client) {
@@ -489,22 +504,29 @@ function _coachSearch(query) {
 function _renderUrgentMode(list) {
     list.className = 'admin-client-list';
     _ensureSearchBar(list);
-    const items = _coachClients.filter(c => !c.is_subscriber).map(client => {
+    const items = _coachClients.map(client => {
         const s    = _buildClientStats(client);
         const name = client.name || client.nickname || '(ללא שם)';
-        let priority = 5, reason = null, cls = '';
+        let priority = 6, reason = null, cls = '';
 
-        if (s.prevScore !== null && s.currentScore !== null && (s.prevScore - s.currentScore) > 20) {
-            priority = 1; cls = 'urgent-critical';
+        const sub = _subscriptionUrgency(client);
+        if (sub && sub.level === 'expired') {
+            priority = 0; cls = 'urgent-critical'; reason = sub.text;
+        } else if (sub && sub.level === 'warning') {
+            priority = 1; cls = 'urgent-warning'; reason = sub.text;
+        } else if (client.is_subscriber) {
+            // ללקוחות מנוי (בלי אירוע דחוף) אין שאר הסיבות — הן שייכות למעקב ליווי בלבד
+        } else if (s.prevScore !== null && s.currentScore !== null && (s.prevScore - s.currentScore) > 20) {
+            priority = 2; cls = 'urgent-critical';
             reason = `ירידה של ${Math.round(s.prevScore - s.currentScore)} נק׳ מהשבוע שעבר`;
         } else if (!s.hasWorkout) {
-            priority = 2; cls = 'urgent-warning';
+            priority = 3; cls = 'urgent-warning';
             reason = 'לא תיעד אימון השבוע';
         } else if (s.nutritionBadDays >= 3) {
-            priority = 3; cls = 'urgent-warning';
+            priority = 4; cls = 'urgent-warning';
             reason = `תזונה מתחת ליעד ${s.nutritionBadDays} ימים השבוע`;
         } else if (s.currentScore !== null && s.currentScore < 50) {
-            priority = 4; cls = 'urgent-low';
+            priority = 5; cls = 'urgent-low';
             reason = `ציון נמוך: ${Math.round(s.currentScore)}`;
         }
         return { client, s, name, priority, reason, cls };
@@ -585,6 +607,12 @@ function _renderOverviewMode(list) {
                         const clr  = days >= 14 ? '#f87171' : days >= 7 ? '#fb923c' : '#4ade80';
                         const lbl  = days === 0 ? 'היום' : days === 1 ? 'אתמול' : `לפני ${days} ימים`;
                         return `<span style="font-size:11px;color:${clr};">עדכון משקל אחרון: ${lbl}</span>`;
+                    })()}
+                    ${(() => {
+                        const sub = _subscriptionUrgency(client);
+                        if (!sub) return '';
+                        const clr = sub.level === 'expired' ? '#f87171' : '#fb923c';
+                        return `<span style="font-size:11px;color:${clr};font-weight:600;">${sub.text}</span>`;
                     })()}
                 </div>
                 <div class="coach-card-score" style="color:${bClr}">${sStr}<span class="coach-card-score-unit">pts</span></div>

@@ -506,7 +506,7 @@ async function sbSaveStreaks(userId, fields) {
 async function sbFetchAllClients() {
     const { data, error } = await db
         .from('profiles')
-        .select('id, name, nickname, email, is_admin, is_subscriber, created_at, avatar_url, status, from_me')
+        .select('id, name, nickname, email, is_admin, is_subscriber, created_at, avatar_url, status, from_me, subscription_end_date')
         .is('deleted_at', null)
         .order('created_at', { ascending: true });
     if (error) throw error;
