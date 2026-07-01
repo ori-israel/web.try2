@@ -76,9 +76,9 @@ function populateProfileForm() {
     document.getElementById('prof-birth-date').value   = CLIENT.birthDate      || '';
     document.getElementById('prof-start-date').value           = CLIENT.startDate             || '';
     if (!isCoachUnlocked) {
-        document.getElementById('prof-coaching-duration').value = CLIENT.coachingDurationMonths || '';
+        document.getElementById('prof-coaching-duration').value = (CLIENT.coachingDurationMonths != null) ? CLIENT.coachingDurationMonths : '';
     }
-    document.getElementById('prof-subscription-duration').value = CLIENT.subscriptionDurationMonths || '';
+    document.getElementById('prof-subscription-duration').value = (CLIENT.subscriptionDurationMonths != null) ? CLIENT.subscriptionDurationMonths : '';
     document.getElementById('prof-subscription-end-date-display').textContent = CLIENT.subscriptionEndDate || 'לא נקבע';
     document.getElementById('prof-height').value               = CLIENT.height                 || '';
     document.getElementById('prof-gender').value       = CLIENT.gender         || 'male';
@@ -209,8 +209,8 @@ function saveProfile() {
             goalWeight:  parseFloat(document.getElementById('prof-goal-weight').value) || CLIENT.goalWeight,
             birthDate:             document.getElementById('prof-birth-date').value,
             startDate:             document.getElementById('prof-start-date').value,
-            coachingDurationMonths: parseInt(document.getElementById('prof-coaching-duration').value) || null,
-            subscriptionDurationMonths: parseInt(document.getElementById('prof-subscription-duration').value) || null,
+            coachingDurationMonths: document.getElementById('prof-coaching-duration').value === '' ? null : parseInt(document.getElementById('prof-coaching-duration').value),
+            subscriptionDurationMonths: document.getElementById('prof-subscription-duration').value === '' ? null : parseInt(document.getElementById('prof-subscription-duration').value),
             height:                parseFloat(document.getElementById('prof-height').value),
             gender:                document.getElementById('prof-gender').value,
             goal:                  document.getElementById('prof-goal').value,

@@ -657,8 +657,8 @@ async function loadUserIntoApp(userId) {
             likedFoods:    profile.liked_foods    || '',
             dislikedFoods: profile.disliked_foods || '',
             coachingGoal:           profile.coaching_goal            || '',
-            coachingDurationMonths: profile.coaching_duration_months || null,
-            subscriptionDurationMonths: profile.subscription_duration_months || null,
+            coachingDurationMonths: profile.coaching_duration_months ?? null,
+            subscriptionDurationMonths: profile.subscription_duration_months ?? null,
             subscriptionEndDate:        profile.subscription_end_date        || null,
             nextMeetingDate:        profile.next_meeting_date        || null,
 
@@ -784,8 +784,8 @@ async function syncProfileNow(data) {
             liked_foods:    data.likedFoods,
             disliked_foods: data.dislikedFoods,
             coaching_goal:            data.coachingGoal,
-            coaching_duration_months: 'coachingDurationMonths' in data ? (data.coachingDurationMonths || null) : undefined,
-            subscription_duration_months: 'subscriptionDurationMonths' in data ? (data.subscriptionDurationMonths || null) : undefined,
+            coaching_duration_months: 'coachingDurationMonths' in data ? (data.coachingDurationMonths ?? null) : undefined,
+            subscription_duration_months: 'subscriptionDurationMonths' in data ? (data.subscriptionDurationMonths ?? null) : undefined,
         });
     } catch (e) { console.error('[SB] profile sync failed:', e.message); }
 }
