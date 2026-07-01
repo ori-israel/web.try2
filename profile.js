@@ -38,7 +38,6 @@ function openProfileAsAdmin() {
     isCoachUnlocked = true;
     populateProfileForm();
     setCoachFieldsState(true);
-    document.getElementById('admin-subscription-section').style.display = 'block';
     const overlay = document.getElementById('profile-overlay');
     overlay.style.display = 'flex';
     requestAnimationFrame(() => overlay.classList.add('open'));
@@ -78,11 +77,9 @@ function populateProfileForm() {
     document.getElementById('prof-start-date').value           = CLIENT.startDate             || '';
     if (!isCoachUnlocked) {
         document.getElementById('prof-coaching-duration').value = CLIENT.coachingDurationMonths || '';
-        document.getElementById('admin-subscription-section').style.display = 'none';
-    } else {
-        document.getElementById('prof-subscription-duration').value = CLIENT.subscriptionDurationMonths || '';
-        document.getElementById('prof-subscription-end-date-display').textContent = CLIENT.subscriptionEndDate || 'לא נקבע';
     }
+    document.getElementById('prof-subscription-duration').value = CLIENT.subscriptionDurationMonths || '';
+    document.getElementById('prof-subscription-end-date-display').textContent = CLIENT.subscriptionEndDate || 'לא נקבע';
     document.getElementById('prof-height').value               = CLIENT.height                 || '';
     document.getElementById('prof-gender').value       = CLIENT.gender         || 'male';
     document.getElementById('prof-goal').value         = CLIENT.goal           || 'bulk';
