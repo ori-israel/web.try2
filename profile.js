@@ -4,6 +4,14 @@
 
 let isCoachUnlocked = false;
 
+// חישוב תאריך סיום מנוי בצד הלקוח — זהה לנוסחה המחושבת בסופאבייס (start_date + חודשים)
+function _computeSubscriptionEndDate(startDateStr, months) {
+    if (!startDateStr || months == null) return null;
+    const d = new Date(startDateStr);
+    d.setMonth(d.getMonth() + months);
+    return d.toISOString().split('T')[0];
+}
+
 // ── Data ──────────────────────────────────────
 
 (function loadProfileData() {
@@ -216,6 +224,8 @@ function saveProfile() {
             goal:                  document.getElementById('prof-goal').value,
             carbRatio:             document.getElementById('prof-carb-ratio').value === '' ? null : parseFloat(document.getElementById('prof-carb-ratio').value),
         });
+        data.subscriptionEndDate = _computeSubscriptionEndDate(data.startDate, data.subscriptionDurationMonths);
+        document.getElementById('prof-subscription-end-date-display').textContent = data.subscriptionEndDate || 'לא נקבע';
     }
 
     try {
