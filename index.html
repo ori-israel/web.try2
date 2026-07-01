@@ -165,7 +165,7 @@
                 <input id="nc-password" type="password" class="profile-input" placeholder="לפחות 6 תווים" dir="ltr">
             </div>
             <div class="profile-row">
-                <label for="nc-start-date">התחלת ליווי</label>
+                <label for="nc-start-date">תאריך הצטרפות</label>
                 <input id="nc-start-date" type="date" class="profile-input" dir="ltr">
             </div>
             <div class="profile-row">
@@ -1172,12 +1172,22 @@
                 <input id="prof-birth-date" type="date" class="profile-input coach-editable-field" disabled dir="ltr">
             </div>
             <div class="profile-row">
-                <label for="prof-start-date">התחלת ליווי</label>
+                <label for="prof-start-date">תאריך הצטרפות</label>
                 <input id="prof-start-date" type="date" class="profile-input coach-editable-field" disabled dir="ltr">
             </div>
             <div class="profile-row">
                 <label for="prof-coaching-duration">משך ליווי (חודשים)</label>
                 <input id="prof-coaching-duration" type="number" class="profile-input coach-editable-field" disabled min="1" max="24" placeholder="לדוגמה: 3">
+            </div>
+            <div id="admin-subscription-section" style="display:none;">
+                <div class="profile-row">
+                    <label for="prof-subscription-duration">משך מנוי (חודשים)</label>
+                    <input id="prof-subscription-duration" type="number" class="profile-input coach-editable-field" disabled min="1" placeholder="לדוגמה: 15">
+                </div>
+                <div class="profile-row">
+                    <label>תאריך סיום מנוי</label>
+                    <span id="prof-subscription-end-date-display" class="profile-input" style="display:flex;align-items:center;"></span>
+                </div>
             </div>
             <div class="profile-row">
                 <label for="prof-height">גובה (ס״מ)</label>
