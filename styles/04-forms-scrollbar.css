@@ -1,0 +1,72 @@
+   Scrollbar Styling
+   ============================================ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ============================================
+   Form inputs
+   ============================================ */
+input, textarea, select {
+    background: var(--input-bg);
+    color: var(--text-primary);
+    border-color: var(--input-border);
+}
+
+input::placeholder, textarea::placeholder { color: var(--text-muted); }
+
+input[type="checkbox"] { accent-color: var(--accent); }
+input[type="radio"] { accent-color: var(--accent); }
+
+/* ============================================
+   Calc overlay fixes
+   ============================================ */
+#calc-overlay .card {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+#calc-overlay .card h2 { color: var(--text-primary) !important; }
+#calc-overlay .card label { color: var(--text-primary); }
+#calc-overlay .card input[type="number"] {
+    background: var(--input-bg);
+    color: var(--text-primary);
+    border-color: var(--input-border);
+}
+
+#calc-result {
+    background: var(--bg-card-alt) !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
+}
+
+#calc-result p { color: var(--text-primary) !important; }
+
+.weight-display > div[style*="color"] { color: var(--accent) !important; }
+
+/* ============================================
+   Profile Menu Button
+   ============================================ */
+.profile-menu-btn {
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 0.5px solid var(--border);
+    color: var(--text-primary);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+.profile-menu-btn:hover { background: var(--bg-card); box-shadow: var(--shadow); }
+.profile-menu-btn:active { transform: scale(0.93) !important; }
+
+/* ============================================
+   Profile Sheet — iOS bottom sheet
