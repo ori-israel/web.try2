@@ -274,6 +274,34 @@ function pwaIosClose() {
     document.getElementById('pwa-ios-popup').style.display = 'none';
 }
 
+// ── תזכורת חידוש מנוי (רק ללקוחות ליווי, בימים מדויקים: 14/7/3/2/1) ──
+function checkSubscriptionRenewalReminder() {
+    if (CLIENT.isSubscriber) return;
+    const endDateStr = CLIENT.subscriptionEndDate;
+    if (!endDateStr) return;
+
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const end = new Date(endDateStr + 'T00:00:00');
+    const daysLeft = Math.round((end - today) / 86400000);
+    if (![14, 7, 3, 2, 1].includes(daysLeft)) return;
+
+    const uid = getActiveUserId();
+    if (!uid) return;
+    const todayStr = today.toISOString().split('T')[0];
+    const key = 'renewal_popup_shown_' + uid;
+    if (localStorage.getItem(key) === todayStr) return;
+    localStorage.setItem(key, todayStr);
+
+    const textEl = document.getElementById('renewal-reminder-text');
+    if (textEl) textEl.textContent = `המנוי שלך מסתיים בעוד ${daysLeft} ${daysLeft === 1 ? 'יום' : 'ימים'}. כדאי לחדש כדי לא לאבד גישה.`;
+    const popup = document.getElementById('renewal-reminder-popup');
+    if (popup) popup.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;';
+}
+
+function dismissRenewalReminder() {
+    document.getElementById('renewal-reminder-popup').style.display = 'none';
+}
+
 function triggerPWAInstall() {
     if (window.matchMedia('(display-mode: standalone)').matches || (!_isIOS() && localStorage.getItem('pwa_installed'))) {
         const toast = document.createElement('div');

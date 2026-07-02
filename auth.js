@@ -123,6 +123,7 @@ async function reinitApp() {
     if (typeof checkThursdayBanner      === 'function') checkThursdayBanner();
     if (typeof _showPWAPromptIfNeeded   === 'function') _showPWAPromptIfNeeded();
     if (typeof checkMeetingReminder     === 'function') checkMeetingReminder();
+    if (typeof checkSubscriptionRenewalReminder === 'function') checkSubscriptionRenewalReminder();
     if (typeof _applySubscriberMode     === 'function') _applySubscriberMode();
     if (typeof loadProgressPhotos       === 'function') loadProgressPhotos();
     if (typeof renderFoodLog            === 'function') renderFoodLog();

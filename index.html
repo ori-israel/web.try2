@@ -1237,6 +1237,19 @@
     </div>
 </div>
 
+<!-- תזכורת חידוש מנוי -->
+<div id="renewal-reminder-popup" class="complete-modal" style="display:none;">
+    <div class="complete-content" style="max-width:300px;padding:16px;">
+        <span class="close-complete" onclick="dismissRenewalReminder()">&times;</span>
+        <div style="font-size:1.5rem;margin-bottom:6px;">⏳</div>
+        <h2 style="margin:0 0 16px;font-size:18px;" id="renewal-reminder-text"></h2>
+        <div style="display:flex;gap:10px;direction:rtl;">
+            <button onclick="dismissRenewalReminder()" style="flex:1;padding:14px;border-radius:var(--radius);font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-primary);border:1.5px solid var(--text-secondary);">אחר כך</button>
+            <a href="https://wa.me/972547950949?text=%D7%94%D7%99%D7%99%2C%20%D7%90%D7%A0%D7%99%20%D7%A8%D7%95%D7%A6%D7%94%20%D7%9C%D7%97%D7%93%D7%A9%20%D7%90%D7%AA%20%D7%94%D7%9E%D7%A0%D7%95%D7%99%20%D7%A9%D7%9C%D7%99" target="_blank" onclick="dismissRenewalReminder()" class="calc-btn" style="flex:1;width:auto;margin:0;text-align:center;text-decoration:none;">לחידוש המנוי</a>
+        </div>
+    </div>
+</div>
+
 <!-- PWA iOS instructions -->
 <div id="pwa-ios-popup" class="complete-modal" style="display:none;">
     <div class="complete-content" style="max-width:300px;padding:16px;">
