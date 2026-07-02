@@ -1,5 +1,6 @@
 {
   "outputDirectory": ".",
+  "buildCommand": "node build-index.js",
   "crons": [
     {
       "path": "/api/save-weekly-scores",

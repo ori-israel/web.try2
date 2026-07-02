@@ -1,0 +1,250 @@
+
+    <div id="tab2" class="tab-content">
+
+    <!-- Workout Header Card -->
+    <div class="workout-header-card">
+        <div class="workout-header-top">
+            <button class="tour-inline-btn" onclick="startTabTour('tab2')" title="מדריך לטאב" aria-label="מדריך לטאב">📖</button>
+            <h2 class="workout-title">תוכנית אימונים</h2>
+            <button onclick="resetWorkout()" class="tour-inline-btn workout-reset-icon" title="אפס אימון" aria-label="אפס אימון">🔄</button>
+        </div>
+        <div class="workout-streak-row">
+            <div id="workout-streak-display" class="workout-streak-badge">
+                <span class="streak-fire">🔥</span>
+                <span class="streak-label">סטריק אימונים</span>
+                <span class="streak-number" id="workout-streak-count">0</span>
+                <span class="streak-unit">שבועות</span>
+            </div>
+        </div>
+        <div id="workout-selector" class="workout-selector">
+        </div>
+    </div>
+
+   <!-- אימון A - משיכה (Pull) -->
+<div id="workout-A" class="workout-container">
+    <div class="table-wrapper">
+        <table class="workout-table">
+            <thead>
+                <tr>
+                    <th>בוצע</th>
+                    <th>תרגיל</th>
+                    <th>סטים חימום</th>
+                    <th>סטים עבודה</th>
+                    <th>חזרות</th>
+                    <th>משקל</th>
+                    <th>וידאו</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="A_lat_pulldown" aria-label="בוצע: פולי עליון"></td>
+                    <td>פולי עליון</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="A_row_machine" aria-label="בוצע: חתירה במכשיר"></td>
+                    <td>חתירה במכשיר</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="A_biceps_curl" aria-label="בוצע: יד קדמית עם משקולות בעמידה"></td>
+                    <td>יד קדמית עם משקולות בעמידה</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="A_abs" aria-label="בוצע: כפיפות בטן"></td>
+                    <td>כפיפות בטן</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>15-20</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- אימון B - דחיפה (Push) -->
+<div id="workout-B" class="workout-container" style="display: none;">
+    <div class="table-wrapper">
+        <table class="workout-table">
+            <thead>
+                <tr>
+                    <th>בוצע</th>
+                    <th>תרגיל</th>
+                    <th>סטים חימום</th>
+                    <th>סטים עבודה</th>
+                    <th>חזרות</th>
+                    <th>משקל</th>
+                    <th>וידאו</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="B_bench_press" aria-label="בוצע: לחיצת חזה עם מוט"></td>
+                    <td>לחיצת חזה עם מוט</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="B_shoulder_press" aria-label="בוצע: לחיצת כתפיים"></td>
+                    <td>לחיצת כתפיים</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="B_triceps_cable" aria-label="בוצע: יד אחורית עם כבל"></td>
+                    <td>יד אחורית עם כבל</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="B_pushups" aria-label="בוצע: שכיבות סמיכה"></td>
+                    <td>שכיבות סמיכה</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>מקסימום</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- אימון C - רגליים (Legs) -->
+<div id="workout-C" class="workout-container" style="display: none;">
+    <div class="table-wrapper">
+        <table class="workout-table">
+            <thead>
+                <tr>
+                    <th>בוצע</th>
+                    <th>תרגיל</th>
+                    <th>סטים חימום</th>
+                    <th>סטים עבודה</th>
+                    <th>חזרות</th>
+                    <th>משקל</th>
+                    <th>וידאו</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="C_squat" aria-label="בוצע: סקוואט"></td>
+                    <td>סקוואט</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="C_romanian_deadlift" aria-label="בוצע: דדליפט רומני"></td>
+                    <td>דדליפט רומני</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="C_leg_extension" aria-label="בוצע: פשיטת ברכיים"></td>
+                    <td>פשיטת ברכיים</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" class="workout-checkbox" data-id="C_calf_raise" aria-label="בוצע: עליות תאומים"></td>
+                    <td>עליות תאומים</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>10-15</td>
+                    <td></td>
+                    <td class="video-cell"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="workout-D" class="workout-container" style="display: none;">
+    <div class="table-wrapper">
+        <table class="workout-table">
+            <thead>
+                <tr>
+                    <th>בוצע</th><th>תרגיל</th><th>סטים חימום</th><th>סטים עבודה</th><th>חזרות</th><th>משקל</th><th>וידאו</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="workout-E" class="workout-container" style="display: none;">
+    <div class="table-wrapper">
+        <table class="workout-table">
+            <thead>
+                <tr>
+                    <th>בוצע</th><th>תרגיל</th><th>סטים חימום</th><th>סטים עבודה</th><th>חזרות</th><th>משקל</th><th>וידאו</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="workout-F" class="workout-container" style="display: none;">
+    <div class="table-wrapper">
+        <table class="workout-table">
+            <thead>
+                <tr>
+                    <th>בוצע</th><th>תרגיל</th><th>סטים חימום</th><th>סטים עבודה</th><th>חזרות</th><th>משקל</th><th>וידאו</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="workout-G" class="workout-container" style="display: none;">
+    <div class="table-wrapper">
+        <table class="workout-table">
+            <thead>
+                <tr>
+                    <th>בוצע</th><th>תרגיל</th><th>סטים חימום</th><th>סטים עבודה</th><th>חזרות</th><th>משקל</th><th>וידאו</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+        <div class="card perf-section" id="workout-journal-card" style="margin-top:24px;">
+            <h3>💪 יומן ביצועי אימון</h3>
+            <div id="workout-journal-container"></div>
+        </div>
+</div>

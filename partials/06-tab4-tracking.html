@@ -1,0 +1,65 @@
+
+    <div id="tab4" class="tab-content">
+        <button class="tour-tab-btn" onclick="startTabTour('tab4')" title="מדריך לטאב" aria-label="מדריך לטאב">📖</button>
+        <h2>מעקב התקדמות ויעדים</h2>
+
+        <div id="score-widgets-anchor"></div>
+        <div id="score-history-anchor"></div>
+
+        <div class="weight-card" style="position:relative;">
+            <button onclick="openWeightChartModal()" title="גרף התקדמות" style="position:absolute;top:10px;left:10px;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:16px;cursor:pointer;line-height:1;color:var(--main-green);box-shadow:0 1px 4px rgba(0,0,0,0.15);">📈</button>
+            <span style="font-weight: bold; color: var(--dark-green); border-bottom: 1px solid var(--main-green); padding-bottom: 3px;">משקל גוף (ק"ג)</span>
+            <div class="weight-display">
+                <div class="weight-item">
+                    <span class="weight-label">התחלה</span>
+                    <span class="weight-val" id="start-weight-display">—</span>
+                </div>
+                <div style="font-size: 20px; color: var(--main-green); padding-top: 15px;">←</div>
+               <div class="weight-item">
+                    <span class="weight-label">נוכחי</span>
+                    <span class="weight-val" id="current-weight-display" style="cursor:pointer; text-decoration: underline dotted;" onclick="editWeightInline(this)">—</span>
+                </div>
+                <div style="font-size: 20px; color: var(--main-green); padding-top: 15px;">←</div>
+                <div class="weight-item">
+                    <span class="weight-label">יעד</span>
+                    <span class="weight-val" id="goal-weight-display">—</span>
+                </div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" style="width: 0%;"></div>
+            </div>
+            <span class="progress-text" style="visibility:hidden;">עברת כבר 0% מהדרך ליעד!</span>
+        </div>
+
+        <div id="weight-chart-modal" style="display:none;position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeWeightChartModal()">
+    <div style="background:var(--bg-card);border-radius:16px;padding:20px;width:100%;max-width:520px;position:relative;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+        <button onclick="closeWeightChartModal()" style="position:absolute;top:10px;left:12px;background:transparent;border:none;font-size:22px;cursor:pointer;color:var(--text-primary);line-height:1;">×</button>
+        <h3 class="chart-title" style="text-align:center;margin-top:0;">📈 גרף התקדמות משקל</h3>
+        <canvas id="weight-chart"></canvas>
+    </div>
+</div>
+
+        <div class="card" id="progress-photos-card" style="margin-top:20px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <strong style="color:var(--dark-green);">📸 תמונות התקדמות</strong>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span id="progress-photos-count" style="font-size:0.8rem;color:var(--text-secondary);"></span>
+                    <label id="progress-photo-upload-label" for="progress-photo-input" style="background:var(--bg-card-alt);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:13px;cursor:pointer;color:var(--main-green);white-space:nowrap;">+ העלאה</label>
+                    <input type="file" id="progress-photo-input" accept="image/*" style="display:none;" onchange="uploadProgressPhoto(this)">
+                </div>
+            </div>
+            <div id="progress-photos-gallery">
+                <span style="color:var(--text-secondary);font-size:0.88rem;">טוען...</span>
+            </div>
+        </div>
+
+       <div id="coaching-goal-card" class="card" style="margin-top: 35px;">
+    <strong>יעד מרכזי עד לפגישה הבאה:</strong>
+    <textarea id="coaching-goal-display" rows="3" spellcheck="false" maxlength="300" style="width:100%; margin:5px 0; padding:8px; border:1px solid var(--main-green); border-radius:8px; font-size:16px; font-family:inherit; resize:vertical; direction:rtl; text-align:right; background:var(--bg-card); color:var(--text-primary); box-sizing:border-box;"></textarea>
+</div>
+
+<button id="open-survey-btn" class="calc-btn" onclick="openSurvey()" style="background-color: var(--dark-green); margin-top: 25px;">
+    שאלון שבועי 📋
+</button>
+
+    </div>

@@ -1,0 +1,157 @@
+<div id="app-dialog" class="modal-overlay hidden">
+    <div class="modal-card app-dialog-card">
+        <p id="app-dialog-msg" class="app-dialog-msg"></p>
+        <input id="app-dialog-input" type="text" class="profile-input app-dialog-input-field" aria-label="שדה קלט" style="display:none">
+        <div class="app-dialog-btns">
+            <button id="app-dialog-cancel" class="app-dialog-btn secondary-btn" style="display:none"></button>
+            <button id="app-dialog-ok" class="app-dialog-btn primary-btn">אישור</button>
+        </div>
+    </div>
+</div>
+
+<div id="video-modal" class="modal-overlay hidden" onclick="closeVideoModal()">
+    <div class="video-modal-box" onclick="event.stopPropagation()">
+        <button class="video-modal-close" onclick="closeVideoModal()">✕</button>
+        <div class="video-modal-iframe-wrap">
+            <iframe id="video-modal-iframe" src="" frameborder="0" allowfullscreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+            </iframe>
+        </div>
+    </div>
+</div>
+<div id="questionnaire-modal" class="modal-overlay hidden" onclick="closeQuestionnaireModal()">
+    <div class="modal-card" onclick="event.stopPropagation()" style="max-width:500px;width:90%;text-align:right;direction:rtl;">
+        <button class="modal-close" onclick="closeQuestionnaireModal()">✕</button>
+        <h3 style="margin:0 0 16px;font-size:17px;">📋 שאלון אחרון</h3>
+        <div id="qmodal-body"></div>
+    </div>
+</div>
+<div id="offline-banner" style="display:none; position:fixed; bottom:0; left:0; width:100%; background:#f59e0b; color:#1a1a1a; padding:10px 16px; font-size:14px; font-weight:600; z-index:9000; direction:rtl; text-align:center; box-sizing:border-box;">
+    אתה במצב offline 📵 — שינויים יסתנכרנו כשתתחבר
+</div>
+
+<div id="supabase-error-toast" style="display:none; position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:#e55; color:#fff; padding:8px 16px; border-radius:20px; font-size:14px; z-index:9998; direction:rtl; white-space:nowrap;">⚠️ בעיית תקשורת — מנסה שוב</div>
+
+<!-- Calendly modal -->
+<div id="calendly-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;">
+    <div style="background:var(--bg-card);border-radius:18px;width:92%;max-width:480px;height:82vh;position:relative;overflow:hidden;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0;">
+            <span style="font-weight:700;font-size:16px;">📅 קביעת פגישה</span>
+            <button onclick="closeCalendlyModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-secondary);line-height:1;">&times;</button>
+        </div>
+        <div id="calendly-inline-container" style="flex:1;min-width:320px;"></div>
+    </div>
+</div>
+
+<script>
+// ── Calendly modal ──────────────────────────────
+const CALENDLY_URL = 'https://calendly.com/ori-israel555/coaching';
+
+function openCalendlyModal() {
+    const modal = document.getElementById('calendly-modal');
+    const container = document.getElementById('calendly-inline-container');
+    container.innerHTML = '';
+    modal.style.display = 'flex';
+    document.querySelector('.hamburger-menu') && document.querySelector('.hamburger-menu').classList.remove('open');
+
+    if (window.Calendly) {
+        Calendly.initInlineWidget({ url: CALENDLY_URL, parentElement: container });
+    } else {
+        const script = document.createElement('script');
+        script.src = 'https://assets.calendly.com/assets/external/widget.js';
+        script.onload = () => Calendly.initInlineWidget({ url: CALENDLY_URL, parentElement: container });
+        script.onerror = () => {
+            container.innerHTML = `<iframe src="${CALENDLY_URL}" width="100%" height="100%" style="border:none;" allow="payment"></iframe>`;
+        };
+        document.head.appendChild(script);
+    }
+}
+
+function closeCalendlyModal() {
+    document.getElementById('calendly-modal').style.display = 'none';
+}
+
+document.getElementById('calendly-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeCalendlyModal();
+});
+
+// ── Calendly event listener ─────────────────────
+window.addEventListener('message', async function(e) {
+    if (!e.data || e.data.event !== 'calendly.event_scheduled') return;
+
+    const eventUri = e.data.payload?.event?.uri;
+    let startTime = null;
+
+    if (eventUri) {
+        try {
+            const { data: { session: _calSession } } = await db.auth.getSession();
+            const _calToken = _calSession?.access_token;
+            const resp = await fetch('/api/calendly-event', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(_calToken ? { 'Authorization': `Bearer ${_calToken}` } : {})
+                },
+                body: JSON.stringify({ eventUri })
+            });
+            const json = await resp.json();
+            if (json.startTime) startTime = json.startTime;
+        } catch {}
+    }
+
+    if (!startTime) startTime = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+
+    CLIENT.nextMeetingDate = startTime;
+    const data = JSON.parse(localStorage.getItem('profile_data_v1') || '{}');
+    data.nextMeetingDate = startTime;
+    localStorage.setItem('profile_data_v1', JSON.stringify(data));
+
+    const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+    if (uid) sbUpsertProfile(uid, { next_meeting_date: startTime }).catch(() => {});
+
+    document.getElementById('meeting-reminder-banner').style.display = 'none';
+    closeCalendlyModal();
+});
+
+// ── Reminder logic ──────────────────────────────
+function checkMeetingReminder() {
+    if (CLIENT.isSubscriber) return;
+    const durationMonths = CLIENT.coachingDurationMonths;
+    if (!durationMonths) return;
+
+    const startDate = CLIENT.startDate;
+    if (!startDate) return;
+
+    // Is coaching still active?
+    const start = new Date(startDate);
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + parseInt(durationMonths));
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (today > end) return;
+
+    // Show banner from day 11 to day 15 after last meeting (4-day window)
+    const nextMeeting = CLIENT.nextMeetingDate ? new Date(CLIENT.nextMeetingDate) : null;
+    if (!nextMeeting) {
+        // No meeting booked yet — always show
+        document.getElementById('meeting-reminder-banner').style.display = 'flex';
+        return;
+    }
+    const meetingDay = new Date(nextMeeting);
+    meetingDay.setHours(0, 0, 0, 0);
+    const daysAfter = Math.floor((today - meetingDay) / 86400000);
+    if (daysAfter < 11) return;  // too early
+    if (daysAfter > 15) return;  // 4-day window expired
+
+    document.getElementById('meeting-reminder-banner').style.display = 'flex';
+}
+
+function dismissMeetingReminder() {
+    // Dismiss for this session only (no localStorage)
+    document.getElementById('meeting-reminder-banner').style.display = 'none';
+}
+
+// checkMeetingReminder is called from reinitApp() in auth.js after data loads
+</script>
+</body>
+</html>

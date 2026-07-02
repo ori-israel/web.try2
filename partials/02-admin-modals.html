@@ -1,0 +1,97 @@
+
+<!-- ══ Admin overlay — בחירת לקוח ════════════════════════ -->
+<div id="admin-overlay" style="display:none; position:fixed; inset:0; z-index:9998; background:var(--bg); flex-direction:column; align-items:center; padding:32px 16px; overflow-y:auto;">
+    <div style="width:100%; max-width:480px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+            <h2 style="margin:0; color:var(--text-primary,#fff); font-size:22px;">לוח מנהל</h2>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button onclick="openNewClientModal()" class="admin-add-client-btn">+ לקוח חדש</button>
+                <button onclick="doLogout()" class="admin-logout-btn">התנתק</button>
+            </div>
+        </div>
+        <button onclick="adminViewClient(SB_USER.id)" class="admin-self-btn">כניסה לפרופיל שלי ›</button>
+        <div class="coach-mode-toggle">
+            <button class="coach-mode-btn active" data-mode="overview" onclick="setCoachMode('overview')">סקירה</button>
+            <button class="coach-mode-btn" data-mode="urgent" onclick="setCoachMode('urgent')">דחוף 🔴</button>
+            <button class="coach-mode-btn" data-mode="subscribers" onclick="setCoachMode('subscribers')">💳 מנויים</button>
+            <button class="coach-mode-btn" data-mode="pending" onclick="setCoachMode('pending')">ממתינים <span id="pending-count-badge" style="display:none;background:#e55;color:#fff;border-radius:10px;padding:0 6px;font-size:11px;font-weight:bold;margin-right:2px;"></span></button>
+            <button class="coach-mode-btn" data-mode="archive" onclick="setCoachMode('archive')">🗃️ ארכיון</button>
+        </div>
+        <div id="admin-client-list"></div>
+    </div>
+</div>
+
+<!-- ══ New client modal ════════════════════════════════ -->
+<div id="new-client-modal" style="display:none; position:fixed; inset:0; z-index:10001; background:rgba(0,0,0,.75); align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
+    <div class="profile-sheet" style="max-width:420px; width:100%; padding:24px; border-radius:var(--radius-lg); margin:auto;">
+        <div class="profile-header">
+            <h2>לקוח חדש</h2>
+            <button class="close-btn" onclick="closeNewClientModal()">&times;</button>
+        </div>
+        <div class="profile-group" style="margin-top:16px;">
+            <div class="profile-row">
+                <label for="nc-name">שם מלא</label>
+                <input id="nc-name" type="text" class="profile-input" placeholder="ישראל ישראלי">
+            </div>
+            <div class="profile-row">
+                <label for="nc-email">אימייל</label>
+                <input id="nc-email" type="email" class="profile-input" placeholder="example@mail.com" dir="ltr">
+            </div>
+            <div class="profile-row">
+                <label for="nc-password">סיסמה</label>
+                <input id="nc-password" type="password" class="profile-input" placeholder="לפחות 6 תווים" dir="ltr">
+            </div>
+            <div class="profile-row">
+                <label for="nc-start-date">תאריך הצטרפות</label>
+                <input id="nc-start-date" type="date" class="profile-input" dir="ltr">
+            </div>
+            <div class="profile-row">
+                <label for="nc-birth-date">תאריך לידה</label>
+                <input id="nc-birth-date" type="date" class="profile-input" dir="ltr">
+            </div>
+            <div class="profile-row">
+                <label for="nc-start-weight">משקל התחלתי</label>
+                <input id="nc-start-weight" type="number" class="profile-input" placeholder="ק״ג" step="0.1">
+            </div>
+            <div class="profile-row">
+                <label for="nc-goal-weight">משקל יעד</label>
+                <input id="nc-goal-weight" type="number" class="profile-input" placeholder="ק״ג" step="0.1">
+            </div>
+            <div class="profile-row">
+                <label for="nc-height">גובה (ס״מ)</label>
+                <input id="nc-height" type="number" class="profile-input" placeholder="ס״מ">
+            </div>
+            <div class="profile-row">
+                <label for="nc-gender">מין</label>
+                <select id="nc-gender" class="profile-input profile-select">
+                    <option value="male">גבר</option>
+                    <option value="female">אישה</option>
+                </select>
+            </div>
+            <div class="profile-row">
+                <label for="nc-goal">מטרה</label>
+                <select id="nc-goal" class="profile-input profile-select">
+                    <option value="cut">חיטוב</option>
+                    <option value="bulk">מסה</option>
+                </select>
+            </div>
+        </div>
+        <div id="nc-error" style="color:#ef4444; font-size:13px; margin:8px 0; display:none;"></div>
+        <button id="nc-submit-btn" class="calc-btn" onclick="submitNewClient()" style="width:100%; margin-top:8px;">צור לקוח</button>
+    </div>
+</div>
+
+<!-- ══ Workout plan editor modal (מנהל בלבד) ════════════ -->
+<div id="workout-editor-modal" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.75); align-items:flex-start; justify-content:center; overflow-y:auto; padding:20px 12px;">
+    <div class="we-card">
+        <div class="we-header">
+            <h2 class="we-title">עורך תוכנית אימונים</h2>
+            <button class="we-close-btn" onclick="closeWorkoutEditor()">✕</button>
+        </div>
+        <div id="workout-editor-body"></div>
+        <div class="we-footer">
+            <button id="we-save-btn" class="we-save-btn" onclick="saveWorkoutPlan()">שמור תוכנית</button>
+        </div>
+    </div>
+</div>
+

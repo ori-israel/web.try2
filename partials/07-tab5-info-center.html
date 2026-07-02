@@ -1,0 +1,206 @@
+
+   <div id="tab5" class="tab-content">
+        <button class="tour-tab-btn" onclick="startTabTour('tab5')" title="מדריך לטאב" aria-label="מדריך לטאב">📖</button>
+  <h2>מרכז המידע</h2>
+  <div class="card">
+    <!-- שורת החיפוש החדשה -->
+    <div class="search-container">
+      <input type="text" id="infoSearch" placeholder="חפש מושג (למשל: חלבון, כשל, קלוריות)..." aria-label="חיפוש מושג" onkeyup="filterInfo()">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="info-center">
+      <div id="info-chapters">
+      <!-- פרק 1 -->
+      <div class="chapter-container">
+        <button class="chapter-btn" onclick="toggleChapter(this)">
+          <span>💪 פרק 1: הבסיס – איך הגוף עובד</span>
+          <span class="arrow">▼</span>
+        </button>
+        <div class="chapter-content">
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">איך שרירים גדלים?</div>
+            <div class="term-body">כשמאמנים שריר עם משקולות או כל סוג של התנגדות, השריר מתאמץ מאוד ונוצרים בו נזקים קטנים מאוד בסיבי השריר. זה תהליך טבעי שקורה כשמעמיסים על השריר. בזמן המנוחה, הגוף מתקן את הנזקים האלה ובונה את סיבי השריר קצת יותר חזקים ועבים ממה שהם היו קודם. הוא עושה זאת כדי שבפעם הבאה שהשריר יתמודד עם אותו עומס יהיה לו קל יותר. כשחוזרים על התהליך הזה שוב ושוב לאורך זמן, השרירים מתחזקים וגדלים בהדרגה.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">איך בונים שריר בפועל?</div>
+            <div class="term-body">כדי לבנות שריר צריך לשלב שלושה דברים עיקריים. הראשון הוא אימון שמאתגר את השרירים, בדרך כלל באמצעות משקולות או תרגילי התנגדות. השני הוא תזונה מתאימה, במיוחד צריכת מספיק קלוריות וחלבון שעוזר לגוף לבנות ולתקן את השרירים אחרי האימון. השלישי הוא מנוחה והתאוששות, כולל שינה מספקת. בזמן המנוחה הגוף מבצע את תהליך הבנייה עצמו. כאשר שלושת הדברים האלה קורים באופן קבוע לאורך זמן אימון, תזונה ומנוחה השרירים יכולים לגדול ולהתחזק.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">קלוריות (Calories)</div>
+            <div class="term-body">קלוריה היא יחידת אנרגיה שהגוף משתמש בה לתפקוד יומיומי, אימון ותהליכים פנימיים. כל המזון שנאכל מתורגם בסוף לאנרגיה (קלוריות).</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">מאזן קלורי</div>
+            <div class="term-body">היחס בין קלוריות שנכנסות לגוף לבין קלוריות שנשרפות. זה הבסיס לשינוי במשקל הגוף.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">עודף קלורי (Caloric Surplus)</div>
+            <div class="term-body">מצב שבו צורכים יותר קלוריות ממה שהגוף שורף. זה עוזר לבניית שריר כי יש לגוף “חומרי בנייה” זמינים.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">גירעון קלורי (Caloric Deficit)</div>
+            <div class="term-body">מצב שבו צורכים פחות קלוריות ממה שהגוף שורף. זה מה שמוביל לירידה במשקל ושומן.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">תחזוקה קלורית (Maintenance)</div>
+            <div class="term-body">מצב שבו צורכים בערך את כמות הקלוריות שהגוף שורף. המשקל נשאר יציב.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">צריכת חלבון יומית</div>
+            <div class="term-body">צריכת חלבון יומית היא כמות החלבון שאדם אוכל במהלך היום. חלבון חשוב מאוד למי שמתאמן, כי הוא מספק לגוף את החומרים הדרושים לבנייה ולתיקון של סיבי השריר אחרי אימון. בלי מספיק חלבון בתזונה, הגוף מתקשה לבנות שריר חדש גם אם האימונים טובים. הדרך לדעת מהי צריכת החלבון היומית המומלצת לבניית מסת שריר היא להכפיל את משקל הגוף ב־1.8–2.2. לדוגמה, אם מישהו שוקל 50 קילו ומכפיל את משקל הגוף ב־1.8, התוצאה תהיה 90, כלומר מומלץ לצרוך כ־90 גרם חלבון ביום.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- פרק 2 -->
+      <div class="chapter-container">
+        <button class="chapter-btn" onclick="toggleChapter(this)">
+          <span>🏋️ פרק 2: יסודות האימון</span>
+          <span class="arrow">▼</span>
+        </button>
+        <div class="chapter-content">
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">חזרות (Reps)</div>
+            <div class="term-body">חזרה היא ביצוע אחד של תרגיל, למשל ירידה ועלייה בסקוואט נחשבת לחזרה אחת. כשאומרים “10 חזרות”, הכוונה היא לבצע את התנועה הזאת 10 פעמים ברצף.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">סט (Set)</div>
+            <div class="term-body">סט הוא קבוצה של חזרות שמבצעים ברצף. לדוגמה, ביצוע של 10 חזרות, מנוחה ואז שוב 10—נחשב ל־2 סטים.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">טווח חזרות</div>
+            <div class="term-body">זה מספר החזרות שמבצעים בכל סט.<br>טווח נמוך (1–5) ← יותר כוח<br>טווח בינוני (6–12) ← אידיאלי לשריר<br>טווח גבוה (12+) ← סיבולת ושריפה</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">מנוחה בין סטים</div>
+            <div class="term-body">הזמן שנחים בין סט לסט. מנוחה קצרה יותר מעייפת יותר את השריר, מנוחה ארוכה מאפשרת להרים יותר משקל. לרוב נרצה לנוח בין דקה אחת ל5 דקות, נמשיך לסט הבא רק כשנרגיש מוכנים גופנית ואחרי שנסדיר את הנשימה ולא לפני.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">טכניקה נכונה</div>
+            <div class="term-body">ביצוע התרגיל בצורה מדויקת ובטוחה. טכניקה טובה שומרת על הגוף מפציעות וגם מבטיחה שהשריר הנכון באמת עובד.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">טווח תנועה מלא</div>
+            <div class="term-body">טווח תנועה מלא אומר לבצע את התרגיל לאורך כל התנועה האפשרית של המפרק. כלומר, להגיע גם למצב שבו השריר נמתח וגם למצב שבו הוא מתכווץ עד הסוף. עבודה בטווח תנועה מלא בדרך כלל מפעילה את השריר בצורה טובה יותר ועוזרת לפתח כוח ושליטה בתנועה.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">קשר מוח-שריר (Mind-Muscle Connection)</div>
+            <div class="term-body">היכולת להרגיש ולשלוט בשריר שעובד בזמן התרגיל. כשיש קשר טוב, ניתן להפעיל את השריר בצורה יעילה יותר ולא “לגנוב” עם שרירים אחרים.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">תרגילים מורכבים (Compound)</div>
+            <div class="term-body">תרגילים שמערבים כמה מפרקים וכמה קבוצות שרירים יחד, כמו סקוואט או לחיצת חזה. תרגילים כאלה מאפשרים להרים יותר משקל ולפתח כוח כללי.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">תרגילי בידוד (Isolation)</div>
+            <div class="term-body">תרגילים שמתמקדים בשריר אחד עיקרי, כמו כפיפת מרפק ליד קדמית. הם עוזרים לדייק ולעבוד על שרירים ספציפיים.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- פרק 3 -->
+      <div class="chapter-container">
+        <button class="chapter-btn" onclick="toggleChapter(this)">
+          <span>📈 פרק 3: איך מתאמנים נכון ומתקדמים</span>
+          <span class="arrow">▼</span>
+        </button>
+        <div class="chapter-content">
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">סט חימום</div>
+            <div class="term-body">חימום הוא שלב בתחילת האימון שבו מבצעים סטים קלים יותר לפני הסטים הקשים. המטרה היא להכין את השרירים, המפרקים ומערכת העצבים לעומס שעומד להגיע. חימום טוב יכול לשפר את הביצועים באימון וגם להפחית את הסיכון לפציעות.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">סט עבודה</div>
+            <div class="term-body">סטים עבודה הם הסטים המרכזיים של התרגיל, שבהם משתמשים במשקל מאתגר יחסית. אלו הסטים שבהם השריר באמת עובד קשה ומקבל את הגירוי שגורם לו להתחזק ולגדול. בדרך כלל מבצעים כמה סטי חימום קלים לפני שמגיעים לסטים האלה.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">משקל עבודה</div>
+            <div class="term-body">המשקל שבו משתמשים בסטים המרכזיים של התרגיל. זה משקל שמאתגר את השריר אבל עדיין מאפשר לשמור על טכניקה נכונה.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">עצימות (Intensity)</div>
+            <div class="term-body">עצימות מתייחסת לכמה כבד המשקל ביחס ליכולת. משקל כבד יותר = עצימות גבוהה יותר. זה לא כמה מזיעים, אלא כמה קשה לשריר להתמודד עם המשקל.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">נפח אימון (Volume)</div>
+            <div class="term-body">נפח אימון הוא כמות העבודה הכוללת שמבצעים. בדרך כלל מחשבים אותו לפי סטים × חזרות × משקל. ככל שהנפח גבוה יותר (במידה נכונה), כך הגירוי לשריר גדול יותר.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">זמן תחת מתח (Time Under Tension)</div>
+            <div class="term-body">כמה זמן השריר נמצא בעבודה במהלך הסט. תנועה איטית ומבוקרת מגדילה את הזמן הזה ויכולה להעלות את הגירוי לשריר.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">שלב קונצנטרי ואקסצנטרי</div>
+            <div class="term-body">קונצנטרי זה כשהשריר מתכווץ (למשל להרים משקולת).<br>אקסצנטרי זה כשהשריר נמתח תוכ כדי שליטה (להוריד משקולת לאט).<br>שליטה בשני השלבים חשובה לבניית שריר.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">כשל שרירי</div>
+            <div class="term-body">כשל שרירי הוא הרגע במהלך סט שבו השריר כבר כל כך עייף, שלא ניתן לבצע עוד חזרה נוספת בטכניקה נכונה. גם אם מנסים, הגוף פשוט לא מצליח להרים את המשקל שוב בצורה תקינה. הרבה מתאמנים משתמשים בכשל שרירי כדי לוודא שהשריר באמת עבד קשה וקיבל גירוי חזק במהלך הסט.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">RIR – חזרות במאגר (Reps In Reserve)</div>
+            <div class="term-body">כמה חזרות “נשארו במיכל” לפני כשל. לדוגמה, אם ניתן היה לבצע עוד 2 חזרות בסוף סט, זה אומר RIR 2. זה כלי לשליטה בעומס בלי להגיע תמיד לכשל.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">עומס מתקדם / progressive overload</div>
+            <div class="term-body">עומס מתקדם הוא אחד העקרונות החשובים ביותר בבניית שריר. המשמעות היא שעם הזמן צריך להגדיל את האתגר לשרירים. אפשר לעשות זאת בדרכים שונות, כמו להעלות משקל, לבצע יותר חזרות, להוסיף סטים או לשפר את הטכניקה של התרגיל. אם האימון נשאר תמיד באותה רמת קושי, הגוף מתרגל אליו וההתקדמות נעצרת.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">תדירות אימון (Frequency)</div>
+            <div class="term-body">כמה פעם בשבוע מאמנים שריר מסוים. לרוב, 2 פעמים בשבוע לכל שריר זו נקודת פתיחה טובה.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">פיצול אימונים (Split)</div>
+            <div class="term-body">איך מחלקים את האימונים במהלך השבוע. לדוגמה: כל הגוף / עליון-תחתון / חזה-גב / רגליים-ידיים.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- פרק 4 -->
+      <div class="chapter-container">
+        <button class="chapter-btn" onclick="toggleChapter(this)">
+          <span>💤 פרק 4: התאוששות, בריאות והתקדמות לאורך זמן</span>
+          <span class="arrow">▼</span>
+        </button>
+        <div class="chapter-content">
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">התאוששות (Recovery)</div>
+            <div class="term-body">התאוששות היא התהליך שבו הגוף מתקן את עצמו אחרי אימון. זה כולל תיקון שרירים, איזון מערכות בגוף והכנה לאימון הבא. התאוששות טובה היא חלק קריטי בהתקדמות.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">איכות שינה</div>
+            <div class="term-body">לא רק כמה שעות ישנים, אלא גם כמה השינה עמוקה ורציפה. שינה איכותית חשובה להתאוששות, בניית שריר ואיזון הורמונלי.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">DOMS – כאבי שרירים מאוחרים</div>
+            <div class="term-body">DOMS הם כאבי שרירים שמופיעים בדרך כלל יום עד שלושה ימים אחרי אימון. זה קורה במיוחד אחרי אימון קשה, תרגיל חדש, או עומס שהשריר לא רגיל אליו. הכאב נובע מהנזקים הקטנים שנוצרים בסיבי השריר בזמן האימון ומהתהליך שבו הגוף מתקן אותם.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">אימון יתר (Overtraining)</div>
+            <div class="term-body">מצב שבו מתאמנים יותר מדי בלי מספיק מנוחה. זה יכול להוביל לעייפות, ירידה בביצועים, ואפילו פציעות.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">NEAT (פעילות יומיומית לא ספורטיבית)</div>
+            <div class="term-body">כל התנועה היומיומית שלא נחשבת לאימון, הליכה, עמידה, תזוזה במהלך היום. זה יכול להשפיע מאוד על שריפת הקלוריות.</div>
+          </div>
+          <div class="term-item">
+            <div class="term-header" onclick="toggleTerm(this)">צפיפות קלורית</div>
+            <div class="term-body">כמה קלוריות יש בכמות מסוימת של מזון. מזונות עם צפיפות קלורית נמוכה (כמו ירקות) מאפשרים לאכול נפח גדול עם פחות קלוריות.</div>
+          </div>
+        </div>
+      </div>
+
+      </div><!-- /info-chapters -->
+
+      <!-- שאלות נפוצות -->
+      <h3 style="color: var(--dark-green); margin-bottom: 20px; padding-right: 10px;">שאלות נפוצות</h3>
+      <div id="faq-categories-container">
+          <!-- כאן ה-JS ישתול את השאלות באופן אוטומטי -->
+      </div>
+
+    </div> <!-- סגירה של info-center -->
+  </div> <!-- סגירה של card -->
+</div> <!-- סגירה של tab5 -->
+</div> <!-- סגירה של container -->

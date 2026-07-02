@@ -1,0 +1,188 @@
+   <div id="tab1" class="tab-content active">
+        <button class="tour-tab-btn" onclick="startTabTour('tab1')" title="מדריך לטאב" aria-label="מדריך לטאב">📖</button>
+        <h2>מעקב מנות יומי</h2>
+<div style="text-align:center; margin-bottom:15px;">
+    <div id="nutrition-streak-display" style="display:inline-block; background: var(--light-green); border: 2px solid var(--main-green); border-radius:20px; padding:8px 20px; font-size:16px; font-weight:bold; color:var(--dark-green);">
+        🔥 סטריק תזונה: <span id="nutrition-streak-count">0</span> ימים
+    </div>
+</div>
+        
+        <p style="text-align:center;font-size:12px;color:var(--text-secondary);margin:0 0 10px;">כל לחיצה = חצי מנה</p>
+        <!-- ה-Dashboard של המנות -->
+        <div id="macros-dashboard">
+        <div class="portion-row">
+            <span>🥩 מנות חלבון:</span>
+            <div class="portion-controls">
+                <button class="portion-btn" onclick="modifyPortion('protein', -0.5)">-</button>
+                <div class="portion-val_container">
+                    <span id="protein-val">0</span> <span class="target-label" id="protein-target">/ 0</span>
+                </div>
+                <button class="portion-btn" onclick="modifyPortion('protein', 0.5)">+</button>
+            </div>
+            <div class="portion-progress">
+                <div class="portion-progress-bar" id="protein-progress-bar"></div>
+            </div>
+            <span class="portion-percent" id="protein-percent">0%</span>
+        </div>
+        <div class="portion-row">
+            <span>🍚 מנות פחמימה:</span>
+            <div class="portion-controls">
+                <button class="portion-btn" onclick="modifyPortion('carbs', -0.5)">-</button>
+                <div class="portion-val_container">
+                    <span id="carbs-val">0</span> <span class="target-label" id="carbs-target">/ 0</span>
+                </div>
+                <button class="portion-btn" onclick="modifyPortion('carbs', 0.5)">+</button>
+            </div>
+            <div class="portion-progress">
+                <div class="portion-progress-bar" id="carbs-progress-bar"></div>
+            </div>
+            <span class="portion-percent" id="carbs-percent">0%</span>
+        </div>
+        <div class="portion-row">
+            <span>🥑 מנות שומן:</span>
+            <div class="portion-controls">
+                <button class="portion-btn" onclick="modifyPortion('fat', -0.5)">-</button>
+                <div class="portion-val_container">
+                    <span id="fat-val">0</span> <span class="target-label" id="fat-target">/ 0</span>
+                </div>
+                <button class="portion-btn" onclick="modifyPortion('fat', 0.5)">+</button>
+            </div>
+            <div class="portion-progress">
+                <div class="portion-progress-bar" id="fat-progress-bar"></div>
+            </div>
+            <span class="portion-percent" id="fat-percent">0%</span>
+        </div>
+
+
+        </div><!-- /macros-dashboard -->
+
+        <!-- יומן אוכל יומי -->
+        <button class="food-log-btn" onclick="toggleAccordion('food-log-accordion')">📋 מה אכלתי היום:</button>
+        <div id="food-log-accordion" class="accordion-content food-log-content">
+            <div id="food-log-nav"></div>
+            <div id="food-log-list" style="font-size:14px;"></div>
+        </div>
+
+        <button class="food-scan-btn" onclick="openFoodScanner()" style="background:#5b7cfa;color:#ffffff;">🍽️ הוספת מנות</button>
+
+        <!-- בנק המאכלים החדש (אקורדיון) -->
+<div class="accordion-container">
+    <h3 style="text-align: center; color: var(--dark-green); margin-bottom: 15px;">🏦 בנק המאכלים</h3>
+    
+   <!-- בנק חלבון -->
+<button class="accordion-btn" onclick="toggleAccordion('bank-p')">🥩 בנק חלבון</button>
+<div id="bank-p" class="accordion-content">
+    <ul class="food-list">
+        <li>חזה עוף / הודו (150 גרם&nbsp;<b>לפני בישול</b>) = 1</li>
+        <li>פילה בקר / סינטה (150 גרם&nbsp;<b>לפני בישול</b>) = 1</li>
+        <li>דג לבן (160–170 גרם&nbsp;<b>לפני בישול</b>) = 1</li>
+        <li>טונה במים (קופסה מסוננת ~120 גרם) = 1</li>
+        <li>אבקת חלבון (סקופ גדול / ~30 גרם אבקה) = 1</li>
+        <li>קוטג' / לבנה 5% (250 גרם) = 1</li>
+        <li>חלבון ביצה (7–8 יחידות) = 1</li>
+        <li>גבינה צהובה 9% (100–120 גרם / ~5–6 פרוסות) = 1</li>
+        <li>יוגורט חלבון (2 גביעים) = 1</li>
+        <li>טופו (200–220 גרם&nbsp;<b>לפני בישול</b>) = 1</li>
+    </ul>
+</div>
+
+<!-- בנק פחמימה -->
+<button class="accordion-btn" onclick="toggleAccordion('bank-c')">🍚 בנק פחמימה</button>
+<div id="bank-c" class="accordion-content">
+    <ul class="food-list">
+        <li>אורז / פסטה / פתיתים (50 גרם&nbsp;<b>לפני בישול/יבש</b>) = 1</li>
+        <li>שיבולת שועל (60 גרם&nbsp;<b>לפני בישול/יבש</b>) = 1</li>
+        <li>תפוח אדמה / בטטה (200–220 גרם&nbsp;<b>לפני בישול/נא</b>) = 1</li>
+        <li>לחם מלא / שיפון (3 פרוסות) = 1</li>
+        <li>פריכיות אורז / כוסמין (5–6 יחידות) = 1</li>
+        <li>פיתה / טורטייה (יחידה רגילה / 1.5 קלה) = 1</li>
+        <li>בננה (1.5 יחידות) = 1</li>
+        <li>תירס (1.2 כוס גרגירים&nbsp;<b>לפני בישול</b>) = 1</li>
+    </ul>
+</div>
+
+<!-- בנק שומן -->
+<button class="accordion-btn" onclick="toggleAccordion('bank-f')">🥑 בנק שומן</button>
+<div id="bank-f" class="accordion-content">
+    <ul class="food-list">
+        <li>שמן זית / קנולה (כף) = 1</li>
+        <li>טחינה גולמית (1.5 כפות) = 1</li>
+        <li>אבוקדו (חצי יחידה) = 1</li>
+        <li>אגוזי מלך (5–6 יחידות) = 1</li>
+        <li>שקדים (12–15 יחידות) = 1</li>
+        <li>חמאת בוטנים (כף גדושה) = 1</li>
+        <li>זיתים (20–25 יחידות) = 1</li>
+    </ul>
+</div>
+
+<!-- בנק היברידי -->
+<button class="accordion-btn" onclick="toggleAccordion('bank-h')">🍲 בנק היברידי</button>
+<div id="bank-h" class="accordion-content">
+    <ul class="food-list">
+        <li>3 ביצים שלמות = 1 חלבון + 1 שומן</li>
+        <li>סלמון (150 גרם&nbsp;<b>לפני בישול</b>) = 1 חלבון + 1 שומן</li>
+        <li>עדשים יבשות (60 גרם&nbsp;<b>לפני בישול</b>) = 1 פחמימה + 0.5 חלבון</li>
+        <li>קינואה יבשה (50 גרם&nbsp;<b>לפני בישול</b>) = 1 פחמימה + 0.5 חלבון</li>
+        <li>בקר טחון (150 גרם&nbsp;<b>לפני בישול</b>, 15% שומן) = 1 חלבון + 1.5 שומן</li>
+        <li>אדממה (1.5 כוס מקולפת&nbsp;<b>לפני בישול</b>) = 0.5 פחמימה + 0.5 חלבון</li>
+        <li>חלב (330 מ"ל) = 0.5 פחמימה + 0.5 חלבון</li>
+    </ul>
+</div>
+
+    <button class="accordion-btn special-btn" onclick="toggleAccordion('bank-goal')">💡 המלצות מותאמות למטרה</button>
+    <div id="bank-goal" class="accordion-content">
+        <ul id="goal-food-list" class="food-list">
+            <!-- כאן ה-JS ישתול את המאכלים -->
+        </ul>
+    </div>
+</div>
+
+        <!-- כפתור המחשבון הועבר לסוף הטאב -->
+        <button class="calc-btn" onclick="openCalc()" style="background-color: var(--dark-green); margin-top: 25px; width: 100%;">📊 מחשבון תזונה</button>
+    </div>
+
+    <!-- המחשבון כ-Overlay עם הערכים המדויקים מהקוד הישן -->
+<div id="calc-overlay" class="overlay" style="display:none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); overflow-y: auto; padding-top: 50px;">
+    <div class="card" style="background:var(--bg-card,#1e1e1e); margin: auto; padding: 20px; width: 90%; max-width: 500px; border-radius: 15px; position: relative; direction: rtl;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--light-green); padding-bottom: 10px;">
+            <h2 style="margin:0; color: var(--dark-green); font-size: 1.2rem;">📊 מחשבון תזונה</h2>
+            <button onclick="closeCalc()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: #888;">&times;</button>
+        </div>
+
+        <fieldset style="margin-bottom: 15px;">
+            <legend style="margin-bottom: 8px; font-weight: bold;">מין:</legend>
+            <div style="display: flex; gap: 20px;">
+                <label><input type="radio" name="gender" value="male" checked> גבר</label>
+                <label><input type="radio" name="gender" value="female"> אישה</label>
+            </div>
+        </fieldset>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <input type="number" id="calc-age" placeholder="גיל" aria-label="גיל" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+            <input type="number" id="calc-height" placeholder="גובה (ס״מ)" aria-label="גובה בסנטימטרים" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+        </div>
+        <input type="number" id="calc-weight" placeholder="משקל נוכחי (ק״ג)" aria-label="משקל נוכחי בקילוגרמים" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
+        
+        <fieldset style="margin-bottom: 20px;">
+        <legend style="margin-bottom: 8px; font-weight: bold;">רמת פעילות גופנית:</legend>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label><input type="radio" name="activity" value="1.2" checked> לא עושה פעילות גופנית בכלל</label>
+            <label><input type="radio" name="activity" value="1.375"> 1-3 אימונים בשבוע</label>
+            <label><input type="radio" name="activity" value="1.465"> 4-5 אימונים בשבוע</label>
+            <label><input type="radio" name="activity" value="1.55"> 6 אימונים בשבוע</label>
+            <label><input type="radio" name="activity" value="1.725"> פעילות אינטנסיבית יום יומית</label>
+        </div>
+        </fieldset>
+
+        <button class="calc-btn" onclick="calculateStats()" style="width: 100%; background-color: var(--dark-green); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">חשב נתונים</button>
+        
+        <div id="calc-result" style="display:none; margin-top: 20px; padding: 15px; background: var(--bg-card-alt,#2a2a2a); border-radius: 10px; border-right: 4px solid var(--dark-green); line-height: 1.6;">
+            <p id="res-bmi" style="margin: 5px 0;"></p>
+            <p id="res-protein" style="margin: 5px 0;"></p>
+            <p id="res-maintenance" style="margin: 5px 0;"></p>
+            <p id="res-cut" style="margin: 5px 0; color: #d9534f;"></p>
+            <p id="res-bulk" style="margin: 5px 0; color: #5cb85c;"></p>
+        </div>
+    </div>
+</div>

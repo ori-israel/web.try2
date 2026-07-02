@@ -1,0 +1,357 @@
+
+
+<div id="survey-overlay" class="overlay">
+    <div class="overlay-header">
+        <h2 style="margin:0; color: var(--dark-green);">שאלון שבועי</h2>
+        <button class="close-btn" onclick="closeSurvey()">&times;</button>
+    </div>
+    
+    <form id="coaching-survey">
+        <label class="question-label">1. מה הניצחון הכי גדול שלך בשבוע האחרון?</label>
+        <textarea class="q-input" name="victory" rows="3" placeholder="מה עבד לך בדיוק כמו שרצית?" required></textarea>
+
+        <label class="question-label">2. מה היה המכשול הכי גדול שלך בשבוע האחרון ואיך התמודדת איתו?</label>
+        <textarea class="q-input" name="obstacle" rows="3" placeholder="מה היה לך הכי קשה?" required></textarea>
+
+        <fieldset>
+        <legend class="question-label">3. מ-1 עד 10, באיזו מידה עקבת אחרי התוכנית?</legend>
+        <div class="rating-grid">
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="1">1</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="2">2</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="3">3</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="4">4</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="5">5</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="6">6</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="7">7</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="8">8</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="9">9</label>
+            <label class="rating-option"><input type="radio" name="compliance_rating" value="10">10</label>
+        </div>
+        </fieldset>
+
+        <label class="question-label">4. האם יש משהו שהיית רוצה לשאול או לספר לי?</label>
+        <textarea class="q-input" name="q4_topic" rows="3" placeholder="כל דבר שאולי אוכל לעזור איתו..."></textarea>
+
+        <button type="submit" id="submit-survey-btn" class="calc-btn" style="margin-top: 30px;">שליחת השאלון וחזרה לאתר</button>
+    </form>
+</div>
+
+
+
+
+<div id="achievement-popup" class="complete-modal" style="display:none;">
+    <div class="complete-content">
+        <span class="close-complete" onclick="_closeAchievementPopup()">&times;</span>
+        <div style="font-size:2rem;margin-bottom:8px;">🎖️</div>
+        <h2 id="achievement-title" style="margin:0 0 10px;"></h2>
+        <p id="achievement-desc" style="margin:0;"></p>
+    </div>
+</div>
+
+<div id="workout-complete-msg" class="complete-modal" style="display:none;">
+    <div class="complete-content">
+        <span class="close-complete" onclick="closeCompleteMsg()">&times;</span>
+        <h2>💪 אימון מנצח!</h2>
+        <p>כל הכבוד, סיימת את כל התרגילים להיום.</p>
+        <div class="trophy-icon">🏆</div>
+    </div>
+</div>
+
+<div id="nutrition-complete-msg" class="complete-modal" style="display:none;">
+    <div class="complete-content">
+        <span class="close-complete" onclick="closeNutritionComplete()">&times;</span>
+        <h2>🥗 יעדי תזונה הושגו!</h2>
+        <p>כל הכבוד, עמדת בכל יעדי התזונה להיום.</p>
+        <div class="trophy-icon">⭐</div>
+    </div>
+</div>
+
+<!-- צ'אט AI -->
+<div id="ai-chat-overlay" class="overlay" style="display:none; flex-direction:column;">
+    <div class="overlay-header">
+        <h2 style="margin:0;">🤖 שאל את המאמן AI</h2>
+        <div style="display:flex;gap:6px;align-items:center;">
+            <button onclick="startAITour()" class="close-btn" title="מדריך שימוש" style="font-size:16px;border:1px solid var(--border);background:var(--bg-card-alt);">📖</button>
+            <button id="ai-websearch-btn" onclick="toggleWebSearch(this)" class="close-btn" title="חיפוש באינטרנט: כבוי" style="font-size:16px;border:1px solid var(--border);background:var(--bg-card-alt);">🌐</button>
+            <button onclick="resetAIChat()" class="close-btn" title="נקה שיחה" style="font-size:16px;border:1px solid var(--border);background:var(--bg-card-alt);">🗑️</button>
+            <button class="close-btn" onclick="closeAIChat()">&times;</button>
+        </div>
+    </div>
+    <div id="ai-chat-messages" style="flex:1; overflow-y:auto; padding: 10px 0; display:flex; flex-direction:column;">
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; padding-top:15px; border-top:1px solid var(--border);">
+        <button onclick="sendAIMessage()" class="calc-btn" style="width:80px; height:48px; padding:0; margin:0; flex-shrink:0; order:1;">שלח</button>
+        <input type="text" id="ai-chat-input" placeholder="כתוב שאלה..." maxlength="500" aria-label="הודעה לצ'אט AI"
+            style="flex:1; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:16px; font-family:inherit; height:48px; order:2; background:var(--input-bg); color:var(--text-primary);"
+            onkeydown="if(event.key==='Enter') sendAIMessage()">
+    </div>
+    <p style="font-size:11px; color:var(--text-muted); text-align:center; margin:6px 0 0 0;">⚠️ הסוכן עשוי לטעות, יש להשתמש בו ככלי עזר בלבד</p>
+</div>
+
+
+<button id="backToTop" title="חזרה למעלה">↑</button>
+
+<!-- מסך פרטים אישיים -->
+<div id="profile-overlay" class="profile-overlay" onclick="handleProfileOverlayClick(event)">
+    <div class="profile-sheet">
+        <div class="profile-handle"></div>
+        <div class="profile-header">
+            <h2>פרטים אישיים</h2>
+            <button class="close-btn" onclick="closeProfile()">&times;</button>
+        </div>
+
+        <!-- Avatar upload -->
+        <div style="display:flex;flex-direction:column;align-items:center;padding:16px 0 8px;">
+            <div id="avatar-preview-wrap" onclick="document.getElementById('avatar-file-input').click()" style="width:80px;height:80px;border-radius:50%;overflow:hidden;cursor:pointer;background:var(--bg-card-alt);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:32px;">
+                <img id="avatar-preview-img" src="" alt="" width="120" height="120" style="width:100%;height:100%;object-fit:cover;display:none;">
+                <span id="avatar-preview-placeholder">👤</span>
+            </div>
+            <span style="font-size:12px;color:var(--text-secondary);margin-top:6px;cursor:pointer;" onclick="document.getElementById('avatar-file-input').click()">שינוי תמונת פרופיל</span>
+            <input id="avatar-file-input" type="file" accept="image/jpeg,image/png,image/webp" style="display:none;" aria-label="העלאת תמונת פרופיל" onchange="handleAvatarUpload(this)">
+        </div>
+        <!-- Section 1: Client editable -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0;">
+            <div class="profile-section-label" style="margin:0;padding:0;">עריכה אישית</div>
+            <button id="theme-toggle-profile-btn" onclick="toggleTheme()" style="padding:7px 14px;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-primary);border:1.5px solid var(--border);white-space:nowrap;"></button>
+        </div>
+        <div class="profile-group">
+            <div class="profile-row">
+                <label for="prof-nickname">שם משתמש</label>
+                <input id="prof-nickname" type="text" class="profile-input" placeholder="שם" maxlength="20">
+            </div>
+            <div class="profile-row">
+                <label for="prof-email">מייל</label>
+                <input id="prof-email" type="email" class="profile-input" placeholder="example@mail.com" dir="ltr">
+            </div>
+            <div class="profile-row">
+                <label for="prof-current-weight">משקל נוכחי</label>
+                <input id="prof-current-weight" type="number" class="profile-input" placeholder="ק״ג" step="0.1">
+            </div>
+            <div class="profile-row">
+                <label for="prof-activity">אקטיביות</label>
+                <select id="prof-activity" class="profile-input profile-select">
+                    <option value="1.2">לא עושה פעילות גופנית בכלל</option>
+                    <option value="1.375">1–3 אימונים/שבוע</option>
+                    <option value="1.465">4–5 אימונים/שבוע</option>
+                    <option value="1.55">6 אימונים/שבוע</option>
+                    <option value="1.725">פעילות אינטנסיבית יומיומית</option>
+                </select>
+            </div>
+            <div class="profile-row profile-row-textarea">
+                <label for="prof-allergies">אלרגיות/מגבלות תזונתיות (אם יש)</label>
+                <textarea id="prof-allergies" class="profile-input profile-textarea" placeholder="למשל: אגוזים, גלוטן... (לא חובה)" maxlength="150"></textarea>
+            </div>
+            <div class="profile-row profile-row-textarea">
+                <label for="prof-liked-foods">מאכלים מועדפים</label>
+                <textarea id="prof-liked-foods" class="profile-input profile-textarea" placeholder="מאכלים שטעימים לי" maxlength="200"></textarea>
+            </div>
+            <div class="profile-row profile-row-textarea">
+                <label for="prof-disliked-foods">מאכלים שלא ארצה לאכול</label>
+                <textarea id="prof-disliked-foods" class="profile-input profile-textarea" placeholder="מאכלים שלא טעימים לי" maxlength="200"></textarea>
+            </div>
+        </div>
+
+        <!-- Section 2: Coach data -->
+        <div class="profile-section-label">
+            נתוני חשבון
+        </div>
+        <div class="profile-group">
+            <div id="coach-save-note" class="coach-save-note" style="display:none">✏️ מצב עריכת מאמן פעיל</div>
+            <div class="profile-row">
+                <label for="prof-name">שם מלא</label>
+                <input id="prof-name" type="text" class="profile-input coach-editable-field" disabled maxlength="20">
+            </div>
+            <div class="profile-row">
+                <label for="prof-start-weight">משקל התחלתי</label>
+                <input id="prof-start-weight" type="number" class="profile-input coach-editable-field" disabled step="0.1">
+            </div>
+            <div class="profile-row">
+                <label for="prof-goal-weight">משקל יעד</label>
+                <input id="prof-goal-weight" type="number" class="profile-input coach-editable-field" disabled step="0.1">
+            </div>
+            <div class="profile-row">
+                <label for="prof-birth-date">תאריך לידה</label>
+                <input id="prof-birth-date" type="date" class="profile-input coach-editable-field" disabled dir="ltr">
+            </div>
+            <div class="profile-row">
+                <label for="prof-start-date">תאריך הצטרפות</label>
+                <input id="prof-start-date" type="date" class="profile-input coach-editable-field" disabled dir="ltr">
+            </div>
+            <div class="profile-row">
+                <label for="prof-coaching-duration">משך ליווי (חודשים)</label>
+                <input id="prof-coaching-duration" type="number" class="profile-input coach-editable-field" disabled min="1" max="24" placeholder="לדוגמה: 3">
+            </div>
+            <div class="profile-row">
+                <label for="prof-subscription-duration">משך מנוי (חודשים)</label>
+                <input id="prof-subscription-duration" type="number" class="profile-input coach-editable-field" disabled min="1" placeholder="לדוגמה: 15">
+            </div>
+            <div class="profile-row">
+                <label for="prof-subscription-type">סוג מנוי</label>
+                <select id="prof-subscription-type" class="profile-input profile-select coach-editable-field" disabled>
+                    <option value="">לא נקבע</option>
+                    <option value="bonus">מנוי בונוס ליווי</option>
+                    <option value="paid">מנוי בתשלום</option>
+                </select>
+            </div>
+            <div class="profile-row">
+                <label>תאריך סיום מנוי</label>
+                <span id="prof-subscription-end-date-display" class="profile-input" style="display:flex;align-items:center;"></span>
+            </div>
+            <div class="profile-row">
+                <label for="prof-height">גובה (ס״מ)</label>
+                <input id="prof-height" type="number" class="profile-input coach-editable-field" disabled>
+            </div>
+            <div class="profile-row">
+                <label for="prof-gender">מין</label>
+                <select id="prof-gender" class="profile-input profile-select coach-editable-field" disabled>
+                    <option value="male">גבר</option>
+                    <option value="female">אישה</option>
+                </select>
+            </div>
+            <div class="profile-row">
+                <label for="prof-goal">מטרה</label>
+                <select id="prof-goal" class="profile-input profile-select coach-editable-field" disabled>
+                    <option value="bulk">מסה</option>
+                    <option value="cut">חיטוב</option>
+                </select>
+            </div>
+            <div class="profile-row">
+                <label for="prof-carb-ratio">יחס פחמימה / שומן</label>
+                <select id="prof-carb-ratio" class="profile-input profile-select coach-editable-field" disabled>
+                    <option value="">ברירת מחדל (לפי מטרה)</option>
+                    <option value="0.7">70 פחמימה / 30 שומן</option>
+                    <option value="0.6">60 פחמימה / 40 שומן</option>
+                    <option value="0.5">50 פחמימה / 50 שומן</option>
+                    <option value="0.4">40 פחמימה / 60 שומן</option>
+                    <option value="0.3">30 פחמימה / 70 שומן</option>
+                </select>
+            </div>
+        </div>
+
+        <button id="prof-save-btn" class="calc-btn" onclick="saveProfile()" style="width:100%; margin-top:4px;">שמור שינויים</button>
+        <button id="pwa-add-btn" onclick="triggerPWAInstall()" style="width:100%;margin-top:8px;padding:12px;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-secondary);border:1.5px solid var(--text-secondary);">הוספת האפליקציה למסך הבית 📲</button>
+        <button onclick="doLogout()" style="width:100%;margin-top:8px;padding:12px;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:#ef4444;border:1.5px solid #ef4444;">התנתק</button>
+    </div>
+</div>
+
+<!-- PWA install prompt -->
+<div id="pwa-install-popup" class="complete-modal" style="display:none;">
+    <div class="complete-content" style="max-width:300px;padding:16px;">
+        <span class="close-complete" onclick="pwaInstallLater()">&times;</span>
+        <div style="font-size:1.5rem;margin-bottom:6px;">📲</div>
+        <h2 style="margin:0 0 16px;font-size:18px;">רוצה להוסיף את האפליקציה למסך הבית?</h2>
+        <div style="display:flex;gap:10px;direction:rtl;">
+            <button onclick="pwaInstallLater()" style="flex:1;padding:14px;border-radius:var(--radius);font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-primary);border:1.5px solid var(--text-secondary);">אחר כך</button>
+            <button onclick="pwaInstallYes()" class="calc-btn" style="flex:1;width:auto;margin:0;">כן, הוסף</button>
+        </div>
+    </div>
+</div>
+
+<!-- תזכורת חידוש מנוי -->
+<div id="renewal-reminder-popup" class="complete-modal" style="display:none;">
+    <div class="complete-content" style="max-width:300px;padding:16px;">
+        <span class="close-complete" onclick="dismissRenewalReminder()">&times;</span>
+        <div style="font-size:1.5rem;margin-bottom:6px;">⏳</div>
+        <h2 style="margin:0 0 16px;font-size:18px;" id="renewal-reminder-text"></h2>
+        <div style="display:flex;gap:10px;direction:rtl;">
+            <button onclick="dismissRenewalReminder()" style="flex:1;padding:14px;border-radius:var(--radius);font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-primary);border:1.5px solid var(--text-secondary);">אחר כך</button>
+            <a href="https://wa.me/972547950949?text=%D7%94%D7%99%D7%99%2C%20%D7%90%D7%A0%D7%99%20%D7%A8%D7%95%D7%A6%D7%94%20%D7%9C%D7%97%D7%93%D7%A9%20%D7%90%D7%AA%20%D7%94%D7%9E%D7%A0%D7%95%D7%99%20%D7%A9%D7%9C%D7%99" target="_blank" onclick="dismissRenewalReminder()" class="calc-btn" style="flex:1;width:auto;margin:0;text-align:center;text-decoration:none;">לחידוש המנוי</a>
+        </div>
+    </div>
+</div>
+
+<!-- PWA iOS instructions -->
+<div id="pwa-ios-popup" class="complete-modal" style="display:none;">
+    <div class="complete-content" style="max-width:300px;padding:16px;">
+        <span class="close-complete" onclick="pwaIosClose()">&times;</span>
+        <div style="font-size:1.5rem;margin-bottom:6px;">📱</div>
+        <h2 style="margin:0 0 14px;font-size:18px;">הוספה למסך הבית</h2>
+        <p style="text-align:right;line-height:2;margin:0 0 12px;font-size:14px;">
+            1. לחצו על כפתור השיתוף ⬆️<br>
+            2. גללו למטה ובחרו "הוסף למסך הבית"<br>
+            3. לחצו על "הוסף"
+        </p>
+        <button onclick="pwaIosClose()" class="calc-btn" style="width:100%;margin:0;">הבנתי</button>
+    </div>
+</div>
+
+<div id="birthday-modal" class="complete-modal" style="display:none;">
+    <div class="complete-content">
+        <h2>🎂 יום הולדת שמח!</h2>
+        <p id="birthday-msg"></p>
+        <div style="font-size:50px; margin: 15px 0;">🎉</div>
+        <button onclick="document.getElementById('birthday-modal').style.display='none'"
+            class="calc-btn" style="background-color: var(--dark-green); margin-top: 10px;">תודה! 🙏</button>
+    </div>
+</div>
+
+<!-- Food Scanner Modal -->
+<div id="food-scanner-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeFoodScanner()">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeFoodScanner()">✕</button>
+    <h3 id="scanner-modal-title" style="margin: 0 0 16px; text-align: center;">🍽️ הוספת מנות</h3>
+
+    <div id="scanner-step-1">
+      <input type="file" id="food-image-input" accept="image/*" capture="environment" style="display:none" aria-label="צילום תמונת אוכל">
+      <input type="file" id="food-gallery-input" accept="image/*" style="display:none" aria-label="העלאת תמונת אוכל מהגלריה">
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-image-input').click()">צילום תמונה 📷</button>
+        <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-gallery-input').click()">העלאה מהגלריה 🖼️</button>
+        <button class="scan-upload-btn" style="flex:1" onclick="openTextEntry()">הזנה בכתב ✍️</button>
+      </div>
+      <img id="food-preview" class="hidden" alt="תצוגה מקדימה" style="width:100%; border-radius:10px; margin:12px 0;">
+    </div>
+
+    <div id="scanner-error" class="hidden" style="background:#ff4444;color:#fff;border-radius:8px;padding:12px;text-align:center;font-weight:bold;margin-bottom:12px;"></div>
+    <div id="scanner-loading" class="hidden" style="text-align:center; padding:20px 0; color:#aaa;">מנתח תמונה... ⏳</div>
+
+    <div id="scanner-step-2" class="hidden">
+      <p id="scan-food-label" style="font-size:12px; color:#aaa; margin:0 0 4px;">זוהה:</p>
+      <p id="scan-food-name" style="font-weight:bold; font-size:18px; margin:0 0 12px;"></p>
+      <div id="scan-portions" style="margin:8px 0;"></div>
+      <div id="scan-details-box" style="font-size:13px;color:#aaa;margin:6px 0 4px;display:flex;flex-direction:column;gap:2px;"></div>
+      <div id="scan-undo-toast" class="hidden" style="text-align:center;margin-top:8px;">
+        <button onclick="undoDeleteItem()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:20px;padding:6px 18px;font-size:13px;cursor:pointer;">↩ חזרה</button>
+      </div>
+      <p class="scan-disclaimer">⚠️ הערכה בלבד – לא מדויק, נותן כיוון</p>
+      <div style="margin-top:14px;text-align:center;">
+        <button class="scan-action-btn primary" onclick="addScannedPortions()" style="width:80%;padding:14px;font-size:16px;">הוספת מנות ✅</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app-container -->
+
+<!-- מודל עריכת פריט ביומן אוכל -->
+<div id="food-log-edit-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeFoodLogEdit()">
+  <div class="modal-card" style="direction:rtl;text-align:right;">
+    <button class="modal-close" onclick="closeFoodLogEdit()">✕</button>
+    <h3 style="margin:0 0 16px;font-size:17px;">✏️ עריכת פריט</h3>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:6px;">שם המאכל:</label>
+        <input id="edit-food-name" type="text" aria-label="שם המאכל" style="width:100%;box-sizing:border-box;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:16px;color:var(--text-primary);font-family:inherit;outline:none;text-align:right;" />
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1;">
+          <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:6px;">כמות:</label>
+          <input id="edit-food-amount" type="number" aria-label="כמות" style="width:100%;box-sizing:border-box;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:16px;color:var(--text-primary);font-family:inherit;outline:none;text-align:right;" />
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:6px;">יחידת מידה:</label>
+          <select id="edit-food-unit" style="width:100%;box-sizing:border-box;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:16px;color:var(--text-primary);font-family:inherit;outline:none;text-align:right;">
+            <option value="גרם">גרם</option>
+            <option value="יחידות">יחידות</option>
+            <option value="כוסות">כוסות</option>
+            <option value="כפות">כפות</option>
+          </select>
+        </div>
+      </div>
+      <div id="edit-food-loading" style="display:none;text-align:center;color:var(--text-muted);font-size:13px;padding:8px 0;">מחשב ערכים תזונתיים... ⏳</div>
+      <div id="edit-food-error" style="display:none;color:#ff6b6b;font-size:13px;"></div>
+      <button onclick="saveFoodLogEdit()" style="width:100%;padding:13px;background:var(--gradient-btn);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;">שמור ✅</button>
+    </div>
+  </div>
+</div>
+
