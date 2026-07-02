@@ -506,7 +506,7 @@ async function sbSaveStreaks(userId, fields) {
 async function sbFetchAllClients() {
     const { data, error } = await db
         .from('profiles')
-        .select('id, name, nickname, email, is_admin, is_subscriber, created_at, avatar_url, status, from_me, subscription_end_date')
+        .select('id, name, nickname, email, is_admin, is_subscriber, created_at, avatar_url, status, from_me, subscription_end_date, subscription_type')
         .is('deleted_at', null)
         .order('created_at', { ascending: true });
     if (error) throw error;
@@ -660,6 +660,7 @@ async function loadUserIntoApp(userId) {
             coachingDurationMonths: profile.coaching_duration_months ?? null,
             subscriptionDurationMonths: profile.subscription_duration_months ?? null,
             subscriptionEndDate:        profile.subscription_end_date        || null,
+            subscriptionType:           profile.subscription_type            || null,
             nextMeetingDate:        profile.next_meeting_date        || null,
 
             vacationMode:  profile.vacation_mode  || false,
@@ -786,6 +787,7 @@ async function syncProfileNow(data) {
             coaching_goal:            data.coachingGoal,
             coaching_duration_months: 'coachingDurationMonths' in data ? (data.coachingDurationMonths ?? null) : undefined,
             subscription_duration_months: 'subscriptionDurationMonths' in data ? (data.subscriptionDurationMonths ?? null) : undefined,
+            subscription_type: 'subscriptionType' in data ? (data.subscriptionType || null) : undefined,
         });
     } catch (e) { console.error('[SB] profile sync failed:', e.message); }
 }

@@ -197,7 +197,7 @@ function _renderSubscribersMode(list) {
                 ${_coachAvatar(client)}
                 <div class="coach-urgent-text">
                     <span class="coach-urgent-name">${_fromMeDot(client)}${_esc(name)}</span>
-                    <span class="coach-urgent-reason" style="color:#60a5fa;font-weight:600;">💳 מנוי פעיל</span>
+                    <span class="coach-urgent-reason" style="color:#60a5fa;font-weight:600;">${client.subscription_type === 'bonus' ? '🎁 מנוי בונוס ליווי' : client.subscription_type === 'paid' ? '💳 מנוי בתשלום' : '💳 מנוי פעיל'}</span>
                     ${(() => {
                         const sub = _subscriptionUrgency(client);
                         if (!sub) return '';

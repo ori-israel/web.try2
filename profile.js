@@ -88,6 +88,7 @@ function populateProfileForm() {
     }
     document.getElementById('prof-subscription-duration').value = (CLIENT.subscriptionDurationMonths != null) ? CLIENT.subscriptionDurationMonths : '';
     document.getElementById('prof-subscription-end-date-display').textContent = CLIENT.subscriptionEndDate || 'לא נקבע';
+    document.getElementById('prof-subscription-type').value = CLIENT.subscriptionType || '';
     document.getElementById('prof-height').value               = CLIENT.height                 || '';
     document.getElementById('prof-gender').value       = CLIENT.gender         || 'male';
     document.getElementById('prof-goal').value         = CLIENT.goal           || 'bulk';
@@ -219,6 +220,7 @@ function saveProfile() {
             startDate:             document.getElementById('prof-start-date').value,
             coachingDurationMonths: document.getElementById('prof-coaching-duration').value === '' ? null : parseInt(document.getElementById('prof-coaching-duration').value),
             subscriptionDurationMonths: document.getElementById('prof-subscription-duration').value === '' ? null : parseInt(document.getElementById('prof-subscription-duration').value),
+            subscriptionType: document.getElementById('prof-subscription-type').value || null,
             height:                parseFloat(document.getElementById('prof-height').value),
             gender:                document.getElementById('prof-gender').value,
             goal:                  document.getElementById('prof-goal').value,

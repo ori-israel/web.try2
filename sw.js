@@ -1,4 +1,4 @@
-const CACHE_NAME = 'oi-fitness-v91';
+const CACHE_NAME = 'oi-fitness-v92';
 const PRECACHE = [
     '/', '/index.html', '/styles.css',
     '/app-core.js', '/app-workouts.js', '/app-journal.js', '/app-nutrition.js',
