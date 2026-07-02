@@ -1,6 +1,9 @@
-const CACHE_NAME = 'oi-fitness-v96';
+const CACHE_NAME = 'oi-fitness-v97';
 const PRECACHE = [
-    '/', '/index.html', '/styles.css',
+    '/', '/index.html',
+    '/styles/00-base.css', '/styles/01-cards-nutrition.css', '/styles/02-info-workouts.css',
+    '/styles/03-modals-mobile.css', '/styles/04-forms-scrollbar.css', '/styles/05-profile-login.css',
+    '/styles/06-admin-panel.css', '/styles/07-tour-misc.css',
     '/app-core.js', '/app-workouts.js', '/app-journal.js', '/app-nutrition.js',
     '/auth.js', '/admin.js', '/supabase-db.js', '/client.js', '/data.js', '/profile.js',
     '/ai.js', '/achievements.js', '/tour.js', '/ui-select.js', '/ui-date.js',
