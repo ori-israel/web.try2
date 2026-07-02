@@ -976,6 +976,7 @@ th {
 #infoSearch::placeholder { color: var(--text-muted); }
 
 /* Chapters */
+#info-chapters { display: flex; flex-direction: column; gap: 10px; }
 .chapter-container {
     border: 0.5px solid var(--border);
     border-radius: var(--radius);
