@@ -12,6 +12,16 @@ function _computeSubscriptionEndDate(startDateStr, months) {
     return d.toISOString().split('T')[0];
 }
 
+// תצוגת תאריך סיום מנוי + כמה ימים נשארו, לפרטים האישיים
+function _formatSubscriptionEndDate(endDateStr) {
+    if (!endDateStr) return 'לא נקבע';
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const end = new Date(endDateStr + 'T00:00:00');
+    const days = Math.floor((end - today) / 86400000);
+    if (days < 0) return `${endDateStr} (פג תוקף)`;
+    return `${endDateStr} (נשארו ${days} ${days === 1 ? 'יום' : 'ימים'})`;
+}
+
 // ── Data ──────────────────────────────────────
 
 (function loadProfileData() {
@@ -87,7 +97,7 @@ function populateProfileForm() {
         document.getElementById('prof-coaching-duration').value = (CLIENT.coachingDurationMonths != null) ? CLIENT.coachingDurationMonths : '';
     }
     document.getElementById('prof-subscription-duration').value = (CLIENT.subscriptionDurationMonths != null) ? CLIENT.subscriptionDurationMonths : '';
-    document.getElementById('prof-subscription-end-date-display').textContent = CLIENT.subscriptionEndDate || 'לא נקבע';
+    document.getElementById('prof-subscription-end-date-display').textContent = _formatSubscriptionEndDate(CLIENT.subscriptionEndDate);
     document.getElementById('prof-subscription-type').value = CLIENT.subscriptionType || '';
     document.getElementById('prof-height').value               = CLIENT.height                 || '';
     document.getElementById('prof-gender').value       = CLIENT.gender         || 'male';
