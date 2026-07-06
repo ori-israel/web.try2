@@ -198,6 +198,7 @@ function _renderSubscribersMode(list) {
                 <div class="coach-urgent-text">
                     <span class="coach-urgent-name">${_fromMeDot(client)}${_esc(name)}</span>
                     <span class="coach-urgent-reason" style="color:#60a5fa;font-weight:600;">${client.subscription_type === 'bonus' ? '🎁 מנוי בונוס ליווי' : client.subscription_type === 'paid' ? '💳 מנוי בתשלום' : '💳 מנוי פעיל'}</span>
+                    ${client.subscription_type === 'paid' ? `<span class="coach-urgent-reason" style="color:${client.auto_billing ? '#4ade80' : '#facc15'};font-weight:600;">${client.auto_billing ? '🤖 אוטומטי אמיתי' : '✋ מסומן ידנית'}</span>` : ''}
                     ${(() => {
                         const sub = _subscriptionUrgency(client);
                         if (!sub) return '';

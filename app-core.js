@@ -274,9 +274,9 @@ function pwaIosClose() {
     document.getElementById('pwa-ios-popup').style.display = 'none';
 }
 
-// ── תזכורת חידוש מנוי — לכולם חוץ ממי שמחויב אוטומטית באמת (סוג "בתשלום"), בימים מדויקים: 14/7/3/2/1 ──
+// ── תזכורת חידוש מנוי — לכולם חוץ ממי שמחויב אוטומטית באמת (auto_billing), בימים מדויקים: 14/7/3/2/1 ──
 function checkSubscriptionRenewalReminder() {
-    if (CLIENT.isSubscriber && CLIENT.subscriptionType === 'paid') return;
+    if (CLIENT.autoBilling) return;
     const endDateStr = CLIENT.subscriptionEndDate;
     if (!endDateStr) return;
 

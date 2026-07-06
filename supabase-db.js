@@ -506,7 +506,7 @@ async function sbSaveStreaks(userId, fields) {
 async function sbFetchAllClients() {
     const { data, error } = await db
         .from('profiles')
-        .select('id, name, nickname, email, is_admin, is_subscriber, created_at, avatar_url, status, from_me, subscription_end_date, subscription_type')
+        .select('id, name, nickname, email, is_admin, is_subscriber, created_at, avatar_url, status, from_me, subscription_end_date, subscription_type, auto_billing')
         .is('deleted_at', null)
         .order('created_at', { ascending: true });
     if (error) throw error;
@@ -662,6 +662,7 @@ async function loadUserIntoApp(userId) {
             subscriptionDurationMonths: profile.subscription_duration_months ?? null,
             subscriptionEndDate:        profile.subscription_end_date        || null,
             subscriptionType:           profile.subscription_type            || null,
+            autoBilling:                profile.auto_billing                 || false,
             nextMeetingDate:        profile.next_meeting_date        || null,
 
             vacationMode:  profile.vacation_mode  || false,
