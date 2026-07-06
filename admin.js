@@ -706,13 +706,14 @@ async function submitNewClient() {
     const name      = document.getElementById('nc-name').value.trim();
     const email     = document.getElementById('nc-email').value.trim();
     const password  = document.getElementById('nc-password').value;
+    const phone     = document.getElementById('nc-phone').value.trim();
     const startDate = document.getElementById('nc-start-date').value;
     const errEl     = document.getElementById('nc-error');
     const btn       = document.getElementById('nc-submit-btn');
 
     errEl.style.display = 'none';
-    if (!name || !email || !password) {
-        errEl.textContent = 'שם, אימייל וסיסמה הם שדות חובה';
+    if (!name || !email || !phone || !password) {
+        errEl.textContent = 'שם, אימייל, טלפון וסיסמה הם שדות חובה';
         errEl.style.display = 'block';
         return;
     }
@@ -729,7 +730,7 @@ async function submitNewClient() {
         await _authedPost('/api/create-user', {
             name,
             email,
-            phone: document.getElementById('nc-phone').value.trim() || null,
+            phone,
             password,
             startDate,
             birthDate:   document.getElementById('nc-birth-date').value   || null,

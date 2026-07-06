@@ -30,8 +30,8 @@ module.exports = async (req, res) => {
     }
 
     const { email, password, name, phone, startDate, birthDate, startWeight, goalWeight, height, gender, goal } = req.body || {};
-    if (!email || !password || !name) {
-        return res.status(400).json({ error: 'email, password, name required' });
+    if (!email || !password || !name || !phone) {
+        return res.status(400).json({ error: 'email, password, name, phone required' });
     }
 
     let uid;
@@ -64,7 +64,7 @@ module.exports = async (req, res) => {
     const profileData = {
         name,
         nickname:          name.split(' ')[0],
-        phone:             phone       || null,
+        phone,
         start_date:        startDate   || new Date().toISOString().slice(0, 10),
         is_admin:          false,
         status:            'approved',
