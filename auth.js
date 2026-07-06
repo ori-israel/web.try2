@@ -298,6 +298,7 @@ async function doLogin() {
 async function doSignup() {
     const name        = document.getElementById('signup-name').value.trim();
     const email       = document.getElementById('signup-email').value.trim();
+    const phone       = document.getElementById('signup-phone').value.trim();
     const password    = document.getElementById('signup-password').value;
     const birthDate   = document.getElementById('signup-birth-date').value;
     const startWeight = document.getElementById('signup-start-weight').value;
@@ -309,7 +310,7 @@ async function doSignup() {
     const btn         = document.getElementById('signup-btn');
 
     errorEl.style.color = '#e55';
-    if (!name || !email || !password || !birthDate || !startWeight || !goalWeight || !height) {
+    if (!name || !email || !phone || !password || !birthDate || !startWeight || !goalWeight || !height) {
         errorEl.textContent = 'יש למלא את כל השדות'; return;
     }
     if (password.length < 6) { errorEl.textContent = 'הסיסמה חייבת להכיל לפחות 6 תווים'; return; }
@@ -321,6 +322,7 @@ async function doSignup() {
         email, password,
         options: { data: {
             name,
+            phone,
             birth_date:   birthDate,
             start_weight: startWeight,
             goal_weight:  goalWeight,
@@ -348,7 +350,7 @@ async function doSignup() {
     errorEl.textContent = '';
     btn.disabled = false;
     btn.textContent = 'יצירת חשבון';
-    ['signup-name','signup-email','signup-password','signup-birth-date','signup-start-weight','signup-goal-weight','signup-height'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    ['signup-name','signup-email','signup-phone','signup-password','signup-birth-date','signup-start-weight','signup-goal-weight','signup-height'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     // מעבר ישיר למסך "ממתין לאישור"
     showPendingScreen();
 }

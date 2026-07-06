@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
         return res.status(403).json({ error: 'Forbidden' });
     }
 
-    const { email, password, name, startDate, birthDate, startWeight, goalWeight, height, gender, goal } = req.body || {};
+    const { email, password, name, phone, startDate, birthDate, startWeight, goalWeight, height, gender, goal } = req.body || {};
     if (!email || !password || !name) {
         return res.status(400).json({ error: 'email, password, name required' });
     }
@@ -64,6 +64,7 @@ module.exports = async (req, res) => {
     const profileData = {
         name,
         nickname:          name.split(' ')[0],
+        phone:             phone       || null,
         start_date:        startDate   || new Date().toISOString().slice(0, 10),
         is_admin:          false,
         status:            'approved',

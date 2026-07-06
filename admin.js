@@ -687,6 +687,7 @@ function openNewClientModal() {
     document.getElementById('nc-name').value = '';
     document.getElementById('nc-email').value = '';
     document.getElementById('nc-password').value = '';
+    document.getElementById('nc-phone').value = '';
     document.getElementById('nc-start-date').value = new Date().toISOString().slice(0, 10);
     document.getElementById('nc-birth-date').value = '';
     document.getElementById('nc-start-weight').value = '';
@@ -728,6 +729,7 @@ async function submitNewClient() {
         await _authedPost('/api/create-user', {
             name,
             email,
+            phone: document.getElementById('nc-phone').value.trim() || null,
             password,
             startDate,
             birthDate:   document.getElementById('nc-birth-date').value   || null,

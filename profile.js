@@ -28,7 +28,7 @@ function _formatSubscriptionEndDate(endDateStr) {
     const saved = JSON.parse(localStorage.getItem('profile_data_v1'));
     if (!saved) return;
     const fields = [
-        'nickname', 'email', 'currentWeight', 'startWeight', 'goalWeight', 'activityLevel',
+        'nickname', 'email', 'phone', 'currentWeight', 'startWeight', 'goalWeight', 'activityLevel',
         'allergies', 'likedFoods', 'dislikedFoods', 'birthDate',
         'name', 'startDate', 'height', 'gender', 'goal',
         'coachingDurationMonths', 'nextMeetingDate'
@@ -82,6 +82,7 @@ function populateProfileForm() {
     const cw = localStorage.getItem('current_weight') || CLIENT.currentWeight || '';
     document.getElementById('prof-nickname').value       = CLIENT.nickname       || '';
     document.getElementById('prof-email').value          = CLIENT.email          || '';
+    document.getElementById('prof-phone').value          = CLIENT.phone          || '';
     document.getElementById('prof-current-weight').value = cw;
     document.getElementById('prof-activity').value       = CLIENT.activityLevel  || 1.465;
     document.getElementById('prof-allergies').value      = CLIENT.allergies      || '';
@@ -201,6 +202,7 @@ function saveProfile() {
     const fields = {
         nickname:      document.getElementById('prof-nickname'),
         email:         document.getElementById('prof-email'),
+        phone:         document.getElementById('prof-phone'),
         activityLevel: document.getElementById('prof-activity'),
         allergies:     document.getElementById('prof-allergies'),
         likedFoods:    document.getElementById('prof-liked-foods'),
@@ -213,6 +215,7 @@ function saveProfile() {
     Object.assign(data, {
         nickname:      fields.nickname.value,
         email:         fields.email.value,
+        phone:         fields.phone.value,
         currentWeight: cw || CLIENT.currentWeight,
         activityLevel: parseFloat(fields.activityLevel.value),
         allergies:     fields.allergies.value,
