@@ -178,7 +178,7 @@ h1 {
    ============================================ */
 .top-right-logo {
     position: absolute;
-    top: 8px;
+    top: calc(14px + env(safe-area-inset-top));
     right: 0px;
 }
 
@@ -201,7 +201,7 @@ h1 {
    ============================================ */
 .hamburger-menu {
     position: absolute;
-    top: 12px;
+    top: calc(14px + env(safe-area-inset-top));
     left: 12px;
     z-index: 20;
     display: flex;
@@ -1556,7 +1556,7 @@ mark {
 @media (max-width: 600px) {
     .header { padding-top: 68px; }
 
-    .top-right-logo { top: 8px; right: 0px; }
+    .top-right-logo { top: calc(14px + env(safe-area-inset-top)); right: 0px; }
     .top-right-logo img { height: 60px; }
 
     .hamburger-btn { width: 36px; height: 36px; }
