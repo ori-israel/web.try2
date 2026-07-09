@@ -373,7 +373,7 @@ h1 {
 .tabs {
     position: fixed;
     left: 50%;
-    bottom: calc(16px + env(safe-area-inset-bottom));
+    bottom: calc(8px + env(safe-area-inset-bottom));
     transform: translateX(-50%);
     display: flex;
     justify-content: center;
