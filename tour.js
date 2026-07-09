@@ -197,7 +197,10 @@
     setTimeout(function () {
       const el = resolve(step.sel);
       // דילוג אם האלמנט לא קיים או מוסתר/ריק (למשל פיצ'ר ליווי אצל מנוי)
-      if (!el || el.offsetParent === null || (el.offsetWidth === 0 && el.offsetHeight === 0)) {
+      // הערה: אלמנט עם position:fixed (כמו סרגל הטאבים) מקבל offsetParent === null גם כשהוא גלוי,
+      // אז בודקים את זה רק עבור אלמנטים שאינם fixed
+      const isFixed = el && getComputedStyle(el).position === 'fixed';
+      if (!el || (!isFixed && el.offsetParent === null) || (el.offsetWidth === 0 && el.offsetHeight === 0)) {
         idx++; render(); return;
       }
       try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
