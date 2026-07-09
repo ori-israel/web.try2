@@ -125,7 +125,7 @@ async function renderWeeklyScore(userId) {
 
         container.innerHTML = `
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;direction:rtl;">
-                <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:10px;">📊 ציון שבועי &nbsp;|&nbsp; ${weekLabel}</div>
+                <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:10px;display:flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="var(--accent)"><rect x="4" y="13" width="4" height="7" rx="1"/><rect x="10" y="8" width="4" height="12" rx="1"/><rect x="16" y="4" width="4" height="16" rx="1"/></svg> ציון שבועי &nbsp;|&nbsp; ${weekLabel}</div>
                 <div style="font-size:1.5rem;text-align:center;margin-bottom:10px;direction:ltr;">${stars}&nbsp;<span style="font-size:1.1rem;font-weight:bold;">${pct}%</span></div>
                 <div style="font-size:0.88rem;display:flex;flex-direction:column;gap:6px;color:var(--text-primary);">
                     <div>${workoutScore >= 1 ? _JOURNAL_OK : _JOURNAL_WARN} אימונים: ${workoutCount}/${weeklyTarget} השבוע &nbsp;<span style="color:var(--text-secondary)">(${Math.round(workoutScore*100)}%)</span></div>
@@ -391,7 +391,7 @@ async function renderJournalForDate(dateStr) {
             <div class="journal-ex-card${isSaved ? ' journal-ex-saved' : ''}">
                 <div class="journal-ex-header">
                     <span class="journal-ex-name">${ex.name}</span>
-                    <button class="journal-chart-btn" data-exercise="${ex.name}">📊</button>
+                    <button class="journal-chart-btn" data-exercise="${ex.name}" style="display:inline-flex;align-items:center;"><svg viewBox="0 0 24 24" width="13" height="13" fill="var(--accent)"><rect x="4" y="13" width="4" height="7" rx="1"/><rect x="10" y="8" width="4" height="12" rx="1"/><rect x="16" y="4" width="4" height="16" rx="1"/></svg></button>
                 </div>
                 ${lastHtml}
                 <div class="journal-ex-body">

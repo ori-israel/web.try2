@@ -27,7 +27,7 @@
           return v || document.getElementById('workout-A');
         },
         text: 'לכל תרגיל מופיע כמה משקל וכמה חזרות לעשות, וכמה סטים של חימום וסטים של עבודה. מסמנים ✔ בסיום כל תרגיל' },
-      { sel: '#workout-journal-card',   text: 'מעקב אחרי המשקלים בכל תרגיל לאורך זמן, ובכל תרגיל יש גרף 📊 שמראה את השיפור בביצועים' },
+      { sel: '#workout-journal-card',   text: 'מעקב אחרי המשקלים בכל תרגיל לאורך זמן, ובכל תרגיל יש גרף <svg viewBox="0 0 24 24" width="13" height="13" fill="var(--accent)" style="vertical-align:-2px"><rect x="4" y="13" width="4" height="7" rx="1"/><rect x="10" y="8" width="4" height="12" rx="1"/><rect x="16" y="4" width="4" height="16" rx="1"/></svg> שמראה את השיפור בביצועים' },
     ],
     tab4: [
       { sel: function () {
