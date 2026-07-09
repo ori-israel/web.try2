@@ -1,4 +1,4 @@
-const CACHE_NAME = 'oi-fitness-v103';
+const CACHE_NAME = 'oi-fitness-v104';
 const PRECACHE = [
     '/', '/index.html', '/styles.css',
     '/app-core.js', '/app-workouts.js', '/app-journal.js', '/app-nutrition.js',
@@ -76,8 +76,9 @@ self.addEventListener('install', e => {
     e.waitUntil(
         caches.open(CACHE_NAME)
             // התקנה חסינה: כל קובץ נשמר בנפרד; כישלון בקובץ אחד לא מפיל את ההתקנה
+            // cache:'no-store' — עוקף לגמרי את מטמון ה-HTTP של הדפדפן, כדי שלא יישמרו קבצים ישנים גם אם ה-headers של השרת מרשים מטמון ארוך
             .then(cache => Promise.all(
-                PRECACHE.map(url => cache.add(url).catch(() => {}))
+                PRECACHE.map(url => fetch(url, { cache: 'no-store' }).then(res => res.ok && cache.put(url, res)).catch(() => {}))
             ))
             .then(() => self.skipWaiting())
     );
@@ -129,9 +130,10 @@ self.addEventListener('fetch', e => {
     }
 
     // HTML — תמיד מהרשת כדי שעדכונים ייכנסו מיד
+    // cache:'no-store' בכל fetch כאן עוקף את מטמון ה-HTTP של הדפדפן/הרשת, כדי שהגרסה הכי טרייה תמיד תגיע בפועל
     if (url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname === '') {
         e.respondWith(
-            fetch(e.request).then(res => {
+            fetch(e.request, { cache: 'no-store' }).then(res => {
                 if (res && res.status === 200) {
                     const clone = res.clone();
                     caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
@@ -144,7 +146,7 @@ self.addEventListener('fetch', e => {
 
     if (url.pathname.endsWith('.js')) {
         e.respondWith(
-            fetch(e.request).then(res => {
+            fetch(e.request, { cache: 'no-store' }).then(res => {
                 if (res && res.status === 200) {
                     const clone = res.clone();
                     caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
@@ -158,7 +160,7 @@ self.addEventListener('fetch', e => {
     e.respondWith(
         caches.match(e.request).then(cached => {
             if (cached) return cached;
-            return fetch(e.request).then(res => {
+            return fetch(e.request, { cache: 'no-store' }).then(res => {
                 if (res && res.status === 200 && res.type === 'basic') {
                     const clone = res.clone();
                     caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
