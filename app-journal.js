@@ -61,12 +61,17 @@ function getWeekRange() {
 
 function buildStars(score0to5) {
     const rounded = Math.round(score0to5 * 2) / 2;
-    const star = opacity => `<svg viewBox="0 0 24 24" width="18" height="18" fill="var(--accent)" style="opacity:${opacity};vertical-align:-4px" fill-opacity="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`;
+    const STAR_PATH = 'M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z';
     let s = '';
     for (let i = 1; i <= 5; i++) {
-        if (rounded >= i) s += star(1);
-        else if (rounded >= i - 0.5) s += star(0.6);
-        else s += star(0.25);
+        if (rounded >= i) {
+            s += `<svg viewBox="0 0 24 24" width="22" height="22" fill="var(--accent)" style="vertical-align:-5px"><path d="${STAR_PATH}"/></svg>`;
+        } else if (rounded >= i - 0.5) {
+            const id = 'starHalf' + i + '_' + Math.random().toString(36).slice(2, 8);
+            s += `<svg viewBox="0 0 24 24" width="22" height="22" style="vertical-align:-5px"><defs><clipPath id="${id}"><rect x="0" y="0" width="12" height="24"/></clipPath></defs><path d="${STAR_PATH}" fill="var(--text-muted)"/><path d="${STAR_PATH}" fill="var(--accent)" clip-path="url(#${id})"/></svg>`;
+        } else {
+            s += `<svg viewBox="0 0 24 24" width="22" height="22" fill="var(--text-muted)" style="vertical-align:-5px"><path d="${STAR_PATH}"/></svg>`;
+        }
     }
     return s;
 }
