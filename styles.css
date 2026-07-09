@@ -131,7 +131,7 @@ body {
     background: var(--bg-header);
     backdrop-filter: blur(20px) saturate(1.6);
     -webkit-backdrop-filter: blur(20px) saturate(1.6);
-    padding: 78px 20px 26px;
+    padding: 86px 20px 26px;
     text-align: center;
     position: relative;
     display: flex;
@@ -178,7 +178,7 @@ h1 {
    ============================================ */
 .top-right-logo {
     position: absolute;
-    top: calc(2px + env(safe-area-inset-top));
+    top: calc(-38px + env(safe-area-inset-top));
     right: 0px;
 }
 
@@ -1564,9 +1564,9 @@ mark {
    Mobile Responsive
    ============================================ */
 @media (max-width: 600px) {
-    .header { padding-top: 84px; }
+    .header { padding-top: 92px; }
 
-    .top-right-logo { top: calc(2px + env(safe-area-inset-top)); right: 0px; }
+    .top-right-logo { top: calc(-10px + env(safe-area-inset-top)); right: 0px; }
     .top-right-logo img { height: 60px; }
 
     .hamburger-btn { width: 36px; height: 36px; }
