@@ -380,17 +380,20 @@ h1 {
     gap: 4px;
     width: min(92vw, 400px);
     padding: 8px;
-    background: var(--glass);
-    border: 1px solid var(--glass-border);
-    border-top-color: rgba(255, 255, 255, 0.5);
+    background: linear-gradient(155deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.28));
+    border: 1px solid rgba(255, 255, 255, 0.6);
     border-radius: 32px;
-    backdrop-filter: blur(28px) saturate(2.2);
-    -webkit-backdrop-filter: blur(28px) saturate(2.2);
-    box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(30px) saturate(2.4);
+    -webkit-backdrop-filter: blur(30px) saturate(2.4);
+    box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.04);
     z-index: 30;
 }
 
-[data-theme="dark"] .tabs { border-top-color: rgba(255, 255, 255, 0.18); }
+[data-theme="dark"] .tabs {
+    background: linear-gradient(155deg, rgba(60, 60, 66, 0.55), rgba(20, 20, 24, 0.35));
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
 
 .tab-btn {
     flex: 1 1 0;
