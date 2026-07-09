@@ -238,7 +238,7 @@ async function renderScoreHistory(userId) {
                 const y = yScale.getPixelForValue(80);
                 const { ctx: c, chartArea } = chart;
                 c.save();
-                c.fillStyle = 'rgba(245,197,24,0.85)';
+                c.fillStyle = 'rgba(59,130,246,0.85)';
                 c.font = 'bold 10px sans-serif';
                 c.textAlign = 'left';
                 c.fillText('יעד', chartArea.left + 4, y - 4);
@@ -255,14 +255,14 @@ async function renderScoreHistory(userId) {
                 datasets: [{
                     label: 'ציון שבועי',
                     data: visible.map(w => w.score),
-                    borderColor: '#f5c518',
-                    backgroundColor: 'rgba(245,197,24,0.06)',
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59,130,246,0.08)',
                     fill: true,
                     tension: 0.3,
                     pointRadius: visible.map(w => w.current ? 8 : 5),
                     pointHoverRadius: 10,
-                    pointBackgroundColor: visible.map(w => w.current ? '#fff' : '#f5c518'),
-                    pointBorderColor: visible.map(w => w.current ? '#f5c518' : '#fff'),
+                    pointBackgroundColor: visible.map(w => w.current ? '#fff' : '#3b82f6'),
+                    pointBorderColor: visible.map(w => w.current ? '#3b82f6' : '#fff'),
                     pointBorderWidth: visible.map(w => w.current ? 3 : 1.5),
                 }]
             },
@@ -280,7 +280,7 @@ async function renderScoreHistory(userId) {
                         min: 0, max: 100,
                         ticks: { stepSize: 20 },
                         grid: {
-                            color: c => c.tick.value === 80 ? 'rgba(245,197,24,0.6)' : 'rgba(128,128,128,0.1)',
+                            color: c => c.tick.value === 80 ? 'rgba(99,102,241,0.5)' : 'rgba(128,128,128,0.1)',
                             lineWidth: c => c.tick.value === 80 ? 2 : 1,
                             borderDash: c => c.tick.value === 80 ? [6, 3] : [],
                         }
