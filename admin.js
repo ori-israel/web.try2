@@ -77,7 +77,7 @@ async function _renderPendingMode(list) {
                 `<div style="font-size:13px;color:var(--text-secondary,#888);margin:2px 0 10px;">${_esc(c.email || '')} · נרשם ${date}</div>` +
                 `<div style="display:flex;gap:8px;">` +
                   `<button class="admin-approve-btn" data-id="${c.id}" style="flex:1;background:var(--gradient-btn);color:#fff;border:none;border-radius:8px;padding:9px;font-weight:bold;cursor:pointer;">אשר <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg></button>` +
-                  `<button class="admin-reject-btn" data-id="${c.id}" data-name="${_esc(name)}" style="flex:1;background:transparent;border:1px solid #e55;color:#e55;border-radius:8px;padding:9px;font-weight:bold;cursor:pointer;">דחה ✕</button>` +
+                  `<button class="admin-reject-btn" data-id="${c.id}" data-name="${_esc(name)}" style="flex:1;background:transparent;border:1px solid #e55;color:#e55;border-radius:8px;padding:9px;font-weight:bold;cursor:pointer;">דחה <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" style="vertical-align:-2px"><path d="M6 6l12 12M18 6L6 18"/></svg></button>` +
                 `</div>`;
             row.querySelector('.admin-approve-btn').addEventListener('click', async function () {
                 this.disabled = true; this.textContent = 'מאשר...';
@@ -921,7 +921,7 @@ function _weRowHtml(letter, i, name = '', reps = '10-15', warmupSets = 1, workSe
             <input class="we-input we-sets we-col-sets" type="number" min="0" max="9" value="${warmupSets}" data-field="warmupSets" data-workout="${letter}" data-idx="${i}">
             <input class="we-input we-sets we-col-sets" type="number" min="0" max="9" value="${workSets}" data-field="workSets" data-workout="${letter}" data-idx="${i}">
             <input class="we-input we-reps we-col-reps" type="text" value="${reps}" placeholder="10-15" data-field="reps" data-workout="${letter}" data-idx="${i}">
-            <button class="we-del-btn we-col-del" onclick="weDeleteRow('${letter}', this)">✕</button>
+            <button class="we-del-btn we-col-del" onclick="weDeleteRow('${letter}', this)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>`;
 }
 

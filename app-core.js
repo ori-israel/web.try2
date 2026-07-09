@@ -768,7 +768,7 @@ function openProgressPhoto(url, photoId, storagePath) {
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;padding:20px;';
     overlay.innerHTML = `
-        <button id="pp-close" style="position:absolute;top:16px;left:16px;background:none;border:none;font-size:28px;color:white;cursor:pointer;line-height:1;">✕</button>
+        <button id="pp-close" style="position:absolute;top:16px;left:16px;background:none;border:none;color:white;cursor:pointer;line-height:1;display:flex;"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         <button id="pp-delete" style="position:absolute;top:16px;right:16px;background:#e55;color:white;border:none;border-radius:10px;padding:7px 16px;font-size:14px;font-weight:bold;cursor:pointer;">🗑 מחיקת תמונה</button>
         <img src="${url}" alt="תמונת התקדמות מוגדלת" style="max-width:100%;max-height:88vh;border-radius:10px;object-fit:contain;">`;
     overlay.querySelector('#pp-close').addEventListener('click', () => overlay.remove());

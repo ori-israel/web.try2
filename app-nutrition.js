@@ -50,7 +50,7 @@ function renderScanDetails() {
     if (scannedItems.length > 0) {
         detailsBox.innerHTML = scannedItems.map((item, i) =>
             `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:#888;font-size:18px;cursor:pointer;padding:0 6px;line-height:1;min-width:32px;">✕</button>
+                <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:#888;cursor:pointer;padding:0 6px;line-height:1;min-width:32px;display:inline-flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
                 <span style="flex:1;text-align:right;font-size:15px;">${_esc(item.name)} — <span onclick="editItemGrams(${i}, this)" style="color:#aaa;cursor:pointer;text-decoration:underline dotted;">${Math.round(item.grams)}g</span></span>
             </div>`
         ).join('') + `<div id="add-item-row" style="margin-top:6px;">
@@ -75,7 +75,7 @@ function showAddItemForm() {
                 <option value="כפות">כפות</option>
             </select>
             <button onclick="confirmAddItem()" style="background:#fff;color:#000;border:none;border-radius:4px;padding:4px 10px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
-            <button onclick="renderScanDetails()" style="background:none;border:none;color:#888;font-size:15px;cursor:pointer;padding:0 2px;">✕</button>
+            <button onclick="renderScanDetails()" style="background:none;border:none;color:#888;cursor:pointer;padding:0 2px;display:inline-flex;align-items:center;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>`;
     document.getElementById('add-item-name').focus();
     document.getElementById('add-item-amount').addEventListener('focus', function() { this.select(); });
@@ -735,7 +735,7 @@ function renderFoodLog() {
             </div>
             <div style="display:flex;align-items:center;gap:2px;flex-shrink:0;border-right:1px solid var(--border-light);padding-right:8px;margin-right:8px;">
                 <button onclick="openFoodLogEdit(${i})" style="background:none;border:none;color:var(--accent);font-size:15px;cursor:pointer;padding:4px 6px;border-radius:6px;" title="עריכה">✏️</button>
-                <button onclick="deleteFoodLogEntry(${i})" style="background:none;border:none;color:var(--text-muted);font-size:15px;cursor:pointer;padding:4px 6px;border-radius:6px;" title="מחיקה">✕</button>
+                <button onclick="deleteFoodLogEntry(${i})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px 6px;border-radius:6px;display:inline-flex;align-items:center;" title="מחיקה"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
             </div>
         </div>`;
     });

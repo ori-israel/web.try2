@@ -605,14 +605,14 @@ async function showStrengthChart(exerciseName, userId) {
 
     if (error || !data || !data.length) {
         modal.innerHTML = `
-            <button id="close-chart-btn" style="position:absolute;top:10px;left:10px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-primary);">✕</button>
+            <button id="close-chart-btn" style="position:absolute;top:10px;left:10px;background:none;border:none;cursor:pointer;color:var(--text-primary);display:flex;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
             <div style="font-weight:bold;font-size:1.1rem;text-align:center;margin-bottom:16px;direction:rtl;">${exerciseName}</div>
             <div style="text-align:center;padding:24px 0;color:var(--text-secondary);font-size:0.95rem;">אין נתונים להצגה</div>`;
         return;
     }
 
     modal.innerHTML = `
-        <button id="close-chart-btn" style="position:absolute;top:10px;left:10px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-primary);">✕</button>
+        <button id="close-chart-btn" style="position:absolute;top:10px;left:10px;background:none;border:none;cursor:pointer;color:var(--text-primary);display:flex;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         <div style="font-weight:bold;font-size:1.1rem;text-align:center;margin-bottom:16px;direction:rtl;">${exerciseName}</div>
         <canvas id="strength-chart-canvas"></canvas>`;
 
