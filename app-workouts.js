@@ -336,7 +336,7 @@ function closeCompleteMsg() {
     document.getElementById('res-protein').innerHTML = `<strong>טווח חלבון מומלץ:</strong> ${proteinMin} - ${proteinMax} גרם`;
     document.getElementById('res-maintenance').innerHTML = `💡 <strong>קלוריות לתחזוקה:</strong> ${maintenance} קק"ל`;
     document.getElementById('res-cut').innerHTML = `📉 <strong>ירידה במשקל (חיטוב):</strong> ${maintenance - 250} קק"ל`;
-    document.getElementById('res-bulk').innerHTML = `📈 <strong>עלייה במשקל (מסה):</strong> ${maintenance + 250} קק"ל`;
+    document.getElementById('res-bulk').innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg> <strong>עלייה במשקל (מסה):</strong> ${maintenance + 250} קק"ל`;
 }
 
 function buildWorkoutAccordions(targets = {}) {

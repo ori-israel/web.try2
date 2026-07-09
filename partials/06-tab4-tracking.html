@@ -7,7 +7,7 @@
         <div id="score-history-anchor"></div>
 
         <div class="weight-card" style="position:relative;">
-            <button onclick="openWeightChartModal()" title="גרף התקדמות" style="position:absolute;top:10px;left:10px;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:16px;cursor:pointer;line-height:1;color:var(--main-green);box-shadow:0 1px 4px rgba(0,0,0,0.15);">📈</button>
+            <button onclick="openWeightChartModal()" title="גרף התקדמות" style="position:absolute;top:10px;left:10px;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:8px;padding:4px 8px;cursor:pointer;line-height:1;color:var(--main-green);box-shadow:0 1px 4px rgba(0,0,0,0.15);display:flex;align-items:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></button>
             <span style="font-weight: bold; color: var(--dark-green); border-bottom: 1px solid var(--main-green); padding-bottom: 3px;">משקל גוף (ק"ג)</span>
             <div class="weight-display">
                 <div class="weight-item">
@@ -34,7 +34,7 @@
         <div id="weight-chart-modal" style="display:none;position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeWeightChartModal()">
     <div style="background:var(--bg-card);border-radius:16px;padding:20px;width:100%;max-width:520px;position:relative;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
         <button onclick="closeWeightChartModal()" style="position:absolute;top:10px;left:12px;background:transparent;border:none;font-size:22px;cursor:pointer;color:var(--text-primary);line-height:1;">×</button>
-        <h3 class="chart-title" style="text-align:center;margin-top:0;">📈 גרף התקדמות משקל</h3>
+        <h3 class="chart-title" style="text-align:center;margin-top:0;"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--tag-bg);align-items:center;justify-content:center;vertical-align:-5px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span> גרף התקדמות משקל</h3>
         <canvas id="weight-chart"></canvas>
     </div>
 </div>

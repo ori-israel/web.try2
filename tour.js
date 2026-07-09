@@ -11,7 +11,7 @@
   // sel = string ל-querySelector או פונקציה שמחזירה אלמנט
   const STEPS = {
     tab1: [
-      { sel: '#nutrition-streak-display', text: 'מספר הימים ברצף עם עמידה ביעדי התזונה 🔥' },
+      { sel: '#nutrition-streak-display', text: 'מספר הימים ברצף עם עמידה ביעדי התזונה <svg viewBox="0 0 24 24" width="14" height="14" fill="#f97316" stroke="#f97316" stroke-width="1" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 2.5c-1.2 3.3-5 5.7-5 9.5a5 5 0 0 0 10 0c0-1.6-.7-2.9-1.8-4 .1 1.7-.9 2.4-1.6 2 .9-2 -.2-4.2-1.6-7.5z"/></svg>' },
       { sel: '#macros-dashboard',        text: 'כמות החלבון, הפחמימות והשומן שנאכלו היום מתוך היעד' },
       { sel: '.food-log-btn',            text: 'כל האוכל שאכלת היום מרוכז כאן' },
       { sel: '.food-scan-btn',           text: 'להוספת מנה: צילום אוכל וזיהוי אוטומטי ב-AI 📷, העלאת תמונה 🖼️, או הזנה בכתב <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M4 20h16"/></svg>. כדאי לנסות לבד' },
@@ -19,7 +19,7 @@
       { sel: 'button[onclick="openCalc()"]', text: 'חישוב כמות הקלוריות והחלבון הדרושה לפי המטרה' },
     ],
     tab2: [
-      { sel: '#workout-streak-display', text: 'מספר השבועות ברצף שבהם עמדת ביעד האימונים השבועי 🔥' },
+      { sel: '#workout-streak-display', text: 'מספר השבועות ברצף שבהם עמדת ביעד האימונים השבועי <svg viewBox="0 0 24 24" width="14" height="14" fill="#f97316" stroke="#f97316" stroke-width="1" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 2.5c-1.2 3.3-5 5.7-5 9.5a5 5 0 0 0 10 0c0-1.6-.7-2.9-1.8-4 .1 1.7-.9 2.4-1.6 2 .9-2 -.2-4.2-1.6-7.5z"/></svg>' },
       { sel: '#workout-selector',       text: 'בחירת האימון להיום: ראשון, שני, שלישי וכן הלאה לפי התוכנית' },
       { sel: function () {
           const v = Array.from(document.querySelectorAll('.workout-container'))
@@ -35,8 +35,8 @@
               || document.getElementById('score-history-container')
               || document.getElementById('score-widgets-anchor');
         },
-        text: 'ציון שבועי שמסכם את ההתקדמות, וגרף "היסטוריית ציונים שבועיים" שמראה את המגמה לאורך הזמן 📈' },
-      { sel: '.weight-card',          text: 'משקל התחלה, נוכחי ויעד. לחיצה על המשקל הנוכחי מעדכנת אותו, ויש גרף 📈 של ההתקדמות' },
+        text: 'ציון שבועי שמסכם את ההתקדמות, וגרף "היסטוריית ציונים שבועיים" שמראה את המגמה לאורך הזמן <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>' },
+      { sel: '.weight-card',          text: 'משקל התחלה, נוכחי ויעד. לחיצה על המשקל הנוכחי מעדכנת אותו, ויש גרף <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg> של ההתקדמות' },
       { sel: '#progress-photos-card', text: 'העלאת תמונות לאורך הדרך כדי לראות את השינוי בעיניים' },
       { sel: '#coaching-goal-card',   text: 'היעד שנקבע עד הפגישה הבאה, מוצג כאן לתזכורת', coachOnly: true },
       { sel: '#open-survey-btn',      text: 'שאלון שבועי קצר למילוי כדי לעקוב אחרי ההרגשה וההתקדמות', coachOnly: true },
