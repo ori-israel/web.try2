@@ -76,7 +76,7 @@ async function _renderPendingMode(list) {
                 `<div style="font-weight:bold;font-size:15px;color:var(--text-primary,#fff);">${_esc(name)}</div>` +
                 `<div style="font-size:13px;color:var(--text-secondary,#888);margin:2px 0 10px;">${_esc(c.email || '')} · נרשם ${date}</div>` +
                 `<div style="display:flex;gap:8px;">` +
-                  `<button class="admin-approve-btn" data-id="${c.id}" style="flex:1;background:var(--gradient-btn);color:#fff;border:none;border-radius:8px;padding:9px;font-weight:bold;cursor:pointer;">אשר ✓</button>` +
+                  `<button class="admin-approve-btn" data-id="${c.id}" style="flex:1;background:var(--gradient-btn);color:#fff;border:none;border-radius:8px;padding:9px;font-weight:bold;cursor:pointer;">אשר <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg></button>` +
                   `<button class="admin-reject-btn" data-id="${c.id}" data-name="${_esc(name)}" style="flex:1;background:transparent;border:1px solid #e55;color:#e55;border-radius:8px;padding:9px;font-weight:bold;cursor:pointer;">דחה ✕</button>` +
                 `</div>`;
             row.querySelector('.admin-approve-btn').addEventListener('click', async function () {
@@ -87,7 +87,7 @@ async function _renderPendingMode(list) {
                     _showToast('✅ המשתמש אושר');
                     // רענון מלא: מרענן את רשימת הלקוחות במטמון כך שיופיע מיד בסקירה
                     await renderAdminPanel();
-                } catch (e) { this.disabled = false; this.textContent = 'אשר ✓'; await showAlert('שגיאה: ' + e.message); }
+                } catch (e) { this.disabled = false; this.innerHTML = 'אשר <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg>'; await showAlert('שגיאה: ' + e.message); }
             });
             row.querySelector('.admin-reject-btn').addEventListener('click', async function () {
                 const nm = this.dataset.name;
@@ -1012,7 +1012,7 @@ async function saveWorkoutPlan() {
         initWorkoutsChecklist();
         initVideos();
 
-        btn.textContent       = '✓ נשמר!';
+        btn.innerHTML         = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> נשמר!';
         btn.style.background  = '#22c55e';
         setTimeout(() => {
             btn.textContent      = 'שמור תוכנית';

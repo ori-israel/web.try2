@@ -380,7 +380,7 @@ function buildWorkoutAccordions(targets = {}) {
                 <div class="workout-accord-header ${isChecked ? 'checked' : ''}">
                     <input type="checkbox" class="accord-checkbox" ${isChecked ? 'checked' : ''}>
                     <span class="accord-name">${name}</span>
-                    <span class="accord-check-icon">✓</span>
+                    <span class="accord-check-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
                     <span class="accord-toggle">▾</span>
                 </div>
                 <div class="workout-accord-body">
@@ -468,7 +468,7 @@ function buildWorkoutAccordions(targets = {}) {
                 <div class="workout-accord-header ${isCardioChecked ? 'checked' : ''}">
                     <input type="checkbox" class="accord-checkbox workout-checkbox" data-id="${cardioId}" ${isCardioChecked ? 'checked' : ''}>
                     <span class="accord-name">🏃 אירובי</span>
-                    <span class="accord-check-icon">✓</span>
+                    <span class="accord-check-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
                     <span class="accord-toggle">▾</span>
                 </div>
                 <div class="workout-accord-body">

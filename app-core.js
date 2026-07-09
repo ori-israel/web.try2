@@ -305,7 +305,7 @@ function dismissRenewalReminder() {
 function triggerPWAInstall() {
     if (window.matchMedia('(display-mode: standalone)').matches || (!_isIOS() && localStorage.getItem('pwa_installed'))) {
         const toast = document.createElement('div');
-        toast.innerText = 'האפליקציה כבר נמצאת במסך הבית ✓';
+        toast.innerHTML = 'האפליקציה כבר נמצאת במסך הבית <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg>';
         toast.style.cssText = `position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:100001;box-shadow:0 4px 15px rgba(0,0,0,0.2);white-space:nowrap;`;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
@@ -747,7 +747,7 @@ async function uploadProgressPhoto(input) {
 
     try {
         await sbUploadProgressPhoto(uid, file);
-        _showProgressPhotoToast('התמונה נשמרה ✓');
+        _showProgressPhotoToast('התמונה נשמרה <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg>');
     } catch (e) {
         console.error('[uploadProgressPhoto]', e);
         _showProgressPhotoToast('שגיאה בהעלאה', false);
@@ -794,7 +794,7 @@ function openProgressPhoto(url, photoId, storagePath) {
 
 function _showProgressPhotoToast(msg, success = true) {
     const t = document.createElement('div');
-    t.textContent = msg;
+    t.innerHTML = msg;
     t.style.cssText = `position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:${success ? '#22c55e' : '#e55'};color:white;padding:10px 22px;border-radius:20px;font-size:14px;font-weight:bold;z-index:99999;box-shadow:0 4px 15px rgba(0,0,0,0.2);white-space:nowrap;`;
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 3000);

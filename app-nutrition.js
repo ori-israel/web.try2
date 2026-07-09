@@ -74,7 +74,7 @@ function showAddItemForm() {
                 <option value="כוסות">כוסות</option>
                 <option value="כפות">כפות</option>
             </select>
-            <button onclick="confirmAddItem()" style="background:#fff;color:#000;border:none;border-radius:4px;padding:4px 10px;font-size:13px;cursor:pointer;">✓</button>
+            <button onclick="confirmAddItem()" style="background:#fff;color:#000;border:none;border-radius:4px;padding:4px 10px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
             <button onclick="renderScanDetails()" style="background:none;border:none;color:#888;font-size:15px;cursor:pointer;padding:0 2px;">✕</button>
         </div>`;
     document.getElementById('add-item-name').focus();

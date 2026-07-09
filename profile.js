@@ -236,7 +236,7 @@ function saveProfile() {
     if (typeof renderWeightChart   === 'function')  renderWeightChart();
 
     const btn = document.getElementById('prof-save-btn');
-    btn.textContent = '✓ נשמר!';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> נשמר!';
     btn.style.background = '#22c55e';
     setTimeout(() => {
         btn.textContent = 'שמור שינויים';

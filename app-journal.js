@@ -127,7 +127,7 @@ async function renderWeeklyScore(userId) {
                 <div style="font-size:0.88rem;display:flex;flex-direction:column;gap:6px;color:var(--text-primary);">
                     <div>${workoutScore >= 1 ? '✅' : '⚠️'} אימונים: ${workoutCount}/${weeklyTarget} השבוע &nbsp;<span style="color:var(--text-secondary)">(${Math.round(workoutScore*100)}%)</span></div>
                     <div>${nutritionMet >= Math.ceil(7 * 0.6) ? '✅' : '⚠️'} תזונה: ${nutritionMet}/7 ימים עמדו ביעד &nbsp;<span style="color:var(--text-secondary)">(${Math.round(nutritionScore*100)}%)</span></div>
-                    <div>${hasWeight ? '✅' : '⚠️'} שקילה: ${hasWeight ? 'נשקלת השבוע ✓' : 'טרם נשקלת השבוע'}</div>
+                    <div>${hasWeight ? '✅' : '⚠️'} שקילה: ${hasWeight ? 'נשקלת השבוע <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg>' : 'טרם נשקלת השבוע'}</div>
                 </div>
             </div>`;
         _trackingWidgetCache[cacheKey] = Date.now();
@@ -406,7 +406,7 @@ async function renderJournalForDate(dateStr) {
                                    style="width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:16px;text-align:center;">
                         </label>
                     </div>
-                    <button class="journal-save-btn" data-exercise="${ex.name}">שמירה ✓</button>
+                    <button class="journal-save-btn" data-exercise="${ex.name}">שמירה <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg></button>
                 </div>
             </div>`;
     });
@@ -431,9 +431,9 @@ async function renderJournalForDate(dateStr) {
         btn.addEventListener('click', async () => {
             const exerciseName = btn.dataset.exercise;
             await autoSaveJournalEntries(dateStr, workoutLetter, exerciseName);
-            btn.textContent = '✓ נשמר';
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> נשמר';
             btn.closest('.journal-ex-card').classList.add('journal-ex-saved');
-            setTimeout(() => { btn.textContent = 'שמירה ✓'; }, 2000);
+            setTimeout(() => { btn.innerHTML = 'שמירה <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg>'; }, 2000);
         });
     });
     container.querySelectorAll('.journal-weight-input').forEach(inp => {
@@ -688,7 +688,7 @@ async function autoSaveJournalEntries(dateStr, workoutLetter, changedExercise) {
         initWorkoutsFromClient();
         const msg = document.getElementById('journal-save-msg');
         if (msg) {
-            msg.textContent = 'נשמר ✓';
+            msg.innerHTML = 'נשמר <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg>';
             setTimeout(() => { if (msg) msg.textContent = ''; }, 2000);
         }
         const prs = [];
