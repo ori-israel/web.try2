@@ -14,7 +14,7 @@
       { sel: '#nutrition-streak-display', text: 'מספר הימים ברצף עם עמידה ביעדי התזונה 🔥' },
       { sel: '#macros-dashboard',        text: 'כמות החלבון, הפחמימות והשומן שנאכלו היום מתוך היעד' },
       { sel: '.food-log-btn',            text: 'כל האוכל שאכלת היום מרוכז כאן' },
-      { sel: '.food-scan-btn',           text: 'להוספת מנה: צילום אוכל וזיהוי אוטומטי ב-AI 📷, העלאת תמונה 🖼️, או הזנה בכתב ✍️. כדאי לנסות לבד' },
+      { sel: '.food-scan-btn',           text: 'להוספת מנה: צילום אוכל וזיהוי אוטומטי ב-AI 📷, העלאת תמונה 🖼️, או הזנה בכתב <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M4 20h16"/></svg>. כדאי לנסות לבד' },
       { sel: '.accordion-container',     text: 'רשימת מאכלים לפי קטגוריות, נותנת רעיון כללי מה אפשר לאכול' },
       { sel: 'button[onclick="openCalc()"]', text: 'חישוב כמות הקלוריות והחלבון הדרושה לפי המטרה' },
     ],

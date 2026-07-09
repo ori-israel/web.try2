@@ -94,7 +94,7 @@ async function _renderPendingMode(list) {
                 if (!await showConfirmDanger(`לדחות את ${nm}? המשתמש יועבר לארכיון.`)) return;
                 try {
                     await _authedPost('/api/delete-user', { userId: this.dataset.id });
-                    _showToast(`🗃️ ${_esc(nm)} נדחה והועבר לארכיון`);
+                    _showToast(`<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="4" width="18" height="5" rx="1.2"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/></svg> ${_esc(nm)} נדחה והועבר לארכיון`);
                     // רענון מלא של הלוח
                     await renderAdminPanel();
                 } catch (e) { await showAlert('שגיאה: ' + e.message); }
@@ -629,7 +629,7 @@ function _renderOverviewMode(list) {
                 <button class="coach-q-btn" data-client-id="${client.id}">📋 שאלון אחרון</button>
                 <button class="admin-select-btn" data-client-id="${client.id}" style="width:100%;margin-top:6px">כניסה ›</button>
                 <button class="admin-move-subscriber-btn" data-client-id="${client.id}" style="width:100%;margin-top:6px;background:transparent;border:1px solid #60a5fa;color:#60a5fa;border-radius:8px;padding:8px;font-size:13px;cursor:pointer;">💳 העבר למנויים</button>
-                <button class="admin-delete-client-btn" data-client-id="${client.id}" data-client-name="${_esc(name)}" style="width:100%;margin-top:6px">🗑️ מחק לקוח</button>
+                <button class="admin-delete-client-btn" data-client-id="${client.id}" data-client-name="${_esc(name)}" style="width:100%;margin-top:6px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 7h16"/><path d="M6 7v13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M10 11v6"/><path d="M14 11v6"/></svg> מחק לקוח</button>
             </div>`;
         card.querySelector('.coach-vac-icon').addEventListener('click', function(e) {
             e.stopPropagation();
@@ -772,7 +772,7 @@ async function deleteClient(clientId, clientName) {
     if (!confirmed) return;
     try {
         await _authedPost('/api/delete-user', { userId: clientId });
-        _showToast(`🗃️ ${_esc(clientName)} הועבר לארכיון`);
+        _showToast(`<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="4" width="18" height="5" rx="1.2"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/></svg> ${_esc(clientName)} הועבר לארכיון`);
         await renderAdminPanel();
     } catch (e) {
         await showAlert('שגיאה: ' + e.message);

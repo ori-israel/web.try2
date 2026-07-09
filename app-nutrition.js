@@ -297,7 +297,7 @@ function openTextEntry() {
     const modal = document.getElementById('food-scanner-modal');
     modal.style.display = '';
     modal.classList.remove('hidden');
-    document.getElementById('scanner-modal-title').textContent = '✍️ הזנת ארוחה בכתב';
+    document.getElementById('scanner-modal-title').innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M4 20h16"/></svg> הזנת ארוחה בכתב';
     document.getElementById('scanner-step-1').classList.add('hidden');
     document.getElementById('scanner-loading').classList.add('hidden');
     document.getElementById('scanner-error').classList.add('hidden');
@@ -734,7 +734,7 @@ function renderFoodLog() {
                 </div>
             </div>
             <div style="display:flex;align-items:center;gap:2px;flex-shrink:0;border-right:1px solid var(--border-light);padding-right:8px;margin-right:8px;">
-                <button onclick="openFoodLogEdit(${i})" style="background:none;border:none;color:var(--accent);font-size:15px;cursor:pointer;padding:4px 6px;border-radius:6px;" title="עריכה">✏️</button>
+                <button onclick="openFoodLogEdit(${i})" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:4px 6px;border-radius:6px;display:inline-flex;align-items:center;" title="עריכה"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
                 <button onclick="deleteFoodLogEntry(${i})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px 6px;border-radius:6px;display:inline-flex;align-items:center;" title="מחיקה"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
             </div>
         </div>`;
