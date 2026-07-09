@@ -447,7 +447,7 @@ h1 {
    ============================================ */
 .tab-content {
     display: none;
-    padding: 20px 16px calc(66px + env(safe-area-inset-bottom));
+    padding: 20px 16px calc(88px + env(safe-area-inset-bottom));
     animation: fadeIn 0.25s ease;
 }
 
