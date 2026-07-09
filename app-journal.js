@@ -1,5 +1,8 @@
 // ===== יומן אימונים, ציון שבועי, היסטוריה, גרפים, רצף, גרף משקל =====
 
+const _JOURNAL_OK = '<span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>';
+const _JOURNAL_WARN = '<span style="display:inline-flex;color:#f59e0b;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.3 3.9L2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/></svg></span>';
+
 function loadSavedWeight() {
     document.getElementById('start-weight-display').innerText = CLIENT.startWeight;
     document.getElementById('goal-weight-display').innerText = CLIENT.goalWeight;
@@ -125,9 +128,9 @@ async function renderWeeklyScore(userId) {
                 <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:10px;">📊 ציון שבועי &nbsp;|&nbsp; ${weekLabel}</div>
                 <div style="font-size:1.5rem;text-align:center;margin-bottom:10px;direction:ltr;">${stars}&nbsp;<span style="font-size:1.1rem;font-weight:bold;">${pct}%</span></div>
                 <div style="font-size:0.88rem;display:flex;flex-direction:column;gap:6px;color:var(--text-primary);">
-                    <div>${workoutScore >= 1 ? '✅' : '⚠️'} אימונים: ${workoutCount}/${weeklyTarget} השבוע &nbsp;<span style="color:var(--text-secondary)">(${Math.round(workoutScore*100)}%)</span></div>
-                    <div>${nutritionMet >= Math.ceil(7 * 0.6) ? '✅' : '⚠️'} תזונה: ${nutritionMet}/7 ימים עמדו ביעד &nbsp;<span style="color:var(--text-secondary)">(${Math.round(nutritionScore*100)}%)</span></div>
-                    <div>${hasWeight ? '✅' : '⚠️'} שקילה: ${hasWeight ? 'נשקלת השבוע <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg>' : 'טרם נשקלת השבוע'}</div>
+                    <div>${workoutScore >= 1 ? _JOURNAL_OK : _JOURNAL_WARN} אימונים: ${workoutCount}/${weeklyTarget} השבוע &nbsp;<span style="color:var(--text-secondary)">(${Math.round(workoutScore*100)}%)</span></div>
+                    <div>${nutritionMet >= Math.ceil(7 * 0.6) ? _JOURNAL_OK : _JOURNAL_WARN} תזונה: ${nutritionMet}/7 ימים עמדו ביעד &nbsp;<span style="color:var(--text-secondary)">(${Math.round(nutritionScore*100)}%)</span></div>
+                    <div>${hasWeight ? _JOURNAL_OK : _JOURNAL_WARN} שקילה: ${hasWeight ? 'נשקלת השבוע <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg>' : 'טרם נשקלת השבוע'}</div>
                 </div>
             </div>`;
         _trackingWidgetCache[cacheKey] = Date.now();
@@ -741,7 +744,7 @@ async function saveJournalEntries(dateStr, workoutLetter) {
         const msg = document.getElementById('journal-save-msg');
         if (msg) {
             msg.style.color = 'var(--main-green)';
-            msg.textContent = '✅ נשמר בהצלחה!';
+            msg.innerHTML = _JOURNAL_OK + ' נשמר בהצלחה!';
             setTimeout(() => { if (msg) msg.textContent = ''; }, 2500);
         }
     } catch (err) {
@@ -889,7 +892,7 @@ async function initWorkoutsFromClient() {
 
 function showWeightUpdateToast() {
     const toast = document.createElement('div');
-    toast.innerText = '✅ המשקל עודכן!';
+    toast.innerHTML = _JOURNAL_OK + ' המשקל עודכן!';
     toast.style.cssText = `
         position: fixed;
         top: 24px;

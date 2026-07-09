@@ -84,7 +84,7 @@ async function _renderPendingMode(list) {
                 try {
                     // אישור דרך השרת: מסיר את החסימה + מסמן approved
                     await _authedPost('/api/approve-user', { userId: this.dataset.id });
-                    _showToast('✅ המשתמש אושר');
+                    _showToast('<span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span> המשתמש אושר');
                     // רענון מלא: מרענן את רשימת הלקוחות במטמון כך שיופיע מיד בסקירה
                     await renderAdminPanel();
                 } catch (e) { this.disabled = false; this.innerHTML = 'אשר <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg>'; await showAlert('שגיאה: ' + e.message); }
@@ -94,7 +94,7 @@ async function _renderPendingMode(list) {
                 if (!await showConfirmDanger(`לדחות את ${nm}? המשתמש יועבר לארכיון.`)) return;
                 try {
                     await _authedPost('/api/delete-user', { userId: this.dataset.id });
-                    _showToast(`🗃️ ${nm} נדחה והועבר לארכיון`);
+                    _showToast(`🗃️ ${_esc(nm)} נדחה והועבר לארכיון`);
                     // רענון מלא של הלוח
                     await renderAdminPanel();
                 } catch (e) { await showAlert('שגיאה: ' + e.message); }
@@ -157,7 +157,7 @@ async function toggleSubscriberMode(clientId, current) {
     if (client) client.is_subscriber = newVal;
     try {
         await sbSetSubscriberMode(clientId, newVal);
-        _showToast(newVal ? `💳 ${name} הועבר למנויים` : `✅ ${name} הועבר חזרה לליווי`);
+        _showToast(newVal ? `💳 ${_esc(name)} הועבר למנויים` : `<span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span> ${_esc(name)} הועבר חזרה לליווי`);
     } catch (e) {
         if (client) client.is_subscriber = current;
         alert('שגיאה בעדכון סטטוס מנוי');
@@ -459,7 +459,7 @@ function _showToast(msg) {
         toast.id = 'coach-toast';
         document.body.appendChild(toast);
     }
-    toast.textContent = msg;
+    toast.innerHTML = msg;
     toast.classList.add('visible');
     clearTimeout(toast._hideTimer);
     toast._hideTimer = setTimeout(() => toast.classList.remove('visible'), 3000);
@@ -473,7 +473,7 @@ async function toggleVacationMode(clientId, current) {
     if (profile) profile.vacation_mode = newVal;
     try {
         await sbSetVacationMode(clientId, newVal);
-        _showToast(newVal ? `🏖️ מצב חופשה הופעל עבור ${name}` : `✅ מצב חופשה כובה עבור ${name}`);
+        _showToast(newVal ? `🏖️ מצב חופשה הופעל עבור ${_esc(name)}` : `<span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span> מצב חופשה כובה עבור ${_esc(name)}`);
     } catch (e) {
         if (profile) profile.vacation_mode = current;
         alert('שגיאה בעדכון מצב חופשה');
@@ -772,7 +772,7 @@ async function deleteClient(clientId, clientName) {
     if (!confirmed) return;
     try {
         await _authedPost('/api/delete-user', { userId: clientId });
-        _showToast(`🗃️ ${clientName} הועבר לארכיון`);
+        _showToast(`🗃️ ${_esc(clientName)} הועבר לארכיון`);
         await renderAdminPanel();
     } catch (e) {
         await showAlert('שגיאה: ' + e.message);
@@ -782,7 +782,7 @@ async function deleteClient(clientId, clientName) {
 async function restoreClient(clientId, clientName) {
     try {
         await _authedPost('/api/restore-user', { userId: clientId });
-        _showToast(`✅ ${clientName} שוחזר בהצלחה`);
+        _showToast(`<span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span> ${_esc(clientName)} שוחזר בהצלחה`);
         const list = document.getElementById('admin-client-list');
         if (list) await _renderArchiveMode(list);
         await renderAdminPanel();

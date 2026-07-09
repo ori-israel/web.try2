@@ -1102,7 +1102,7 @@
             style="flex:1; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:16px; font-family:inherit; height:48px; order:2; background:var(--input-bg); color:var(--text-primary);"
             onkeydown="if(event.key==='Enter') sendAIMessage()">
     </div>
-    <p style="font-size:11px; color:var(--text-muted); text-align:center; margin:6px 0 0 0;">⚠️ הסוכן עשוי לטעות, יש להשתמש בו ככלי עזר בלבד</p>
+    <p style="font-size:11px; color:var(--text-muted); text-align:center; margin:6px 0 0 0;"><span style="display:inline-flex;color:#f59e0b;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.3 3.9L2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/></svg></span> הסוכן עשוי לטעות, יש להשתמש בו ככלי עזר בלבד</p>
 </div>
 
 
@@ -1334,9 +1334,9 @@
       <div id="scan-undo-toast" class="hidden" style="text-align:center;margin-top:8px;">
         <button onclick="undoDeleteItem()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:20px;padding:6px 18px;font-size:13px;cursor:pointer;">↩ חזרה</button>
       </div>
-      <p class="scan-disclaimer">⚠️ הערכה בלבד – לא מדויק, נותן כיוון</p>
+      <p class="scan-disclaimer"><span style="display:inline-flex;color:#f59e0b;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.3 3.9L2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/></svg></span> הערכה בלבד – לא מדויק, נותן כיוון</p>
       <div style="margin-top:14px;text-align:center;">
-        <button class="scan-action-btn primary" onclick="addScannedPortions()" style="width:80%;padding:14px;font-size:16px;">הוספת מנות ✅</button>
+        <button class="scan-action-btn primary" onclick="addScannedPortions()" style="width:80%;padding:14px;font-size:16px;">הוספת מנות <span style="display:inline-flex;width:18px;height:18px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;vertical-align:-4px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span></button>
       </div>
     </div>
   </div>
@@ -1390,7 +1390,7 @@
       </div>
       <div id="edit-food-loading" style="display:none;text-align:center;color:var(--text-muted);font-size:13px;padding:8px 0;">מחשב ערכים תזונתיים... ⏳</div>
       <div id="edit-food-error" style="display:none;color:#ff6b6b;font-size:13px;"></div>
-      <button onclick="saveFoodLogEdit()" style="width:100%;padding:13px;background:var(--gradient-btn);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;">שמור ✅</button>
+      <button onclick="saveFoodLogEdit()" style="width:100%;padding:13px;background:var(--gradient-btn);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;">שמור <span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#fff;align-items:center;justify-content:center;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#3b82f6" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span></button>
     </div>
   </div>
 </div>
@@ -1444,7 +1444,7 @@
     אתה במצב offline 📵 — שינויים יסתנכרנו כשתתחבר
 </div>
 
-<div id="supabase-error-toast" style="display:none; position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:#e55; color:#fff; padding:8px 16px; border-radius:20px; font-size:14px; z-index:9998; direction:rtl; white-space:nowrap;">⚠️ בעיית תקשורת — מנסה שוב</div>
+<div id="supabase-error-toast" style="display:none; position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:#e55; color:#fff; padding:8px 16px; border-radius:20px; font-size:14px; z-index:9998; direction:rtl; white-space:nowrap;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 9v4"/><path d="M10.3 3.9L2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/></svg> בעיית תקשורת — מנסה שוב</div>
 
 <!-- Calendly modal -->
 <div id="calendly-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;">

@@ -244,7 +244,7 @@ async function sendAIMessage() {
                     }
                     const addedDiv = document.createElement('div');
                     addedDiv.style.cssText = 'margin-top:8px;padding:6px 10px;background:var(--accent);color:#fff;border-radius:8px;font-size:14px;display:inline-block;';
-                    addedDiv.textContent = '✅ נוסף ליומן';
+                    addedDiv.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> נוסף ליומן';
                     replyTextDiv.appendChild(addedDiv);
                 } catch (e) {
                     console.warn('FOOD_ADD parse error:', e);
