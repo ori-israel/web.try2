@@ -131,7 +131,7 @@ body {
     background: var(--bg-header);
     backdrop-filter: blur(20px) saturate(1.6);
     -webkit-backdrop-filter: blur(20px) saturate(1.6);
-    padding: 86px 20px 26px;
+    padding: 96px 20px 26px;
     text-align: center;
     position: relative;
     display: flex;
@@ -1564,7 +1564,7 @@ mark {
    Mobile Responsive
    ============================================ */
 @media (max-width: 600px) {
-    .header { padding-top: 92px; }
+    .header { padding-top: 102px; }
 
     .top-right-logo { top: calc(-10px + env(safe-area-inset-top)); right: 0px; }
     .top-right-logo img { height: 60px; }
