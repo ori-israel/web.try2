@@ -310,7 +310,7 @@
         <h2>מעקב מנות יומי</h2>
 <div style="text-align:center; margin-bottom:15px;">
     <div id="nutrition-streak-display" style="display:inline-block; background: var(--light-green); border: 2px solid var(--main-green); border-radius:20px; padding:8px 20px; font-size:16px; font-weight:bold; color:var(--dark-green);">
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="#f97316" stroke="#f97316" stroke-width="1" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 2.5c-1.2 3.3-5 5.7-5 9.5a5 5 0 0 0 10 0c0-1.6-.7-2.9-1.8-4 .1 1.7-.9 2.4-1.6 2 .9-2 -.2-4.2-1.6-7.5z"/></svg> סטריק תזונה: <span id="nutrition-streak-count">0</span> ימים
+        <span style="display:inline-flex;width:22px;height:22px;border-radius:50%;background:rgba(249,115,22,0.14);align-items:center;justify-content:center;vertical-align:middle;flex-shrink:0;"><svg viewBox="0 0 24 24" width="13" height="13" fill="#f97316" stroke="#f97316" stroke-width="1" stroke-linejoin="round"><path d="M12 2.5c-1.2 3.3-5 5.7-5 9.5a5 5 0 0 0 10 0c0-1.6-.7-2.9-1.8-4 .1 1.7-.9 2.4-1.6 2 .9-2 -.2-4.2-1.6-7.5z"/></svg></span> סטריק תזונה: <span id="nutrition-streak-count">0</span> ימים
     </div>
 </div>
         
@@ -505,7 +505,7 @@
         </div>
         <div class="workout-streak-row">
             <div id="workout-streak-display" class="workout-streak-badge">
-                <span class="streak-fire" style="display:inline-flex;"><svg viewBox="0 0 24 24" width="17" height="17" fill="#f97316" stroke="#f97316" stroke-width="1" stroke-linejoin="round"><path d="M12 2.5c-1.2 3.3-5 5.7-5 9.5a5 5 0 0 0 10 0c0-1.6-.7-2.9-1.8-4 .1 1.7-.9 2.4-1.6 2 .9-2 -.2-4.2-1.6-7.5z"/></svg></span>
+                <span class="streak-fire" style="display:inline-flex;width:26px;height:26px;border-radius:50%;background:rgba(249,115,22,0.14);align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="15" height="15" fill="#f97316" stroke="#f97316" stroke-width="1" stroke-linejoin="round"><path d="M12 2.5c-1.2 3.3-5 5.7-5 9.5a5 5 0 0 0 10 0c0-1.6-.7-2.9-1.8-4 .1 1.7-.9 2.4-1.6 2 .9-2 -.2-4.2-1.6-7.5z"/></svg></span>
                 <span class="streak-label">סטריק אימונים</span>
                 <span class="streak-number" id="workout-streak-count">0</span>
                 <span class="streak-unit">שבועות</span>
@@ -779,7 +779,7 @@
         <div id="weight-chart-modal" style="display:none;position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeWeightChartModal()">
     <div style="background:var(--bg-card);border-radius:16px;padding:20px;width:100%;max-width:520px;position:relative;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
         <button onclick="closeWeightChartModal()" style="position:absolute;top:10px;left:12px;background:transparent;border:none;font-size:22px;cursor:pointer;color:var(--text-primary);line-height:1;">×</button>
-        <h3 class="chart-title" style="text-align:center;margin-top:0;"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--tag-bg);align-items:center;justify-content:center;vertical-align:-5px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span> גרף התקדמות משקל</h3>
+        <h3 class="chart-title" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:0;"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--tag-bg);align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span> גרף התקדמות משקל</h3>
         <canvas id="weight-chart"></canvas>
     </div>
 </div>
@@ -913,7 +913,7 @@
       <!-- פרק 3 -->
       <div class="chapter-container">
         <button class="chapter-btn" onclick="toggleChapter(this)">
-          <span><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--tag-bg);align-items:center;justify-content:center;vertical-align:-5px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span> פרק 3: איך מתאמנים נכון ומתקדמים</span>
+          <span style="display:flex;align-items:center;gap:6px;"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--tag-bg);align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span>פרק 3: איך מתאמנים נכון ומתקדמים</span>
           <span class="arrow">▼</span>
         </button>
         <div class="chapter-content">

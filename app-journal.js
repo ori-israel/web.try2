@@ -227,7 +227,7 @@ async function renderScoreHistory(userId) {
 
         container.innerHTML = `
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;direction:rtl;">
-                <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:12px;"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--tag-bg);align-items:center;justify-content:center;vertical-align:-5px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span> היסטוריית ציונים שבועיים</div>
+                <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:6px;"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--tag-bg);align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span>היסטוריית ציונים שבועיים</div>
                 <canvas id="score-history-canvas"></canvas>
             </div>`;
 
@@ -294,7 +294,7 @@ async function renderScoreHistory(userId) {
         console.error('Score history error:', err);
         container.innerHTML = `
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;direction:rtl;">
-                <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:8px;"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--tag-bg);align-items:center;justify-content:center;vertical-align:-5px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span> היסטוריית ציונים שבועיים</div>
+                <div style="font-weight:bold;font-size:0.9rem;color:var(--text-secondary);margin-bottom:8px;display:flex;align-items:center;gap:6px;"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--tag-bg);align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span>היסטוריית ציונים שבועיים</div>
                 <div style="text-align:center;color:var(--text-secondary);font-size:0.88rem;padding:8px 0;">אין מספיק היסטוריה עדיין</div>
             </div>`;
     }
