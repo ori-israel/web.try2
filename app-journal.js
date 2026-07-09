@@ -61,11 +61,12 @@ function getWeekRange() {
 
 function buildStars(score0to5) {
     const rounded = Math.round(score0to5 * 2) / 2;
+    const star = opacity => `<svg viewBox="0 0 24 24" width="18" height="18" fill="var(--accent)" style="opacity:${opacity};vertical-align:-4px" fill-opacity="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`;
     let s = '';
     for (let i = 1; i <= 5; i++) {
-        if (rounded >= i) s += '<span style="opacity:1">⭐</span>';
-        else if (rounded >= i - 0.5) s += '<span style="opacity:0.6">⭐</span>';
-        else s += '<span style="opacity:0.3">⭐</span>';
+        if (rounded >= i) s += star(1);
+        else if (rounded >= i - 0.5) s += star(0.6);
+        else s += star(0.25);
     }
     return s;
 }
