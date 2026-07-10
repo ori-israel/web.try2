@@ -942,7 +942,7 @@ function updateWorkoutStreak() {
     // הצגה מיידית מהמטמון, ואז חישוב מחדש אסינכרוני מהשרת
     const streak = _streaksCache.workout_streak || 0;
     const el = document.getElementById('workout-streak-count');
-    if (el) el.innerText = CLIENT.vacationMode ? streak + ' 🏖️' : streak;
+    if (el) el.innerHTML = CLIENT.vacationMode ? streak + ' <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>' : streak;
     refreshWorkoutStreak();
 }
 
@@ -954,7 +954,7 @@ async function refreshWorkoutStreak() {
         if (getActiveUserId() !== uid) return;
         _streaksCache.workout_streak = streak;
         const el = document.getElementById('workout-streak-count');
-        if (el) el.innerText = CLIENT.vacationMode ? streak + ' 🏖️' : streak;
+        if (el) el.innerHTML = CLIENT.vacationMode ? streak + ' <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>' : streak;
         if (typeof syncStreaksNow === 'function') syncStreaksNow();
     } catch (e) { console.warn('[streak] refresh failed:', e.message); }
 }
@@ -1044,7 +1044,7 @@ function updateNutritionStreak() {
 
     if (CLIENT.vacationMode) {
         const el = document.getElementById('nutrition-streak-count');
-        if (el) el.innerText = streak + ' 🏖️';
+        if (el) el.innerHTML = streak + ' <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>';
         return;
     }
 

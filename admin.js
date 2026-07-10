@@ -198,7 +198,7 @@ function _renderSubscribersMode(list) {
                 <div class="coach-urgent-text">
                     <span class="coach-urgent-name">${_fromMeDot(client)}${_esc(name)}</span>
                     <span class="coach-urgent-reason" style="color:#60a5fa;font-weight:600;">${client.subscription_type === 'bonus' ? '🎁 מנוי בונוס ליווי' : client.subscription_type === 'paid' ? '💳 מנוי בתשלום' : '💳 מנוי פעיל'}</span>
-                    ${client.subscription_type === 'paid' ? `<span class="coach-urgent-reason" style="color:${client.auto_billing ? '#4ade80' : '#facc15'};font-weight:600;">${client.auto_billing ? '🤖 אוטומטי אמיתי' : '✋ מסומן ידנית'}</span>` : ''}
+                    ${client.subscription_type === 'paid' ? `<span class="coach-urgent-reason" style="color:${client.auto_billing ? '#4ade80' : '#facc15'};font-weight:600;">${client.auto_billing ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10.5h.01"/><path d="M12 10.5h.01"/><path d="M16 10.5h.01"/></svg> אוטומטי אמיתי' : '✋ מסומן ידנית'}</span>` : ''}
                     ${(() => {
                         const sub = _subscriptionUrgency(client);
                         if (!sub) return '';
@@ -473,7 +473,7 @@ async function toggleVacationMode(clientId, current) {
     if (profile) profile.vacation_mode = newVal;
     try {
         await sbSetVacationMode(clientId, newVal);
-        _showToast(newVal ? `🏖️ מצב חופשה הופעל עבור ${_esc(name)}` : `<span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span> מצב חופשה כובה עבור ${_esc(name)}`);
+        _showToast(newVal ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg> מצב חופשה הופעל עבור ${_esc(name)}` : `<span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span> מצב חופשה כובה עבור ${_esc(name)}`);
     } catch (e) {
         if (profile) profile.vacation_mode = current;
         alert('שגיאה בעדכון מצב חופשה');
@@ -555,7 +555,7 @@ function _renderUrgentMode(list) {
             </div>
             <div class="coach-urgent-right">
                 <span class="coach-urgent-score">${scoreStr}</span>
-                <button class="coach-vac-icon${vac ? ' active' : ''}" data-client-id="${client.id}" data-vac="${vac}">🏖️</button>
+                <button class="coach-vac-icon${vac ? ' active' : ''}" data-client-id="${client.id}" data-vac="${vac}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg></button>
                 <button class="admin-select-btn" data-client-id="${client.id}">כניסה ›</button>
             </div>`;
         row.querySelector('.coach-vac-icon').addEventListener('click', function() {
@@ -617,7 +617,7 @@ function _renderOverviewMode(list) {
                     })()}
                 </div>
                 <div class="coach-card-score" style="color:${bClr}">${sStr}<span class="coach-card-score-unit">pts</span></div>
-                <button class="coach-vac-icon${vac ? ' active' : ''}" data-client-id="${client.id}" data-vac="${vac}">🏖️</button>
+                <button class="coach-vac-icon${vac ? ' active' : ''}" data-client-id="${client.id}" data-vac="${vac}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg></button>
             </div>
             <div class="coach-card-body">
                 <div class="coach-bars">

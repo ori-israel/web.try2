@@ -139,7 +139,7 @@ async function sendAIMessage() {
             if (loadingEl) {
                 loadingEl.className = '';
                 loadingEl.style.cssText = bubbleStyle;
-                loadingEl.innerHTML = `<span style="font-size:16px;">🤖</span><span>${_msg}</span>`;
+                loadingEl.innerHTML = `<span style="display:inline-flex;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10.5h.01"/><path d="M12 10.5h.01"/><path d="M16 10.5h.01"/></svg></span><span>${_msg}</span>`;
             }
             return;
         }
@@ -154,7 +154,7 @@ async function sendAIMessage() {
             loadingEl.style.cssText = bubbleStyle;
             const icon = document.createElement('span');
             icon.style.cssText = 'font-size: 16px; flex-shrink: 0; margin-top: 2px;';
-            icon.innerText = '🤖';
+            icon.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10.5h.01"/><path d="M12 10.5h.01"/><path d="M16 10.5h.01"/></svg>';
             replyTextDiv = document.createElement('div');
             loadingEl.innerHTML = '';
             loadingEl.appendChild(icon);
@@ -261,7 +261,7 @@ async function sendAIMessage() {
         if (loadingEl) {
             loadingEl.className = '';
             loadingEl.style.cssText = bubbleStyle;
-            loadingEl.innerHTML = '<span style="font-size:16px;">🤖</span><span>שגיאה בחיבור, נסה שוב.</span>';
+            loadingEl.innerHTML = '<span style="display:inline-flex;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10.5h.01"/><path d="M12 10.5h.01"/><path d="M16 10.5h.01"/></svg></span><span>שגיאה בחיבור, נסה שוב.</span>';
         }
     }
 }
@@ -291,7 +291,7 @@ function addLoadingMessage() {
         align-items: center;
         gap: 8px;
     `;
-    div.innerHTML = '<span style="font-size:16px;">🤖</span><span class="typing-dots"><span></span><span></span><span></span></span>';
+    div.innerHTML = '<span style="display:inline-flex;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10.5h.01"/><path d="M12 10.5h.01"/><path d="M16 10.5h.01"/></svg></span><span class="typing-dots"><span></span><span></span><span></span></span>';
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
     return id;
@@ -319,7 +319,7 @@ function addChatMessage(text, role, isLoading = false) {
     `;
     const icon = document.createElement('span');
     icon.style.cssText = 'font-size: 16px; flex-shrink: 0; margin-top: 2px;';
-    icon.innerHTML = role === 'user' ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>' : '🤖';
+    icon.innerHTML = role === 'user' ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>' : '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10.5h.01"/><path d="M12 10.5h.01"/><path d="M16 10.5h.01"/></svg>';
     const textDiv = document.createElement('div');
     textDiv.innerHTML = _esc(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
     div.appendChild(icon);
