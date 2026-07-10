@@ -1,10 +1,16 @@
+const _ACH_ICON_BARBELL = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><rect x="2" y="10" width="2.5" height="4" rx="0.6"/><rect x="5" y="8.5" width="2" height="7" rx="0.6"/><path d="M7.5 12h9"/><rect x="17" y="8.5" width="2" height="7" rx="0.6"/><rect x="19.5" y="10" width="2.5" height="4" rx="0.6"/></svg>';
+const _ACH_ICON_FLAME    = '<span style="display:inline-flex;vertical-align:-3px;"><svg viewBox="0 0 24 24" width="17" height="17" fill="#f97316" stroke="#f97316" stroke-width="1" stroke-linejoin="round"><path d="M12 2.5c-1.2 3.3-5 5.7-5 9.5a5 5 0 0 0 10 0c0-1.6-.7-2.9-1.8-4 .1 1.7-.9 2.4-1.6 2 .9-2 -.2-4.2-1.6-7.5z"/></svg></span>';
+const _ACH_ICON_DIAMOND  = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20"/><path d="M9 3l3 6 3-6"/><path d="M9 9l3 12 3-12"/></svg>';
+const _ACH_ICON_SCALE    = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M5 7h5M14 7h5"/><path d="M5 7l-3 6a3 3 0 0 0 6 0z"/><path d="M19 7l-3 6a3 3 0 0 0 6 0z"/><circle cx="12" cy="4" r="1.2"/></svg>';
+const _ACH_ICON_TREND    = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M3 17l6-6 4 4 8-9"/><path d="M17 6h4v4"/></svg>';
+
 const ACHIEVEMENTS = {
-    first_workout:       { title: '🏋️ האימון הראשון!',        desc: 'ברוך הבא — סיימת את האימון הראשון שלך!' },
-    '10_workouts':       { title: '🔥 10 אימונים!',            desc: 'הגעת ל-10 אימונים. אתה בדרך הנכונה.' },
-    '50_workouts':       { title: '💎 50 אימונים!',            desc: 'מדהים — 50 אימונים מאחוריך. אתה מכונה.' },
-    weight_goal:         { title: '⚖️ יעד המשקל הושג!',        desc: 'הגעת ליעד שהצבת לעצמך. כל הכבוד!' },
-    '3_weeks_80':        { title: '📈 שלושה שבועות מעל 80!',   desc: '3 שבועות רצופים עם ציון 80 ומעלה. קבוע!' },
-    streak_7_workout:    { title: '💪 רצף שבועי באימונים!',    desc: '7 ימים רצופים של אימונים. ביצוע מושלם.' },
+    first_workout:       { title: _ACH_ICON_BARBELL + ' האימון הראשון!',        desc: 'ברוך הבא — סיימת את האימון הראשון שלך!' },
+    '10_workouts':       { title: _ACH_ICON_FLAME   + ' 10 אימונים!',            desc: 'הגעת ל-10 אימונים. אתה בדרך הנכונה.' },
+    '50_workouts':       { title: _ACH_ICON_DIAMOND + ' 50 אימונים!',            desc: 'מדהים — 50 אימונים מאחוריך. אתה מכונה.' },
+    weight_goal:         { title: _ACH_ICON_SCALE   + ' יעד המשקל הושג!',        desc: 'הגעת ליעד שהצבת לעצמך. כל הכבוד!' },
+    '3_weeks_80':        { title: _ACH_ICON_TREND   + ' שלושה שבועות מעל 80!',   desc: '3 שבועות רצופים עם ציון 80 ומעלה. קבוע!' },
+    streak_7_workout:    { title: _ACH_ICON_BARBELL + ' רצף שבועי באימונים!',    desc: '7 ימים רצופים של אימונים. ביצוע מושלם.' },
     streak_7_nutrition:  { title: '🥗 רצף שבועי בתזונה!',     desc: '7 ימים רצופים עם עמידה ביעדי התזונה.' },
     score_100:           { title: '🏆 ציון שבועי מושלם!',      desc: 'קיבלת 100% השבוע. אין מה להוסיף.' },
 };
@@ -93,7 +99,7 @@ function _showAchievementPopup(key) {
         const el  = document.getElementById('achievement-popup');
         if (!ach || !el) { resolve(); return; }
 
-        document.getElementById('achievement-title').textContent = ach.title;
+        document.getElementById('achievement-title').innerHTML = ach.title;
         document.getElementById('achievement-desc').textContent  = ach.desc;
         el.style.cssText = 'display:flex;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:10000;align-items:center;justify-content:center;';
 
