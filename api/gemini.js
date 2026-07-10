@@ -63,7 +63,7 @@ export default async function handler(req, res) {
         .select('*', { count: 'exact', head: true })
         .gte('created_at', minAgo);
     if (globalCount >= 12) {
-        return res.status(429).json({ error: 'המערכת עמוסה כרגע, נסה שוב בעוד דקה 🙏' });
+        return res.status(429).json({ error: 'המערכת עמוסה כרגע, נסה שוב בעוד דקה' });
     }
     await db.from('ai_global_log').insert({ created_at: new Date().toISOString() });
     // ניקוי שורות ישנות כדי שהטבלה תישאר קטנה (לא חוסם את התשובה)
