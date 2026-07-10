@@ -441,7 +441,8 @@ async function analyzeFood(base64, mimeType, correction) {
         document.getElementById('scanner-step-2').classList.remove('hidden');
         const errMsg = err.message.includes('מגבלת') ? err.message : 'לא הצלחתי לזהות את האוכל';
         const errEl = document.getElementById('scanner-error');
-        errEl.textContent = '⛔ ' + errMsg;
+        errEl.innerHTML = '<span style="display:inline-flex;color:#f59e0b;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.3 3.9L2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/></svg></span> ';
+        errEl.appendChild(document.createTextNode(errMsg));
         errEl.classList.remove('hidden');
         document.getElementById('scan-portions').innerHTML = '';
         scannedPortions = { protein: 0, fat: 0, carbs: 0 };
@@ -517,7 +518,8 @@ ${itemsList}
     } catch (err) {
         const errMsg2 = err.message?.includes('מגבלת') ? err.message : 'שגיאה בחישוב מחדש';
         const errEl2 = document.getElementById('scanner-error');
-        errEl2.textContent = '⛔ ' + errMsg2;
+        errEl2.innerHTML = '<span style="display:inline-flex;color:#f59e0b;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.3 3.9L2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/></svg></span> ';
+        errEl2.appendChild(document.createTextNode(errMsg2));
         errEl2.classList.remove('hidden');
     } finally {
         document.getElementById('scanner-loading').classList.add('hidden');
