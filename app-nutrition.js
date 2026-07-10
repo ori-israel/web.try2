@@ -275,7 +275,7 @@ function openFoodScanner() {
     const modal = document.getElementById('food-scanner-modal');
     modal.style.display = '';
     modal.classList.remove('hidden');
-    document.getElementById('scanner-modal-title').textContent = '🍽️ הוספת מנות';
+    document.getElementById('scanner-modal-title').innerHTML = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M5.5 3v6M8 3v6M10.5 3v6"/><path d="M5.5 9c0 1.8 2.5 1.8 2.5 1.8S10.5 10.8 10.5 9"/><path d="M8 10.8v10.2"/><path d="M17 3l2 6-2 3"/><path d="M17 3v18"/></svg> הוספת מנות';
     document.getElementById('scanner-step-1').classList.remove('hidden');
     document.getElementById('scanner-step-2').classList.add('hidden');
     document.getElementById('scanner-loading').classList.add('hidden');
@@ -419,7 +419,11 @@ async function analyzeFood(base64, mimeType, correction) {
         };
         scannedItems = (Array.isArray(result.items) ? result.items : []).map(enrichItemMacros);
 
-        document.getElementById('scan-food-name').textContent = `🍽️ ${result.food}`;
+        {
+            const _foodNameEl = document.getElementById('scan-food-name');
+            _foodNameEl.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M5.5 3v6M8 3v6M10.5 3v6"/><path d="M5.5 9c0 1.8 2.5 1.8 2.5 1.8S10.5 10.8 10.5 9"/><path d="M8 10.8v10.2"/><path d="M17 3l2 6-2 3"/><path d="M17 3v18"/></svg> ';
+            _foodNameEl.appendChild(document.createTextNode(result.food));
+        }
         document.getElementById('scan-portions').innerHTML =
             `<div style="display:flex; flex-direction:column; gap:6px;">` +
             `<div>🥩 חלבון: <b>${scannedPortions.protein} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.protein}g)</span></div>` +
@@ -496,7 +500,11 @@ ${itemsList}
             carbs:   round(Math.max(0, scannedGrams.carbs   / 37.5))
         };
 
-        document.getElementById('scan-food-name').textContent = `🍽️ ${result.food}`;
+        {
+            const _foodNameEl = document.getElementById('scan-food-name');
+            _foodNameEl.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M5.5 3v6M8 3v6M10.5 3v6"/><path d="M5.5 9c0 1.8 2.5 1.8 2.5 1.8S10.5 10.8 10.5 9"/><path d="M8 10.8v10.2"/><path d="M17 3l2 6-2 3"/><path d="M17 3v18"/></svg> ';
+            _foodNameEl.appendChild(document.createTextNode(result.food));
+        }
         document.getElementById('scan-portions').innerHTML =
             `<div style="display:flex; flex-direction:column; gap:6px;">` +
             `<div>🥩 חלבון: <b>${scannedPortions.protein} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.protein}g)</span></div>` +
