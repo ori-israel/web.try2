@@ -2314,6 +2314,7 @@ select.login-input:focus {
     border-radius: 50%;
     background: var(--bg-card-alt);
     border: 1px solid var(--accent);
+    color: var(--accent);
     font-size: 17px;
     cursor: pointer;
     display: flex;
