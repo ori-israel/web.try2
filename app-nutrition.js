@@ -683,7 +683,7 @@ async function _renderFoodLogPastDay(dateStr) {
             totalP+=r.portions_protein||0; totalC+=r.portions_carbs||0; totalF+=r.portions_fat||0;
             if (r.time !== lastTime) {
                 if (lastTime!==null) html+=`</div><hr style="border:none;border-top:2px solid var(--border);margin:4px 0 10px;">`;
-                html+=`<div style="margin-bottom:6px;"><div style="font-size:11px;font-weight:700;color:var(--accent);padding:8px 4px 4px;text-align:right;">🕐 ${r.time||''}</div>`;
+                html+=`<div style="margin-bottom:6px;"><div style="font-size:11px;font-weight:700;color:var(--accent);padding:8px 4px 4px;text-align:right;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v4.5l3 2"/></svg> ${r.time||''}</div>`;
                 lastTime=r.time;
             }
             html+=`<div style="padding:7px 4px;border-bottom:1px solid var(--border-light);font-size:13px;text-align:right;">
@@ -730,7 +730,7 @@ function renderFoodLog() {
         if (isNewMeal) {
             if (lastTime !== null) html += `</div><hr style="border:none;border-top:2px solid var(--border);margin:4px 0 10px;">`; // קו מפריד בין ארוחות
             html += `<div style="margin-bottom:6px;">
-                <div style="font-size:11px;font-weight:700;color:var(--accent);padding:8px 4px 4px;text-align:right;letter-spacing:0.3px;">🕐 ${e.time}</div>`;
+                <div style="font-size:11px;font-weight:700;color:var(--accent);padding:8px 4px 4px;text-align:right;letter-spacing:0.3px;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v4.5l3 2"/></svg> ${e.time}</div>`;
             lastTime = e.time;
         }
         html += `

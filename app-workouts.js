@@ -467,7 +467,7 @@ function buildWorkoutAccordions(targets = {}) {
             cardioItem.innerHTML = `
                 <div class="workout-accord-header ${isCardioChecked ? 'checked' : ''}">
                     <input type="checkbox" class="accord-checkbox workout-checkbox" data-id="${cardioId}" ${isCardioChecked ? 'checked' : ''}>
-                    <span class="accord-name">🏃 אירובי</span>
+                    <span class="accord-name"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M3 12h4l2-4 3 8 2-5.5 1.5 3h5.5"/></svg> אירובי</span>
                     <span class="accord-check-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
                     <span class="accord-toggle">▾</span>
                 </div>

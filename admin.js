@@ -891,7 +891,7 @@ function _rerenderWorkoutSections() {
             </div>
             <button class="we-add-btn" onclick="weAddRow('${letter}')">+ הוסף תרגיל</button>
             <div class="we-cardio-section">
-                <div class="we-cardio-title">🏃 אירובי (אופציונלי)</div>
+                <div class="we-cardio-title"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M3 12h4l2-4 3 8 2-5.5 1.5 3h5.5"/></svg> אירובי (אופציונלי)</div>
                 <div class="we-cardio-row">
                     <input class="we-input we-cardio-desc" type="text" maxlength="120"
                         placeholder="תיאור: הליכון שיפוע 15 מהירות 4..."
