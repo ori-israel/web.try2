@@ -406,7 +406,7 @@ window.addEventListener('pageshow', (e) => {
     const currentGoal = CLIENT.goal;
 
     if (currentGoal === "cut" || currentGoal === "חיטוב") {
-        btnText.innerText = "💡 מאכלים שיעזרו לכם לרדת במשקל מבלי להיות רעבים";
+        btnText.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.6 1 1.3 1 2.5h6c0-1.2.3-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg> מאכלים שיעזרו לכם לרדת במשקל מבלי להיות רעבים';
         listContainer.innerHTML = `
             <li>חזה עוף (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
             <li>פילה הודו (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
@@ -431,7 +431,7 @@ window.addEventListener('pageshow', (e) => {
             <li>כרוב = 0 מנות (ללא הגבלה)</li>
         `;
     } else {
-        btnText.innerText = "💡 מאכלים שיעזרו לך להגיע ליעדי החלבון והקלוריות מבלי לאכול בכוח";
+        btnText.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.6 1 1.3 1 2.5h6c0-1.2.3-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg> מאכלים שיעזרו לך להגיע ליעדי החלבון והקלוריות מבלי לאכול בכוח';
         listContainer.innerHTML = `
             <li>פרגיות (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
             <li>בקר טחון 15% (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
