@@ -157,7 +157,7 @@ async function toggleSubscriberMode(clientId, current) {
     if (client) client.is_subscriber = newVal;
     try {
         await sbSetSubscriberMode(clientId, newVal);
-        _showToast(newVal ? `💳 ${_esc(name)} הועבר למנויים` : `<span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span> ${_esc(name)} הועבר חזרה לליווי`);
+        _showToast(newVal ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><path d="M2.5 10h19"/><path d="M8 15l1.5 1.5L13 13"/></svg> ${_esc(name)} הועבר למנויים` : `<span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span> ${_esc(name)} הועבר חזרה לליווי`);
     } catch (e) {
         if (client) client.is_subscriber = current;
         alert('שגיאה בעדכון סטטוס מנוי');
@@ -197,7 +197,7 @@ function _renderSubscribersMode(list) {
                 ${_coachAvatar(client)}
                 <div class="coach-urgent-text">
                     <span class="coach-urgent-name">${_fromMeDot(client)}${_esc(name)}</span>
-                    <span class="coach-urgent-reason" style="color:#60a5fa;font-weight:600;">${client.subscription_type === 'bonus' ? '🎁 מנוי בונוס ליווי' : client.subscription_type === 'paid' ? '💳 מנוי בתשלום' : '💳 מנוי פעיל'}</span>
+                    <span class="coach-urgent-reason" style="color:#60a5fa;font-weight:600;">${client.subscription_type === 'bonus' ? '🎁 מנוי בונוס ליווי' : client.subscription_type === 'paid' ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><path d="M2.5 10h19"/><path d="M8 15l1.5 1.5L13 13"/></svg> מנוי בתשלום' : '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><path d="M2.5 10h19"/><path d="M8 15l1.5 1.5L13 13"/></svg> מנוי פעיל'}</span>
                     ${client.subscription_type === 'paid' ? `<span class="coach-urgent-reason" style="color:${client.auto_billing ? '#4ade80' : '#facc15'};font-weight:600;">${client.auto_billing ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10.5h.01"/><path d="M12 10.5h.01"/><path d="M16 10.5h.01"/></svg> אוטומטי אמיתי' : '✋ מסומן ידנית'}</span>` : ''}
                     ${(() => {
                         const sub = _subscriptionUrgency(client);
@@ -626,9 +626,9 @@ function _renderOverviewMode(list) {
                     ${_coachScoreBar('הרגלים',  s.habitsScore)}
                 </div>
                 <div class="coach-sparkline">${_coachSparkline(s.last4)}</div>
-                <button class="coach-q-btn" data-client-id="${client.id}">📋 שאלון אחרון</button>
+                <button class="coach-q-btn" data-client-id="${client.id}"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="5" y="4" width="14" height="18" rx="2"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><path d="M8.5 11h7"/><path d="M8.5 14.5h7"/><path d="M8.5 18h4"/></svg> שאלון אחרון</button>
                 <button class="admin-select-btn" data-client-id="${client.id}" style="width:100%;margin-top:6px">כניסה ›</button>
-                <button class="admin-move-subscriber-btn" data-client-id="${client.id}" style="width:100%;margin-top:6px;background:transparent;border:1px solid #60a5fa;color:#60a5fa;border-radius:8px;padding:8px;font-size:13px;cursor:pointer;">💳 העבר למנויים</button>
+                <button class="admin-move-subscriber-btn" data-client-id="${client.id}" style="width:100%;margin-top:6px;background:transparent;border:1px solid #60a5fa;color:#60a5fa;border-radius:8px;padding:8px;font-size:13px;cursor:pointer;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><path d="M2.5 10h19"/><path d="M8 15l1.5 1.5L13 13"/></svg> העבר למנויים</button>
                 <button class="admin-delete-client-btn" data-client-id="${client.id}" data-client-name="${_esc(name)}" style="width:100%;margin-top:6px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 7h16"/><path d="M6 7v13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M10 11v6"/><path d="M14 11v6"/></svg> מחק לקוח</button>
             </div>`;
         card.querySelector('.coach-vac-icon').addEventListener('click', function(e) {

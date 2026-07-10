@@ -214,7 +214,7 @@ async function _loadClientAndShowApp(userId) {
         const btn    = document.getElementById('admin-hamburger-btn');
         const nameEl = document.getElementById('admin-bar-name');
         if (btn)    btn.style.display = 'flex';
-        if (nameEl) nameEl.textContent = (CLIENT.name || CLIENT.nickname || 'לקוח') + (CLIENT.isSubscriber ? ' 💳' : '');
+        if (nameEl) nameEl.innerHTML = _esc(CLIENT.name || CLIENT.nickname || 'לקוח') + (CLIENT.isSubscriber ? ' <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><path d="M2.5 10h19"/><path d="M8 15l1.5 1.5L13 13"/></svg>' : '');
     }
 }
 
