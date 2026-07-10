@@ -233,7 +233,7 @@
         </div>
 
         <button id="prof-save-btn" class="calc-btn" onclick="saveProfile()" style="width:100%; margin-top:4px;">שמור שינויים</button>
-        <button id="pwa-add-btn" onclick="triggerPWAInstall()" style="width:100%;margin-top:8px;padding:12px;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-secondary);border:1.5px solid var(--text-secondary);">הוספת האפליקציה למסך הבית 📲</button>
+        <button id="pwa-add-btn" onclick="triggerPWAInstall()" style="width:100%;margin-top:8px;padding:12px;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-secondary);border:1.5px solid var(--text-secondary);display:flex;align-items:center;justify-content:center;gap:6px;">הוספת האפליקציה למסך הבית <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M8 7l4-4 4 4"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
         <button onclick="doLogout()" style="width:100%;margin-top:8px;padding:12px;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:#ef4444;border:1.5px solid #ef4444;">התנתק</button>
     </div>
 </div>
@@ -242,7 +242,7 @@
 <div id="pwa-install-popup" class="complete-modal" style="display:none;">
     <div class="complete-content" style="max-width:300px;padding:16px;">
         <span class="close-complete" onclick="pwaInstallLater()">&times;</span>
-        <div style="font-size:1.5rem;margin-bottom:6px;">📲</div>
+        <div style="margin-bottom:6px;"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M8 7l4-4 4 4"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></div>
         <h2 style="margin:0 0 16px;font-size:18px;">רוצה להוסיף את האפליקציה למסך הבית?</h2>
         <div style="display:flex;gap:10px;direction:rtl;">
             <button onclick="pwaInstallLater()" style="flex:1;padding:14px;border-radius:var(--radius);font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-primary);border:1.5px solid var(--text-secondary);">אחר כך</button>
