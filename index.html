@@ -501,7 +501,7 @@
         <div class="workout-header-top">
             <button class="tour-inline-btn" onclick="startTabTour('tab2')" title="מדריך לטאב" aria-label="מדריך לטאב"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14"/><path d="M12 6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v13.5"/><path d="M4 19.5h16"/><path d="M6.5 6.5h3"/><path d="M6.5 9.5h3"/><path d="M14.5 6.5h3"/><path d="M14.5 9.5h3"/></svg></button>
             <h2 class="workout-title">תוכנית אימונים</h2>
-            <button onclick="resetWorkout()" class="tour-inline-btn workout-reset-icon" title="אפס אימון" aria-label="אפס אימון">🔄</button>
+            <button onclick="resetWorkout()" class="tour-inline-btn workout-reset-icon" title="אפס אימון" aria-label="אפס אימון"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 21v-5h5"/></svg></button>
         </div>
         <div class="workout-streak-row">
             <div id="workout-streak-display" class="workout-streak-badge">
@@ -1316,8 +1316,8 @@
       <input type="file" id="food-image-input" accept="image/*" capture="environment" style="display:none" aria-label="צילום תמונת אוכל">
       <input type="file" id="food-gallery-input" accept="image/*" style="display:none" aria-label="העלאת תמונת אוכל מהגלריה">
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-image-input').click()">צילום תמונה 📷</button>
-        <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-gallery-input').click()">העלאה מהגלריה 🖼️</button>
+        <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-image-input').click()">צילום תמונה <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg></button>
+        <button class="scan-upload-btn" style="flex:1" onclick="document.getElementById('food-gallery-input').click()">העלאה מהגלריה <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5.5-5.5L9 17"/></svg></button>
         <button class="scan-upload-btn" style="flex:1" onclick="openTextEntry()">הזנה בכתב <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M4 20h16"/></svg></button>
       </div>
       <img id="food-preview" class="hidden" alt="תצוגה מקדימה" style="width:100%; border-radius:10px; margin:12px 0;">
