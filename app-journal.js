@@ -723,7 +723,7 @@ function showPRPopups(prs) {
         lastShownPR.set(pr.name, { weight_kg: pr.weight, reps: pr.reps });
         const backdrop = document.createElement('div');
         backdrop.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5)';
-        backdrop.innerHTML = `<div style="background:var(--bg-card);border-radius:14px;padding:19px 24px;text-align:center"><div style="font-size:1.55rem;font-weight:bold">🏆 שיא אישי חדש!</div><div style="font-size:1.2rem;font-weight:bold;margin-top:7px">${pr.name}</div><div style="font-size:1.15rem;margin-top:5px">משקל ${pr.weight} × ${pr.reps} חזרות</div></div>`;
+        backdrop.innerHTML = `<div style="background:var(--bg-card);border-radius:14px;padding:19px 24px;text-align:center"><div style="font-size:1.55rem;font-weight:bold"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><path d="M8 4h8v4a4 4 0 0 1-8 0V4z"/><path d="M8 5H5a3 3 0 0 0 3 5"/><path d="M16 5h3a3 3 0 0 1-3 5"/><path d="M10 13v3"/><path d="M14 13v3"/><path d="M7 20h10"/><path d="M9 20c0-2 .5-3 3-3s3 1 3 3"/></svg> שיא אישי חדש!</div><div style="font-size:1.2rem;font-weight:bold;margin-top:7px">${pr.name}</div><div style="font-size:1.15rem;margin-top:5px">משקל ${pr.weight} × ${pr.reps} חזרות</div></div>`;
         document.body.appendChild(backdrop);
         let closed = false;
         const close = () => { if (closed) return; closed = true; backdrop.remove(); showNext(); };

@@ -4,6 +4,7 @@ const _ACH_ICON_DIAMOND  = '<svg viewBox="0 0 24 24" width="17" height="17" fill
 const _ACH_ICON_SCALE    = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M5 7h5M14 7h5"/><path d="M5 7l-3 6a3 3 0 0 0 6 0z"/><path d="M19 7l-3 6a3 3 0 0 0 6 0z"/><circle cx="12" cy="4" r="1.2"/></svg>';
 const _ACH_ICON_TREND    = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M3 17l6-6 4 4 8-9"/><path d="M17 6h4v4"/></svg>';
 const _ACH_ICON_UTENSILS = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M5.5 3v6M8 3v6M10.5 3v6"/><path d="M5.5 9c0 1.8 2.5 1.8 2.5 1.8S10.5 10.8 10.5 9"/><path d="M8 10.8v10.2"/><path d="M17 3l2 6-2 3"/><path d="M17 3v18"/></svg>';
+const _ACH_ICON_TROPHY   = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M8 4h8v4a4 4 0 0 1-8 0V4z"/><path d="M8 5H5a3 3 0 0 0 3 5"/><path d="M16 5h3a3 3 0 0 1-3 5"/><path d="M10 13v3"/><path d="M14 13v3"/><path d="M7 20h10"/><path d="M9 20c0-2 .5-3 3-3s3 1 3 3"/></svg>';
 
 const ACHIEVEMENTS = {
     first_workout:       { title: _ACH_ICON_BARBELL + ' האימון הראשון!',        desc: 'ברוך הבא — סיימת את האימון הראשון שלך!' },
@@ -13,7 +14,7 @@ const ACHIEVEMENTS = {
     '3_weeks_80':        { title: _ACH_ICON_TREND   + ' שלושה שבועות מעל 80!',   desc: '3 שבועות רצופים עם ציון 80 ומעלה. קבוע!' },
     streak_7_workout:    { title: _ACH_ICON_BARBELL + ' רצף שבועי באימונים!',    desc: '7 ימים רצופים של אימונים. ביצוע מושלם.' },
     streak_7_nutrition:  { title: _ACH_ICON_UTENSILS + ' רצף שבועי בתזונה!',     desc: '7 ימים רצופים עם עמידה ביעדי התזונה.' },
-    score_100:           { title: '🏆 ציון שבועי מושלם!',      desc: 'קיבלת 100% השבוע. אין מה להוסיף.' },
+    score_100:           { title: _ACH_ICON_TROPHY + ' ציון שבועי מושלם!',      desc: 'קיבלת 100% השבוע. אין מה להוסיף.' },
 };
 
 const REPEATING = new Set(['streak_7_workout', 'streak_7_nutrition', 'score_100']);

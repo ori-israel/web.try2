@@ -598,7 +598,7 @@ function checkBirthday() {
     if (today.getMonth() === birth.getMonth() && today.getDate() === birth.getDate()) {
         const newAge = today.getFullYear() - birth.getFullYear();
         generatePortionGoals();
-        document.getElementById('birthday-msg').innerHTML = `היי ${_esc(CLIENT.nickname)}! 🎂 יום הולדת ${newAge} שמח! מאחלים לך המון בריאות, אושר וכושר, מזל טוב! <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M20.8 8.6c0 5.6-8.8 10.6-8.8 10.6S3.2 14.2 3.2 8.6a4.6 4.6 0 0 1 8.8-1.8 4.6 4.6 0 0 1 8.8 1.8z"/></svg>`;
+        document.getElementById('birthday-msg').innerHTML = `היי ${_esc(CLIENT.nickname)}! <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="4" y="13" width="16" height="7" rx="1.5"/><path d="M4 16h16"/><path d="M8 13v-2a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M12 10V7"/><path d="M12 7c-1-1-1-2 0-3 1 1 1 2 0 3z"/></svg> יום הולדת ${newAge} שמח! מאחלים לך המון בריאות, אושר וכושר, מזל טוב! <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M20.8 8.6c0 5.6-8.8 10.6-8.8 10.6S3.2 14.2 3.2 8.6a4.6 4.6 0 0 1 8.8-1.8 4.6 4.6 0 0 1 8.8 1.8z"/></svg>`;
         
         const todayStr = today.toISOString().split('T')[0];
 if (localStorage.getItem('birthday_shown') !== todayStr) {

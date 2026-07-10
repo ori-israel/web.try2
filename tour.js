@@ -287,7 +287,7 @@
     blocker.classList.add('solid');
     highlight.style.display = 'none';
 
-    let title = '🎉 כל הכבוד!';
+    let title = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" style="vertical-align:-3px"><path d="M12 3l1.5 6L20 10.5 14 12l-2 6-2-6-6-1.5L10.5 9z"/></svg> כל הכבוד!';
     let msg, nextTab = null;
     if (ctx === 'general') {
       msg = 'סיימת את הסיור הכללי. אפשר לפתוח כל מדריך שוב מתי שרוצים מהכפתורים.';
