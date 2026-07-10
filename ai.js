@@ -4,7 +4,7 @@ function openAIChat() {
     document.body.style.overflow = 'hidden';
     loadChatHistory();
     if (aiChatHistory.length === 0) {
-        addChatMessage(`היי ${CLIENT.nickname}! 👋 אני המאמן AI של אורי. אפשר לשאול אותי כל שאלה על תזונה, אימונים והתאוששות. במה אוכל לעזור?`, 'assistant');
+        addChatMessage(`היי ${CLIENT.nickname}! אני המאמן AI של אורי. אפשר לשאול אותי כל שאלה על תזונה, אימונים והתאוששות. במה אוכל לעזור?`, 'assistant');
     }
 }
 
@@ -598,7 +598,7 @@ function checkBirthday() {
     if (today.getMonth() === birth.getMonth() && today.getDate() === birth.getDate()) {
         const newAge = today.getFullYear() - birth.getFullYear();
         generatePortionGoals();
-        document.getElementById('birthday-msg').innerText = `היי ${CLIENT.nickname}! 🎂 יום הולדת ${newAge} שמח! מאחלים לך המון בריאות, אושר וכושר, מזל טוב! ❤️`;
+        document.getElementById('birthday-msg').innerHTML = `היי ${_esc(CLIENT.nickname)}! 🎂 יום הולדת ${newAge} שמח! מאחלים לך המון בריאות, אושר וכושר, מזל טוב! <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M20.8 8.6c0 5.6-8.8 10.6-8.8 10.6S3.2 14.2 3.2 8.6a4.6 4.6 0 0 1 8.8-1.8 4.6 4.6 0 0 1 8.8 1.8z"/></svg>`;
         
         const todayStr = today.toISOString().split('T')[0];
 if (localStorage.getItem('birthday_shown') !== todayStr) {
