@@ -822,9 +822,26 @@ function _showProgressPhotoToast(msg, success = true) {
         if (!el || el.classList.contains('hidden')) return false;
         return getComputedStyle(el).display !== 'none';
     }
+    // overflow:hidden לבד לא עוצר גלילת מגע ב-iOS Safari/PWA, אז "מקפיאים"
+    // את הדף במקום עם position:fixed ומחזירים לגלילה במקום המדויק בסגירה
+    let _savedScrollY = 0;
     function _refreshScrollLock() {
         const anyModalOpen = MODAL_IDS.some(id => _isModalVisible(document.getElementById(id)));
-        document.body.style.overflow = (anyModalOpen || dynamicOverlayCount > 0) ? 'hidden' : '';
+        const shouldLock = anyModalOpen || dynamicOverlayCount > 0;
+        const isLocked = document.body.classList.contains('scroll-locked');
+        if (shouldLock && !isLocked) {
+            _savedScrollY = window.scrollY || window.pageYOffset || 0;
+            document.body.classList.add('scroll-locked');
+            document.body.style.position = 'fixed';
+            document.body.style.top = (-_savedScrollY) + 'px';
+            document.body.style.width = '100%';
+        } else if (!shouldLock && isLocked) {
+            document.body.classList.remove('scroll-locked');
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+            window.scrollTo(0, _savedScrollY);
+        }
     }
     document.addEventListener('DOMContentLoaded', function () {
         MODAL_IDS.forEach(id => {
