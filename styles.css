@@ -589,8 +589,10 @@ h1 {
 .macro-btn:active { transform: scale(0.9); }
 
 .macro-btn-minus {
-    background: var(--bg-card-alt);
+    background: var(--bg-card);
     color: var(--text-secondary);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
 }
 
 .macro-btn-plus {
