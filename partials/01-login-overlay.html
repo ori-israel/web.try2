@@ -35,40 +35,56 @@
     <!-- טופס הרשמת משתמש חדש -->
     <div id="login-signup-section" style="display:none; flex-direction:column; align-items:center; width:100%; max-width:360px; padding:24px; margin:auto 0;">
         <img src="/O.1024.559.png" alt="לוגו" width="1024" height="559" style="height:120px; width:auto; margin-bottom:24px;" onerror="this.style.display='none'">
-        <h2 style="margin:0 0 24px; font-size:22px; color:var(--text-primary,#fff);">יצירת חשבון חדש</h2>
-        <input id="signup-name"     type="text"     placeholder="שם מלא" class="login-input" autocomplete="name" aria-label="שם מלא">
-        <input id="signup-email"    type="email"    placeholder="אימייל" class="login-input" autocomplete="email" aria-label="כתובת אימייל" dir="ltr">
-        <input id="signup-phone"    type="tel"      placeholder="טלפון" class="login-input" autocomplete="tel" aria-label="טלפון" dir="ltr">
-        <input id="signup-password" type="password" placeholder="סיסמה (לפחות 6 תווים)" class="login-input" autocomplete="new-password" aria-label="סיסמה" dir="ltr">
+        <h2 style="margin:0 0 4px; font-size:22px; color:var(--text-primary,#fff);">יצירת חשבון חדש</h2>
+        <p id="signup-step-text" class="progress-text" style="width:100%;text-align:center;margin:0 0 6px;">שלב 1 מתוך 3</p>
+        <div class="progress-container">
+            <div id="signup-progress-bar" class="progress-bar" style="width:33%;"></div>
+        </div>
 
-        <label for="signup-birth-date" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">תאריך לידה</label>
-        <input id="signup-birth-date" type="date" class="login-input" aria-label="תאריך לידה" dir="ltr">
+        <div class="signup-step" data-step="1" style="width:100%;display:flex;flex-direction:column;">
+            <input id="signup-name"     type="text"     placeholder="שם מלא" class="login-input" autocomplete="name" aria-label="שם מלא">
+            <input id="signup-email"    type="email"    placeholder="אימייל" class="login-input" autocomplete="email" aria-label="כתובת אימייל" dir="ltr">
+            <input id="signup-phone"    type="tel"      placeholder="טלפון" class="login-input" autocomplete="tel" aria-label="טלפון" dir="ltr">
+            <input id="signup-password" type="password" placeholder="סיסמה (לפחות 6 תווים)" class="login-input" autocomplete="new-password" aria-label="סיסמה" dir="ltr">
+            <p id="signup-error-1" class="signup-error" style="color:#e55; font-size:14px; min-height:18px; margin:8px 0; text-align:center;"></p>
+            <button class="login-btn" onclick="signupNextStep()">המשך</button>
+            <button onclick="showLoginForm()" class="login-btn" style="background:transparent;border:1.5px solid #5b7cfa;color:#8aaafa;box-shadow:none;margin-top:8px;">חזרה לכניסה</button>
+        </div>
 
-        <label for="signup-start-weight" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">משקל התחלתי (ק״ג)</label>
-        <input id="signup-start-weight" type="number" step="0.1" placeholder="ק״ג" class="login-input" aria-label="משקל התחלתי">
+        <div class="signup-step" data-step="2" style="width:100%;display:none;flex-direction:column;">
+            <label for="signup-birth-date" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">תאריך לידה</label>
+            <input id="signup-birth-date" type="date" class="login-input" aria-label="תאריך לידה" dir="ltr">
 
-        <label for="signup-goal-weight" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">משקל יעד (ק״ג)</label>
-        <input id="signup-goal-weight" type="number" step="0.1" placeholder="ק״ג" class="login-input" aria-label="משקל יעד">
+            <label for="signup-height" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">גובה (ס״מ)</label>
+            <input id="signup-height" type="number" placeholder="ס״מ" class="login-input" aria-label="גובה" step="1" onkeydown="if(event.key==='.'||event.key===',')event.preventDefault()" oninput="_showHeightInInches(this.value)">
+            <span id="height-inches-hint" style="font-size:12px;color:var(--text-secondary,#888);width:100%;text-align:right;min-height:16px;display:block;"></span>
 
-        <label for="signup-height" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">גובה (ס״מ)</label>
-        <input id="signup-height" type="number" placeholder="ס״מ" class="login-input" aria-label="גובה" step="1" onkeydown="if(event.key==='.'||event.key===',')event.preventDefault()" oninput="_showHeightInInches(this.value)">
-        <span id="height-inches-hint" style="font-size:12px;color:var(--text-secondary,#888);width:100%;text-align:right;min-height:16px;display:block;"></span>
+            <label for="signup-gender" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">מין</label>
+            <select id="signup-gender" class="login-input" aria-label="מין">
+                <option value="male">גבר</option>
+                <option value="female">אישה</option>
+            </select>
+            <p id="signup-error-2" class="signup-error" style="color:#e55; font-size:14px; min-height:18px; margin:8px 0; text-align:center;"></p>
+            <button class="login-btn" onclick="signupNextStep()">המשך</button>
+            <button onclick="signupPrevStep()" class="login-btn" style="background:transparent;border:1.5px solid #5b7cfa;color:#8aaafa;box-shadow:none;margin-top:8px;">חזרה</button>
+        </div>
 
-        <label for="signup-gender" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">מין</label>
-        <select id="signup-gender" class="login-input" aria-label="מין">
-            <option value="male">גבר</option>
-            <option value="female">אישה</option>
-        </select>
+        <div class="signup-step" data-step="3" style="width:100%;display:none;flex-direction:column;">
+            <label for="signup-start-weight" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">משקל התחלתי (ק״ג)</label>
+            <input id="signup-start-weight" type="number" step="0.1" placeholder="ק״ג" class="login-input" aria-label="משקל התחלתי">
 
-        <label for="signup-goal" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">מטרה</label>
-        <select id="signup-goal" class="login-input" aria-label="מטרה">
-            <option value="cut">חיטוב</option>
-            <option value="bulk">מסה</option>
-        </select>
+            <label for="signup-goal-weight" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">משקל יעד (ק״ג)</label>
+            <input id="signup-goal-weight" type="number" step="0.1" placeholder="ק״ג" class="login-input" aria-label="משקל יעד">
 
-        <p id="signup-error" style="color:#e55; font-size:14px; min-height:18px; margin:8px 0; text-align:center;"></p>
-        <button id="signup-btn" class="login-btn" onclick="doSignup()">יצירת חשבון</button>
-        <button onclick="showLoginForm()" class="login-btn" style="background:transparent;border:1.5px solid #5b7cfa;color:#8aaafa;box-shadow:none;margin-top:8px;">חזרה לכניסה</button>
+            <label for="signup-goal" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">מטרה</label>
+            <select id="signup-goal" class="login-input" aria-label="מטרה">
+                <option value="cut">חיטוב</option>
+                <option value="bulk">מסה</option>
+            </select>
+            <p id="signup-error-3" class="signup-error" style="color:#e55; font-size:14px; min-height:18px; margin:8px 0; text-align:center;"></p>
+            <button id="signup-btn" class="login-btn" onclick="doSignup()">יצירת חשבון</button>
+            <button onclick="signupPrevStep()" class="login-btn" style="background:transparent;border:1.5px solid #5b7cfa;color:#8aaafa;box-shadow:none;margin-top:8px;">חזרה</button>
+        </div>
     </div>
 
     <!-- מסך המתנה לאישור המנהל -->

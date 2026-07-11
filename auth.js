@@ -65,9 +65,50 @@ function showSignupForm() {
     document.getElementById('login-form-section').style.display    = 'none';
     document.getElementById('login-loading-section').style.display = 'none';
     document.getElementById('login-pending-section').style.display = 'none';
-    document.getElementById('signup-error').textContent = '';
+    document.querySelectorAll('.signup-error').forEach(el => el.textContent = '');
     document.getElementById('login-signup-section').style.display = 'flex';
+    _goToSignupStep(1);
     document.getElementById('login-overlay').scrollTop = 0;
+}
+
+// ניווט בין שלבי טופס ההרשמה
+function _goToSignupStep(step) {
+    document.querySelectorAll('.signup-step').forEach(el => {
+        el.style.display = (parseInt(el.dataset.step, 10) === step) ? 'flex' : 'none';
+    });
+    document.getElementById('signup-progress-bar').style.width = (step / 3 * 100) + '%';
+    document.getElementById('signup-step-text').textContent = `שלב ${step} מתוך 3`;
+}
+
+function signupPrevStep() {
+    const current = _currentSignupStep();
+    if (current > 1) _goToSignupStep(current - 1);
+}
+
+function _currentSignupStep() {
+    const visible = Array.from(document.querySelectorAll('.signup-step')).find(el => el.style.display === 'flex');
+    return visible ? parseInt(visible.dataset.step, 10) : 1;
+}
+
+function signupNextStep() {
+    const step = _currentSignupStep();
+    const errorEl = document.getElementById('signup-error-' + step);
+    errorEl.textContent = '';
+
+    if (step === 1) {
+        const name     = document.getElementById('signup-name').value.trim();
+        const email    = document.getElementById('signup-email').value.trim();
+        const phone    = document.getElementById('signup-phone').value.trim();
+        const password = document.getElementById('signup-password').value;
+        if (!name || !email || !phone || !password) { errorEl.textContent = 'יש למלא את כל השדות'; return; }
+        if (password.length < 6) { errorEl.textContent = 'הסיסמה חייבת להכיל לפחות 6 תווים'; return; }
+    } else if (step === 2) {
+        const birthDate = document.getElementById('signup-birth-date').value;
+        const height    = document.getElementById('signup-height').value;
+        if (!birthDate || !height) { errorEl.textContent = 'יש למלא את כל השדות'; return; }
+        if (!Number.isInteger(parseFloat(height)) || parseFloat(height) < 100) { errorEl.textContent = 'יש להכניס גובה בסנטימטרים, לדוגמה: 172'; return; }
+    }
+    _goToSignupStep(step + 1);
 }
 
 // מסך "החשבון ממתין לאישור המנהל"
@@ -306,7 +347,7 @@ async function doSignup() {
     const height      = document.getElementById('signup-height').value;
     const gender      = document.getElementById('signup-gender').value;
     const goal        = document.getElementById('signup-goal').value;
-    const errorEl     = document.getElementById('signup-error');
+    const errorEl     = document.getElementById('signup-error-3');
     const btn         = document.getElementById('signup-btn');
 
     errorEl.style.color = '#e55';
