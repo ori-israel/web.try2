@@ -361,25 +361,38 @@ async function compressImage(base64, mimeType) {
     });
 }
 
-const SCAN_LOADING_MESSAGES = ['בודק את המרכיבים...', 'מזהה גדלי מנות...', 'מחשב ערכים תזונתיים...', 'כמעט מוכן...'];
+const SCAN_LOADING_MESSAGES = ['בודק את המרכיבים...', 'מזהה גדלי מנות...', 'מחשב ערכים תזונתיים...'];
 let _scanLoadingInterval = null;
 
 function startScanLoadingAnimation() {
     const textEl = document.getElementById('scanner-loading-text');
     const barEl = document.getElementById('scanner-loading-bar');
     if (!textEl || !barEl) return;
-    let i = 0;
+    let msgIndex = 0;
+    let pct = 12;
     textEl.textContent = SCAN_LOADING_MESSAGES[0];
-    barEl.style.width = '25%';
+    barEl.style.transition = 'width 1.7s cubic-bezier(0.16, 1, 0.3, 1)';
+    barEl.style.width = pct + '%';
     _scanLoadingInterval = setInterval(() => {
-        i = (i + 1) % SCAN_LOADING_MESSAGES.length;
-        textEl.style.opacity = '0';
-        setTimeout(() => {
-            textEl.textContent = SCAN_LOADING_MESSAGES[i];
-            textEl.style.opacity = '1';
-            barEl.style.width = (25 + i * 25) + '%';
-        }, 300);
+        // מתקדם רק קדימה, לעולם לא חוזר אחורה, ולא מגיע ל-100% עד שהתשובה באמת חזרה
+        pct = pct + (90 - pct) * 0.3;
+        barEl.style.width = pct + '%';
+        if (msgIndex < SCAN_LOADING_MESSAGES.length - 1) {
+            msgIndex++;
+            textEl.style.opacity = '0';
+            setTimeout(() => {
+                textEl.textContent = SCAN_LOADING_MESSAGES[msgIndex];
+                textEl.style.opacity = '1';
+            }, 300);
+        }
     }, 1900);
+}
+
+function finishScanLoadingAnimation() {
+    const barEl = document.getElementById('scanner-loading-bar');
+    if (!barEl) return;
+    barEl.style.transition = 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+    barEl.style.width = '100%';
 }
 
 function stopScanLoadingAnimation() {
@@ -490,6 +503,8 @@ async function analyzeFood(base64, mimeType, correction) {
 
         renderScanDetails();
         stopScanLoadingAnimation();
+        finishScanLoadingAnimation();
+        await new Promise(r => setTimeout(r, 350));
         document.getElementById('scanner-loading').classList.add('hidden');
         document.getElementById('scanner-step-1').classList.add('hidden');
         document.getElementById('scanner-step-2').classList.remove('hidden');
