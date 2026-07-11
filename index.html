@@ -1324,7 +1324,12 @@
     </div>
 
     <div id="scanner-error" class="hidden" style="background:#ff4444;color:#fff;border-radius:8px;padding:12px;text-align:center;font-weight:bold;margin-bottom:12px;"></div>
-    <div id="scanner-loading" class="hidden" style="text-align:center; padding:20px 0; color:#aaa;">מנתח תמונה... ⏳</div>
+    <div id="scanner-loading" class="hidden" style="text-align:center; padding:28px 0; display:flex; flex-direction:column; align-items:center; gap:14px;">
+      <div id="scanner-loading-text" style="color:#aaa; font-size:14px; min-height:18px; transition:opacity 0.3s;">בודק את המרכיבים...</div>
+      <div style="width:140px; height:4px; border-radius:2px; background:rgba(255,255,255,0.08); overflow:hidden;">
+        <div id="scanner-loading-bar" style="width:25%; height:100%; border-radius:2px; background:var(--accent); transition:width 1.6s cubic-bezier(0.16, 1, 0.3, 1);"></div>
+      </div>
+    </div>
 
     <div id="scanner-step-2" class="hidden">
       <p id="scan-food-label" style="font-size:12px; color:#aaa; margin:0 0 4px;">זוהה:</p>

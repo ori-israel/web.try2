@@ -361,10 +361,36 @@ async function compressImage(base64, mimeType) {
     });
 }
 
+const SCAN_LOADING_MESSAGES = ['בודק את המרכיבים...', 'מזהה גדלי מנות...', 'מחשב ערכים תזונתיים...', 'כמעט מוכן...'];
+let _scanLoadingInterval = null;
+
+function startScanLoadingAnimation() {
+    const textEl = document.getElementById('scanner-loading-text');
+    const barEl = document.getElementById('scanner-loading-bar');
+    if (!textEl || !barEl) return;
+    let i = 0;
+    textEl.textContent = SCAN_LOADING_MESSAGES[0];
+    barEl.style.width = '25%';
+    _scanLoadingInterval = setInterval(() => {
+        i = (i + 1) % SCAN_LOADING_MESSAGES.length;
+        textEl.style.opacity = '0';
+        setTimeout(() => {
+            textEl.textContent = SCAN_LOADING_MESSAGES[i];
+            textEl.style.opacity = '1';
+            barEl.style.width = (25 + i * 25) + '%';
+        }, 300);
+    }, 1900);
+}
+
+function stopScanLoadingAnimation() {
+    if (_scanLoadingInterval) { clearInterval(_scanLoadingInterval); _scanLoadingInterval = null; }
+}
+
 async function analyzeFood(base64, mimeType, correction) {
     document.getElementById('scanner-step-2').classList.add('hidden');
     document.getElementById('scanner-loading').classList.remove('hidden');
     document.getElementById('scanner-error').classList.add('hidden');
+    startScanLoadingAnimation();
 
     const compressed = await compressImage(base64, mimeType);
     base64 = compressed.base64;
@@ -395,13 +421,44 @@ async function analyzeFood(base64, mimeType, correction) {
     try {
         const { data: { session: _scanSession } } = await db.auth.getSession();
         if (!_scanSession) throw new Error('לא מחובר');
-        const response = await fetch('/api/claude', {
+        const response = await fetch('/api/gemini', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_scanSession.access_token}` },
-            body: JSON.stringify({ prompt, imageBase64: base64, imageMime: mimeType })
+            body: JSON.stringify({
+                model: 'gemini-3.5-flash',
+                payload: {
+                    contents: [{ role: 'user', parts: [
+                        { inline_data: { mime_type: mimeType, data: base64 } },
+                        { text: prompt }
+                    ] }],
+                    generation_config: { response_mime_type: 'application/json' }
+                }
+            })
         });
-        if (!response.ok) { const e = await response.json().catch(() => ({})); throw new Error(e.error || 'claude error'); }
-        const { text: fullText } = await response.json();
+        if (!response.ok) { const e = await response.json().catch(() => ({})); throw new Error(e.error || 'gemini error'); }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '';
+        let buffer = '';
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const jsonStr = line.slice(6).trim();
+                if (!jsonStr || jsonStr === '[DONE]') continue;
+                try {
+                    const parsed = JSON.parse(jsonStr);
+                    const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) fullText += text;
+                } catch {}
+            }
+        }
+
         const jsonMatch = fullText.match(/\{[\s\S]*\}/);
         if (!jsonMatch) throw new Error('no JSON');
         const result = JSON.parse(jsonMatch[0]);
@@ -432,10 +489,12 @@ async function analyzeFood(base64, mimeType, correction) {
             `</div>`;
 
         renderScanDetails();
+        stopScanLoadingAnimation();
         document.getElementById('scanner-loading').classList.add('hidden');
         document.getElementById('scanner-step-1').classList.add('hidden');
         document.getElementById('scanner-step-2').classList.remove('hidden');
     } catch (err) {
+        stopScanLoadingAnimation();
         document.getElementById('scanner-loading').classList.add('hidden');
         document.getElementById('scanner-step-1').classList.add('hidden');
         document.getElementById('scanner-step-2').classList.remove('hidden');
@@ -463,6 +522,7 @@ async function recalculate() {
     document.getElementById('scanner-step-2').classList.add('hidden');
     document.getElementById('scanner-loading').classList.remove('hidden');
     document.getElementById('scanner-error').classList.add('hidden');
+    startScanLoadingAnimation();
 
     const itemsList = scannedItems.map((it, i) => `${i + 1}. ${it.name} — ${Math.round(it.grams)}g`).join('\n');
     const prompt = `אתה עוזר לניתוח תזונה. להלן רשימת המאכלים שזוהו בצלחת:
@@ -522,6 +582,7 @@ ${itemsList}
         errEl2.appendChild(document.createTextNode(errMsg2));
         errEl2.classList.remove('hidden');
     } finally {
+        stopScanLoadingAnimation();
         document.getElementById('scanner-loading').classList.add('hidden');
         document.getElementById('scanner-step-2').classList.remove('hidden');
     }

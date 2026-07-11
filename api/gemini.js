@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 export const config = { api: { bodyParser: { sizeLimit: '10mb' } } };
 
 const ALLOWED_MODELS = new Set([
+    'gemini-3.5-flash',
     'gemini-2.5-flash',
     'gemini-2.5-flash-lite',
     'gemini-2.0-flash',
@@ -46,16 +47,18 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Missing payload' });
     }
 
-    // הגבלת אורך הודעה — מקסימום 500 תווים
-    const contents = payload.contents || [];
-    const lastContent = contents[contents.length - 1];
-    const lastText = lastContent?.parts?.find(p => p.text)?.text || '';
-    if (lastText.length > 500) {
-        return res.status(400).json({ error: 'ההודעה ארוכה מדי (מקסימום 500 תווים).' });
-    }
-
     // סריקת תמונה מזוהה לפי inline_data בתוכן; צ'אט טקסט — לא
     const isScan = JSON.stringify(payload.contents || '').includes('inline_data');
+
+    // הגבלת אורך הודעה — מקסימום 500 תווים (רק בצ'אט; פרומפט הסריקה קבוע וארוך יותר)
+    if (!isScan) {
+        const contents = payload.contents || [];
+        const lastContent = contents[contents.length - 1];
+        const lastText = lastContent?.parts?.find(p => p.text)?.text || '';
+        if (lastText.length > 500) {
+            return res.status(400).json({ error: 'ההודעה ארוכה מדי (מקסימום 500 תווים).' });
+        }
+    }
 
     // Global rate limit: max 12 requests/min across ALL users (Gemini free tier = 15/min)
     const minAgo = new Date(Date.now() - 60 * 1000).toISOString();
