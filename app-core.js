@@ -771,7 +771,8 @@ function openProgressPhoto(url, photoId, storagePath) {
         <button id="pp-close" style="position:absolute;top:16px;left:16px;background:none;border:none;color:white;cursor:pointer;line-height:1;display:flex;"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         <button id="pp-delete" style="position:absolute;top:16px;right:16px;background:#e55;color:white;border:none;border-radius:10px;padding:7px 16px;font-size:14px;font-weight:bold;cursor:pointer;display:flex;align-items:center;gap:5px;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M6 7v13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M10 11v6"/><path d="M14 11v6"/></svg> מחיקת תמונה</button>
         <img src="${url}" alt="תמונת התקדמות מוגדלת" style="max-width:100%;max-height:88vh;border-radius:10px;object-fit:contain;">`;
-    overlay.querySelector('#pp-close').addEventListener('click', () => overlay.remove());
+    const closeOverlay = () => { overlay.remove(); window._dynamicOverlayClosed(); };
+    overlay.querySelector('#pp-close').addEventListener('click', closeOverlay);
     overlay.querySelector('#pp-delete').addEventListener('click', () => {
         const confirmed = document.createElement('div');
         confirmed.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:10000;';
@@ -782,14 +783,15 @@ function openProgressPhoto(url, photoId, storagePath) {
                 <button id="pp-confirm-no" style="background:rgba(255,255,255,0.15);color:white;border:none;border-radius:10px;padding:10px 28px;font-size:15px;cursor:pointer;">ביטול</button>
             </div>`;
         confirmed.querySelector('#pp-confirm-yes').addEventListener('click', async () => {
-            overlay.remove();
+            closeOverlay();
             await deleteProgressPhoto(photoId, storagePath);
         });
         confirmed.querySelector('#pp-confirm-no').addEventListener('click', () => confirmed.remove());
         overlay.appendChild(confirmed);
     });
-    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay(); });
     document.body.appendChild(overlay);
+    window._dynamicOverlayOpen();
 }
 
 function _showProgressPhotoToast(msg, success = true) {
@@ -799,6 +801,40 @@ function _showProgressPhotoToast(msg, success = true) {
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 3000);
 }
+
+// ── נעילת גלילת רקע כשחלון/מודל פתוח ─────────────────────────
+// עוקב אחרי כל המודלים הקבועים ב-DOM (לפי ID) וגם אחרי מודלים
+// שנוצרים דינמית (progress photo, גרף כוח, שיא אישי), ונועל/משחרר
+// גלילה של הרקע לפי מי שפתוח כרגע. מקור אמת אחד לכל האתר.
+(function () {
+    const MODAL_IDS = [
+        'food-scanner-modal', 'food-log-edit-modal', 'weight-chart-modal', 'profile-overlay',
+        'new-client-modal', 'workout-editor-modal', 'questionnaire-modal', 'video-modal',
+        'calendly-modal', 'app-dialog', 'achievement-popup', 'workout-complete-msg',
+        'nutrition-complete-msg', 'pwa-install-popup', 'renewal-reminder-popup', 'pwa-ios-popup',
+        'birthday-modal', 'weekly-survey-banner', 'ai-chat-overlay', 'survey-overlay', 'calc-overlay'
+    ];
+    let dynamicOverlayCount = 0;
+    window._dynamicOverlayOpen = function () { dynamicOverlayCount++; _refreshScrollLock(); };
+    window._dynamicOverlayClosed = function () { dynamicOverlayCount = Math.max(0, dynamicOverlayCount - 1); _refreshScrollLock(); };
+
+    function _isModalVisible(el) {
+        if (!el || el.classList.contains('hidden')) return false;
+        return getComputedStyle(el).display !== 'none';
+    }
+    function _refreshScrollLock() {
+        const anyModalOpen = MODAL_IDS.some(id => _isModalVisible(document.getElementById(id)));
+        document.body.style.overflow = (anyModalOpen || dynamicOverlayCount > 0) ? 'hidden' : '';
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        MODAL_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            new MutationObserver(_refreshScrollLock).observe(el, { attributes: true, attributeFilter: ['style', 'class'] });
+        });
+        _refreshScrollLock();
+    });
+})();
 
 
 

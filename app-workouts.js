@@ -224,13 +224,11 @@ function closeCompleteMsg() {
         }
     }
 
-    function openSurvey() { 
+    function openSurvey() {
         document.getElementById('survey-overlay').style.display = 'block';
-        document.body.style.overflow = 'hidden'; 
     }
-    function closeSurvey() { 
+    function closeSurvey() {
         document.getElementById('survey-overlay').style.display = 'none';
-        document.body.style.overflow = 'auto'; 
     }
 
     const surveyForm = document.getElementById('coaching-survey');
@@ -292,13 +290,11 @@ function closeCompleteMsg() {
     });
 
     // פונקציות לפתיחה וסגירה של המחשבון
-    function openCalc() { 
+    function openCalc() {
         document.getElementById('calc-overlay').style.display = 'block';
-        document.body.style.overflow = 'hidden'; 
     }
-    function closeCalc() { 
+    function closeCalc() {
         document.getElementById('calc-overlay').style.display = 'none';
-        document.body.style.overflow = 'auto'; 
     }
 
     async function calculateStats() {

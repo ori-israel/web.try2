@@ -1,7 +1,6 @@
 function openAIChat() {
     _aiStableCtx = { userId: null, loaded: false, text: '' };
     document.getElementById('ai-chat-overlay').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
     loadChatHistory();
     if (aiChatHistory.length === 0) {
         addChatMessage(`היי ${CLIENT.nickname}! אני המאמן AI של אורי. אפשר לשאול אותי כל שאלה על תזונה, אימונים והתאוששות. במה אוכל לעזור?`, 'assistant');
@@ -10,7 +9,6 @@ function openAIChat() {
 
 function closeAIChat() {
     document.getElementById('ai-chat-overlay').style.display = 'none';
-    document.body.style.overflow = 'auto';
 }
 
 let aiChatHistory = JSON.parse(sessionStorage.getItem('ai_chat_history') || '[]');
