@@ -90,7 +90,7 @@
 
         const val = inp.value || _today();
         const d   = new Date(val + 'T12:00:00');
-        _ctx = { inp, trigger, year: d.getFullYear(), month: d.getMonth() };
+        _ctx = { inp, trigger, year: d.getFullYear(), month: d.getMonth(), mode: 'days' };
 
         const panel = document.createElement('div');
         panel.className = 'dp-panel';
@@ -100,9 +100,11 @@
         panel.addEventListener('click', (e) => {
             e.stopPropagation(); // prevent global _close()
 
-            const day  = e.target.closest('.dp-day');
-            const prev = e.target.closest('.dp-nav-prev');
-            const next = e.target.closest('.dp-nav-next');
+            const day    = e.target.closest('.dp-day');
+            const prev   = e.target.closest('.dp-nav-prev');
+            const next   = e.target.closest('.dp-nav-next');
+            const yearEl = e.target.closest('.dp-year');
+            const label  = e.target.closest('.dp-month-label');
 
             if (day) {
                 const ds  = day.dataset.date;
@@ -111,6 +113,13 @@
                 inp.dispatchEvent(new Event('change', { bubbles: true }));
                 _close();
                 t.focus();
+            } else if (label && _ctx.mode === 'days') {
+                _ctx.mode = 'years';
+                _render();
+            } else if (yearEl) {
+                _ctx.year = parseInt(yearEl.dataset.year, 10);
+                _ctx.mode = 'days';
+                _render();
             } else if (prev) {
                 if (_ctx.month === 0) { _ctx.month = 11; _ctx.year--; }
                 else _ctx.month--;
@@ -126,7 +135,9 @@
             if (e.key === 'Escape') { e.preventDefault(); _close(); trigger.focus(); }
             else if (e.key === 'Enter' || e.key === ' ') {
                 if (e.target.classList.contains('dp-day') ||
-                    e.target.classList.contains('dp-nav')) {
+                    e.target.classList.contains('dp-nav') ||
+                    e.target.classList.contains('dp-year') ||
+                    e.target.classList.contains('dp-month-label')) {
                     e.preventDefault(); e.target.click();
                 }
             }
@@ -141,9 +152,11 @@
         requestAnimationFrame(() => panel.classList.add('dp-panel-open'));
     }
 
-    // ── Render calendar grid ──────────────────────────────────────
+    // ── Render calendar grid or year picker ─────────────────────────
     function _render() {
         if (!_panel || !_ctx) return;
+        if (_ctx.mode === 'years') { _renderYears(); return; }
+
         const { inp, year, month } = _ctx;
         const today = _today();
         const sel   = inp.value;
@@ -154,7 +167,7 @@
         let html = `
         <div class="dp-header">
             <button class="dp-nav dp-nav-prev" type="button">‹</button>
-            <span class="dp-month-label">${MONTHS[month]} ${year}</span>
+            <button class="dp-month-label" type="button">${MONTHS[month]} ${year}</button>
             <button class="dp-nav dp-nav-next" type="button">›</button>
         </div>
         <div class="dp-daynames">
@@ -173,6 +186,30 @@
 
         html += '</div>';
         _panel.innerHTML = html;
+    }
+
+    // ── Render year picker (1900 → today) ────────────────────────────
+    function _renderYears() {
+        const { year } = _ctx;
+        const maxYear = new Date().getFullYear();
+        const minYear = 1900;
+
+        let html = `
+        <div class="dp-header">
+            <span class="dp-month-label">בחר שנה</span>
+        </div>
+        <div class="dp-year-grid">`;
+
+        for (let y = maxYear; y >= minYear; y--) {
+            const cls = 'dp-year' + (y === year ? ' dp-year-sel' : '');
+            html += `<div class="${cls}" data-year="${y}" role="button" tabindex="0">${y}</div>`;
+        }
+
+        html += '</div>';
+        _panel.innerHTML = html;
+
+        const selEl = _panel.querySelector('.dp-year-sel');
+        if (selEl) selEl.scrollIntoView({ block: 'center' });
     }
 
     // ── Position panel (fixed to body) ────────────────────────────

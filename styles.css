@@ -3125,7 +3125,37 @@ legend { padding: 0; display: block; width: 100%; }
     font-size: 14px;
     font-weight: 600;
     color: var(--text-primary);
+    background: none;
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
 }
+.dp-month-label:hover,
+.dp-month-label:focus { background: var(--bg-card-alt); outline: none; }
+
+.dp-year-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+.dp-year {
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-primary);
+    cursor: pointer;
+    outline: none;
+    transition: background 0.1s;
+}
+.dp-year:hover,
+.dp-year:focus { background: var(--bg-card-alt); }
+.dp-year-sel   { background: var(--accent); color: #fff; font-weight: 600; }
 .dp-nav {
     background: var(--accent);
     color: #fff;
