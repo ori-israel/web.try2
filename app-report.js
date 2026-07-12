@@ -63,22 +63,75 @@ async function _selectTopExercises(userId, limit, minDataPoints) {
     return candidates.slice(0, limit);
 }
 
+// הרצף הארוך ביותר אי-פעם (לא הרצף הנוכחי): שבועות רצופים שבהם עמד ביעד האימונים השבועי
+function _longestWorkoutStreakWeeks(workoutDates) {
+    if (!workoutDates.length) return 0;
+    const weeklyTarget = Object.values(CLIENT.workoutDays || {}).reduce((s, days) => s + days.length, 0) || CLIENT.workoutsPerWeek || 3;
+    const weekCounts = {};
+    workoutDates.forEach(dateStr => {
+        const d = new Date(dateStr);
+        const sun = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
+        const key = sun.toISOString().split('T')[0];
+        weekCounts[key] = (weekCounts[key] || 0) + 1;
+    });
+    const weekKeys = Object.keys(weekCounts).sort();
+    let maxRun = 0, curRun = 0;
+    for (let d = new Date(weekKeys[0]); d <= new Date(weekKeys[weekKeys.length - 1]); d.setDate(d.getDate() + 7)) {
+        const key = d.toISOString().split('T')[0];
+        if ((weekCounts[key] || 0) >= weeklyTarget) {
+            curRun++;
+            maxRun = Math.max(maxRun, curRun);
+        } else {
+            curRun = 0;
+        }
+    }
+    return maxRun;
+}
+
+// הרצף הארוך ביותר אי-פעם: ימים רצופים שבהם הושג יעד המנות היומי (לפי היעד הנוכחי, הערכה)
+function _longestNutritionStreakDays(nutritionRows) {
+    let pTgt, cTgt, fTgt;
+    try {
+        pTgt = parseFloat(document.getElementById('protein-target').innerText.replace('/ ', ''));
+        cTgt = parseFloat(document.getElementById('carbs-target').innerText.replace('/ ', ''));
+        fTgt = parseFloat(document.getElementById('fat-target').innerText.replace('/ ', ''));
+    } catch (e) { return null; }
+    if (!pTgt || !cTgt || !fTgt || isNaN(pTgt) || isNaN(cTgt) || isNaN(fTgt)) return null;
+
+    const sorted = [...nutritionRows].sort((a, b) => new Date(a.date) - new Date(b.date));
+    let maxRun = 0, curRun = 0, prevDate = null;
+    sorted.forEach(row => {
+        const complete = (row.protein || 0) >= pTgt && (row.carbs || 0) >= cTgt && (row.fat || 0) >= fTgt;
+        const gapDays = prevDate ? (new Date(row.date) - prevDate) / 86400000 : null;
+        if (complete) {
+            curRun = (gapDays === 1) ? curRun + 1 : 1;
+            maxRun = Math.max(maxRun, curRun);
+        } else {
+            curRun = 0;
+        }
+        prevDate = new Date(row.date);
+    });
+    return maxRun;
+}
+
 async function _fetchTrainingStats(userId, sinceDate) {
     const [wRes, nRes] = await Promise.all([
         db.from('workout_performance_log').select('date').eq('client_id', userId),
         db.from('daily_nutrition').select('date, protein, carbs, fat').eq('user_id', userId).gte('date', sinceDate),
     ]);
-    const workoutDates = wRes.data ? new Set(wRes.data.map(r => r.date)) : new Set();
+    const workoutDates = [...new Set((wRes.data || []).map(r => r.date))];
     const nutritionRows = nRes.data || [];
     const avg = key => nutritionRows.length
         ? nutritionRows.reduce((s, r) => s + (r[key] || 0), 0) / nutritionRows.length
         : 0;
     return {
-        sessionCount: workoutDates.size,
+        sessionCount: workoutDates.length,
         nutritionDaysLogged: nutritionRows.length,
         avgProtein: avg('protein'),
         avgCarbs: avg('carbs'),
         avgFat: avg('fat'),
+        longestWorkoutStreakWeeks: _longestWorkoutStreakWeeks(workoutDates),
+        longestNutritionStreakDays: _longestNutritionStreakDays(nutritionRows),
     };
 }
 
@@ -89,7 +142,7 @@ function _buildHighlightSentences(bodyWeightDelta, topExercise, stats) {
         sentences.push(`${dir} ${Math.abs(bodyWeightDelta).toFixed(1)} ק"ג במשקל הגוף מאז ההתחלה`);
     }
     if (topExercise && topExercise.improvement > 0) {
-        sentences.push(`שיפרת ב${topExercise.name} ${topExercise.improvement.toFixed(1)} ק"ג מאז שהתחלת`);
+        sentences.push(`שיפרת ב${topExercise.name} ${topExercise.improvement.toFixed(1)} מאז שהתחלת`);
     }
     if (stats.sessionCount > 0) {
         sentences.push(`בוצעו ${stats.sessionCount} אימונים מתועדים בתקופה`);
@@ -108,6 +161,12 @@ async function gatherCardData(userId) {
     const bodyWeightDelta = (typeof CLIENT.currentWeight === 'number' && typeof CLIENT.startWeight === 'number')
         ? CLIENT.currentWeight - CLIENT.startWeight : null;
 
+    // הרצף המוצג הוא הרצף הכי ארוך אי-פעם, לא בהכרח הנוכחי
+    const workoutStreak = Math.max(stats.longestWorkoutStreakWeeks, streaks.workout_streak || 0);
+    const nutritionStreak = stats.longestNutritionStreakDays != null
+        ? Math.max(stats.longestNutritionStreakDays, streaks.nutrition_streak || 0)
+        : (streaks.nutrition_streak || 0);
+
     return {
         clientName: CLIENT.name || CLIENT.nickname || 'מתאמן',
         startDate: CLIENT.startDate || null,
@@ -118,8 +177,8 @@ async function gatherCardData(userId) {
         topExercises,
         stats,
         highlights: _buildHighlightSentences(bodyWeightDelta, topExercises[0], stats),
-        workoutStreak: streaks.workout_streak || 0,
-        nutritionStreak: streaks.nutrition_streak || 0,
+        workoutStreak,
+        nutritionStreak,
         logoImg: await _loadImage('/OI.512.512.png').catch(() => null),
     };
 }
@@ -324,14 +383,14 @@ function _drawExercisePanel(ctx, ex, x, y, w, h) {
     ctx.textAlign = 'center';
     ctx.fillStyle = C.textSecondary;
     ctx.font = '400 20px Heebo, sans-serif';
-    ctx.fillText(`מ-${ex.first} ל-${ex.last} ק"ג`, x + w / 2, textY);
+    ctx.fillText(`מ-${ex.first} ל-${ex.last}`, x + w / 2, textY);
 
     if (ex.improvement !== 0) {
         const pct = ex.first ? Math.abs((ex.improvement / ex.first) * 100) : 0;
         const sign = ex.improvement > 0 ? '+' : '';
         ctx.fillStyle = ex.improvement > 0 ? C.accent : C.textSecondary;
         ctx.font = '700 24px Heebo, sans-serif';
-        ctx.fillText(`${sign}${ex.improvement.toFixed(1)} ק"ג (${pct.toFixed(0)}%)`, x + w / 2, textY + 32);
+        ctx.fillText(`${sign}${ex.improvement.toFixed(1)} (${pct.toFixed(0)}%)`, x + w / 2, textY + 32);
     }
 }
 
@@ -358,17 +417,48 @@ function _drawHighlightsPanel(ctx, highlights, x, y, w, h) {
     });
 }
 
-function _drawStatsPanel(ctx, data, x, y, w, h) {
+function _drawMacrosPanel(ctx, data, x, y, w, h) {
+    const C = _REPORT_COLORS;
+    _roundRect(ctx, x, y, w, h, 20);
+    ctx.fillStyle = C.panel;
+    ctx.fill();
+
+    const pad = 32;
+    ctx.direction = 'rtl';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = C.textPrimary;
+    ctx.font = '700 26px Heebo, sans-serif';
+    ctx.fillText('ממוצע מנות ליום', x + w - pad, y + 44);
+
+    const cols = [
+        { label: 'חלבון', value: data.stats.avgProtein },
+        { label: 'פחמימה', value: data.stats.avgCarbs },
+        { label: 'שומן', value: data.stats.avgFat },
+    ];
+    const colY = y + h - 38;
+    const colW = (w - pad * 2) / cols.length;
+    ctx.textAlign = 'center';
+    cols.forEach((c, i) => {
+        const cx = x + w - pad - colW * i - colW / 2;
+        ctx.fillStyle = C.accent;
+        ctx.font = '700 32px Heebo, sans-serif';
+        ctx.fillText(c.value.toFixed(1), cx, colY - 26);
+        ctx.fillStyle = C.textSecondary;
+        ctx.font = '400 18px Heebo, sans-serif';
+        ctx.fillText(c.label, cx, colY);
+    });
+}
+
+function _drawStreakTiles(ctx, data, x, y, w, h) {
     const C = _REPORT_COLORS;
     const tiles = [
         { label: 'אימונים בתקופה', value: `${data.stats.sessionCount}` },
-        { label: 'ממוצע מנות ליום', value: `${data.stats.avgProtein.toFixed(1)}/${data.stats.avgCarbs.toFixed(1)}/${data.stats.avgFat.toFixed(1)}` },
-        { label: 'סטריק אימונים', value: `${data.workoutStreak} שבועות` },
-        { label: 'סטריק תזונה', value: `${data.nutritionStreak} ימים` },
+        { label: 'הרצף הכי ארוך: אימונים', value: `${data.workoutStreak} שבועות` },
+        { label: 'הרצף הכי ארוך: תזונה', value: `${data.nutritionStreak} ימים` },
     ];
     const gap = 16;
     const tileW = (w - gap * (tiles.length - 1)) / tiles.length;
-    ctx.direction = 'rtl';
     tiles.forEach((t, i) => {
         const tx = x + w - (i + 1) * tileW - i * gap;
         _roundRect(ctx, tx, y, tileW, h, 18);
@@ -377,7 +467,7 @@ function _drawStatsPanel(ctx, data, x, y, w, h) {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'alphabetic';
         ctx.fillStyle = C.accent;
-        ctx.font = '700 26px Heebo, sans-serif';
+        ctx.font = '700 28px Heebo, sans-serif';
         ctx.fillText(t.value, tx + tileW / 2, y + h / 2 - 2);
         ctx.fillStyle = C.textSecondary;
         ctx.font = '400 16px Heebo, sans-serif';
@@ -401,12 +491,13 @@ async function buildProgressCardImage(data) {
     const exercises = data.topExercises;
     const exercisesH = exercises.length ? 300 : 0;
     const highlightsH = data.highlights.length ? 60 + data.highlights.length * 52 : 0;
-    const statsH = 140;
+    const macrosH = 140;
+    const streakTilesH = 110;
 
     const H = MARGIN + headerH + weightH + GAP
         + (exercisesH ? exercisesH + GAP : 0)
         + (highlightsH ? highlightsH + GAP : 0)
-        + statsH + MARGIN;
+        + macrosH + GAP + streakTilesH + MARGIN;
 
     const canvas = document.createElement('canvas');
     canvas.width = W;
@@ -454,7 +545,9 @@ async function buildProgressCardImage(data) {
         y += highlightsH + GAP;
     }
 
-    _drawStatsPanel(ctx, data, MARGIN, y, contentW, statsH);
+    _drawMacrosPanel(ctx, data, MARGIN, y, contentW, macrosH);
+    y += macrosH + GAP;
+    _drawStreakTiles(ctx, data, MARGIN, y, contentW, streakTilesH);
 
     return canvas;
 }
