@@ -38,6 +38,7 @@
         text: 'ציון שבועי שמסכם את ההתקדמות, וגרף "היסטוריית ציונים שבועיים" שמראה את המגמה לאורך הזמן <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>' },
       { sel: '.weight-card',          text: 'משקל התחלה, נוכחי ויעד. לחיצה על המשקל הנוכחי מעדכנת אותו, ויש גרף <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg> של ההתקדמות' },
       { sel: '#progress-photos-card', text: 'העלאת תמונות לאורך הדרך כדי לראות את השינוי בעיניים' },
+      { sel: '#export-report-wrap',   text: 'יצירת תמונה אחת עם גרף משקל, שלושת התרגילים הכי בולטים והסטריקים, לשמירה או שיתוף' },
       { sel: '#coaching-goal-card',   text: 'היעד שנקבע עד הפגישה הבאה, מוצג כאן לתזכורת', coachOnly: true },
       { sel: '#open-survey-btn',      text: 'שאלון שבועי קצר למילוי כדי לעקוב אחרי ההרגשה וההתקדמות', coachOnly: true },
     ],
