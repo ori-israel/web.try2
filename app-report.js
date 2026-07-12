@@ -30,12 +30,22 @@ function _fmtDate(dateStr) {
     return `${d.getDate()}.${d.getMonth() + 1}.${String(d.getFullYear()).slice(2)}`;
 }
 
+// שמות התרגילים האמיתיים מתוכנית האימונים של הלקוח (workoutA/B/C ב-client.js).
+// הטבלה עצמה עלולה להכיל שורות בדיקה ישנות עם שמות זרים (למשל "Bench Press") שלא שייכות ללקוח בכלל.
+function _assignedExerciseNames() {
+    const names = new Set();
+    ['workoutA', 'workoutB', 'workoutC'].forEach(key => {
+        (CLIENT[key] || []).forEach(ex => { if (ex && ex.name) names.add(ex.name); });
+    });
+    return names;
+}
+
 async function _fetchExerciseNames(userId) {
     const { data, error } = await db.from('workout_performance_log')
         .select('exercise_name').eq('client_id', userId);
     if (error || !data) return [];
-    // שמות שמתחילים ב-__ הם סימונים פנימיים (למשל __workout_done__), לא תרגילים אמיתיים
-    return [...new Set(data.map(r => r.exercise_name))].filter(n => n && !n.startsWith('__'));
+    const assigned = _assignedExerciseNames();
+    return [...new Set(data.map(r => r.exercise_name))].filter(n => assigned.has(n));
 }
 
 // בוחר את התרגילים הכי "מייצגים" להישגי כוח: שילוב של כמות נתונים
@@ -88,20 +98,35 @@ function _longestWorkoutStreakWeeks(workoutDates) {
     return maxRun;
 }
 
-// הרצף הארוך ביותר אי-פעם: ימים רצופים שבהם הושג יעד המנות היומי (לפי היעד הנוכחי, הערכה)
-function _longestNutritionStreakDays(nutritionRows) {
-    let pTgt, cTgt, fTgt;
+// יעדי המנות היומיים הנוכחיים (מוצגים ב-DOM בטאב תזונה), משמשים גם לחישוב רצף וגם לסינון שורות לא סבירות
+function _getNutritionTargets() {
     try {
-        pTgt = parseFloat(document.getElementById('protein-target').innerText.replace('/ ', ''));
-        cTgt = parseFloat(document.getElementById('carbs-target').innerText.replace('/ ', ''));
-        fTgt = parseFloat(document.getElementById('fat-target').innerText.replace('/ ', ''));
+        const p = parseFloat(document.getElementById('protein-target').innerText.replace('/ ', ''));
+        const c = parseFloat(document.getElementById('carbs-target').innerText.replace('/ ', ''));
+        const f = parseFloat(document.getElementById('fat-target').innerText.replace('/ ', ''));
+        if (!p || !c || !f || isNaN(p) || isNaN(c) || isNaN(f)) return null;
+        return { protein: p, carbs: c, fat: f };
     } catch (e) { return null; }
-    if (!pTgt || !cTgt || !fTgt || isNaN(pTgt) || isNaN(cTgt) || isNaN(fTgt)) return null;
+}
 
+// שורות עם ערכים גבוהים באופן קיצוני מהיעד הן כנראה שורות בדיקה ישנות בטבלה, לא נתונים אמיתיים
+function _filterPlausibleNutritionRows(rows, targets) {
+    const CEILING_MULT = 3;
+    const ceiling = key => targets ? targets[key] * CEILING_MULT : 20; // בלי יעד ידוע: תקרה סבירה גנרית
+    return rows.filter(r =>
+        (r.protein || 0) <= ceiling('protein') &&
+        (r.carbs || 0) <= ceiling('carbs') &&
+        (r.fat || 0) <= ceiling('fat')
+    );
+}
+
+// הרצף הארוך ביותר אי-פעם: ימים רצופים שבהם הושג יעד המנות היומי (לפי היעד הנוכחי, הערכה)
+function _longestNutritionStreakDays(nutritionRows, targets) {
+    if (!targets) return null;
     const sorted = [...nutritionRows].sort((a, b) => new Date(a.date) - new Date(b.date));
     let maxRun = 0, curRun = 0, prevDate = null;
     sorted.forEach(row => {
-        const complete = (row.protein || 0) >= pTgt && (row.carbs || 0) >= cTgt && (row.fat || 0) >= fTgt;
+        const complete = (row.protein || 0) >= targets.protein && (row.carbs || 0) >= targets.carbs && (row.fat || 0) >= targets.fat;
         const gapDays = prevDate ? (new Date(row.date) - prevDate) / 86400000 : null;
         if (complete) {
             curRun = (gapDays === 1) ? curRun + 1 : 1;
@@ -120,7 +145,8 @@ async function _fetchTrainingStats(userId, sinceDate) {
         db.from('daily_nutrition').select('date, protein, carbs, fat').eq('user_id', userId).gte('date', sinceDate),
     ]);
     const workoutDates = [...new Set((wRes.data || []).map(r => r.date))];
-    const nutritionRows = nRes.data || [];
+    const targets = _getNutritionTargets();
+    const nutritionRows = _filterPlausibleNutritionRows(nRes.data || [], targets);
     const avg = key => nutritionRows.length
         ? nutritionRows.reduce((s, r) => s + (r[key] || 0), 0) / nutritionRows.length
         : 0;
@@ -131,18 +157,22 @@ async function _fetchTrainingStats(userId, sinceDate) {
         avgCarbs: avg('carbs'),
         avgFat: avg('fat'),
         longestWorkoutStreakWeeks: _longestWorkoutStreakWeeks(workoutDates),
-        longestNutritionStreakDays: _longestNutritionStreakDays(nutritionRows),
+        longestNutritionStreakDays: _longestNutritionStreakDays(nutritionRows, targets),
     };
+}
+
+function _fmtNum(n) {
+    return Number.isInteger(n) ? `${n}` : n.toFixed(1);
 }
 
 function _buildHighlightSentences(bodyWeightDelta, topExercise, stats) {
     const sentences = [];
     if (bodyWeightDelta != null && Math.abs(bodyWeightDelta) >= 0.1) {
         const dir = bodyWeightDelta > 0 ? 'עלית' : 'ירדת';
-        sentences.push(`${dir} ${Math.abs(bodyWeightDelta).toFixed(1)} ק"ג במשקל הגוף מאז ההתחלה`);
+        sentences.push(`${dir} ${_fmtNum(Math.abs(bodyWeightDelta))} ק"ג במשקל הגוף מאז ההתחלה`);
     }
     if (topExercise && topExercise.improvement > 0) {
-        sentences.push(`שיפרת ב${topExercise.name} ${topExercise.improvement.toFixed(1)} מאז שהתחלת`);
+        sentences.push(`שיפרת את המשקל ב${topExercise.name} ב-${_fmtNum(topExercise.improvement)} מאז שהתחלת`);
     }
     if (stats.sessionCount > 0) {
         sentences.push(`בוצעו ${stats.sessionCount} אימונים מתועדים בתקופה`);
@@ -390,7 +420,7 @@ function _drawExercisePanel(ctx, ex, x, y, w, h) {
         const sign = ex.improvement > 0 ? '+' : '';
         ctx.fillStyle = ex.improvement > 0 ? C.accent : C.textSecondary;
         ctx.font = '700 24px Heebo, sans-serif';
-        ctx.fillText(`${sign}${ex.improvement.toFixed(1)} (${pct.toFixed(0)}%)`, x + w / 2, textY + 32);
+        ctx.fillText(`${sign}${_fmtNum(ex.improvement)} (${pct.toFixed(0)}%)`, x + w / 2, textY + 32);
     }
 }
 
@@ -443,7 +473,7 @@ function _drawMacrosPanel(ctx, data, x, y, w, h) {
         const cx = x + w - pad - colW * i - colW / 2;
         ctx.fillStyle = C.accent;
         ctx.font = '700 32px Heebo, sans-serif';
-        ctx.fillText(c.value.toFixed(1), cx, colY - 26);
+        ctx.fillText(_fmtNum(c.value), cx, colY - 26);
         ctx.fillStyle = C.textSecondary;
         ctx.font = '400 18px Heebo, sans-serif';
         ctx.fillText(c.label, cx, colY);
