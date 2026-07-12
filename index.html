@@ -1452,10 +1452,12 @@
     </div>
 </div>
 <div id="progress-card-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeProgressCardModal()">
-    <div class="modal-card" onclick="event.stopPropagation()" style="max-width:420px;width:92%;text-align:center;direction:rtl;">
+    <div class="modal-card" onclick="event.stopPropagation()" style="max-width:420px;width:92%;text-align:center;direction:rtl;display:flex;flex-direction:column;overflow:hidden;">
         <button class="modal-close" onclick="closeProgressCardModal()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-        <img id="progress-card-preview-img" style="width:100%;border-radius:14px;display:block;margin-bottom:18px;" alt="כרטיס התקדמות">
-        <div style="display:flex;gap:12px;">
+        <div style="overflow-y:auto;min-height:0;">
+            <img id="progress-card-preview-img" style="width:100%;border-radius:14px;display:block;" alt="כרטיס התקדמות">
+        </div>
+        <div style="display:flex;gap:12px;margin-top:16px;flex-shrink:0;">
             <button class="calc-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;" onclick="saveProgressCardImage()"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg> שמירה</button>
             <button class="calc-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;" onclick="shareProgressCardImage()"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 0L8 7m4-4l4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg> שיתוף</button>
         </div>
