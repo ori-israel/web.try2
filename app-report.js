@@ -161,11 +161,16 @@ function _fmtNum(n) {
     return Number.isInteger(n) ? `${n}` : n.toFixed(1);
 }
 
-function _buildHighlightSentences(bodyWeightDelta, topExercise, stats) {
+function _buildHighlightSentences(bodyWeightDelta, topExercise, stats, startWeight, goalWeight) {
     const sentences = [];
     if (bodyWeightDelta != null && Math.abs(bodyWeightDelta) >= 0.1) {
-        const dir = bodyWeightDelta > 0 ? 'עלית' : 'ירדת';
-        sentences.push(`${dir} ${_fmtNum(Math.abs(bodyWeightDelta))} ק"ג במשקל הגוף מאז ההתחלה`);
+        // מוצג כהישג רק אם הכיוון תואם ליעד (למשל: ירידה כשהיעד חיטוב, עלייה כשהיעד מסה)
+        const goalDelta = (typeof startWeight === 'number' && typeof goalWeight === 'number') ? goalWeight - startWeight : null;
+        const matchesGoal = goalDelta == null || goalDelta === 0 || Math.sign(bodyWeightDelta) === Math.sign(goalDelta);
+        if (matchesGoal) {
+            const dir = bodyWeightDelta > 0 ? 'עלית' : 'ירדת';
+            sentences.push(`${dir} ${_fmtNum(Math.abs(bodyWeightDelta))} ק"ג במשקל הגוף מאז ההתחלה`);
+        }
     }
     if (topExercise && topExercise.improvement > 0) {
         sentences.push(`שיפרת את המשקל ב${topExercise.name} ב-${_fmtNum(topExercise.improvement)} מאז שהתחלת`);
@@ -177,9 +182,12 @@ function _buildHighlightSentences(bodyWeightDelta, topExercise, stats) {
 }
 
 // ממוצע ציון שבועי והשבוע הכי טוב (ציון 0-100 מטבלת weekly_scores)
-async function _fetchWeeklyScoreStats(userId) {
-    const { data, error } = await db.from('weekly_scores')
-        .select('week_start, score').eq('client_id', userId);
+// מסונן מ-sinceDate ואילך — ה-cron מגבה עד 8 שבועות אחורה לכל הלקוחות, כולל שבועות שקדמו להצטרפות
+// הלקוח לתוכנית (שבהם אין נתונים כלל וממילא הציון יוצא 0), וזה היה מוריד את הממוצע בצורה מטעה
+async function _fetchWeeklyScoreStats(userId, sinceDate) {
+    let query = db.from('weekly_scores').select('week_start, score').eq('client_id', userId);
+    if (sinceDate) query = query.gte('week_start', sinceDate);
+    const { data, error } = await query;
     if (error || !data || !data.length) return null;
     const avgScore = data.reduce((s, r) => s + (r.score || 0), 0) / data.length;
     const bestWeek = data.reduce((a, b) => (b.score || 0) > (a.score || 0) ? b : a);
@@ -193,7 +201,7 @@ async function gatherCardData(userId) {
     const topExercises = await _selectTopExercises(userId, 3, 2);
     const sinceDate = CLIENT.startDate || new Date(Date.now() - 90 * 86400000).toISOString().split('T')[0];
     const stats = await _fetchTrainingStats(userId, sinceDate);
-    const weeklyScoreStats = await _fetchWeeklyScoreStats(userId);
+    const weeklyScoreStats = await _fetchWeeklyScoreStats(userId, sinceDate);
     const streaks = window._streaksCache || {};
     const bodyWeightDelta = (typeof CLIENT.currentWeight === 'number' && typeof CLIENT.startWeight === 'number')
         ? CLIENT.currentWeight - CLIENT.startWeight : null;
@@ -214,7 +222,7 @@ async function gatherCardData(userId) {
         topExercises,
         stats,
         weeklyScoreStats,
-        highlights: _buildHighlightSentences(bodyWeightDelta, topExercises[0], stats),
+        highlights: _buildHighlightSentences(bodyWeightDelta, topExercises[0], stats, CLIENT.startWeight, CLIENT.goalWeight),
         workoutStreak,
         nutritionStreak,
         logoImg: await _loadImage('/OI.512.512.png').catch(() => null),
