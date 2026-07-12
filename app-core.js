@@ -131,8 +131,17 @@ function toggleTheme() {
 
     const goalText = CLIENT.goal === 'cut' ? 'חיטוב' : 'מסה';
     document.getElementById('header-goal-display').innerText = `${goalText} | ${totalCalories} קק"ל`;
-    const coachEl = document.getElementById('coach-name-display');
-    if (coachEl) coachEl.textContent = COACH_NAME;
+    // שם המאמן מוצג רק ללקוחות ליווי - למנויים אין מאמן אישי, השורה נסגרת לגמרי
+    const coachLine = document.getElementById('coach-name-line');
+    if (coachLine) {
+        if (CLIENT.isSubscriber) {
+            coachLine.style.display = 'none';
+        } else {
+            coachLine.style.display = '';
+            const coachEl = document.getElementById('coach-name-display');
+            if (coachEl) coachEl.textContent = COACH_NAME;
+        }
+    }
     document.title = `פורטל הליווי של ${CLIENT.name}`;
     const h1 = document.querySelector('h1');
     h1.innerText = `תוכנית הכושר של ${CLIENT.name}`;

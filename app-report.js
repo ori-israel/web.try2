@@ -176,6 +176,16 @@ function _buildHighlightSentences(bodyWeightDelta, topExercise, stats) {
     return sentences;
 }
 
+// ממוצע ציון שבועי והשבוע הכי טוב (ציון 0-100 מטבלת weekly_scores)
+async function _fetchWeeklyScoreStats(userId) {
+    const { data, error } = await db.from('weekly_scores')
+        .select('week_start, score').eq('client_id', userId);
+    if (error || !data || !data.length) return null;
+    const avgScore = data.reduce((s, r) => s + (r.score || 0), 0) / data.length;
+    const bestWeek = data.reduce((a, b) => (b.score || 0) > (a.score || 0) ? b : a);
+    return { avgScore, bestWeek };
+}
+
 async function gatherCardData(userId) {
     const history = JSON.parse(sessionStorage.getItem('weight_history') || '[]')
         .filter(p => p.date && !isNaN(new Date(p.date).getTime()))
@@ -183,6 +193,7 @@ async function gatherCardData(userId) {
     const topExercises = await _selectTopExercises(userId, 3, 2);
     const sinceDate = CLIENT.startDate || new Date(Date.now() - 90 * 86400000).toISOString().split('T')[0];
     const stats = await _fetchTrainingStats(userId, sinceDate);
+    const weeklyScoreStats = await _fetchWeeklyScoreStats(userId);
     const streaks = window._streaksCache || {};
     const bodyWeightDelta = (typeof CLIENT.currentWeight === 'number' && typeof CLIENT.startWeight === 'number')
         ? CLIENT.currentWeight - CLIENT.startWeight : null;
@@ -202,6 +213,7 @@ async function gatherCardData(userId) {
         goalWeight: CLIENT.goalWeight,
         topExercises,
         stats,
+        weeklyScoreStats,
         highlights: _buildHighlightSentences(bodyWeightDelta, topExercises[0], stats),
         workoutStreak,
         nutritionStreak,
@@ -476,6 +488,42 @@ function _drawMacrosPanel(ctx, data, x, y, w, h) {
     });
 }
 
+function _drawWeeklyScorePanel(ctx, data, x, y, w, h) {
+    const C = _REPORT_COLORS;
+    _roundRect(ctx, x, y, w, h, 20);
+    ctx.fillStyle = C.panel;
+    ctx.fill();
+
+    const pad = 32;
+    ctx.direction = 'rtl';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = C.textPrimary;
+    ctx.font = '700 26px Heebo, sans-serif';
+    ctx.fillText('ציונים שבועיים', x + w - pad, y + 44);
+
+    const s = data.weeklyScoreStats;
+    const colY = y + h - 38;
+    const colW = (w - pad * 2) / 2;
+
+    ctx.textAlign = 'center';
+    const avgCx = x + w - pad - colW / 2;
+    ctx.fillStyle = C.accent;
+    ctx.font = '700 32px Heebo, sans-serif';
+    ctx.fillText(Math.round(s.avgScore) + '', avgCx, colY - 26);
+    ctx.fillStyle = C.textSecondary;
+    ctx.font = '400 18px Heebo, sans-serif';
+    ctx.fillText('ממוצע', avgCx, colY);
+
+    const bestCx = x + w - pad - colW - colW / 2;
+    ctx.fillStyle = C.accent;
+    ctx.font = '700 32px Heebo, sans-serif';
+    ctx.fillText(Math.round(s.bestWeek.score) + '', bestCx, colY - 26);
+    ctx.fillStyle = C.textSecondary;
+    ctx.font = '400 18px Heebo, sans-serif';
+    ctx.fillText(`השבוע הכי טוב (${_fmtDate(s.bestWeek.week_start)})`, bestCx, colY);
+}
+
 function _drawStreakTiles(ctx, data, x, y, w, h) {
     const C = _REPORT_COLORS;
     const tiles = [
@@ -518,12 +566,15 @@ async function buildProgressCardImage(data) {
     const exercisesH = exercises.length ? 300 : 0;
     const highlightsH = data.highlights.length ? 60 + data.highlights.length * 52 : 0;
     const macrosH = 140;
+    const weeklyScoreH = data.weeklyScoreStats ? 140 : 0;
     const streakTilesH = 110;
 
     const H = MARGIN + headerH + weightH + GAP
         + (exercisesH ? exercisesH + GAP : 0)
         + (highlightsH ? highlightsH + GAP : 0)
-        + macrosH + GAP + streakTilesH + MARGIN;
+        + macrosH + GAP
+        + (weeklyScoreH ? weeklyScoreH + GAP : 0)
+        + streakTilesH + MARGIN;
 
     const canvas = document.createElement('canvas');
     canvas.width = W;
@@ -573,6 +624,12 @@ async function buildProgressCardImage(data) {
 
     _drawMacrosPanel(ctx, data, MARGIN, y, contentW, macrosH);
     y += macrosH + GAP;
+
+    if (weeklyScoreH) {
+        _drawWeeklyScorePanel(ctx, data, MARGIN, y, contentW, weeklyScoreH);
+        y += weeklyScoreH + GAP;
+    }
+
     _drawStreakTiles(ctx, data, MARGIN, y, contentW, streakTilesH);
 
     return canvas;
