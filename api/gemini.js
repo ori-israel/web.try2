@@ -60,15 +60,25 @@ export default async function handler(req, res) {
         }
     }
 
-    // Global rate limit: max 12 requests/min across ALL users (Gemini free tier = 15/min)
+    // Rate limit (billing פעיל, לא free tier): 15 בקשות/דקה למשתמש בודד + 100 בקשות/דקה גלובלית לכל האתר
     const minAgo = new Date(Date.now() - 60 * 1000).toISOString();
+
+    const { count: userCount } = await db.from('ai_global_log')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', minAgo);
+    if (userCount >= 15) {
+        return res.status(429).json({ error: 'הגעת למגבלת הבקשות שלך (15 לדקה). נסה שוב בעוד דקה' });
+    }
+
     const { count: globalCount } = await db.from('ai_global_log')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', minAgo);
-    if (globalCount >= 12) {
+    if (globalCount >= 100) {
         return res.status(429).json({ error: 'המערכת עמוסה כרגע, נסה שוב בעוד דקה' });
     }
-    await db.from('ai_global_log').insert({ created_at: new Date().toISOString() });
+
+    await db.from('ai_global_log').insert({ created_at: new Date().toISOString(), user_id: user.id });
     // ניקוי שורות ישנות כדי שהטבלה תישאר קטנה (לא חוסם את התשובה)
     db.from('ai_global_log').delete()
         .lt('created_at', new Date(Date.now() - 2 * 60 * 1000).toISOString())
