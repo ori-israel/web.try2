@@ -628,7 +628,10 @@ function closeProgressCardModal() {
     if (modal) modal.classList.add('hidden');
 }
 
-function saveProgressCardImage() {
+// אין ב-Web API דרך לשמור תמונה ישירות לגלריה; תפריט השיתוף המובנה של המערכת
+// הוא הדרך היחידה למשתמש להגיע ל"שמירת תמונה"/"הוספה לתמונות". דסקטופ בלי
+// Web Share נופל להורדה רגילה של הקובץ.
+function _downloadProgressCardFile() {
     if (!_progressCardBlob) return;
     const url = URL.createObjectURL(_progressCardBlob);
     const a = document.createElement('a');
@@ -651,7 +654,7 @@ async function shareProgressCardImage() {
             if (e.name === 'AbortError') return; // המשתמש ביטל את השיתוף
         }
     }
-    saveProgressCardImage();
+    _downloadProgressCardFile();
 }
 
 function _applyReportExportVisibility() {
