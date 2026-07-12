@@ -1,49 +1,16 @@
-// ===== ייצוא דוח התקדמות (PDF) =====
+// ===== כרטיס התקדמות (תמונה לשיתוף/שמירה) =====
 
 function canExportReport() {
     return !!CLIENT.isSubscriber;
 }
 
-async function loadJsPDF() {
-    if (window.jspdf) return;
+function _loadImage(src) {
     return new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/jspdf@2/dist/jspdf.umd.min.js';
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
     });
-}
-
-// טקסט עברי כתמונה — jsPDF לא כולל גופן עם תווים בעברית, אז כל טקסט
-// בדוח מצויר על קנבס (שמרנדר עברית נכון) והופך לתמונה במקום doc.text()
-function _labelImage(text, opts = {}) {
-    const { width = 700, height = 60, fontSize = 26, color = '#1c1c1e', align = 'right' } = opts;
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    ctx.direction = 'rtl';
-    ctx.textAlign = align;
-    ctx.textBaseline = 'middle';
-    ctx.font = `700 ${fontSize}px Heebo, -apple-system, sans-serif`;
-    ctx.fillStyle = color;
-    ctx.fillText(text, align === 'right' ? width - 6 : width / 2, height / 2);
-    return canvas.toDataURL('image/png');
-}
-
-async function _urlToDataURL(url) {
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error('fetch failed: ' + resp.status);
-    const blob = await resp.blob();
-    const format = blob.type === 'image/png' ? 'PNG' : 'JPEG';
-    const dataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-    });
-    return { dataUrl, format };
 }
 
 // גרף המשקל מצויר על קנבס קבוע שקיים תמיד ב-DOM (בתוך weight-chart-modal),
@@ -67,13 +34,6 @@ async function _captureWeightChart() {
     }
 }
 
-async function _captureScoreHistoryChart(userId) {
-    if (typeof renderScoreHistory !== 'function') return null;
-    await renderScoreHistory(userId);
-    const canvas = document.getElementById('score-history-canvas');
-    return canvas ? canvas.toDataURL('image/png') : null;
-}
-
 async function _fetchExerciseNames(userId) {
     const { data, error } = await db.from('workout_performance_log')
         .select('exercise_name').eq('client_id', userId);
@@ -81,137 +41,179 @@ async function _fetchExerciseNames(userId) {
     return [...new Set(data.map(r => r.exercise_name))];
 }
 
-// גרף כוח לכל תרגיל שיש לו נתונים — אותה הגדרת גרף בדיוק כמו showStrengthChart
-// (app-journal.js), רק על קנבס זמני שלא מוצג במסך, לא בתוך מודל אינטראקטיבי
-async function _captureStrengthCharts(userId) {
-    await loadChartJs();
+// בוחר את התרגילים הכי "מייצגים" להישגי כוח: שילוב של כמות נתונים
+// (כמה פעם תועד) ושיפור במשקל (אחרון פחות ראשון), לא הערכת 1RM
+async function _selectTopExercises(userId, limit, minDataPoints) {
     const exerciseNames = await _fetchExerciseNames(userId);
-    const charts = [];
+    const candidates = [];
     for (const name of exerciseNames) {
         const { data, error } = await db.from('workout_performance_log')
             .select('date, weight_kg, reps')
             .eq('client_id', userId).eq('exercise_name', name)
             .order('date', { ascending: true });
-        if (error || !data || !data.length) continue;
+        if (error || !data || data.length < minDataPoints) continue;
+        const first = data[0].weight_kg || 0;
+        const last = data[data.length - 1].weight_kg || 0;
+        candidates.push({ name, data, dataPoints: data.length, improvement: last - first });
+    }
+    if (!candidates.length) return [];
+    const maxData = Math.max(...candidates.map(c => c.dataPoints));
+    const maxImprovement = Math.max(1, ...candidates.map(c => Math.max(c.improvement, 0)));
+    candidates.forEach(c => {
+        c.score = (c.dataPoints / maxData) * 0.5 + (Math.max(c.improvement, 0) / maxImprovement) * 0.5;
+    });
+    candidates.sort((a, b) => b.score - a.score);
+    return candidates.slice(0, limit);
+}
 
-        const canvas = document.createElement('canvas');
-        canvas.width = 700;
-        canvas.height = 380;
-        const ctx = canvas.getContext('2d');
-        const chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: data.map(r => r.date),
-                datasets: [
-                    { label: 'משקל', data: data.map(r => r.weight_kg), borderColor: '#5b7cfa', backgroundColor: 'rgba(91,124,250,0.15)', fill: true, tension: 0.3, yAxisID: 'y' },
-                    { label: 'חזרות', data: data.map(r => r.reps), borderColor: '#4caf50', backgroundColor: 'transparent', borderDash: [6, 3], tension: 0.3, yAxisID: 'y2' }
-                ]
+async function _renderStrengthMiniChart(ex) {
+    await loadChartJs();
+    const canvas = document.createElement('canvas');
+    canvas.width = 320;
+    canvas.height = 260;
+    const ctx = canvas.getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ex.data.map(r => r.date),
+            datasets: [{
+                data: ex.data.map(r => r.weight_kg),
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59,130,246,0.15)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            responsive: false,
+            animation: false,
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: ex.name, font: { size: 15 }, color: '#f5f5f7' }
             },
-            options: {
-                responsive: false,
-                animation: false,
-                interaction: { mode: 'index', intersect: false },
-                plugins: { title: { display: true, text: name, font: { size: 16 } } },
-                scales: {
-                    y:  { type: 'linear', position: 'left',  min: 0, max: 100, ticks: { color: '#5b7cfa' }, title: { display: true, text: 'משקל' } },
-                    y2: { type: 'linear', position: 'right', min: 0, max: 25,  grid: { drawOnChartArea: false }, ticks: { color: '#4caf50', stepSize: 1, precision: 0 }, title: { display: true, text: 'חזרות' } }
-                }
+            scales: {
+                x: { display: false },
+                y: { display: true, ticks: { color: '#98989f' }, grid: { color: 'rgba(255,255,255,0.08)' } }
             }
-        });
-        charts.push({ name, image: canvas.toDataURL('image/png') });
-        chart.destroy();
-    }
-    return charts;
-}
-
-async function _gatherProgressPhotos(userId) {
-    if (typeof sbFetchProgressPhotos !== 'function') return [];
-    const photos = await sbFetchProgressPhotos(userId);
-    if (!photos || !photos.length) return [];
-    const signedUrls = await sbGetSignedPhotoUrls(photos.map(p => p.storage_path));
-    const results = [];
-    for (const p of photos) {
-        const url = signedUrls[p.storage_path];
-        if (!url) continue;
-        try {
-            results.push(await _urlToDataURL(url));
-        } catch (e) {
-            console.warn('progress photo skipped in report:', e.message);
         }
-    }
-    return results;
+    });
+    const dataUrl = canvas.toDataURL('image/png');
+    chart.destroy();
+    return dataUrl;
 }
 
-async function gatherReportData(userId, includePhotos) {
-    const [weightImg, scoreImg, strengthCharts, photos] = await Promise.all([
-        _captureWeightChart(),
-        _captureScoreHistoryChart(userId),
-        _captureStrengthCharts(userId),
-        includePhotos ? _gatherProgressPhotos(userId) : Promise.resolve([])
-    ]);
+function _buildHighlightSentences(bodyWeightDelta, topExercise) {
+    const sentences = [];
+    if (bodyWeightDelta != null && Math.abs(bodyWeightDelta) >= 0.1) {
+        const dir = bodyWeightDelta > 0 ? 'עלית' : 'ירדת';
+        sentences.push(`${dir} ${Math.abs(bodyWeightDelta).toFixed(1)} ק"ג במשקל הגוף מאז ההתחלה`);
+    }
+    if (topExercise && topExercise.improvement > 0) {
+        sentences.push(`שיפרת ב${topExercise.name} ${topExercise.improvement.toFixed(1)} ק"ג מאז שהתחלת`);
+    }
+    return sentences;
+}
+
+async function gatherCardData(userId) {
+    const weightDataUrl = await _captureWeightChart();
+    const topExercises = await _selectTopExercises(userId, 3, 2);
+    const strengthDataUrls = [];
+    for (const ex of topExercises) {
+        strengthDataUrls.push(await _renderStrengthMiniChart(ex));
+    }
     const streaks = window._streaksCache || {};
+    const bodyWeightDelta = (typeof CLIENT.currentWeight === 'number' && typeof CLIENT.startWeight === 'number')
+        ? CLIENT.currentWeight - CLIENT.startWeight : null;
+
     return {
         clientName: CLIENT.name || CLIENT.nickname || 'מתאמן',
-        goal: CLIENT.goal === 'cut' ? 'חיטוב' : 'מסה',
+        weightImg: weightDataUrl ? await _loadImage(weightDataUrl).catch(() => null) : null,
+        strengthImgs: await Promise.all(strengthDataUrls.map(u => _loadImage(u).catch(() => null))),
+        highlights: _buildHighlightSentences(bodyWeightDelta, topExercises[0]),
         workoutStreak: streaks.workout_streak || 0,
         nutritionStreak: streaks.nutrition_streak || 0,
-        weightImg, scoreImg, strengthCharts, photos
+        logoImg: await _loadImage('/OI.512.512.png').catch(() => null),
     };
 }
 
-async function buildProgressReportPDF(data) {
-    await loadJsPDF();
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 15;
-    const contentWidth = pageWidth - margin * 2;
-    let y = margin;
+async function buildProgressCardImage(data) {
+    const W = 1080, H = 1350;
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
 
-    const ensureSpace = neededHeight => {
-        if (y + neededHeight > pageHeight - margin) {
-            doc.addPage();
-            y = margin;
-        }
-    };
+    ctx.fillStyle = '#0a0a0f';
+    ctx.fillRect(0, 0, W, H);
 
-    // כותרת: לוגו + שם + מטרה + סטריקים, הכל כתמונה אחת בגלל טקסט בעברית
-    try {
-        const logo = await _urlToDataURL(location.origin + '/OI.512.512.png');
-        doc.addImage(logo.dataUrl, logo.format, margin, y, 16, 16);
-    } catch (e) { console.warn('report logo skipped:', e.message); }
-    const headerText = `דוח התקדמות — ${data.clientName}  |  מטרה: ${data.goal}  |  סטריק תזונה: ${data.nutritionStreak} ימים  |  סטריק אימונים: ${data.workoutStreak} שבועות`;
-    doc.addImage(_labelImage(headerText, { width: 1400, height: 90, fontSize: 26 }), 'PNG', margin, y, contentWidth, 11);
-    y += 24;
+    if (data.logoImg) ctx.drawImage(data.logoImg, 40, 40, 90, 90);
+    ctx.direction = 'rtl';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#f5f5f7';
+    ctx.font = '700 44px Heebo, sans-serif';
+    ctx.fillText(data.clientName, W - 40, 70);
+    ctx.font = '400 26px Heebo, sans-serif';
+    ctx.fillStyle = '#98989f';
+    ctx.fillText('כרטיס התקדמות', W - 40, 112);
 
-    const addChartBlock = (title, img) => {
-        if (!img) return;
-        const imgHeight = contentWidth * 0.5;
-        ensureSpace(14 + imgHeight);
-        doc.addImage(_labelImage(title, { width: 1000, height: 70 }), 'PNG', margin, y, contentWidth, 8);
-        y += 12;
-        doc.addImage(img, 'PNG', margin, y, contentWidth, imgHeight);
-        y += imgHeight + 10;
-    };
+    let y = 170;
 
-    addChartBlock('מעקב משקל גוף', data.weightImg);
-    addChartBlock('היסטוריית ציונים שבועיים', data.scoreImg);
-    data.strengthCharts.forEach(c => addChartBlock(`התקדמות כוח: ${c.name}`, c.image));
-
-    if (data.photos && data.photos.length) {
-        ensureSpace(16);
-        doc.addImage(_labelImage('תמונות התקדמות', { width: 1000, height: 70 }), 'PNG', margin, y, contentWidth, 8);
-        y += 12;
-        const photoSize = 70;
-        data.photos.forEach(p => {
-            ensureSpace(photoSize + 8);
-            doc.addImage(p.dataUrl, p.format, pageWidth - margin - photoSize, y, photoSize, photoSize);
-            y += photoSize + 8;
-        });
+    if (data.weightImg) {
+        const chartH = 300;
+        ctx.drawImage(data.weightImg, 40, y, W - 80, chartH);
+        y += chartH + 30;
     }
 
-    doc.save(`דוח-התקדמות-${data.clientName}.pdf`);
+    const strengthImgs = data.strengthImgs.filter(Boolean);
+    if (strengthImgs.length) {
+        const gap = 20;
+        const colW = (W - 80 - gap * (strengthImgs.length - 1)) / strengthImgs.length;
+        const colH = 260;
+        strengthImgs.forEach((img, i) => {
+            const x = 40 + i * (colW + gap);
+            ctx.drawImage(img, x, y, colW, colH);
+        });
+        y += colH + 50;
+    }
+
+    ctx.textAlign = 'right';
+    ctx.font = '600 32px Heebo, sans-serif';
+    ctx.fillStyle = '#3b82f6';
+    data.highlights.forEach(line => {
+        ctx.fillText(line, W - 40, y);
+        y += 46;
+    });
+    y += 24;
+
+    ctx.font = '500 26px Heebo, sans-serif';
+    ctx.fillStyle = '#98989f';
+    ctx.fillText(`סטריק תזונה: ${data.nutritionStreak} ימים   |   סטריק אימונים: ${data.workoutStreak} שבועות`, W - 40, y);
+
+    return canvas;
+}
+
+async function _shareOrDownloadImage(canvas, filename) {
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) throw new Error('canvas export failed');
+    const file = new File([blob], filename, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({ files: [file], title: 'כרטיס התקדמות' });
+            return;
+        } catch (e) {
+            if (e.name === 'AbortError') return; // המשתמש ביטל את השיתוף
+        }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
 async function exportProgressReport() {
@@ -220,25 +222,24 @@ async function exportProgressReport() {
     if (!userId) return;
 
     const btn = document.getElementById('export-report-btn');
-    const checkbox = document.getElementById('export-report-photos-cb');
-    const includePhotos = !!(checkbox && checkbox.checked);
-    const origHTML = btn ? btn.innerHTML : '';
+    const origText = btn ? btn.textContent : '';
     if (btn) {
         btn.disabled = true;
         btn.style.opacity = '0.6';
-        btn.textContent = 'מכין דוח...';
+        btn.textContent = 'מכין כרטיס...';
     }
     try {
-        const data = await gatherReportData(userId, includePhotos);
-        await buildProgressReportPDF(data);
+        const data = await gatherCardData(userId);
+        const canvas = await buildProgressCardImage(data);
+        await _shareOrDownloadImage(canvas, `כרטיס-התקדמות-${data.clientName}.png`);
     } catch (e) {
         console.error('exportProgressReport:', e);
-        if (typeof showAlert === 'function') showAlert('שגיאה ביצירת הדוח, נסה שוב');
+        if (typeof showAlert === 'function') showAlert('שגיאה ביצירת הכרטיס, נסה שוב');
     } finally {
         if (btn) {
             btn.disabled = false;
             btn.style.opacity = '1';
-            btn.innerHTML = origHTML;
+            btn.textContent = origText;
         }
     }
 }
