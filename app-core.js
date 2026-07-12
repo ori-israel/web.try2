@@ -232,7 +232,7 @@ function _isIOS() {
 
 function _applySubscriberMode() {
     const hide = CLIENT.isSubscriber;
-    const ids = ['calendly-hamburger-btn', 'open-survey-btn', 'coaching-goal-card'];
+    const ids = ['calendly-hamburger-btn', 'open-survey-btn', 'coaching-goal-card', 'whatsapp-top-btn'];
     ids.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = hide ? 'none' : '';
