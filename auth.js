@@ -166,6 +166,7 @@ async function reinitApp() {
     if (typeof checkMeetingReminder     === 'function') checkMeetingReminder();
     if (typeof checkSubscriptionRenewalReminder === 'function') checkSubscriptionRenewalReminder();
     if (typeof _applySubscriberMode     === 'function') _applySubscriberMode();
+    if (typeof _applyReportExportVisibility === 'function') _applyReportExportVisibility();
     if (typeof loadProgressPhotos       === 'function') loadProgressPhotos();
     if (typeof renderFoodLog            === 'function') renderFoodLog();
 }

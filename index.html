@@ -804,6 +804,16 @@
             </div>
         </div>
 
+        <div id="export-report-wrap" class="card" style="margin-top:20px; display:none;">
+            <strong style="color:var(--dark-green);"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M14 3v5a1 1 0 0 0 1 1h5"/><path d="M6 3h8l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M9 15l2 2 4-4"/></svg> ייצוא דוח התקדמות</strong>
+            <p style="font-size:13px;color:var(--text-secondary);margin:6px 0 12px;">קובץ PDF עם גרף משקל, גרף כוח לכל תרגיל, סטריקים והיסטוריית ציונים, מוכן להורדה או שיתוף</p>
+            <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-bottom:12px;">
+                <input id="export-report-photos-cb" type="checkbox" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);flex-shrink:0;">
+                כלול תמונות התקדמות בדוח
+            </label>
+            <button id="export-report-btn" class="calc-btn" onclick="exportProgressReport()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;">ייצוא דוח PDF</button>
+        </div>
+
        <div id="coaching-goal-card" class="card" style="margin-top: 35px;">
     <strong>יעד מרכזי עד לפגישה הבאה:</strong>
     <textarea id="coaching-goal-display" rows="3" spellcheck="false" maxlength="300" style="width:100%; margin:5px 0; padding:8px; border:1px solid var(--main-green); border-radius:8px; font-size:16px; font-family:inherit; resize:vertical; direction:rtl; text-align:right; background:var(--bg-card); color:var(--text-primary); box-sizing:border-box;"></textarea>
@@ -1417,6 +1427,7 @@
 <script src="app-workouts.js"></script>
 <script src="app-journal.js"></script>
 <script src="app-nutrition.js"></script>
+<script src="app-report.js"></script>
 <script src="tour.js"></script>
 <script src="achievements.js"></script>
 <script src="ai.js"></script>

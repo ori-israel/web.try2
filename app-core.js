@@ -344,6 +344,7 @@ function triggerPWAInstall() {
     checkThursdayBanner();
     _showPWAPromptIfNeeded();
     _applySubscriberMode();
+    if (typeof _applyReportExportVisibility === 'function') _applyReportExportVisibility();
     if (window.Tour && typeof Tour.maybeAutoRun === 'function') Tour.maybeAutoRun();
 };
 
