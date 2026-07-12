@@ -188,16 +188,22 @@ async function renderScoreHistory(userId) {
         const allWeeks = [...weeks, { start: curStart, end: curEnd, label: 'השבוע', current: true }];
         const rangeStart = weeks[0].start; // השבוע הישן ביותר
 
-        // שליפה אחת לכל סוג נתון לכל הטווח (במקום פנייה נפרדת לכל שבוע) — מהיר בהרבה, אותן תוצאות בדיוק
-        const [scoresRes, wkRes, nutRes, wtRes] = await Promise.all([
-            db.from('weekly_scores').select('week_start, score').eq('client_id', userId).gte('week_start', rangeStart).lt('week_start', curStart),
-            db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', rangeStart).lte('date', curEnd),
-            db.from('daily_nutrition').select('date,protein,carbs,fat').eq('user_id', userId).gte('date', rangeStart).lte('date', curEnd),
-            db.from('weight_history').select('date').eq('user_id', userId).gte('date', rangeStart).lte('date', curEnd),
+        // שלב 1: הציונים השמורים לשבועות עבר (נכתבים סופית ע"י cron, לעולם לא נדרסים)
+        const scoresRes = await db.from('weekly_scores').select('week_start, score').eq('client_id', userId).gte('week_start', rangeStart).lt('week_start', curStart);
+        if (getActiveUserId() !== userId) return;
+        const storedMap = new Map((scoresRes.data || []).map(r => [r.week_start, r.score]));
+
+        // שלב 2: דאטה גולמי נשלף רק מהשבוע הראשון בלי ציון שמור ואילך (בד"כ רק השבוע הנוכחי) — לא על כל הטווח
+        const missingWeek = weeks.find(w => !storedMap.has(w.start));
+        const rawStart = missingWeek ? missingWeek.start : curStart;
+
+        const [wkRes, nutRes, wtRes] = await Promise.all([
+            db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', rawStart).lte('date', curEnd),
+            db.from('daily_nutrition').select('date,protein,carbs,fat').eq('user_id', userId).gte('date', rawStart).lte('date', curEnd),
+            db.from('weight_history').select('date').eq('user_id', userId).gte('date', rawStart).lte('date', curEnd),
         ]);
         if (getActiveUserId() !== userId) return;
 
-        const storedMap = new Map((scoresRes.data || []).map(r => [r.week_start, r.score]));
         const wkRows  = wkRes.data  || [];
         const nutRows = nutRes.data || [];
         const wtRows  = wtRes.data  || [];
