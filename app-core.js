@@ -813,7 +813,8 @@ function _showProgressPhotoToast(msg, success = true) {
         'new-client-modal', 'workout-editor-modal', 'questionnaire-modal', 'video-modal',
         'calendly-modal', 'app-dialog', 'achievement-popup', 'workout-complete-msg',
         'nutrition-complete-msg', 'pwa-install-popup', 'renewal-reminder-popup', 'pwa-ios-popup',
-        'birthday-modal', 'weekly-survey-banner', 'ai-chat-overlay', 'survey-overlay', 'calc-overlay'
+        'birthday-modal', 'weekly-survey-banner', 'ai-chat-overlay', 'survey-overlay', 'calc-overlay',
+        'progress-card-modal'
     ];
     let dynamicOverlayCount = 0;
     window._dynamicOverlayOpen = function () { dynamicOverlayCount++; _refreshScrollLock(); };

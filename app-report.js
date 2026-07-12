@@ -48,8 +48,8 @@ async function _fetchExerciseNames(userId) {
     return [...new Set(data.map(r => r.exercise_name))].filter(n => assigned.has(n));
 }
 
-// בוחר את התרגילים הכי "מייצגים" להישגי כוח: שילוב של כמות נתונים
-// (כמה פעם תועד) ושיפור במשקל (אחרון פחות ראשון), לא הערכת 1RM
+// בוחר את התרגילים עם השיפור הגדול ביותר במשקל (אחרון פחות ראשון), לא הערכת 1RM.
+// minDataPoints הוא רק סף איכות נתונים (לא חלק מהניקוד) — תרגיל עם שיפור 0 לא נכנס בכלל
 async function _selectTopExercises(userId, limit, minDataPoints) {
     const exerciseNames = await _fetchExerciseNames(userId);
     const candidates = [];
@@ -61,15 +61,11 @@ async function _selectTopExercises(userId, limit, minDataPoints) {
         if (error || !data || data.length < minDataPoints) continue;
         const first = data[0].weight_kg || 0;
         const last = data[data.length - 1].weight_kg || 0;
-        candidates.push({ name, data, dataPoints: data.length, first, last, improvement: last - first });
+        const improvement = last - first;
+        if (improvement <= 0) continue;
+        candidates.push({ name, data, dataPoints: data.length, first, last, improvement });
     }
-    if (!candidates.length) return [];
-    const maxData = Math.max(...candidates.map(c => c.dataPoints));
-    const maxImprovement = Math.max(1, ...candidates.map(c => Math.max(c.improvement, 0)));
-    candidates.forEach(c => {
-        c.score = (c.dataPoints / maxData) * 0.5 + (Math.max(c.improvement, 0) / maxImprovement) * 0.5;
-    });
-    candidates.sort((a, b) => b.score - a.score);
+    candidates.sort((a, b) => b.improvement - a.improvement);
     return candidates.slice(0, limit);
 }
 
@@ -582,27 +578,11 @@ async function buildProgressCardImage(data) {
     return canvas;
 }
 
-async function _shareOrDownloadImage(canvas, filename) {
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-    if (!blob) throw new Error('canvas export failed');
-    const file = new File([blob], filename, { type: 'image/png' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-            await navigator.share({ files: [file], title: 'כרטיס התקדמות' });
-            return;
-        } catch (e) {
-            if (e.name === 'AbortError') return; // המשתמש ביטל את השיתוף
-        }
-    }
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
-}
+// הכרטיס נבנה כתמונה בזיכרון בלבד (קנבס בדפדפן) ומוצג בתצוגה מקדימה.
+// שום דבר לא נשלח או נשמר בסופאבייס — רק שמירה/שיתוף מקומיים ביוזמת המשתמש.
+let _progressCardBlob = null;
+let _progressCardFilename = '';
+let _progressCardObjectUrl = null;
 
 async function exportProgressReport() {
     if (!canExportReport()) return;
@@ -619,7 +599,18 @@ async function exportProgressReport() {
     try {
         const data = await gatherCardData(userId);
         const canvas = await buildProgressCardImage(data);
-        await _shareOrDownloadImage(canvas, `כרטיס-התקדמות-${data.clientName}.png`);
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        if (!blob) throw new Error('canvas export failed');
+
+        _progressCardBlob = blob;
+        _progressCardFilename = `כרטיס-התקדמות-${data.clientName}.png`;
+        if (_progressCardObjectUrl) URL.revokeObjectURL(_progressCardObjectUrl);
+        _progressCardObjectUrl = URL.createObjectURL(blob);
+
+        const img = document.getElementById('progress-card-preview-img');
+        if (img) img.src = _progressCardObjectUrl;
+        const modal = document.getElementById('progress-card-modal');
+        if (modal) modal.classList.remove('hidden');
     } catch (e) {
         console.error('exportProgressReport:', e);
         if (typeof showAlert === 'function') showAlert('שגיאה ביצירת הכרטיס, נסה שוב');
@@ -630,6 +621,37 @@ async function exportProgressReport() {
             btn.textContent = origText;
         }
     }
+}
+
+function closeProgressCardModal() {
+    const modal = document.getElementById('progress-card-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function saveProgressCardImage() {
+    if (!_progressCardBlob) return;
+    const url = URL.createObjectURL(_progressCardBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = _progressCardFilename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+async function shareProgressCardImage() {
+    if (!_progressCardBlob) return;
+    const file = new File([_progressCardBlob], _progressCardFilename, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({ files: [file], title: 'כרטיס התקדמות' });
+            return;
+        } catch (e) {
+            if (e.name === 'AbortError') return; // המשתמש ביטל את השיתוף
+        }
+    }
+    saveProgressCardImage();
 }
 
 function _applyReportExportVisibility() {
