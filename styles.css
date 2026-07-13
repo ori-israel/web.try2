@@ -490,6 +490,12 @@ h1 {
     margin-bottom: 14px;
 }
 
+.nutrition-header-btns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .nutrition-title {
     margin: 0;
     font-size: 19px;
@@ -504,8 +510,6 @@ h1 {
     display: flex;
     align-items: center;
     gap: 6px;
-    width: fit-content;
-    margin-top: 12px;
     background: var(--streak-bg) !important;
     border: 1px solid rgba(59, 130, 246, 0.3) !important;
     border-radius: 14px;
