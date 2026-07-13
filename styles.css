@@ -1290,6 +1290,15 @@ mark {
     max-width: calc(50% - 6px);
 }
 
+.workout-container {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+    border: 0.5px solid var(--border);
+    overflow: hidden;
+}
+
 .workout-nav-btn {
     flex: 1;
     padding: 9px 6px;
