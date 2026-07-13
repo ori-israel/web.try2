@@ -1199,7 +1199,7 @@ mark {
 /* ============================================
    Workout Header Card
    ============================================ */
-.workout-header-card {
+.workout-selector-card {
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     padding: 18px;
