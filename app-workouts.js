@@ -521,3 +521,68 @@ function buildWorkoutAccordions(targets = {}) {
         } catch(e) { console.warn('[SB] thursday banner:', e.message); }
     }
 
+// ===== עריכת תוכנית אימונים ע"י הלקוח: גלריית תבניות + custom (premium, בהמשך) =====
+
+const CWE_BASIC_UNLOCKED = 3; // כמות תבניות פתוחות לרמת בסיס
+
+const _CWE_LOCK_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+
+function _getWorkoutTier() {
+    return CLIENT.isSubscriber ? 'pro' : 'basic';
+}
+
+function openClientWorkoutEditor() {
+    _renderWorkoutGallery();
+    document.getElementById('client-workout-editor-modal').classList.remove('hidden');
+}
+
+function closeClientWorkoutEditor() {
+    document.getElementById('client-workout-editor-modal').classList.add('hidden');
+}
+
+function _renderWorkoutGallery() {
+    const body = document.getElementById('cwe-gallery-body');
+    if (!body) return;
+    const tier = _getWorkoutTier();
+    const unlockedCount = tier === 'pro' ? workoutTemplates.length : Math.min(CWE_BASIC_UNLOCKED, workoutTemplates.length);
+
+    let html = '<div class="cwe-grid">';
+    workoutTemplates.forEach((tpl, i) => {
+        const locked = i >= unlockedCount;
+        html += `
+            <button class="cwe-card${locked ? ' cwe-locked' : ''}" ${locked ? 'disabled' : `onclick="selectWorkoutTemplate(${i})"`}>
+                ${locked ? `<span class="cwe-lock">${_CWE_LOCK_ICON}</span>` : ''}
+                <span class="cwe-card-name">${tpl.name}</span>
+                <span class="cwe-card-sub">${tpl.workoutsPerWeek} ימי אימון בשבוע</span>
+            </button>`;
+    });
+    html += `
+        <button class="cwe-card cwe-locked" disabled>
+            <span class="cwe-lock">${_CWE_LOCK_ICON}</span>
+            <span class="cwe-card-name">בנה בעצמך</span>
+            <span class="cwe-card-sub">פרימיום, בקרוב</span>
+        </button>`;
+    html += '</div>';
+    body.innerHTML = html;
+}
+
+async function selectWorkoutTemplate(index) {
+    const tpl = workoutTemplates[index];
+    if (!tpl) return;
+    const confirmed = await showConfirmDanger(`התוכנית הקיימת תוחלף בתבנית "${tpl.name}". להמשיך?`);
+    if (!confirmed) return;
+
+    CLIENT.workoutsPerWeek = tpl.workoutsPerWeek || 3;
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(letter => {
+        CLIENT['workout' + letter] = tpl['workout' + letter] || null;
+    });
+    CLIENT.workoutDays = tpl.workoutDays  || {};
+    CLIENT.cardioPlan  = tpl.cardioPlan   || {};
+
+    await syncWorkoutPlanNow();
+    await initWorkoutsFromClient();
+    initWorkoutsChecklist();
+    initVideos();
+    closeClientWorkoutEditor();
+}
+
