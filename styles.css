@@ -500,12 +500,16 @@ h1 {
     white-space: nowrap;
 }
 
+.nutrition-streak-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
 .nutrition-streak-badge {
     display: flex;
     align-items: center;
     gap: 6px;
-    width: fit-content;
-    margin-top: 12px;
     background: var(--streak-bg) !important;
     border: 1px solid rgba(59, 130, 246, 0.3) !important;
     border-radius: 14px;
