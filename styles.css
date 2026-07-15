@@ -3319,11 +3319,20 @@ legend { padding: 0; display: block; width: 100%; }
 }
 .cwe-row:last-child { border-bottom: none; }
 .cwe-row:not(:disabled):active { background: var(--bg-card-alt); }
+.cwe-row-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+}
 .cwe-row-name {
     font-size: 14px;
     font-weight: 600;
-    min-width: 0;
-    flex: 1;
+}
+.cwe-row-split {
+    font-size: 12px;
+    color: var(--text-secondary);
 }
 .cwe-row-meta {
     display: flex;
@@ -3331,14 +3340,90 @@ legend { padding: 0; display: block; width: 100%; }
     gap: 8px;
     flex-shrink: 0;
 }
-.cwe-row-days {
-    font-size: 12px;
-    color: var(--text-secondary);
-    white-space: nowrap;
-}
 .cwe-chevron { color: var(--text-muted); flex-shrink: 0; }
 .cwe-row.cwe-locked {
     cursor: default;
     opacity: 0.5;
 }
 .cwe-lock { color: var(--text-muted); display: inline-flex; }
+
+/* ── מסך פירוט תוכנית ── */
+.cwe-day-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.cwe-day-tab {
+    flex: 1 1 auto;
+    min-width: 56px;
+    padding: 7px 4px;
+    font-size: 12px;
+    font-family: inherit;
+    border-radius: 8px;
+    border: 0.5px solid transparent;
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cwe-day-tab.active {
+    background: var(--bg-card-alt);
+    border-color: var(--border);
+    color: var(--text-primary);
+    font-weight: 600;
+}
+.cwe-det-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-card-alt);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.cwe-det-table th {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    padding: 8px 6px;
+    border-bottom: 0.5px solid var(--border);
+    text-align: center;
+}
+.cwe-det-table td {
+    font-size: 12px;
+    padding: 9px 6px;
+    border-bottom: 0.5px solid var(--border);
+    text-align: center;
+    color: var(--text-primary);
+}
+.cwe-det-table tbody tr:last-child td { border-bottom: none; }
+.cwe-det-name { text-align: right !important; font-weight: 500; }
+.cwe-detail-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+.cwe-choose-btn {
+    flex: 1;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    border: none;
+    border-radius: 8px;
+    background: var(--gradient-btn);
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cwe-choose-btn:active { transform: scale(0.98); }
+.cwe-back-btn {
+    padding: 12px 18px;
+    font-size: 15px;
+    font-family: inherit;
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+}

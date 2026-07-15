@@ -160,7 +160,8 @@
     const workoutTemplates = [
         {
             id: 1,
-            name: "מתחילים - 3 ימים בשבוע (Full Body)",
+            name: "מתחילים · 3 ימים",
+            split: "כל הגוף",
             workoutsPerWeek: 3,
             workoutA: [
                 { name: "לחיצת חזה במכשיר", reps: "10-15", warmupSets: 1, workSets: 3 },
@@ -191,7 +192,8 @@
         },
         {
             id: 2,
-            name: "מתחילים - 4 ימים בשבוע (Upper/Lower)",
+            name: "מתחילים · 4 ימים",
+            split: "עליון ותחתון",
             workoutsPerWeek: 4,
             workoutA: [
                 { name: "לחיצת חזה במכשיר", reps: "10-15", warmupSets: 1, workSets: 3 },
@@ -227,7 +229,8 @@
         },
         {
             id: 3,
-            name: "מתחילים - 5 ימים בשבוע (Upper/Lower/Full Body)",
+            name: "מתחילים · 5 ימים",
+            split: "עליון, תחתון וגוף מלא",
             workoutsPerWeek: 5,
             workoutA: [
                 { name: "לחיצת חזה במכשיר", reps: "10-15", warmupSets: 1, workSets: 3 },
@@ -269,7 +272,8 @@
         },
         {
             id: 4,
-            name: "מתקדם - 3 ימים בשבוע (Full Body מגוון)",
+            name: "מתקדם · 3 ימים",
+            split: "כל הגוף",
             workoutsPerWeek: 3,
             workoutA: [
                 { name: "לחיצת חזה עם מוט בשיפוע חיובי", reps: "10-15", warmupSets: 1, workSets: 3 },
@@ -301,7 +305,8 @@
         },
         {
             id: 5,
-            name: "מתקדם - 4 ימים בשבוע (Upper/Lower מגוון)",
+            name: "מתקדם · 4 ימים",
+            split: "עליון ותחתון",
             workoutsPerWeek: 4,
             workoutA: [
                 { name: "לחיצת חזה עם מוט בשיפוע חיובי", reps: "10-15", warmupSets: 1, workSets: 3 },
@@ -337,7 +342,8 @@
         },
         {
             id: 6,
-            name: "מתקדם - 5 ימים בשבוע (Push/Pull/Legs/Upper/Lower)",
+            name: "מתקדם · 5 ימים",
+            split: "דחיפה, משיכה, רגליים, עליון ותחתון",
             workoutsPerWeek: 5,
             workoutA: [
                 { name: "לחיצת חזה עם מוט בשיפוע חיובי", reps: "10-15", warmupSets: 1, workSets: 3 },
@@ -381,7 +387,8 @@
         },
         {
             id: 7,
-            name: "מתקדם - 5 ימים בשבוע (חזה-גב / כתפיים-ידיים / רגליים × 2)",
+            name: "מתקדם · 5 ימים",
+            split: "חזה וגב, כתפיים וידיים, רגליים",
             workoutsPerWeek: 5,
             workoutA: [
                 { name: "לחיצת חזה עם משקולות", reps: "10-15", warmupSets: 1, workSets: 3 },
@@ -425,7 +432,8 @@
         },
         {
             id: 8,
-            name: "מתקדם - 6 ימים בשבוע (Push/Pull/Legs × 2)",
+            name: "מתקדם · 6 ימים",
+            split: "דחיפה, משיכה ורגליים",
             workoutsPerWeek: 6,
             workoutA: [
                 { name: "לחיצת חזה בשיפוע חיובי עם משקולות", reps: "10-15", warmupSets: 1, workSets: 3 },
@@ -477,7 +485,8 @@
         },
         {
             id: 9,
-            name: "מתקדם - 6 ימים בשבוע (Push/Pull/Legs/Upper/Lower/Full Body)",
+            name: "מתקדם · 6 ימים",
+            split: "דחיפה, משיכה, רגליים, עליון, תחתון וגוף מלא",
             workoutsPerWeek: 6,
             workoutA: [
                 { name: "שכיבות סמיכה", reps: "10-15", warmupSets: 1, workSets: 3 },

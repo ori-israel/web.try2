@@ -531,6 +531,8 @@ function _getWorkoutTier() {
     return CLIENT.isSubscriber ? 'pro' : 'basic';
 }
 
+const _CWE_DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+
 function openClientWorkoutEditor() {
     _renderWorkoutGallery();
     document.getElementById('client-workout-editor-modal').classList.remove('hidden');
@@ -540,7 +542,13 @@ function closeClientWorkoutEditor() {
     document.getElementById('client-workout-editor-modal').classList.add('hidden');
 }
 
+function _setCweTitle(text) {
+    const t = document.getElementById('cwe-modal-title');
+    if (t) t.textContent = text;
+}
+
 function _renderWorkoutGallery() {
+    _setCweTitle('בחירת תוכנית אימונים');
     const body = document.getElementById('cwe-gallery-body');
     if (!body) return;
     const tier = _getWorkoutTier();
@@ -552,31 +560,85 @@ function _renderWorkoutGallery() {
     workoutTemplates.forEach((tpl, i) => {
         const locked = i >= unlockedCount;
         html += `
-            <button class="cwe-row${locked ? ' cwe-locked' : ''}" ${locked ? 'disabled' : `onclick="selectWorkoutTemplate(${i})"`}>
-                <span class="cwe-row-name">${tpl.name}</span>
+            <button class="cwe-row${locked ? ' cwe-locked' : ''}" ${locked ? 'disabled' : `onclick="openTemplateDetail(${i})"`}>
+                <span class="cwe-row-text">
+                    <span class="cwe-row-name">${tpl.name}</span>
+                    <span class="cwe-row-split">${tpl.split || ''}</span>
+                </span>
                 <span class="cwe-row-meta">
-                    ${locked ? `<span class="cwe-lock">${_CWE_LOCK_ICON}</span>` : ''}
-                    <span class="cwe-row-days">${tpl.workoutsPerWeek} ימים</span>
-                    ${locked ? '' : chevron}
+                    ${locked ? `<span class="cwe-lock">${_CWE_LOCK_ICON}</span>` : chevron}
                 </span>
             </button>`;
     });
     html += `
         <button class="cwe-row cwe-locked" disabled>
-            <span class="cwe-row-name">בנה בעצמך</span>
-            <span class="cwe-row-meta">
-                <span class="cwe-lock">${_CWE_LOCK_ICON}</span>
-                <span class="cwe-row-days">פרימיום, בקרוב</span>
+            <span class="cwe-row-text">
+                <span class="cwe-row-name">התאמה אישית</span>
+                <span class="cwe-row-split">בונים תוכנית משלכם · פרימיום, בקרוב</span>
             </span>
+            <span class="cwe-row-meta"><span class="cwe-lock">${_CWE_LOCK_ICON}</span></span>
         </button>`;
     html += '</div>';
     body.innerHTML = html;
 }
 
+function openTemplateDetail(index) {
+    const tpl = workoutTemplates[index];
+    if (!tpl) return;
+    _setCweTitle(tpl.name + (tpl.split ? ' · ' + tpl.split : ''));
+    const body = document.getElementById('cwe-gallery-body');
+    if (!body) return;
+
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'].filter(L => (tpl['workout' + L] || []).length);
+
+    const tabs = letters.map((L, di) => {
+        const day = tpl.workoutDays?.[L]?.[0];
+        const label = (day !== undefined && day !== null) ? _CWE_DAY_NAMES[day] : 'אימון ' + L;
+        return `<button class="cwe-day-tab${di === 0 ? ' active' : ''}" onclick="_cweSwitchDay(${index}, '${L}', this)">${label}</button>`;
+    }).join('');
+
+    const panels = letters.map((L, di) => {
+        const rows = (tpl['workout' + L] || []).map(ex => `
+            <tr>
+                <td class="cwe-det-name">${ex.name}</td>
+                <td>${ex.warmupSets ?? 0}</td>
+                <td>${ex.workSets ?? 0}</td>
+                <td>${ex.reps || ''}</td>
+            </tr>`).join('');
+        return `
+            <div class="cwe-day-panel" data-day="${L}" style="display:${di === 0 ? 'block' : 'none'};">
+                <table class="cwe-det-table">
+                    <thead><tr><th>תרגיל</th><th>ח׳</th><th>ע׳</th><th>חזרות</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>`;
+    }).join('');
+
+    body.innerHTML = `
+        <div class="cwe-detail">
+            <div class="cwe-day-tabs">${tabs}</div>
+            ${panels}
+            <div class="cwe-detail-actions">
+                <button class="cwe-choose-btn" onclick="selectWorkoutTemplate(${index})">בחר תוכנית זו</button>
+                <button class="cwe-back-btn" onclick="_renderWorkoutGallery()">חזרה</button>
+            </div>
+        </div>`;
+}
+
+function _cweSwitchDay(index, letter, btn) {
+    const detail = btn.closest('.cwe-detail');
+    if (!detail) return;
+    detail.querySelectorAll('.cwe-day-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    detail.querySelectorAll('.cwe-day-panel').forEach(p => {
+        p.style.display = p.dataset.day === letter ? 'block' : 'none';
+    });
+}
+
 async function selectWorkoutTemplate(index) {
     const tpl = workoutTemplates[index];
     if (!tpl) return;
-    const confirmed = await showConfirmDanger(`התוכנית הקיימת תוחלף בתבנית "${tpl.name}". להמשיך?`);
+    const confirmed = await showConfirmDanger('התוכנית הקיימת תוחלף בתוכנית שבחרת. להמשיך?');
     if (!confirmed) return;
 
     CLIENT.workoutsPerWeek = tpl.workoutsPerWeek || 3;
