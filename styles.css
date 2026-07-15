@@ -3575,24 +3575,35 @@ legend { padding: 0; display: block; width: 100%; }
     cursor: pointer;
     margin-bottom: 12px;
 }
-.cwe-chip-grid {
+.cwe-cat-list {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-direction: column;
     margin-bottom: 16px;
 }
-.cwe-chip {
-    padding: 9px 14px;
-    font-size: 13px;
-    font-weight: 600;
+.cwe-cat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 13px 2px;
+    border: none;
+    border-bottom: 0.5px solid var(--border);
+    background: none;
     font-family: inherit;
-    border-radius: 20px;
-    border: 0.5px solid var(--border);
-    background: var(--bg-card-alt);
     color: var(--text-primary);
     cursor: pointer;
+    text-align: right;
 }
-.cwe-chip:active { transform: scale(0.98); }
+.cwe-cat-list .cwe-cat-row:first-child { border-top: 0.5px solid var(--border); }
+.cwe-cat-row:active { background: var(--bg-card-alt); }
+.cwe-cat-row-name { font-size: 13.5px; font-weight: 600; }
+.cwe-cat-row-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.cwe-cat-row-count { font-size: 11px; color: var(--text-muted); }
+.cwe-cat-row-arrow { color: var(--text-muted); font-size: 13px; }
 .cwe-cb-cat-back {
     display: block;
     width: 100%;
