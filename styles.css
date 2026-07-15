@@ -3489,8 +3489,19 @@ legend { padding: 0; display: block; width: 100%; }
 .cwe-cb-ex-name { font-size: 13px; font-weight: 600; }
 .cwe-cb-ex-fields {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     gap: 6px;
+}
+.cwe-cb-field {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+.cwe-cb-field-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    white-space: nowrap;
 }
 .cwe-cb-input {
     width: 38px;

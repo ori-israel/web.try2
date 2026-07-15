@@ -770,9 +770,18 @@ function _renderCustomBuilder() {
             <div class="cwe-cb-ex-row" data-workout-idx="${wi}" data-ex-idx="${ei}">
                 <span class="cwe-cb-ex-name">${ex.name}</span>
                 <div class="cwe-cb-ex-fields">
-                    <input class="cwe-cb-input" type="number" min="0" max="9" value="${ex.warmupSets}" data-field="warmupSets" aria-label="סטים חימום">
-                    <input class="cwe-cb-input" type="number" min="0" max="9" value="${ex.workSets}" data-field="workSets" aria-label="סטים עבודה">
-                    <input class="cwe-cb-input cwe-cb-input-reps" type="text" value="${ex.reps}" data-field="reps" aria-label="טווח חזרות">
+                    <div class="cwe-cb-field">
+                        <span class="cwe-cb-field-label">חימום</span>
+                        <input class="cwe-cb-input" type="number" min="0" max="9" value="${ex.warmupSets}" data-field="warmupSets" aria-label="סטים חימום">
+                    </div>
+                    <div class="cwe-cb-field">
+                        <span class="cwe-cb-field-label">עבודה</span>
+                        <input class="cwe-cb-input" type="number" min="0" max="9" value="${ex.workSets}" data-field="workSets" aria-label="סטים עבודה">
+                    </div>
+                    <div class="cwe-cb-field">
+                        <span class="cwe-cb-field-label">חזרות</span>
+                        <input class="cwe-cb-input cwe-cb-input-reps" type="text" value="${ex.reps}" data-field="reps" aria-label="טווח חזרות">
+                    </div>
                     <button class="cwe-cb-ex-del" onclick="removeExerciseFromCustomWorkout(${wi}, ${ei})">${_CWE_DEL_ICON}</button>
                 </div>
             </div>`).join('');
