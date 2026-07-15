@@ -28,6 +28,7 @@
         },
         text: 'לכל תרגיל מופיע כמה משקל וכמה חזרות לעשות, וכמה סטים של חימום וסטים של עבודה. מסמנים <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> בסיום כל תרגיל' },
       { sel: '#workout-journal-card',   text: 'מעקב אחרי המשקלים בכל תרגיל לאורך זמן, ובכל תרגיל יש גרף <svg viewBox="0 0 24 24" width="13" height="13" fill="var(--accent)" style="vertical-align:-2px"><rect x="4" y="13" width="4" height="7" rx="1"/><rect x="10" y="8" width="4" height="12" rx="1"/><rect x="16" y="4" width="4" height="16" rx="1"/></svg> שמראה את השיפור בביצועים' },
+      { sel: 'button[onclick="openClientWorkoutEditor()"]', text: 'עריכת תוכנית האימונים: בחירה מתוך תבניות מוכנות, או בניית תוכנית אישית מאפס' },
     ],
     tab4: [
       { sel: function () {
