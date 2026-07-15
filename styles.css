@@ -2172,7 +2172,7 @@ input[type="radio"] { accent-color: var(--accent); }
 .primary-btn   { background: var(--gradient-btn); color: #fff; }
 .secondary-btn { background: none; color: var(--text-secondary); border-color: var(--border-strong); }
 .secondary-btn:active { background: var(--bg-card-alt); }
-.danger-btn    { background: #ef4444; color: #fff; }
+.danger-btn    { background: var(--gradient-btn); color: #fff; }
 .modal-close {
     position: absolute;
     top: 12px;
