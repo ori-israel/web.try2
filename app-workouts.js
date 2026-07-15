@@ -562,6 +562,15 @@ function _renderWorkoutGallery() {
     const chevron = '<svg class="cwe-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>';
 
     let html = '<div class="cwe-list">';
+    const customLocked = !_hasCustomBuilderAccess();
+    html += `
+        <button class="cwe-row${customLocked ? ' cwe-locked' : ''}" ${customLocked ? 'disabled' : 'onclick="openCustomBuilder()"'}>
+            <span class="cwe-row-text">
+                <span class="cwe-row-name">התאמה אישית</span>
+                <span class="cwe-row-split">${customLocked ? 'בונים תוכנית משלכם · פרימיום, בקרוב' : 'בונים תוכנית משלכם'}</span>
+            </span>
+            <span class="cwe-row-meta">${customLocked ? `<span class="cwe-lock">${_CWE_LOCK_ICON}</span>` : chevron}</span>
+        </button>`;
     workoutTemplates.forEach((tpl, i) => {
         const locked = i >= unlockedCount;
         html += `
@@ -575,15 +584,6 @@ function _renderWorkoutGallery() {
                 </span>
             </button>`;
     });
-    const customLocked = !_hasCustomBuilderAccess();
-    html += `
-        <button class="cwe-row${customLocked ? ' cwe-locked' : ''}" ${customLocked ? 'disabled' : 'onclick="openCustomBuilder()"'}>
-            <span class="cwe-row-text">
-                <span class="cwe-row-name">התאמה אישית</span>
-                <span class="cwe-row-split">${customLocked ? 'בונים תוכנית משלכם · פרימיום, בקרוב' : 'בונים תוכנית משלכם'}</span>
-            </span>
-            <span class="cwe-row-meta">${customLocked ? `<span class="cwe-lock">${_CWE_LOCK_ICON}</span>` : chevron}</span>
-        </button>`;
     html += '</div>';
     body.innerHTML = html;
 }
