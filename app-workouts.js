@@ -768,7 +768,10 @@ function _renderCustomBuilder() {
 
         const exRows = w.exercises.map((ex, ei) => `
             <div class="cwe-cb-ex-row" data-workout-idx="${wi}" data-ex-idx="${ei}">
-                <span class="cwe-cb-ex-name">${ex.name}</span>
+                <div class="cwe-cb-ex-top">
+                    <span class="cwe-cb-ex-name">${ex.name}</span>
+                    <button class="cwe-cb-ex-del" onclick="removeExerciseFromCustomWorkout(${wi}, ${ei})">${_CWE_DEL_ICON}</button>
+                </div>
                 <div class="cwe-cb-ex-fields">
                     <div class="cwe-cb-field">
                         <span class="cwe-cb-field-label">חימום</span>
@@ -780,15 +783,15 @@ function _renderCustomBuilder() {
                     </div>
                     <div class="cwe-cb-field">
                         <span class="cwe-cb-field-label">חזרות</span>
-                        <input class="cwe-cb-input cwe-cb-input-reps" type="text" value="${ex.reps}" data-field="reps" aria-label="טווח חזרות">
+                        <input class="cwe-cb-input" type="text" value="${ex.reps}" data-field="reps" aria-label="טווח חזרות">
                     </div>
-                    <button class="cwe-cb-ex-del" onclick="removeExerciseFromCustomWorkout(${wi}, ${ei})">${_CWE_DEL_ICON}</button>
                 </div>
             </div>`).join('');
 
         return `
             <div class="cwe-cb-workout">
                 <div class="cwe-cb-workout-head">
+                    <span class="cwe-cb-workout-badge">${w.letter}</span>
                     <span class="cwe-cb-workout-title">אימון ${w.letter}</span>
                     <button class="cwe-cb-workout-del" onclick="removeCustomWorkout(${wi})">${_CWE_DEL_ICON}</button>
                 </div>

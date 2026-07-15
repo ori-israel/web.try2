@@ -3430,17 +3430,30 @@ legend { padding: 0; display: block; width: 100%; }
 .cwe-cb-workout {
     background: var(--bg-card-alt);
     border: 0.5px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
+    border-radius: 14px;
+    padding: 14px;
     margin-bottom: 10px;
 }
 .cwe-cb-workout-head {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
+    gap: 8px;
+    margin-bottom: 12px;
 }
-.cwe-cb-workout-title { font-size: 14px; font-weight: 700; }
+.cwe-cb-workout-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: var(--gradient-btn);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.cwe-cb-workout-title { font-size: 14px; font-weight: 700; flex: 1; }
 .cwe-cb-workout-del {
     width: 26px;
     height: 26px;
@@ -3455,69 +3468,77 @@ legend { padding: 0; display: block; width: 100%; }
     flex-shrink: 0;
 }
 .cwe-cb-day-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    margin-bottom: 12px;
 }
 .cwe-cb-day-chip {
-    padding: 6px 10px;
-    font-size: 12px;
+    padding: 6px 0;
+    font-size: 11px;
     font-family: inherit;
-    border-radius: 20px;
+    border-radius: 7px;
     border: 0.5px solid var(--border);
-    background: none;
+    background: var(--bg-card);
     color: var(--text-secondary);
     cursor: pointer;
-    transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: center;
+    transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .cwe-cb-day-chip.active {
-    background: var(--gradient-btn);
-    border-color: transparent;
-    color: #fff;
-    font-weight: 600;
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 700;
 }
 .cwe-cb-ex-row {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
     background: var(--bg-card);
-    border-radius: 8px;
-    padding: 8px 10px;
-    margin-bottom: 6px;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
 }
-.cwe-cb-ex-name { font-size: 13px; font-weight: 600; }
+.cwe-cb-ex-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 9px;
+}
+.cwe-cb-ex-name { font-size: 12.5px; font-weight: 600; }
 .cwe-cb-ex-fields {
     display: flex;
-    align-items: flex-end;
-    gap: 6px;
+    background: var(--bg-card-alt);
+    border-radius: 8px;
+    border: 0.5px solid var(--border);
+    overflow: hidden;
 }
 .cwe-cb-field {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
+    flex: 1;
+    text-align: center;
+    padding: 6px 4px;
 }
+.cwe-cb-field + .cwe-cb-field { border-right: 0.5px solid var(--border); }
 .cwe-cb-field-label {
-    font-size: 10px;
+    display: block;
+    font-size: 9px;
     color: var(--text-muted);
+    margin-bottom: 2px;
     white-space: nowrap;
 }
 .cwe-cb-input {
-    width: 38px;
+    width: 100%;
     text-align: center;
     font-size: 12px;
-    padding: 6px 2px;
-    border-radius: 6px;
-    border: 0.5px solid var(--border);
-    background: var(--bg-card-alt);
+    font-weight: 600;
+    padding: 0;
+    border: none;
+    background: none;
     color: var(--text-primary);
     font-family: inherit;
+    font-variant-numeric: tabular-nums;
 }
-.cwe-cb-input-reps { width: 52px; }
 .cwe-cb-ex-del {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     border: none;
     background: none;
@@ -3526,18 +3547,18 @@ legend { padding: 0; display: block; width: 100%; }
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    margin-right: auto;
     flex-shrink: 0;
 }
 .cwe-cb-add-ex-btn {
     width: 100%;
-    padding: 9px;
-    font-size: 13px;
+    padding: 10px;
+    font-size: 12.5px;
+    font-weight: 600;
     font-family: inherit;
-    border: 0.5px dashed var(--border-strong);
+    border: none;
     border-radius: 8px;
-    background: none;
-    color: var(--text-accent, var(--accent));
+    background: var(--accent-light);
+    color: var(--accent);
     cursor: pointer;
 }
 .cwe-cb-add-ex-btn:disabled { opacity: 0.4; cursor: default; }
