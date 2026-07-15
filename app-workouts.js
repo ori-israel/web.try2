@@ -531,6 +531,10 @@ function _getWorkoutTier() {
     return CLIENT.isSubscriber ? 'pro' : 'basic';
 }
 
+function _hasCustomBuilderAccess() {
+    return !!CLIENT.isSubscriber;
+}
+
 const _CWE_DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 
 function openClientWorkoutEditor() {
@@ -570,13 +574,14 @@ function _renderWorkoutGallery() {
                 </span>
             </button>`;
     });
+    const customLocked = !_hasCustomBuilderAccess();
     html += `
-        <button class="cwe-row cwe-locked" disabled>
+        <button class="cwe-row${customLocked ? ' cwe-locked' : ''}" ${customLocked ? 'disabled' : 'onclick="openCustomBuilder()"'}>
             <span class="cwe-row-text">
                 <span class="cwe-row-name">התאמה אישית</span>
-                <span class="cwe-row-split">בונים תוכנית משלכם · פרימיום, בקרוב</span>
+                <span class="cwe-row-split">${customLocked ? 'בונים תוכנית משלכם · פרימיום, בקרוב' : 'בונים תוכנית משלכם'}</span>
             </span>
-            <span class="cwe-row-meta"><span class="cwe-lock">${_CWE_LOCK_ICON}</span></span>
+            <span class="cwe-row-meta">${customLocked ? `<span class="cwe-lock">${_CWE_LOCK_ICON}</span>` : chevron}</span>
         </button>`;
     html += '</div>';
     body.innerHTML = html;
@@ -643,6 +648,188 @@ async function selectWorkoutTemplate(index) {
     });
     CLIENT.workoutDays = tpl.workoutDays ? JSON.parse(JSON.stringify(tpl.workoutDays)) : {};
     CLIENT.cardioPlan  = tpl.cardioPlan  ? JSON.parse(JSON.stringify(tpl.cardioPlan))  : {};
+
+    await syncWorkoutPlanNow();
+    await initWorkoutsFromClient();
+    initWorkoutsChecklist();
+    initVideos();
+    closeClientWorkoutEditor();
+}
+
+// ===== התאמה אישית: בניית תוכנית אימונים מאפס =====
+
+const _CWE_CATEGORIES = ['חזה', 'גב', 'כתפיים', 'רגליים', 'יד קדמית', 'יד אחורית', 'בטן', 'ישבן'];
+const _CWE_DEL_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+let _cweCustomState  = null;
+let _cweActiveWorkoutIdx = null;
+
+function openCustomBuilder() {
+    _cweCustomState = { workouts: [] };
+    _renderCustomBuilder();
+}
+
+function _cweNextLetter() {
+    const used = _cweCustomState.workouts.map(w => w.letter);
+    return 'ABCDEFG'.split('').find(L => !used.includes(L));
+}
+
+function addCustomWorkout() {
+    if (_cweCustomState.workouts.length >= 7) return;
+    _cweSyncCustomBuilderDom();
+    const letter = _cweNextLetter();
+    if (!letter) return;
+    _cweCustomState.workouts.push({ letter, days: [], exercises: [] });
+    _renderCustomBuilder();
+}
+
+function removeCustomWorkout(workoutIdx) {
+    _cweSyncCustomBuilderDom();
+    _cweCustomState.workouts.splice(workoutIdx, 1);
+    _renderCustomBuilder();
+}
+
+function toggleCustomBuilderDay(workoutIdx, day, btn) {
+    const w = _cweCustomState.workouts[workoutIdx];
+    if (!w) return;
+    const pos = w.days.indexOf(day);
+    if (pos === -1) w.days.push(day); else w.days.splice(pos, 1);
+    btn.classList.toggle('active');
+    const addBtn = btn.closest('.cwe-cb-workout')?.querySelector('.cwe-cb-add-ex-btn');
+    if (addBtn) addBtn.disabled = w.days.length === 0;
+}
+
+function removeExerciseFromCustomWorkout(workoutIdx, exIdx) {
+    _cweSyncCustomBuilderDom();
+    _cweCustomState.workouts[workoutIdx].exercises.splice(exIdx, 1);
+    _renderCustomBuilder();
+}
+
+function openExercisePicker(workoutIdx) {
+    _cweSyncCustomBuilderDom();
+    _cweActiveWorkoutIdx = workoutIdx;
+    _renderCategoryChips();
+}
+
+function _renderCategoryChips() {
+    _setCweTitle('בחירת תרגיל');
+    const body = document.getElementById('cwe-gallery-body');
+    if (!body) return;
+    const chips = _CWE_CATEGORIES.map(cat =>
+        `<button class="cwe-chip" onclick="selectExerciseCategory('${cat}')">${cat}</button>`
+    ).join('');
+    body.innerHTML = `
+        <div class="cwe-cb-picker">
+            <div class="cwe-chip-grid">${chips}</div>
+            <button class="cwe-back-btn cwe-cb-picker-back" onclick="backToCustomBuilder()">חזרה לתוכנית</button>
+        </div>`;
+}
+
+function selectExerciseCategory(cat) {
+    const body = document.getElementById('cwe-gallery-body');
+    if (!body) return;
+    const names = Object.keys(exerciseBank).filter(n => exerciseCategories[n] === cat);
+    const rows = names.map(name => `
+        <button class="cwe-row" onclick="addExerciseToCustomWorkout(${JSON.stringify(name)})">
+            <span class="cwe-row-text"><span class="cwe-row-name">${name}</span></span>
+        </button>`).join('');
+    body.innerHTML = `
+        <div class="cwe-cb-picker">
+            <button class="cwe-cb-cat-back" onclick="_renderCategoryChips()">‹ ${cat}</button>
+            <div class="cwe-list">${rows}</div>
+        </div>`;
+}
+
+function addExerciseToCustomWorkout(name) {
+    const w = _cweCustomState.workouts[_cweActiveWorkoutIdx];
+    if (!w) return;
+    w.exercises.push({ name, reps: '10-15', warmupSets: 1, workSets: 3 });
+    _renderCustomBuilder();
+}
+
+function backToCustomBuilder() {
+    _renderCustomBuilder();
+}
+
+function _renderCustomBuilder() {
+    _setCweTitle('התאמה אישית');
+    const body = document.getElementById('cwe-gallery-body');
+    if (!body) return;
+
+    const workoutsHtml = _cweCustomState.workouts.map((w, wi) => {
+        const dayChips = [0, 1, 2, 3, 4, 5, 6].map(d => `
+            <button class="cwe-cb-day-chip${w.days.includes(d) ? ' active' : ''}" onclick="toggleCustomBuilderDay(${wi}, ${d}, this)">${_CWE_DAY_NAMES[d]}</button>
+        `).join('');
+
+        const exRows = w.exercises.map((ex, ei) => `
+            <div class="cwe-cb-ex-row" data-workout-idx="${wi}" data-ex-idx="${ei}">
+                <span class="cwe-cb-ex-name">${ex.name}</span>
+                <div class="cwe-cb-ex-fields">
+                    <input class="cwe-cb-input" type="number" min="0" max="9" value="${ex.warmupSets}" data-field="warmupSets" aria-label="סטים חימום">
+                    <input class="cwe-cb-input" type="number" min="0" max="9" value="${ex.workSets}" data-field="workSets" aria-label="סטים עבודה">
+                    <input class="cwe-cb-input cwe-cb-input-reps" type="text" value="${ex.reps}" data-field="reps" aria-label="טווח חזרות">
+                    <button class="cwe-cb-ex-del" onclick="removeExerciseFromCustomWorkout(${wi}, ${ei})">${_CWE_DEL_ICON}</button>
+                </div>
+            </div>`).join('');
+
+        return `
+            <div class="cwe-cb-workout">
+                <div class="cwe-cb-workout-head">
+                    <span class="cwe-cb-workout-title">אימון ${w.letter}</span>
+                    <button class="cwe-cb-workout-del" onclick="removeCustomWorkout(${wi})">${_CWE_DEL_ICON}</button>
+                </div>
+                <div class="cwe-cb-day-row">${dayChips}</div>
+                ${exRows}
+                <button class="cwe-cb-add-ex-btn" ${w.days.length === 0 ? 'disabled' : ''} onclick="openExercisePicker(${wi})">+ הוספת תרגיל</button>
+            </div>`;
+    }).join('');
+
+    body.innerHTML = `
+        <div class="cwe-cb">
+            ${workoutsHtml}
+            ${_cweCustomState.workouts.length < 7 ? '<button class="cwe-cb-add-workout-btn" onclick="addCustomWorkout()">+ הוספת אימון</button>' : ''}
+            <div class="cwe-detail-actions">
+                <button class="cwe-choose-btn" onclick="saveCustomWorkout()">שמירת התוכנית</button>
+                <button class="cwe-back-btn" onclick="_renderWorkoutGallery()">חזרה</button>
+            </div>
+        </div>`;
+}
+
+function _cweSyncCustomBuilderDom() {
+    if (!_cweCustomState) return;
+    document.querySelectorAll('.cwe-cb-ex-row').forEach(row => {
+        const wi = parseInt(row.dataset.workoutIdx);
+        const ei = parseInt(row.dataset.exIdx);
+        const ex = _cweCustomState.workouts[wi]?.exercises[ei];
+        if (!ex) return;
+        const warm = row.querySelector('[data-field="warmupSets"]');
+        const work = row.querySelector('[data-field="workSets"]');
+        const reps = row.querySelector('[data-field="reps"]');
+        if (warm) ex.warmupSets = parseInt(warm.value) || 0;
+        if (work) ex.workSets   = parseInt(work.value) || 0;
+        if (reps) ex.reps       = reps.value.trim() || '10-15';
+    });
+}
+
+async function saveCustomWorkout() {
+    _cweSyncCustomBuilderDom();
+    if (!_cweCustomState.workouts.length) { await showAlert('צריך להוסיף לפחות אימון אחד.'); return; }
+    for (const w of _cweCustomState.workouts) {
+        if (!w.days.length)      { await showAlert(`אימון ${w.letter} חייב יום בשבוע.`); return; }
+        if (!w.exercises.length) { await showAlert(`אימון ${w.letter} חייב לפחות תרגיל אחד.`); return; }
+    }
+
+    const confirmed = await showConfirmDanger('התוכנית הקיימת תוחלף בתוכנית שבנית. להמשיך?');
+    if (!confirmed) return;
+
+    CLIENT.workoutsPerWeek = _cweCustomState.workouts.length;
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(letter => { CLIENT['workout' + letter] = null; });
+    CLIENT.workoutDays = {};
+    CLIENT.cardioPlan  = {};
+    _cweCustomState.workouts.forEach(w => {
+        CLIENT['workout' + w.letter] = w.exercises.map(ex => ({ ...ex }));
+        CLIENT.workoutDays[w.letter] = [...w.days];
+    });
 
     await syncWorkoutPlanNow();
     await initWorkoutsFromClient();
