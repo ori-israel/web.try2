@@ -638,10 +638,11 @@ async function selectWorkoutTemplate(index) {
 
     CLIENT.workoutsPerWeek = tpl.workoutsPerWeek || 3;
     ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(letter => {
-        CLIENT['workout' + letter] = tpl['workout' + letter] || null;
+        const src = tpl['workout' + letter];
+        CLIENT['workout' + letter] = src ? JSON.parse(JSON.stringify(src)) : null;
     });
-    CLIENT.workoutDays = tpl.workoutDays  || {};
-    CLIENT.cardioPlan  = tpl.cardioPlan   || {};
+    CLIENT.workoutDays = tpl.workoutDays ? JSON.parse(JSON.stringify(tpl.workoutDays)) : {};
+    CLIENT.cardioPlan  = tpl.cardioPlan  ? JSON.parse(JSON.stringify(tpl.cardioPlan))  : {};
 
     await syncWorkoutPlanNow();
     await initWorkoutsFromClient();
