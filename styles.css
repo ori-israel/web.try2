@@ -3563,14 +3563,17 @@ legend { padding: 0; display: block; width: 100%; }
 .cwe-chip:active { transform: scale(0.98); }
 .cwe-cb-cat-back {
     display: block;
-    margin-bottom: 10px;
-    padding: 0;
-    font-size: 14px;
-    font-weight: 600;
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 0 0 10px;
+    font-size: 12px;
+    font-weight: 500;
     font-family: inherit;
     border: none;
+    border-bottom: 0.5px solid var(--border);
     background: none;
-    color: var(--text-primary);
+    color: var(--text-secondary);
+    text-align: right;
     cursor: pointer;
 }
 .cwe-cb-picker-back { width: 100%; margin-top: 12px; }

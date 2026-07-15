@@ -713,7 +713,7 @@ function openExercisePicker(workoutIdx) {
 }
 
 function _renderCategoryChips() {
-    _setCweTitle('בחירת תרגיל');
+    _setCweTitle('בחירת קבוצת שרירים');
     const body = document.getElementById('cwe-gallery-body');
     if (!body) return;
     const chips = _CWE_CATEGORIES.map(cat =>
@@ -726,24 +726,28 @@ function _renderCategoryChips() {
         </div>`;
 }
 
+let _cweCategoryExerciseNames = [];
+
 function selectExerciseCategory(cat) {
+    _setCweTitle(cat);
     const body = document.getElementById('cwe-gallery-body');
     if (!body) return;
-    const names = Object.keys(exerciseBank).filter(n => exerciseCategories[n] === cat);
-    const rows = names.map(name => `
-        <button class="cwe-row" onclick="addExerciseToCustomWorkout(${JSON.stringify(name)})">
+    _cweCategoryExerciseNames = Object.keys(exerciseBank).filter(n => exerciseCategories[n] === cat);
+    const rows = _cweCategoryExerciseNames.map((name, i) => `
+        <button class="cwe-row" onclick="addExerciseToCustomWorkout(${i})">
             <span class="cwe-row-text"><span class="cwe-row-name">${name}</span></span>
         </button>`).join('');
     body.innerHTML = `
         <div class="cwe-cb-picker">
-            <button class="cwe-cb-cat-back" onclick="_renderCategoryChips()">‹ ${cat}</button>
+            <button class="cwe-cb-cat-back" onclick="_renderCategoryChips()">‹ חזרה לקבוצות שרירים</button>
             <div class="cwe-list">${rows}</div>
         </div>`;
 }
 
-function addExerciseToCustomWorkout(name) {
+function addExerciseToCustomWorkout(idx) {
+    const name = _cweCategoryExerciseNames[idx];
     const w = _cweCustomState.workouts[_cweActiveWorkoutIdx];
-    if (!w) return;
+    if (!w || !name) return;
     w.exercises.push({ name, reps: '10-15', warmupSets: 1, workSets: 3 });
     _renderCustomBuilder();
 }
