@@ -742,13 +742,14 @@ function selectExerciseCategory(cat) {
     if (!body) return;
     _cweCategoryExerciseNames = Object.keys(exerciseBank).filter(n => exerciseCategories[n] === cat);
     const rows = _cweCategoryExerciseNames.map((name, i) => `
-        <button class="cwe-row" onclick="addExerciseToCustomWorkout(${i})">
-            <span class="cwe-row-text"><span class="cwe-row-name">${name}</span></span>
+        <button class="cwe-cat-row" onclick="addExerciseToCustomWorkout(${i})">
+            <span class="cwe-cat-row-name">${name}</span>
+            <span class="cwe-cat-row-arrow">+</span>
         </button>`).join('');
     body.innerHTML = `
         <div class="cwe-cb-picker">
             <button class="cwe-cb-cat-back" onclick="_renderCategoryChips()">‹ חזרה לקבוצות שרירים</button>
-            <div class="cwe-list">${rows}</div>
+            <div class="cwe-cat-list">${rows}</div>
         </div>`;
 }
 
