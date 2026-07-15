@@ -523,16 +523,17 @@ function buildWorkoutAccordions(targets = {}) {
 
 // ===== עריכת תוכנית אימונים ע"י הלקוח: גלריית תבניות + custom (premium, בהמשך) =====
 
-const CWE_BASIC_UNLOCKED = 3; // כמות תבניות פתוחות לרמת בסיס
+const CWE_BASIC_UNLOCKED = 3; // כמות תבניות פתוחות לרמת בסיס (לא בשימוש כרגע — הכל פתוח עד שיהיו רמות מנוי אמיתיות)
 
 const _CWE_LOCK_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 
+// כל עוד subscription_tier לא קיים ב-DB: כל הפיצ'רים פתוחים לכולם. TODO לחבר ל-tier אמיתי בעתיד.
 function _getWorkoutTier() {
-    return CLIENT.isSubscriber ? 'pro' : 'basic';
+    return 'pro';
 }
 
 function _hasCustomBuilderAccess() {
-    return !!CLIENT.isSubscriber;
+    return true;
 }
 
 const _CWE_DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
