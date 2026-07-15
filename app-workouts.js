@@ -598,19 +598,14 @@ function openTemplateDetail(index) {
     }).join('');
 
     const panels = letters.map((L, di) => {
-        const rows = (tpl['workout' + L] || []).map(ex => `
-            <tr>
-                <td class="cwe-det-name">${ex.name}</td>
-                <td>${ex.warmupSets ?? 0}</td>
-                <td>${ex.workSets ?? 0}</td>
-                <td>${ex.reps || ''}</td>
-            </tr>`).join('');
+        const cards = (tpl['workout' + L] || []).map(ex => `
+            <div class="cwe-ex-card">
+                <div class="cwe-ex-name">${ex.name}</div>
+                <div class="cwe-ex-meta">חימום ${ex.warmupSets ?? 0} · עבודה ${ex.workSets ?? 0} · חזרות ${ex.reps || ''}</div>
+            </div>`).join('');
         return `
             <div class="cwe-day-panel" data-day="${L}" style="display:${di === 0 ? 'block' : 'none'};">
-                <table class="cwe-det-table">
-                    <thead><tr><th>תרגיל</th><th>ח׳</th><th>ע׳</th><th>חזרות</th></tr></thead>
-                    <tbody>${rows}</tbody>
-                </table>
+                ${cards}
             </div>`;
     }).join('');
 
@@ -619,7 +614,7 @@ function openTemplateDetail(index) {
             <div class="cwe-day-tabs">${tabs}</div>
             ${panels}
             <div class="cwe-detail-actions">
-                <button class="cwe-choose-btn" onclick="selectWorkoutTemplate(${index})">בחר תוכנית זו</button>
+                <button class="cwe-choose-btn" onclick="selectWorkoutTemplate(${index})">בחירת התוכנית</button>
                 <button class="cwe-back-btn" onclick="_renderWorkoutGallery()">חזרה</button>
             </div>
         </div>`;

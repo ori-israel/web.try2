@@ -2152,17 +2152,27 @@ input[type="radio"] { accent-color: var(--accent); }
 }
 
 /* ── App dialog ── */
-.app-dialog-card { max-width: 320px; padding: 32px 24px 24px; }
-.app-dialog-msg  { margin: 0 0 24px; font-size: 18px; line-height: 1.5; text-align: center; color: var(--text-primary); font-weight: 600; }
+.app-dialog-card { max-width: 300px; padding: 22px 20px 20px; text-align: center; }
+.app-dialog-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+}
+.app-dialog-msg  { margin: 0 0 18px; font-size: 15px; line-height: 1.5; text-align: center; color: var(--text-primary); font-weight: 500; }
 .app-dialog-input-field { width: 100%; margin-bottom: 15px; box-sizing: border-box; }
-.app-dialog-btns { display: flex; gap: 12px; justify-content: center; }
-.app-dialog-btn  { padding: 14px 0; border-radius: var(--radius); border: 1.5px solid transparent; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.2s ease; flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; }
-.primary-btn   { background: var(--gradient-btn); color: #fff; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3); }
-.primary-btn:hover { opacity: 0.9; }
-.secondary-btn { background: transparent; color: var(--text-primary); border: 1.5px solid rgba(150,150,150,0.5); }
-.secondary-btn:hover { background: var(--bg-card-alt); }
-.danger-btn    { background: transparent; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); }
-.danger-btn:hover { background: rgba(239, 68, 68, 0.08); }
+.app-dialog-btns { display: flex; gap: 8px; justify-content: center; }
+.app-dialog-btn  { padding: 12px 0; border-radius: 10px; border: 0.5px solid transparent; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease; flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; }
+.app-dialog-btn:active { transform: scale(0.98); }
+.primary-btn   { background: var(--gradient-btn); color: #fff; }
+.secondary-btn { background: none; color: var(--text-secondary); border-color: var(--border-strong); }
+.secondary-btn:active { background: var(--bg-card-alt); }
+.danger-btn    { background: #ef4444; color: #fff; }
 .modal-close {
     position: absolute;
     top: 12px;
@@ -3373,31 +3383,19 @@ legend { padding: 0; display: block; width: 100%; }
     color: var(--text-primary);
     font-weight: 600;
 }
-.cwe-det-table {
-    width: 100%;
-    border-collapse: collapse;
+.cwe-day-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.cwe-ex-card {
     background: var(--bg-card-alt);
     border: 0.5px solid var(--border);
     border-radius: 8px;
-    overflow: hidden;
+    padding: 10px 12px;
 }
-.cwe-det-table th {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    padding: 8px 6px;
-    border-bottom: 0.5px solid var(--border);
-    text-align: center;
-}
-.cwe-det-table td {
-    font-size: 12px;
-    padding: 9px 6px;
-    border-bottom: 0.5px solid var(--border);
-    text-align: center;
-    color: var(--text-primary);
-}
-.cwe-det-table tbody tr:last-child td { border-bottom: none; }
-.cwe-det-name { text-align: right !important; font-weight: 500; }
+.cwe-ex-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.cwe-ex-meta { font-size: 11px; color: var(--text-secondary); }
 .cwe-detail-actions {
     display: flex;
     gap: 8px;
