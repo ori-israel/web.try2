@@ -3296,35 +3296,49 @@ legend { padding: 0; display: block; width: 100%; }
 .dp-day-sel       { background: var(--accent); color: #fff; font-weight: 600; }
 .dp-day-sel.dp-day-today { outline: 2px solid var(--text-primary); outline-offset: 1px; }
 
-/* ── עריכת תוכנית אימונים (לקוח): גלריית תבניות ── */
-.cwe-gallery-card { max-width: 440px; }
-.cwe-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-.cwe-card {
-    position: relative;
+/* ── עריכת תוכנית אימונים (לקוח): רשימת תבניות קומפקטית ── */
+.cwe-list {
     display: flex;
     flex-direction: column;
+}
+.cwe-row {
+    display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 16px 10px;
-    background: var(--bg-card-alt);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    padding: 14px 6px;
+    background: none;
+    border: none;
+    border-bottom: 0.5px solid var(--border);
     cursor: pointer;
-    text-align: center;
     font-family: inherit;
     color: var(--text-primary);
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: right;
+    transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.cwe-card:active:not(:disabled) { transform: scale(0.98); }
-.cwe-card:not(:disabled):hover  { border-color: var(--border-light); }
-.cwe-card-name { font-size: 14px; font-weight: 600; }
-.cwe-card-sub  { font-size: 12px; color: var(--text-secondary); }
-.cwe-card.cwe-locked {
+.cwe-row:last-child { border-bottom: none; }
+.cwe-row:not(:disabled):active { background: var(--bg-card-alt); }
+.cwe-row-name {
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 0;
+    flex: 1;
+}
+.cwe-row-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.cwe-row-days {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+.cwe-chevron { color: var(--text-muted); flex-shrink: 0; }
+.cwe-row.cwe-locked {
     cursor: default;
     opacity: 0.5;
 }
-.cwe-lock { color: var(--text-muted); }
+.cwe-lock { color: var(--text-muted); display: inline-flex; }

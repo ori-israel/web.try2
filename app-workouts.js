@@ -546,21 +546,28 @@ function _renderWorkoutGallery() {
     const tier = _getWorkoutTier();
     const unlockedCount = tier === 'pro' ? workoutTemplates.length : Math.min(CWE_BASIC_UNLOCKED, workoutTemplates.length);
 
-    let html = '<div class="cwe-grid">';
+    const chevron = '<svg class="cwe-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>';
+
+    let html = '<div class="cwe-list">';
     workoutTemplates.forEach((tpl, i) => {
         const locked = i >= unlockedCount;
         html += `
-            <button class="cwe-card${locked ? ' cwe-locked' : ''}" ${locked ? 'disabled' : `onclick="selectWorkoutTemplate(${i})"`}>
-                ${locked ? `<span class="cwe-lock">${_CWE_LOCK_ICON}</span>` : ''}
-                <span class="cwe-card-name">${tpl.name}</span>
-                <span class="cwe-card-sub">${tpl.workoutsPerWeek} ימי אימון בשבוע</span>
+            <button class="cwe-row${locked ? ' cwe-locked' : ''}" ${locked ? 'disabled' : `onclick="selectWorkoutTemplate(${i})"`}>
+                <span class="cwe-row-name">${tpl.name}</span>
+                <span class="cwe-row-meta">
+                    ${locked ? `<span class="cwe-lock">${_CWE_LOCK_ICON}</span>` : ''}
+                    <span class="cwe-row-days">${tpl.workoutsPerWeek} ימים</span>
+                    ${locked ? '' : chevron}
+                </span>
             </button>`;
     });
     html += `
-        <button class="cwe-card cwe-locked" disabled>
-            <span class="cwe-lock">${_CWE_LOCK_ICON}</span>
-            <span class="cwe-card-name">בנה בעצמך</span>
-            <span class="cwe-card-sub">פרימיום, בקרוב</span>
+        <button class="cwe-row cwe-locked" disabled>
+            <span class="cwe-row-name">בנה בעצמך</span>
+            <span class="cwe-row-meta">
+                <span class="cwe-lock">${_CWE_LOCK_ICON}</span>
+                <span class="cwe-row-days">פרימיום, בקרוב</span>
+            </span>
         </button>`;
     html += '</div>';
     body.innerHTML = html;
