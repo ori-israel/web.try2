@@ -823,7 +823,7 @@ function _showProgressPhotoToast(msg, success = true) {
         'calendly-modal', 'app-dialog', 'achievement-popup', 'workout-complete-msg',
         'nutrition-complete-msg', 'pwa-install-popup', 'renewal-reminder-popup', 'pwa-ios-popup',
         'birthday-modal', 'weekly-survey-banner', 'ai-chat-overlay', 'survey-overlay', 'calc-overlay',
-        'progress-card-modal'
+        'progress-card-modal', 'client-workout-editor-modal'
     ];
     let dynamicOverlayCount = 0;
     window._dynamicOverlayOpen = function () { dynamicOverlayCount++; _refreshScrollLock(); };
