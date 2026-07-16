@@ -147,6 +147,16 @@ function toggleTheme() {
     h1.innerText = `תוכנית הכושר של ${CLIENT.name}`;
     h1.style.visibility = 'visible';
 
+    // מיישר בפועל (לפי מדידת פיקסלים אמיתית בדפדפן) את הקצה הימני של שורת היעד
+    // לקצה הימני של הכותרת, כי לצורת האותיות יש הבדל אופטי בין הפונטים/משקלים
+    requestAnimationFrame(() => {
+        const goalLine = document.getElementById('header-goal-display');
+        if (!h1 || !goalLine) return;
+        goalLine.style.marginRight = '0px';
+        const diff = h1.getBoundingClientRect().right - goalLine.getBoundingClientRect().right;
+        goalLine.style.marginRight = diff + 'px';
+    });
+
 }
 
 function _youtubeEmbedUrl(url) {
