@@ -183,6 +183,14 @@ h1 {
     letter-spacing: 0.1px;
 }
 
+.header-id-text .sub-header {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    text-align: right !important;
+    padding: 0 !important;
+}
+
 .day-counter {
     background: var(--accent-light);
     color: var(--accent);
