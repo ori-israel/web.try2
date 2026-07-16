@@ -132,45 +132,54 @@ body {
     backdrop-filter: blur(20px) saturate(1.6);
     -webkit-backdrop-filter: blur(20px) saturate(1.6);
     padding: 102px 20px 26px;
-    text-align: center;
     position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     border-bottom: 0.5px solid var(--border);
+}
+
+.header-id-row {
+    direction: ltr;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.header-id-text {
+    direction: rtl;
+    text-align: right;
+    min-width: 0;
 }
 
 h1 {
     color: var(--text-primary);
     margin: 0;
-    font-size: 24px;
+    font-size: 18px;
     font-weight: 700;
-    padding: 0 52px;
-    letter-spacing: -0.5px;
-    line-height: 1.2;
+    letter-spacing: -0.3px;
+    line-height: 1.25;
 }
 
 .sub-header {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-secondary);
-    margin: 2px 0;
+    margin: 3px 0 0;
     font-weight: 400;
     letter-spacing: 0.1px;
 }
 
 .day-counter {
-    background: var(--gradient-btn);
-    color: white;
+    background: var(--accent-light);
+    color: var(--accent);
     display: inline-block;
-    padding: 5px 18px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    margin-top: 12px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
     border: none;
-    letter-spacing: 0.3px;
-    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.35);
+    letter-spacing: 0.2px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    text-align: center;
 }
 
 /* ============================================
