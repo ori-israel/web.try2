@@ -147,18 +147,6 @@ body {
     width: 100%;
     text-align: right;
     min-width: 0;
-    position: relative;
-}
-
-/* קו אבחון זמני, להסרה מיד אחרי הבדיקה */
-.header-id-text::after {
-    content: "";
-    position: absolute;
-    top: -4px;
-    bottom: -4px;
-    right: 0;
-    border-right: 2px dashed #ff3b30;
-    pointer-events: none;
 }
 
 .header-id-text h1,
@@ -184,7 +172,6 @@ h1 {
 }
 
 .header-id-text .sub-header {
-    display: block !important;
     width: 100% !important;
     max-width: none !important;
     text-align: right !important;
