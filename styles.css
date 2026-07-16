@@ -137,16 +137,21 @@ body {
 }
 
 .header-id-row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
     gap: 10px;
 }
 
 .header-id-text {
-    flex: 1 1 auto;
+    width: 100%;
     text-align: right;
     min-width: 0;
+}
+
+.header-id-text h1,
+.header-id-text .sub-header {
+    width: 100%;
 }
 
 h1 {
