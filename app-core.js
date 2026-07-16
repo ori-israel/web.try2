@@ -155,7 +155,7 @@ function toggleTheme() {
         if (!h1 || !goalLine) return;
         goalLine.style.marginRight = '0px';
         const diff = h1.getBoundingClientRect().right - goalLine.getBoundingClientRect().right;
-        goalLine.style.marginRight = diff + 'px';
+        goalLine.style.marginRight = (-diff) + 'px';
     }
     if (document.fonts && document.fonts.ready) {
         document.fonts.ready.then(_alignHeaderGoalLine);
