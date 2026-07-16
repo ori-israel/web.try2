@@ -991,22 +991,26 @@ th {
 /* יומן אוכל יומי — סגנון ייעודי */
 .food-log-btn {
     width: 100%;
-    background: var(--accent-light);
-    color: var(--accent);
-    padding: 14px 15px;
-    border: 1px solid rgba(59, 130, 246, 0.3);
-    border-radius: var(--radius);
-    text-align: center;
-    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: none;
+    color: var(--text-secondary);
+    padding: 10px 2px;
+    border: none;
+    border-bottom: 0.5px solid var(--border);
+    text-align: right;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    margin: 0 0 10px;
-    transition: all 0.2s ease;
+    margin: 0 0 12px;
     font-family: inherit;
     letter-spacing: -0.1px;
 }
-.food-log-btn:hover  { background: rgba(59, 130, 246, 0.16); }
-.food-log-btn:active { transform: scale(0.98); }
+.food-log-btn-text { display: flex; align-items: center; gap: 6px; }
+.food-log-btn-chevron { color: var(--text-muted); flex-shrink: 0; }
+.food-log-btn:active { opacity: 0.7; }
 
 .food-log-content {
     border-radius: var(--radius) !important;
@@ -2128,20 +2132,23 @@ input[type="radio"] { accent-color: var(--accent); }
 
 /* ─── Food Scanner ─────────────────────────── */
 .food-scan-btn {
-    display: block;
-    margin: 0 auto 18px;
-    padding: 9px 20px;
-    background: var(--bg-card);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin: 0 0 18px;
+    padding: 13px;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius);
+    color: #fff;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 14px;
+    font-weight: 700;
     font-family: inherit;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.food-scan-btn:hover { box-shadow: var(--shadow); border-color: rgba(59, 130, 246, 0.3); }
 .food-scan-btn:active { transform: scale(0.98); }
 
 .modal-overlay {

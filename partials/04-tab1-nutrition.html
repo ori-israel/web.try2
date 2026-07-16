@@ -48,13 +48,16 @@
         </div><!-- /macros-dashboard -->
 
         <!-- יומן אוכל יומי -->
-        <button class="food-log-btn" onclick="toggleAccordion('food-log-accordion')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><rect x="5" y="4" width="14" height="18" rx="2"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><path d="M8.5 11h7"/><path d="M8.5 14.5h7"/><path d="M8.5 18h4"/></svg> מה אכלתי היום:</button>
+        <button class="food-log-btn" onclick="toggleAccordion('food-log-accordion')">
+            <span class="food-log-btn-text"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="18" rx="2"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><path d="M8.5 11h7"/><path d="M8.5 14.5h7"/><path d="M8.5 18h4"/></svg> מה אכלתי היום</span>
+            <svg class="food-log-btn-chevron" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
         <div id="food-log-accordion" class="accordion-content food-log-content">
             <div id="food-log-nav"></div>
             <div id="food-log-list" style="font-size:14px;"></div>
         </div>
 
-        <button class="food-scan-btn" onclick="openFoodScanner()" style="background:#5b7cfa;color:#ffffff;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M5.5 3v6M8 3v6M10.5 3v6"/><path d="M5.5 9c0 1.8 2.5 1.8 2.5 1.8S10.5 10.8 10.5 9"/><path d="M8 10.8v10.2"/><path d="M17 3l2 6-2 3"/><path d="M17 3v18"/></svg> הוספת מנות</button>
+        <button class="food-scan-btn" onclick="openFoodScanner()"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3v6M8 3v6M10.5 3v6"/><path d="M5.5 9c0 1.8 2.5 1.8 2.5 1.8S10.5 10.8 10.5 9"/><path d="M8 10.8v10.2"/><path d="M17 3l2 6-2 3"/><path d="M17 3v18"/></svg> הוספת מנות</button>
 
         <!-- בנק המאכלים החדש (אקורדיון) -->
 <div class="accordion-container">
