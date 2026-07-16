@@ -433,14 +433,27 @@ window.addEventListener('pageshow', (e) => {
 }
     }
 
-    // בנק המאכלים — סגמנט קונטרול: תמיד תוכן אחד גלוי, כפתור אחד פעיל
+    // בנק המאכלים — סגור כברירת מחדל, נפתח רק בבחירה, נשמר לאורך הסשן (עד יציאה מהאפליקציה)
+    function _foodBankTabKey() {
+        const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+        return 'food_bank_tab_' + (uid || 'local');
+    }
     function selectFoodBankTab(id, btnEl) {
         document.querySelectorAll('.food-bank-pane').forEach(pane => { pane.style.display = 'none'; });
         document.querySelectorAll('.food-bank-tab').forEach(btn => btn.classList.remove('active'));
         const pane = document.getElementById(id);
         if (pane) pane.style.display = 'block';
         if (btnEl) btnEl.classList.add('active');
+        sessionStorage.setItem(_foodBankTabKey(), id);
     }
+    (function _restoreFoodBankTab() {
+        const saved = sessionStorage.getItem(_foodBankTabKey());
+        if (!saved) return;
+        const pane = document.getElementById(saved);
+        const btn = document.querySelector('.food-bank-tab[data-bank="' + saved + '"]');
+        if (pane) pane.style.display = 'block';
+        if (btn) btn.classList.add('active');
+    })();
 
     function updateGoalRecommendations() {
     const listContainer = document.getElementById('goal-food-list');
@@ -452,7 +465,7 @@ window.addEventListener('pageshow', (e) => {
     const currentGoal = CLIENT.goal;
 
     if (currentGoal === "cut" || currentGoal === "חיטוב") {
-        tabLabel.textContent = 'בנק חיטוב';
+        tabLabel.textContent = 'חיטוב';
         caption.textContent = 'מאכלים שיעזרו לכם לרדת במשקל מבלי להיות רעבים';
         listContainer.innerHTML = `
             <li>חזה עוף (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
@@ -478,7 +491,7 @@ window.addEventListener('pageshow', (e) => {
             <li>כרוב = 0 מנות (ללא הגבלה)</li>
         `;
     } else {
-        tabLabel.textContent = 'בנק מסה';
+        tabLabel.textContent = 'מסה';
         caption.textContent = 'מאכלים שיעזרו לך להגיע ליעדי החלבון והקלוריות מבלי לאכול בכוח';
         listContainer.innerHTML = `
             <li>פרגיות (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
