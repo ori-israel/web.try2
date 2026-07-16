@@ -433,16 +433,27 @@ window.addEventListener('pageshow', (e) => {
 }
     }
 
+    // בנק המאכלים — סגמנט קונטרול: תמיד תוכן אחד גלוי, כפתור אחד פעיל
+    function selectFoodBankTab(id, btnEl) {
+        document.querySelectorAll('.food-bank-pane').forEach(pane => { pane.style.display = 'none'; });
+        document.querySelectorAll('.food-bank-tab').forEach(btn => btn.classList.remove('active'));
+        const pane = document.getElementById(id);
+        if (pane) pane.style.display = 'block';
+        if (btnEl) btnEl.classList.add('active');
+    }
+
     function updateGoalRecommendations() {
     const listContainer = document.getElementById('goal-food-list');
-    const btnText = document.querySelector('.special-btn') || document.getElementById('goal-rec-btn');
-    
-    if (!listContainer || !btnText) return;
+    const tabLabel = document.getElementById('goal-bank-tab-label');
+    const caption = document.getElementById('goal-food-caption');
+
+    if (!listContainer || !tabLabel || !caption) return;
 
     const currentGoal = CLIENT.goal;
 
     if (currentGoal === "cut" || currentGoal === "חיטוב") {
-        btnText.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.6 1 1.3 1 2.5h6c0-1.2.3-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg> מאכלים שיעזרו לכם לרדת במשקל מבלי להיות רעבים';
+        tabLabel.textContent = 'בנק חיטוב';
+        caption.textContent = 'מאכלים שיעזרו לכם לרדת במשקל מבלי להיות רעבים';
         listContainer.innerHTML = `
             <li>חזה עוף (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
             <li>פילה הודו (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
@@ -467,7 +478,8 @@ window.addEventListener('pageshow', (e) => {
             <li>כרוב = 0 מנות (ללא הגבלה)</li>
         `;
     } else {
-        btnText.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.6 1 1.3 1 2.5h6c0-1.2.3-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg> מאכלים שיעזרו לך להגיע ליעדי החלבון והקלוריות מבלי לאכול בכוח';
+        tabLabel.textContent = 'בנק מסה';
+        caption.textContent = 'מאכלים שיעזרו לך להגיע ליעדי החלבון והקלוריות מבלי לאכול בכוח';
         listContainer.innerHTML = `
             <li>פרגיות (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
             <li>בקר טחון 15% (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
