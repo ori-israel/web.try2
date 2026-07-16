@@ -439,8 +439,13 @@ window.addEventListener('pageshow', (e) => {
         return 'food_bank_tab_' + (uid || 'local');
     }
     function selectFoodBankTab(id, btnEl) {
+        const alreadyOpen = btnEl && btnEl.classList.contains('active');
         document.querySelectorAll('.food-bank-pane').forEach(pane => { pane.style.display = 'none'; });
         document.querySelectorAll('.food-bank-tab').forEach(btn => btn.classList.remove('active'));
+        if (alreadyOpen) {
+            sessionStorage.removeItem(_foodBankTabKey());
+            return;
+        }
         const pane = document.getElementById(id);
         if (pane) pane.style.display = 'block';
         if (btnEl) btnEl.classList.add('active');
