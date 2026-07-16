@@ -1547,30 +1547,6 @@ mark {
 .trophy-icon { font-size: 48px; margin-top: 12px; }
 
 /* ============================================
-   Back to Top Button
-   ============================================ */
-#backToTop {
-    display: none;
-    position: fixed;
-    bottom: calc(70px + env(safe-area-inset-bottom));
-    right: 16px;
-    z-index: 25;
-    background: var(--gradient-btn);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 42px;
-    height: 42px;
-    cursor: pointer;
-    font-size: 16px;
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
-    transition: all 0.2s ease;
-}
-
-#backToTop:hover { box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5); }
-#backToTop:active { transform: scale(0.9); }
-
-/* ============================================
    Checklist
    ============================================ */
 .checklist-container {

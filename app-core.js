@@ -662,28 +662,8 @@ function initFAQ() {
     document.addEventListener('DOMContentLoaded', () => {
         initFAQ();
         initVideos();
-        showWorkout('A'); 
-
-        // לוגיקה לכפתור חזרה למעלה - הכנסנו אותה לכאן כדי לוודא שהכפתור כבר קיים ב-HTML
-        const btn = document.getElementById("backToTop");
-        if (btn) {
-            btn.addEventListener("click", function() {
-                window.scrollTo({top: 0, behavior: 'smooth'});
-            });
-        }
+        showWorkout('A');
     });
-
-    // הלוגיקה של ההופעה/הסתרה יכולה להישאר בחוץ
-    window.onscroll = function() {
-        const btn = document.getElementById("backToTop");
-        if (btn) {
-            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-                btn.style.display = "block";
-            } else {
-                btn.style.display = "none";
-            }
-        }
-    };
 
     function editWeightInline(el) {
     if (el.querySelector('input')) return;
