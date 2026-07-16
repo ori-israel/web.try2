@@ -145,6 +145,7 @@ body {
 }
 
 .header-id-text {
+    flex: 1 1 auto;
     direction: rtl;
     text-align: right;
     min-width: 0;

@@ -262,7 +262,7 @@ function closeCompleteMsg() {
     function updateCounter() {
         const diffInDays = Math.floor((new Date() - new Date(CLIENT.startDate)) / (1000 * 60 * 60 * 24)) + 1;
         const counterEl = document.getElementById('day-counter');
-        if (counterEl) counterEl.innerText = diffInDays > 0 ? "יום " + diffInDays + " למסע שלך!" : "מתחילים בקרוב!";
+        if (counterEl) counterEl.innerText = diffInDays > 0 ? "יום " + diffInDays : "מתחילים בקרוב!";
     }
 
     document.querySelectorAll('.tab-btn').forEach(button => {
