@@ -148,14 +148,19 @@ function toggleTheme() {
     h1.style.visibility = 'visible';
 
     // מיישר בפועל (לפי מדידת פיקסלים אמיתית בדפדפן) את הקצה הימני של שורת היעד
-    // לקצה הימני של הכותרת, כי לצורת האותיות יש הבדל אופטי בין הפונטים/משקלים
-    requestAnimationFrame(() => {
+    // לקצה הימני של הכותרת. חייבים לחכות לטעינת הפונט (Heebo נטען אסינכרונית) -
+    // מדידה לפני שהפונט האמיתי נטען נותנת מספר שגוי לפי פונט הגיבוי
+    function _alignHeaderGoalLine() {
         const goalLine = document.getElementById('header-goal-display');
         if (!h1 || !goalLine) return;
         goalLine.style.marginRight = '0px';
         const diff = h1.getBoundingClientRect().right - goalLine.getBoundingClientRect().right;
         goalLine.style.marginRight = diff + 'px';
-    });
+    }
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(_alignHeaderGoalLine);
+    }
+    requestAnimationFrame(_alignHeaderGoalLine);
 
 }
 
