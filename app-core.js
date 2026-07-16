@@ -147,15 +147,26 @@ function toggleTheme() {
     h1.innerText = `תוכנית הכושר של ${CLIENT.name}`;
     h1.style.visibility = 'visible';
 
-    // מיישר בפועל (לפי מדידת פיקסלים אמיתית בדפדפן) את הקצה הימני של שורת היעד
-    // לקצה הימני של הכותרת. חייבים לחכות לטעינת הפונט (Heebo נטען אסינכרונית) -
-    // מדידה לפני שהפונט האמיתי נטען נותנת מספר שגוי לפי פונט הגיבוי
+    // מיישר בפועל את האות הראשונה של שורת היעד לאות הראשונה של הכותרת.
+    // קופסת האלמנט כבר מיושרת (נבדק), הפער האמיתי הוא ברמת הגליף עצמו -
+    // לכן מודדים את המיקום המדויק של האות הראשונה בפועל (Range), לא את קופסת האלמנט
+    function _firstCharRight(el) {
+        const textNode = el.firstChild;
+        if (!textNode || textNode.nodeType !== Node.TEXT_NODE || !textNode.textContent.length) return null;
+        const range = document.createRange();
+        range.setStart(textNode, 0);
+        range.setEnd(textNode, 1);
+        const rects = range.getClientRects();
+        return rects.length ? rects[0].right : null;
+    }
     function _alignHeaderGoalLine() {
         const goalLine = document.getElementById('header-goal-display');
         if (!h1 || !goalLine) return;
         goalLine.style.marginRight = '0px';
-        const diff = h1.getBoundingClientRect().right - goalLine.getBoundingClientRect().right;
-        goalLine.style.marginRight = (-diff) + 'px';
+        const h1Right = _firstCharRight(h1);
+        const goalRight = _firstCharRight(goalLine);
+        if (h1Right == null || goalRight == null) return;
+        goalLine.style.marginRight = (goalRight - h1Right) + 'px';
     }
     if (document.fonts && document.fonts.ready) {
         document.fonts.ready.then(_alignHeaderGoalLine);
