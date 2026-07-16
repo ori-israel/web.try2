@@ -444,6 +444,8 @@ window.addEventListener('pageshow', (e) => {
         document.querySelectorAll('.food-bank-tab').forEach(btn => btn.classList.remove('active'));
         if (alreadyOpen) {
             sessionStorage.removeItem(_foodBankTabKey());
+            const tabsRow = document.querySelector('.food-bank-tabs');
+            if (tabsRow) tabsRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
             return;
         }
         const pane = document.getElementById(id);
