@@ -325,10 +325,10 @@
             ],
             workoutC: [
                 { name: "לחיצת חזה במכשיר עם שיפוע חיובי", reps: "10-15", warmupSets: 1, workSets: 3 },
-                { name: "כפיפת אמות עם מוט", reps: "10-15", warmupSets: 1, workSets: 2 },
-                { name: "פשיטת אמות עם משקולות", reps: "10-15", warmupSets: 1, workSets: 2 },
                 { name: "חתירה עם כבל יד יד", reps: "10-15", warmupSets: 1, workSets: 3 },
                 { name: "פייס פולס", reps: "10-15", warmupSets: 1, workSets: 2 },
+                { name: "כפיפת אמות עם מוט", reps: "10-15", warmupSets: 1, workSets: 2 },
+                { name: "פשיטת אמות עם משקולות", reps: "10-15", warmupSets: 1, workSets: 2 },
             ],
             workoutD: [
                 { name: "לג פרס", reps: "10-15", warmupSets: 1, workSets: 3 },
@@ -468,10 +468,10 @@
             workoutE: [
                 { name: "חתירה עם כבל", reps: "10-15", warmupSets: 1, workSets: 3 },
                 { name: "פולי עליון עם אחיזת וי", reps: "10-15", warmupSets: 0, workSets: 2 },
+                { name: "חתירה עם כבל יד יד", reps: "10-15", warmupSets: 0, workSets: 2 },
                 { name: "כיווץ טרפזים עם משקולות", reps: "10-15", warmupSets: 1, workSets: 2 },
                 { name: "כפיפת מרפקים עם משקולות בעמידה", reps: "10-15", warmupSets: 1, workSets: 2 },
                 { name: "כפיפת עכביש עם משקולות", reps: "10-15", warmupSets: 0, workSets: 2 },
-                { name: "חתירה עם כבל יד יד", reps: "10-15", warmupSets: 0, workSets: 2 },
             ],
             workoutF: [
                 { name: "לג פרס", reps: "10-15", warmupSets: 1, workSets: 3 },

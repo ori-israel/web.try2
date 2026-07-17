@@ -4,3 +4,4 @@
 skills-lock.json
 CLAUDE.md
 .vercel
+.env*
