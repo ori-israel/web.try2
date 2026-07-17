@@ -643,6 +643,7 @@ async function selectWorkoutTemplate(index) {
     if (!confirmed) return;
 
     CLIENT.workoutsPerWeek = tpl.workoutsPerWeek || 3;
+    CLIENT.workoutSource = 'template';
     ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(letter => {
         const src = tpl['workout' + letter];
         CLIENT['workout' + letter] = src ? JSON.parse(JSON.stringify(src)) : null;
@@ -661,6 +662,8 @@ async function selectWorkoutTemplate(index) {
 
 const _CWE_CATEGORIES = ['חזה', 'גב', 'כתפיים', 'רגליים', 'יד קדמית', 'יד אחורית', 'בטן', 'ישבן'];
 const _CWE_DEL_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const _CWE_UP_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>';
+const _CWE_DOWN_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 
 let _cweCustomState  = null;
 let _cweActiveWorkoutIdx = null;
@@ -703,6 +706,15 @@ function toggleCustomBuilderDay(workoutIdx, day, btn) {
 function removeExerciseFromCustomWorkout(workoutIdx, exIdx) {
     _cweSyncCustomBuilderDom();
     _cweCustomState.workouts[workoutIdx].exercises.splice(exIdx, 1);
+    _renderCustomBuilder();
+}
+
+function moveExerciseInCustomWorkout(workoutIdx, exIdx, direction) {
+    _cweSyncCustomBuilderDom();
+    const exercises = _cweCustomState.workouts[workoutIdx].exercises;
+    const newIdx = exIdx + direction;
+    if (newIdx < 0 || newIdx >= exercises.length) return;
+    [exercises[exIdx], exercises[newIdx]] = [exercises[newIdx], exercises[exIdx]];
     _renderCustomBuilder();
 }
 
@@ -779,6 +791,10 @@ function _renderCustomBuilder() {
             <div class="cwe-cb-ex-row" data-workout-idx="${wi}" data-ex-idx="${ei}">
                 <div class="cwe-cb-ex-top">
                     <span class="cwe-cb-ex-name">${ex.name}</span>
+                    <div class="cwe-cb-ex-move">
+                        <button class="cwe-cb-ex-move-btn" ${ei === 0 ? 'disabled' : ''} onclick="moveExerciseInCustomWorkout(${wi}, ${ei}, -1)" aria-label="הזז למעלה">${_CWE_UP_ICON}</button>
+                        <button class="cwe-cb-ex-move-btn" ${ei === w.exercises.length - 1 ? 'disabled' : ''} onclick="moveExerciseInCustomWorkout(${wi}, ${ei}, 1)" aria-label="הזז למטה">${_CWE_DOWN_ICON}</button>
+                    </div>
                     <button class="cwe-cb-ex-del" onclick="removeExerciseFromCustomWorkout(${wi}, ${ei})">${_CWE_DEL_ICON}</button>
                 </div>
                 <div class="cwe-cb-ex-fields">
@@ -849,6 +865,7 @@ async function saveCustomWorkout() {
     if (!confirmed) return;
 
     CLIENT.workoutsPerWeek = _cweCustomState.workouts.length;
+    CLIENT.workoutSource = 'custom';
     ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(letter => { CLIENT['workout' + letter] = null; });
     CLIENT.workoutDays = {};
     CLIENT.cardioPlan  = {};

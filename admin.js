@@ -974,6 +974,7 @@ async function saveWorkoutPlan() {
     try {
         const perWeek = parseInt(document.getElementById('we-workouts-per-week')?.value) || 3;
         CLIENT.workoutsPerWeek = perWeek;
+        CLIENT.workoutSource = 'admin';
 
         _weLetters().forEach(letter => {
             const tbody     = document.getElementById(`we-body-${letter}`);

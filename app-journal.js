@@ -829,6 +829,63 @@ function resetWorkout() {
     });
 }
 
+const _ORDER_UP_ICON   = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>';
+const _ORDER_DOWN_ICON  = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+
+function _renderWorkoutTbody(letter, workout, targets) {
+    const container = document.getElementById('workout-' + letter);
+    if (!container) return;
+    const tbody = container.querySelector('tbody');
+    if (!tbody) return;
+    const canReorder = CLIENT.workoutSource && CLIENT.workoutSource !== 'admin';
+    tbody.innerHTML = '';
+    (workout || []).forEach((ex, i) => {
+        const t = targets[ex.name];
+        const weightDisplay = t
+            ? `${t.target_weight}${t.suggest_increase ? ' <span style="color:#22c55e;font-size:0.9em;">↑</span>' : ''}`
+            : '';
+        const repsDisplay = t ? String(t.target_reps) : ex.reps;
+        const subtext = t?.suggest_increase
+            ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">הוסף קצת משקל</div>`
+            : '';
+        const orderCell = canReorder
+            ? `<div class="workout-order-btns">
+                    <button class="workout-order-btn" ${i === 0 ? 'disabled' : ''} onclick="moveWorkoutExercise('${letter}', ${i}, -1)" aria-label="הזז למעלה">${_ORDER_UP_ICON}</button>
+                    <button class="workout-order-btn" ${i === workout.length - 1 ? 'disabled' : ''} onclick="moveWorkoutExercise('${letter}', ${i}, 1)" aria-label="הזז למטה">${_ORDER_DOWN_ICON}</button>
+               </div>`
+            : '';
+        tbody.innerHTML += `
+            <tr>
+                <td><input type="checkbox" class="workout-checkbox" data-id="${letter}_${i}"></td>
+                <td>${ex.name}</td>
+                <td>${ex.warmupSets ?? 1}</td>
+                <td>${ex.workSets ?? 2}</td>
+                <td>${repsDisplay}</td>
+                <td>${weightDisplay}${subtext}</td>
+                <td class="video-cell"></td>
+                <td>${orderCell}</td>
+            </tr>`;
+    });
+}
+
+function moveWorkoutExercise(letter, index, direction) {
+    if (!CLIENT.workoutSource || CLIENT.workoutSource === 'admin') return;
+    const arr = CLIENT['workout' + letter];
+    if (!Array.isArray(arr)) return;
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= arr.length) return;
+    [arr[index], arr[newIndex]] = [arr[newIndex], arr[index]];
+
+    // המיקום (לא שם התרגיל) קובע את מזהה הצ'קבוקס, אז אחרי סידור מחדש מאפסים סימוני "בוצע" של האימון הזה כדי לא לשייך אותם לתרגיל הלא נכון
+    const progress = _ensureWorkoutCache().exercises;
+    Object.keys(progress).forEach(key => { if (key.startsWith(letter + '_')) delete progress[key]; });
+    if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
+
+    _renderWorkoutTbody(letter, arr, _exerciseTargets || {});
+    initWorkoutTableWeights(_exerciseTargets || {});
+    if (typeof initVideos === 'function') initVideos();
+    if (typeof syncWorkoutPlanNow === 'function') syncWorkoutPlanNow();
+}
 
 async function initWorkoutsFromClient() {
     console.log('[init] function called, uid:', getActiveUserId());
@@ -859,33 +916,10 @@ async function initWorkoutsFromClient() {
         btn.setAttribute('onclick', `showWorkout('${letter}')`);
         selector.appendChild(btn);
 
-        const container = document.getElementById('workout-' + letter);
-        if (!container) return;
-        const tbody = container.querySelector('tbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-        (workout || []).forEach((ex, i) => {
-            const t = targets[ex.name];
-            const weightDisplay = t
-                ? `${t.target_weight}${t.suggest_increase ? ' <span style="color:#22c55e;font-size:0.9em;">↑</span>' : ''}`
-                : '';
-            const repsDisplay = t ? String(t.target_reps) : ex.reps;
-            const subtext = t?.suggest_increase
-                ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">הוסף קצת משקל</div>`
-                : '';
-            tbody.innerHTML += `
-                <tr>
-                    <td><input type="checkbox" class="workout-checkbox" data-id="${letter}_${i}"></td>
-                    <td>${ex.name}</td>
-                    <td>${ex.warmupSets ?? 1}</td>
-                    <td>${ex.workSets ?? 2}</td>
-                    <td>${repsDisplay}</td>
-                    <td>${weightDisplay}${subtext}</td>
-                    <td class="video-cell"></td>
-                </tr>`;
-        });
+        _renderWorkoutTbody(letter, workout, targets);
 
-        container.style.display = 'none';
+        const container = document.getElementById('workout-' + letter);
+        if (container) container.style.display = 'none';
     });
 
     const totalShown = selector.querySelectorAll('.workout-nav-btn').length;

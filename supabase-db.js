@@ -681,6 +681,7 @@ async function loadUserIntoApp(userId) {
         if (profile.workout_g  && profile.workout_g.length)  CLIENT.workoutG    = profile.workout_g;
         if (profile.workout_days)                             CLIENT.workoutDays     = profile.workout_days;
         if (profile.workouts_per_week)                        CLIENT.workoutsPerWeek = profile.workouts_per_week;
+        CLIENT.workoutSource = profile.workout_source || 'admin';
         CLIENT.exerciseNotes = profile.exercise_notes || {};
         CLIENT.cardioPlan    = profile.cardio_plan    || {};
         if (profile.portion_values) {
@@ -868,6 +869,7 @@ async function syncWorkoutPlanNow() {
             workout_days:      CLIENT.workoutDays,
             workouts_per_week: CLIENT.workoutsPerWeek || 3,
             cardio_plan:       CLIENT.cardioPlan || {},
+            workout_source:    CLIENT.workoutSource || 'admin',
         });
     } catch (e) { console.warn('[SB] workout plan sync:', e.message); }
 }
