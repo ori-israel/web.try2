@@ -915,12 +915,37 @@ function _flashMovedRows(letter, i, j) {
     });
 }
 
+function _flipAnimate(el, deltaY) {
+    if (!el || !deltaY) return;
+    el.style.transition = 'none';
+    el.style.transform = `translateY(${deltaY}px)`;
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            el.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+            el.style.transform = '';
+        });
+    });
+}
+
+function _slideSwapPair(beforeI, beforeJ, afterI, afterJ) {
+    if (beforeI == null || beforeJ == null) return;
+    _flipAnimate(afterI, beforeJ - beforeI);
+    _flipAnimate(afterJ, beforeI - beforeJ);
+}
+
 function moveWorkoutExercise(letter, index, direction) {
     if (!_canReorderWorkout()) return;
     const arr = CLIENT['workout' + letter];
     if (!Array.isArray(arr)) return;
     const newIndex = index + direction;
     if (newIndex < 0 || newIndex >= arr.length) return;
+
+    const container = document.getElementById('workout-' + letter);
+    const beforeTableI  = container?.querySelector(`tr[data-order-idx="${index}"]`)?.getBoundingClientRect().top;
+    const beforeTableJ  = container?.querySelector(`tr[data-order-idx="${newIndex}"]`)?.getBoundingClientRect().top;
+    const beforeAccordI = container?.querySelector(`.workout-accord-item:nth-child(${index + 1})`)?.getBoundingClientRect().top;
+    const beforeAccordJ = container?.querySelector(`.workout-accord-item:nth-child(${newIndex + 1})`)?.getBoundingClientRect().top;
+
     [arr[index], arr[newIndex]] = [arr[newIndex], arr[index]];
 
     // המיקום (לא שם התרגיל) קובע את מזהה הצ'קבוקס, אז אחרי סידור מחדש מאפסים סימוני "בוצע" של האימון הזה כדי לא לשייך אותם לתרגיל הלא נכון
@@ -932,6 +957,17 @@ function moveWorkoutExercise(letter, index, direction) {
     initWorkoutTableWeights(_exerciseTargets || {});
     if (typeof initVideos === 'function') initVideos();
     if (typeof buildWorkoutAccordions === 'function') buildWorkoutAccordions(_exerciseTargets || {});
+
+    _slideSwapPair(
+        beforeTableI, beforeTableJ,
+        container?.querySelector(`tr[data-order-idx="${index}"]`),
+        container?.querySelector(`tr[data-order-idx="${newIndex}"]`)
+    );
+    _slideSwapPair(
+        beforeAccordI, beforeAccordJ,
+        container?.querySelector(`.workout-accord-item:nth-child(${index + 1})`),
+        container?.querySelector(`.workout-accord-item:nth-child(${newIndex + 1})`)
+    );
     _flashMovedRows(letter, index, newIndex);
     if (typeof syncWorkoutPlanNow === 'function') syncWorkoutPlanNow();
 }
