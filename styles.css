@@ -3145,6 +3145,7 @@ legend { padding: 0; display: block; width: 100%; }
 }
 .tour-inline-btn:hover { box-shadow: var(--shadow); }
 .tour-inline-btn:active { transform: scale(0.9); }
+#workout-reorder-btn.active { background: var(--accent); color: #fff; }
 
 /* ===== נקודת מקור לקוח בלוח המנהל (כחול=ממני, אדום=לא ממני) ===== */
 .from-me-dot {
@@ -3714,5 +3715,9 @@ legend { padding: 0; display: block; width: 100%; }
     color: var(--text-muted);
     opacity: 0.4;
     cursor: default;
+}
+tr.order-flash td, .workout-accord-item.order-flash .workout-accord-header {
+    background-color: var(--accent-light);
+    transition: background-color 0.4s ease;
 }
 .cwe-cb-picker-back { width: 100%; margin-top: 12px; }

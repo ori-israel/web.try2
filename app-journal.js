@@ -832,12 +832,43 @@ function resetWorkout() {
 const _ORDER_UP_ICON   = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>';
 const _ORDER_DOWN_ICON  = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 
+let _workoutReorderMode = false;
+
+function _canReorderWorkout() {
+    return !!(CLIENT.workoutSource && CLIENT.workoutSource !== 'admin');
+}
+
+function refreshWorkoutReorderToggle() {
+    const btn = document.getElementById('workout-reorder-btn');
+    if (!btn) return;
+    if (_canReorderWorkout()) {
+        btn.style.display = '';
+    } else {
+        btn.style.display = 'none';
+        _workoutReorderMode = false;
+        btn.classList.remove('active');
+    }
+}
+
+function toggleWorkoutReorderMode() {
+    if (!_canReorderWorkout()) return;
+    _workoutReorderMode = !_workoutReorderMode;
+    const btn = document.getElementById('workout-reorder-btn');
+    if (btn) btn.classList.toggle('active', _workoutReorderMode);
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(letter => {
+        if (CLIENT['workout' + letter]) _renderWorkoutTbody(letter, CLIENT['workout' + letter], _exerciseTargets || {});
+    });
+    initWorkoutTableWeights(_exerciseTargets || {});
+    if (typeof initVideos === 'function') initVideos();
+    if (typeof buildWorkoutAccordions === 'function') buildWorkoutAccordions(_exerciseTargets || {});
+}
+
 function _renderWorkoutTbody(letter, workout, targets) {
     const container = document.getElementById('workout-' + letter);
     if (!container) return;
     const tbody = container.querySelector('tbody');
     if (!tbody) return;
-    const canReorder = CLIENT.workoutSource && CLIENT.workoutSource !== 'admin';
+    const canReorder = _canReorderWorkout() && _workoutReorderMode;
     tbody.innerHTML = '';
     (workout || []).forEach((ex, i) => {
         const t = targets[ex.name];
@@ -855,7 +886,7 @@ function _renderWorkoutTbody(letter, workout, targets) {
                </div>`
             : '';
         tbody.innerHTML += `
-            <tr>
+            <tr data-order-idx="${i}">
                 <td><input type="checkbox" class="workout-checkbox" data-id="${letter}_${i}"></td>
                 <td>${ex.name}</td>
                 <td>${ex.warmupSets ?? 1}</td>
@@ -868,8 +899,24 @@ function _renderWorkoutTbody(letter, workout, targets) {
     });
 }
 
+function _flashMovedRows(letter, i, j) {
+    const container = document.getElementById('workout-' + letter);
+    if (!container) return;
+    [i, j].forEach(idx => {
+        const els = [
+            container.querySelector(`tr[data-order-idx="${idx}"]`),
+            container.querySelector(`.workout-accord-item:nth-child(${idx + 1})`),
+        ];
+        els.forEach(el => {
+            if (!el) return;
+            el.classList.add('order-flash');
+            setTimeout(() => el.classList.remove('order-flash'), 450);
+        });
+    });
+}
+
 function moveWorkoutExercise(letter, index, direction) {
-    if (!CLIENT.workoutSource || CLIENT.workoutSource === 'admin') return;
+    if (!_canReorderWorkout()) return;
     const arr = CLIENT['workout' + letter];
     if (!Array.isArray(arr)) return;
     const newIndex = index + direction;
@@ -885,6 +932,7 @@ function moveWorkoutExercise(letter, index, direction) {
     initWorkoutTableWeights(_exerciseTargets || {});
     if (typeof initVideos === 'function') initVideos();
     if (typeof buildWorkoutAccordions === 'function') buildWorkoutAccordions(_exerciseTargets || {});
+    _flashMovedRows(letter, index, newIndex);
     if (typeof syncWorkoutPlanNow === 'function') syncWorkoutPlanNow();
 }
 
@@ -941,6 +989,7 @@ async function initWorkoutsFromClient() {
     showWorkout(todayLetter || firstLetter);
     initWorkoutsChecklist();
     initWorkoutTableWeights(targets);
+    refreshWorkoutReorderToggle();
     buildWorkoutAccordions(targets);
 }
 

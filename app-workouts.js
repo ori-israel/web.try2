@@ -339,7 +339,7 @@ function buildWorkoutAccordions(targets = {}) {
     if (window.innerWidth > 600) return;
     // remove stale accordions so we can rebuild with fresh targets
     document.querySelectorAll('.workout-accordion').forEach(a => a.remove());
-    const canReorder = CLIENT.workoutSource && CLIENT.workoutSource !== 'admin';
+    const canReorder = (typeof _canReorderWorkout === 'function' ? _canReorderWorkout() : (CLIENT.workoutSource && CLIENT.workoutSource !== 'admin')) && (typeof _workoutReorderMode !== 'undefined' ? _workoutReorderMode : true);
     document.querySelectorAll('.workout-table').forEach(table => {
         const wrapper = table.closest('.table-wrapper');
         if (!wrapper) return;
