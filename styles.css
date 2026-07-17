@@ -1741,6 +1741,36 @@ mark {
 
     .workout-accord-item.open .accord-toggle { transform: rotate(180deg); }
 
+    .accord-order-btns {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex-shrink: 0;
+    }
+
+    .accord-order-btn {
+        width: 22px;
+        height: 16px;
+        border-radius: 6px;
+        border: none;
+        background: none;
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .accord-order-btn:active { transform: scale(0.9); }
+
+    .accord-order-btn:disabled {
+        color: var(--text-muted);
+        opacity: 0.4;
+        cursor: default;
+    }
+
     .workout-accord-header .accord-check-icon {
         display: none;
         color: #22c55e;

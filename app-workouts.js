@@ -339,13 +339,16 @@ function buildWorkoutAccordions(targets = {}) {
     if (window.innerWidth > 600) return;
     // remove stale accordions so we can rebuild with fresh targets
     document.querySelectorAll('.workout-accordion').forEach(a => a.remove());
+    const canReorder = CLIENT.workoutSource && CLIENT.workoutSource !== 'admin';
     document.querySelectorAll('.workout-table').forEach(table => {
         const wrapper = table.closest('.table-wrapper');
         if (!wrapper) return;
+        const workoutContainer = wrapper.closest('[id^="workout-"]');
+        const letter = workoutContainer?.id?.replace('workout-', '');
         const accordion = document.createElement('div');
         accordion.className = 'workout-accordion';
         const rows = table.querySelectorAll('tbody tr');
-        rows.forEach(row => {
+        rows.forEach((row, i) => {
             const cells = row.querySelectorAll('td');
             const checkbox = cells[0]?.querySelector('input[type="checkbox"]');
             const name = cells[1]?.textContent.trim();
@@ -376,6 +379,10 @@ function buildWorkoutAccordions(targets = {}) {
                 <div class="workout-accord-header ${isChecked ? 'checked' : ''}">
                     <input type="checkbox" class="accord-checkbox" ${isChecked ? 'checked' : ''}>
                     <span class="accord-name">${name}</span>
+                    ${canReorder ? `<div class="accord-order-btns">
+                        <button class="accord-order-btn" ${i === 0 ? 'disabled' : ''} onclick="event.stopPropagation(); moveWorkoutExercise('${letter}', ${i}, -1)" aria-label="הזז למעלה">${_CWE_UP_ICON}</button>
+                        <button class="accord-order-btn" ${i === rows.length - 1 ? 'disabled' : ''} onclick="event.stopPropagation(); moveWorkoutExercise('${letter}', ${i}, 1)" aria-label="הזז למטה">${_CWE_DOWN_ICON}</button>
+                    </div>` : ''}
                     <span class="accord-check-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
                     <span class="accord-toggle">▾</span>
                 </div>
@@ -451,8 +458,6 @@ function buildWorkoutAccordions(targets = {}) {
         });
 
         // cardio display
-        const workoutContainer = wrapper.closest('[id^="workout-"]');
-        const letter = workoutContainer?.id?.replace('workout-', '');
         const cardio = letter ? CLIENT.cardioPlan?.[letter] : null;
         if (cardio?.description) {
             const cardioId = `${letter}_cardio`;

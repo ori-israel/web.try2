@@ -884,6 +884,7 @@ function moveWorkoutExercise(letter, index, direction) {
     _renderWorkoutTbody(letter, arr, _exerciseTargets || {});
     initWorkoutTableWeights(_exerciseTargets || {});
     if (typeof initVideos === 'function') initVideos();
+    if (typeof buildWorkoutAccordions === 'function') buildWorkoutAccordions(_exerciseTargets || {});
     if (typeof syncWorkoutPlanNow === 'function') syncWorkoutPlanNow();
 }
 
