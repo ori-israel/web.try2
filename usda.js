@@ -5633,5 +5633,47 @@ const USDA_TABLE = [
     "protein": 8.8,
     "fat": 0.4,
     "carbs": 21.3
+  },
+  {
+    "name": "מרק עוף, אבקה, אסם",
+    "name_en": "Chicken soup, powder, Osem",
+    "protein": 10.2,
+    "fat": 7.1,
+    "carbs": 53.1
+  },
+  {
+    "name": "משקה קל, תה קר, פיוז, גת, קוקה קולה",
+    "name_en": "Iced tea, Fuze Tea, Coca-Cola",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 7.9
+  },
+  {
+    "name": "מיץ תפוזים, תרכיז קפוא, פריגת",
+    "name_en": "Orange juice, frozen concentrate, Prigat",
+    "protein": 2.2,
+    "fat": 0.0,
+    "carbs": 52.5
+  },
+  {
+    "name": "בשר הודו, חזה מעושן דל שומן, זוגלובק",
+    "name_en": "Turkey breast, smoked, low fat, Zoglobek",
+    "protein": 20.0,
+    "fat": 1.5,
+    "carbs": 1.5
+  },
+  {
+    "name": "נקניק, פסטרמה הודו דל שומן, זוגלובק",
+    "name_en": "Turkey pastrami, low fat, Zoglobek",
+    "protein": 18.0,
+    "fat": 1.8,
+    "carbs": 2.0
+  },
+  {
+    "name": "נקניקיות מן הצומח, זוגלובק",
+    "name_en": "Plant-based sausages, Zoglobek",
+    "protein": 19.0,
+    "fat": 8.0,
+    "carbs": 5.0
   }
 ];
