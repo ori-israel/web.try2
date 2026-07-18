@@ -5318,5 +5318,61 @@ const USDA_TABLE = [
     "protein": 8.1,
     "fat": 1.4,
     "carbs": 35.9
+  },
+  {
+    "name": "דג סול, פילה קפוא, תנובה",
+    "name_en": "Sole fillet, frozen, Tnuva",
+    "protein": 12.4,
+    "fat": 1.9,
+    "carbs": 0.0
+  },
+  {
+    "name": "דג נסיכת הנילוס, פילה קפוא, תנובה",
+    "name_en": "Nile perch fillet, frozen, Tnuva",
+    "protein": 19.0,
+    "fat": 1.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "תרד קפוא, מבושל",
+    "name_en": "Spinach, frozen, cooked",
+    "protein": 4.0,
+    "fat": 0.9,
+    "carbs": 1.1
+  },
+  {
+    "name": "שעועית צהובה, קפואה, מבושלת",
+    "name_en": "Yellow beans, frozen, cooked",
+    "protein": 1.5,
+    "fat": 0.2,
+    "carbs": 3.4
+  },
+  {
+    "name": "ירקות לקט כפרי (ברוקולי, גזר, כרובית, כרישה, שעועית ירוקה), קפוא",
+    "name_en": "Mixed vegetables, frozen, country blend",
+    "protein": 2.1,
+    "fat": 0.2,
+    "carbs": 5.9
+  },
+  {
+    "name": "כרובית קפואה, לא מבושלת",
+    "name_en": "Cauliflower, frozen, raw",
+    "protein": 2.0,
+    "fat": 0.2,
+    "carbs": 4.3
+  },
+  {
+    "name": "ברוקולי קפוא, לא מבושל, סנפרוסט",
+    "name_en": "Broccoli, frozen, raw, Sunfrost",
+    "protein": 3.3,
+    "fat": 0.2,
+    "carbs": 5.2
+  },
+  {
+    "name": "ירקות לקט אפונה וגזר, קפוא, סנפרוסט",
+    "name_en": "Peas and carrots mix, frozen, Sunfrost",
+    "protein": 3.1,
+    "fat": 0.0,
+    "carbs": 9.9
   }
 ];
