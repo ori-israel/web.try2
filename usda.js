@@ -4793,5 +4793,320 @@ const USDA_TABLE = [
     "protein": 0.7,
     "fat": 0.0,
     "carbs": 11.3
+  },
+  {
+    "name": "יוגורט ביו 3% שומן, תנובה",
+    "name_en": "Yoghurt, cow milk, bio, 3% fat, unflavored, Tnuva",
+    "protein": 4.4,
+    "fat": 3.0,
+    "carbs": 4.6
+  },
+  {
+    "name": "יוגורט אקטיביה 1.5%, שטראוס",
+    "name_en": "Yoghurt, cow milk, 1.5% fat, Activia, Strauss",
+    "protein": 4.5,
+    "fat": 1.5,
+    "carbs": 4.2
+  },
+  {
+    "name": "יוגורט יופלה טבעי 0% שומן, תנובה",
+    "name_en": "Yoghurt, cow milk, 0% fat, unflavored, Yoplait, Tnuva",
+    "protein": 5.5,
+    "fat": 0.0,
+    "carbs": 3.7
+  },
+  {
+    "name": "יוגורט דנונה 3% שומן, טעמי פירות, שטראוס",
+    "name_en": "Yoghurt, cow milk, 3% fat, fruit flavors, Danone, Strauss",
+    "protein": 3.6,
+    "fat": 3.0,
+    "carbs": 16.2
+  },
+  {
+    "name": "יוגורט דנונה פרו, עשיר בחלבון, 2.9% שומן, שטראוס",
+    "name_en": "Yoghurt, cow milk, protein-enriched, 2.9% fat, Danone Pro, Strauss",
+    "protein": 8.0,
+    "fat": 2.9,
+    "carbs": 4.0
+  },
+  {
+    "name": "משקה יוגורט אקטימל 0% שומן, שטראוס",
+    "name_en": "Yoghurt drink, cow milk, 0% fat, Actimel, Strauss",
+    "protein": 2.9,
+    "fat": 0.2,
+    "carbs": 5.1
+  },
+  {
+    "name": "לבן 3% שומן, גיל, טרה, תנובה",
+    "name_en": "Leben, 3% fat, Gil, Tara/Tnuva",
+    "protein": 3.0,
+    "fat": 3.0,
+    "carbs": 3.8
+  },
+  {
+    "name": "שמנת מתוקה 38% שומן לקצפת, תנובה, יטבתה, טרה",
+    "name_en": "Cream, 38% fat, for whipping, Tnuva/Yotvata/Tara",
+    "protein": 1.9,
+    "fat": 38.0,
+    "carbs": 3.0
+  },
+  {
+    "name": "שמנת חמוצה 15% שומן, טרה, תנובה",
+    "name_en": "Cream, sour, 15% fat, Tnuva/Tara",
+    "protein": 2.7,
+    "fat": 15.0,
+    "carbs": 3.3
+  },
+  {
+    "name": "גלידה בשומן צמחי, וניל, נסטלה/שטראוס/פלדמן",
+    "name_en": "Ice cream, vegetable fat, vanilla, Nestle/Strauss/Feldman",
+    "protein": 0.5,
+    "fat": 9.4,
+    "carbs": 24.4
+  },
+  {
+    "name": "שלגון מגנום שמנת שוקולד בציפוי שוקולד, שטראוס, נסטלה",
+    "name_en": "Popsicle/ice cream, chocolate coating, Magnum/Joya, Strauss/Nestle",
+    "protein": 4.6,
+    "fat": 22.3,
+    "carbs": 32.5
+  },
+  {
+    "name": "גלידה, קורנטו, טעמים שונים, שטראוס",
+    "name_en": "Popsicle/ice cream, Cornetto, various flavors, Strauss",
+    "protein": 3.1,
+    "fat": 17.5,
+    "carbs": 38.2
+  },
+  {
+    "name": "מעדן חלב עם קצפת, מילקי שוקו, שטראוס",
+    "name_en": "Milk pudding, with cream, Milky chocolate, Strauss",
+    "protein": 2.9,
+    "fat": 7.0,
+    "carbs": 20.0
+  },
+  {
+    "name": "מעדן חלב 1.5% שומן, שוקולד, דני, שטראוס",
+    "name_en": "Milk pudding, 1.5% fat, chocolate, Dani, Strauss",
+    "protein": 2.5,
+    "fat": 1.5,
+    "carbs": 19.0
+  },
+  {
+    "name": "גבינת מוצרלה 22% שומן, טרה",
+    "name_en": "Cheese, cow milk, mozzarella, 22% fat, Tara",
+    "protein": 24.0,
+    "fat": 22.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "גבינה צהובה 22% שומן, גלבוע, טרה, תנובה",
+    "name_en": "Cheese, cow milk, yellow, 22% fat, Tnuva/Tara",
+    "protein": 25.0,
+    "fat": 22.0,
+    "carbs": 0.2
+  },
+  {
+    "name": "גבינה בולגרית 24% שומן, שטראוס",
+    "name_en": "Cheese, cow milk, Bulgarian, 24% fat, Strauss",
+    "protein": 11.0,
+    "fat": 24.0,
+    "carbs": 3.7
+  },
+  {
+    "name": "גבינת קוטג' 5% שומן, שטראוס",
+    "name_en": "Cheese, cow milk, cottage, 5% fat, Strauss",
+    "protein": 11.1,
+    "fat": 5.0,
+    "carbs": 2.7
+  },
+  {
+    "name": "גבינת קוטג' 3% שומן, מועשרת בסידן, סקי, שטראוס",
+    "name_en": "Cheese, cow milk, cottage, 3% fat, Ski/Strauss",
+    "protein": 11.0,
+    "fat": 3.0,
+    "carbs": 2.5
+  },
+  {
+    "name": "גבינה לבנה 5% שומן, מועשרת בסידן, סקי, שטראוס",
+    "name_en": "Cheese, cow milk, white, 5% fat, fortified with calcium, Ski/Strauss",
+    "protein": 8.1,
+    "fat": 5.0,
+    "carbs": 4.9
+  },
+  {
+    "name": "גבינת שמנת 9% שומן, שטראוס",
+    "name_en": "Cheese, cow milk, cream, 9% fat, Strauss",
+    "protein": 9.7,
+    "fat": 9.0,
+    "carbs": 5.4
+  },
+  {
+    "name": "חמאה, תנובה, טרה",
+    "name_en": "Butter, Tnuva/Tara",
+    "protein": 0.5,
+    "fat": 82.0,
+    "carbs": 0.5
+  },
+  {
+    "name": "מרגרינה בגביע, תלמה",
+    "name_en": "Margarine, tub, Telma",
+    "protein": 0.0,
+    "fat": 60.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "מיונז, תלמה, אסם",
+    "name_en": "Mayonnaise, Telma/Osem",
+    "protein": 0.7,
+    "fat": 65.0,
+    "carbs": 3.0
+  },
+  {
+    "name": "מיונז לייט, תלמה",
+    "name_en": "Mayonnaise, light, Telma",
+    "protein": 0.5,
+    "fat": 23.4,
+    "carbs": 6.9
+  },
+  {
+    "name": "ממרח שוקולד, ורד הגליל, עלית",
+    "name_en": "Spread, chocolate, Vered Hagalil/Elite",
+    "protein": 2.5,
+    "fat": 32.0,
+    "carbs": 64.0
+  },
+  {
+    "name": "עוגת שמרים במילוי שוקולד, אסם, אנגל, עלית",
+    "name_en": "Cake, yeast, chocolate filling, Osem/Elite/Angel",
+    "protein": 5.0,
+    "fat": 22.5,
+    "carbs": 47.0
+  },
+  {
+    "name": "עוגיות פתי בר שוקו, עלית",
+    "name_en": "Biscuits, Petit Beurre, chocolate, Elite",
+    "protein": 7.5,
+    "fat": 11.6,
+    "carbs": 77.1
+  },
+  {
+    "name": "חטיף מתוק פסק זמן, עלית",
+    "name_en": "Candy bar, chocolate-filled wafer, Pesek Zman, Elite",
+    "protein": 6.5,
+    "fat": 29.5,
+    "carbs": 59.0
+  },
+  {
+    "name": "ופל במילוי קרם אגוזים, לואקר",
+    "name_en": "Wafers, nut filling, Loacker",
+    "protein": 8.1,
+    "fat": 26.7,
+    "carbs": 59.3
+  },
+  {
+    "name": "חטיף מתוק קליק, קורנפלקס מצופים שוקולד, ורד הגליל",
+    "name_en": "Candy, cornflakes with chocolate coating, Click, Vered Hagalil",
+    "protein": 8.0,
+    "fat": 20.7,
+    "carbs": 66.2
+  },
+  {
+    "name": "קרמבו, שטראוס",
+    "name_en": "Candy, chocolate-covered soft marshmallow, Krembo, Strauss",
+    "protein": 3.2,
+    "fat": 16.7,
+    "carbs": 64.0
+  },
+  {
+    "name": "חטיף מלוח תפוצ'יפס, שטראוס",
+    "name_en": "Potato chips/crisps, Strauss",
+    "protein": 5.9,
+    "fat": 34.0,
+    "carbs": 53.0
+  },
+  {
+    "name": "חטיף במבה במילוי נוגט/חלבה, אסם",
+    "name_en": "Snack, extruded peanuts, with nougat filling, Bamba, Osem",
+    "protein": 10.0,
+    "fat": 31.0,
+    "carbs": 45.5
+  },
+  {
+    "name": "חטיף מלוח דוריטוס, טורטיה, עלית",
+    "name_en": "Snack, salty, Doritos, tortilla, Elite",
+    "protein": 8.5,
+    "fat": 24.0,
+    "carbs": 67.0
+  },
+  {
+    "name": "חטיף מלוח צ'יטוס בוטנים, עלית",
+    "name_en": "Snack, salty, Chitos peanuts, Elite",
+    "protein": 8.8,
+    "fat": 32.0,
+    "carbs": 56.0
+  },
+  {
+    "name": "דגני בוקר קורנפלקס, תלמה",
+    "name_en": "Breakfast cereal, Cornflakes, Telma",
+    "protein": 8.0,
+    "fat": 1.0,
+    "carbs": 80.5
+  },
+  {
+    "name": "דגני בוקר ברנפלקס, תלמה",
+    "name_en": "Breakfast cereal, Branflakes, Telma",
+    "protein": 11.0,
+    "fat": 2.1,
+    "carbs": 55.5
+  },
+  {
+    "name": "דגני בוקר גרנולה עם תפוח וקינמון, תלמה",
+    "name_en": "Breakfast cereal, granola with apple and cinnamon, Telma",
+    "protein": 10.0,
+    "fat": 12.0,
+    "carbs": 65.0
+  },
+  {
+    "name": "חטיף דגנים אנרג'י, טעמים שונים, שטראוס",
+    "name_en": "Cereal bar, various flavors, Energy, Strauss",
+    "protein": 6.7,
+    "fat": 9.1,
+    "carbs": 71.7
+  },
+  {
+    "name": "קרקר פתית חיטה מלאה, תלמה",
+    "name_en": "Crackers, whole wheat, Patit, Telma",
+    "protein": 10.5,
+    "fat": 3.7,
+    "carbs": 67.1
+  },
+  {
+    "name": "סלט חומוס, פיקניק, שטראוס, צבר",
+    "name_en": "Salad, humus, Picnic/Strauss/Tzabar",
+    "protein": 5.5,
+    "fat": 28.0,
+    "carbs": 11.0
+  },
+  {
+    "name": "סלט חצילים במיונז, שטראוס, צבר",
+    "name_en": "Salad, eggplant, in mayonnaise, Strauss/Tzabar",
+    "protein": 0.8,
+    "fat": 30.4,
+    "carbs": 4.9
+  },
+  {
+    "name": "סלט תפוחי אדמה במיונז, שטראוס",
+    "name_en": "Salad, potato, in mayonnaise, Strauss",
+    "protein": 2.5,
+    "fat": 12.5,
+    "carbs": 9.0
+  },
+  {
+    "name": "משקה חלב 1.5% שומן, שוקו, יטבתה",
+    "name_en": "Milk drink, 1.5% fat, chocolate, Yotvata",
+    "protein": 3.1,
+    "fat": 1.5,
+    "carbs": 7.2
   }
 ];
