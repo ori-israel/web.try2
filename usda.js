@@ -1,86 +1,142 @@
 const USDA_TABLE = [
   {
-    "name": "חזה עוף ללא עור",
-    "name_en": "Chicken breast, skinless",
+    "name": "חזה עוף חי, ללא עור",
+    "name_en": "Chicken breast, skinless, raw",
+    "protein": 23.1,
+    "fat": 1.2,
+    "carbs": 0.0
+  },
+  {
+    "name": "חזה עוף מבושל בתנור, ללא עור",
+    "name_en": "Chicken breast, skinless, roasted",
     "protein": 31.0,
     "fat": 3.6,
     "carbs": 0.0
   },
   {
-    "name": "חזה עוף עם עור",
-    "name_en": "Chicken breast, with skin",
+    "name": "חזה עוף חי, עם עור",
+    "name_en": "Chicken breast, with skin, raw",
+    "protein": 19.9,
+    "fat": 8.8,
+    "carbs": 0.0
+  },
+  {
+    "name": "חזה עוף מבושל בתנור, עם עור",
+    "name_en": "Chicken breast, with skin, roasted",
     "protein": 25.9,
     "fat": 7.8,
     "carbs": 0.0
   },
   {
-    "name": "שוק עוף ללא עור",
-    "name_en": "Chicken thigh, skinless",
-    "protein": 24.3,
-    "fat": 8.6,
+    "name": "שוק עוף חי, ללא עור",
+    "name_en": "Chicken thigh, skinless, raw",
+    "protein": 17.9,
+    "fat": 9.3,
     "carbs": 0.0
   },
   {
-    "name": "שוק עוף עם עור",
-    "name_en": "Chicken thigh, with skin",
-    "protein": 21.9,
-    "fat": 13.3,
+    "name": "שוק עוף מבושל, ללא עור",
+    "name_en": "Chicken thigh, skinless, cooked",
+    "protein": 24.6,
+    "fat": 9.7,
     "carbs": 0.0
   },
   {
-    "name": "כנף עוף עם עור",
-    "name_en": "Chicken wing, with skin",
-    "protein": 20.7,
-    "fat": 16.8,
+    "name": "שוק עוף חי, עם עור",
+    "name_en": "Chicken thigh, with skin, raw",
+    "protein": 16.2,
+    "fat": 15.5,
     "carbs": 0.0
   },
   {
-    "name": "כנף עוף ללא עור",
-    "name_en": "Chicken wing, skinless",
-    "protein": 23.0,
-    "fat": 6.6,
+    "name": "שוק עוף מבושל, עם עור",
+    "name_en": "Chicken thigh, with skin, cooked",
+    "protein": 23.9,
+    "fat": 12.6,
     "carbs": 0.0
   },
   {
-    "name": "עוף טחון",
-    "name_en": "Ground chicken",
+    "name": "כנף עוף חי, עם עור",
+    "name_en": "Chicken wing, with skin, raw",
     "protein": 17.5,
+    "fat": 12.8,
+    "carbs": 0.0
+  },
+  {
+    "name": "כנף עוף מבושל, עם עור",
+    "name_en": "Chicken wing, with skin, cooked",
+    "protein": 30.1,
+    "fat": 19.5,
+    "carbs": 0.0
+  },
+  {
+    "name": "עוף טחון חי",
+    "name_en": "Ground chicken, raw",
+    "protein": 17.4,
     "fat": 8.1,
     "carbs": 0.0
   },
   {
-    "name": "עוף שלם עם עור",
-    "name_en": "Whole chicken, with skin",
+    "name": "עוף טחון מבושל",
+    "name_en": "Ground chicken, cooked",
+    "protein": 25.1,
+    "fat": 13.2,
+    "carbs": 0.0
+  },
+  {
+    "name": "עוף שלם חי, עם עור",
+    "name_en": "Whole chicken, with skin, raw",
     "protein": 18.6,
     "fat": 15.1,
     "carbs": 0.0
   },
   {
-    "name": "כבד עוף",
-    "name_en": "Chicken liver",
+    "name": "עוף שלם מבושל, עם עור",
+    "name_en": "Whole chicken, with skin, roasted",
+    "protein": 23.5,
+    "fat": 13.6,
+    "carbs": 0.0
+  },
+  {
+    "name": "כבד עוף חי",
+    "name_en": "Chicken liver, raw",
     "protein": 16.9,
     "fat": 4.8,
     "carbs": 0.9
   },
   {
-    "name": "לב עוף",
-    "name_en": "Chicken heart",
+    "name": "כבד עוף מבושל",
+    "name_en": "Chicken liver, cooked",
+    "protein": 24.5,
+    "fat": 10.8,
+    "carbs": 1.3
+  },
+  {
+    "name": "לב עוף חי",
+    "name_en": "Chicken heart, raw",
     "protein": 15.6,
     "fat": 9.3,
     "carbs": 0.1
   },
   {
-    "name": "קורקבן עוף",
-    "name_en": "Chicken gizzard",
+    "name": "קורקבן עוף חי",
+    "name_en": "Chicken gizzard, raw",
     "protein": 17.7,
     "fat": 2.1,
     "carbs": 0.0
   },
   {
-    "name": "פרגית ללא עור",
-    "name_en": "Chicken leg quarter, skinless",
+    "name": "פרגית חיה, ללא עור",
+    "name_en": "Chicken leg quarter, skinless, raw",
+    "protein": 18.0,
+    "fat": 6.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "פרגית מבושלת, ללא עור",
+    "name_en": "Chicken leg quarter, skinless, cooked",
     "protein": 24.0,
-    "fat": 5.7,
+    "fat": 8.0,
     "carbs": 0.0
   },
   {
@@ -98,23 +154,44 @@ const USDA_TABLE = [
     "carbs": 17.0
   },
   {
-    "name": "הודו חזה ללא עור",
-    "name_en": "Turkey breast, skinless",
+    "name": "הודו חזה חי, ללא עור",
+    "name_en": "Turkey breast, skinless, raw",
+    "protein": 24.6,
+    "fat": 0.7,
+    "carbs": 0.0
+  },
+  {
+    "name": "הודו חזה מבושל, ללא עור",
+    "name_en": "Turkey breast, skinless, roasted",
     "protein": 29.9,
     "fat": 1.0,
     "carbs": 0.0
   },
   {
-    "name": "הודו טחון",
-    "name_en": "Ground turkey",
-    "protein": 19.7,
-    "fat": 6.9,
+    "name": "הודו טחון חי",
+    "name_en": "Ground turkey, raw",
+    "protein": 16.2,
+    "fat": 8.7,
     "carbs": 0.0
   },
   {
-    "name": "שוק הודו",
-    "name_en": "Turkey leg",
-    "protein": 23.0,
+    "name": "הודו טחון מבושל",
+    "name_en": "Ground turkey, cooked",
+    "protein": 27.4,
+    "fat": 11.4,
+    "carbs": 0.0
+  },
+  {
+    "name": "שוק הודו חי",
+    "name_en": "Turkey leg, raw",
+    "protein": 19.6,
+    "fat": 6.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "שוק הודו מבושל",
+    "name_en": "Turkey leg, cooked",
+    "protein": 28.2,
     "fat": 8.0,
     "carbs": 0.0
   },
@@ -126,87 +203,164 @@ const USDA_TABLE = [
     "carbs": 2.1
   },
   {
-    "name": "פילה בקר",
-    "name_en": "Beef tenderloin",
+    "name": "פילה בקר חי",
+    "name_en": "Beef tenderloin, raw",
     "protein": 22.1,
     "fat": 10.6,
     "carbs": 0.0
   },
   {
-    "name": "אנטריקוט בקר",
-    "name_en": "Ribeye steak",
+    "name": "פילה בקר מבושל בגריל",
+    "name_en": "Beef tenderloin, grilled",
+    "protein": 29.0,
+    "fat": 14.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "אנטריקוט בקר חי",
+    "name_en": "Ribeye steak, raw",
     "protein": 19.8,
     "fat": 18.9,
     "carbs": 0.0
   },
   {
-    "name": "סינטה בקר",
-    "name_en": "Sirloin steak",
+    "name": "סינטה בקר חי",
+    "name_en": "Sirloin steak, raw",
     "protein": 21.7,
     "fat": 8.9,
     "carbs": 0.0
   },
   {
-    "name": "בקר טחון 5%",
-    "name_en": "Ground beef, 5% fat",
+    "name": "סינטה בקר מבושלת בגריל",
+    "name_en": "Sirloin steak, grilled",
+    "protein": 28.5,
+    "fat": 11.5,
+    "carbs": 0.0
+  },
+  {
+    "name": "בקר טחון 5% חי",
+    "name_en": "Ground beef, 5% fat, raw",
     "protein": 22.0,
     "fat": 5.0,
     "carbs": 0.0
   },
   {
-    "name": "בקר טחון 15%",
-    "name_en": "Ground beef, 15% fat",
+    "name": "בקר טחון 5% מבושל",
+    "name_en": "Ground beef, 5% fat, cooked",
+    "protein": 26.0,
+    "fat": 6.5,
+    "carbs": 0.0
+  },
+  {
+    "name": "בקר טחון 15% חי",
+    "name_en": "Ground beef, 15% fat, raw",
     "protein": 18.2,
     "fat": 15.0,
     "carbs": 0.0
   },
   {
-    "name": "בקר טחון 20%",
-    "name_en": "Ground beef, 20% fat",
+    "name": "בקר טחון 15% מבושל",
+    "name_en": "Ground beef, 15% fat, cooked",
+    "protein": 24.0,
+    "fat": 17.5,
+    "carbs": 0.0
+  },
+  {
+    "name": "בקר טחון 20% חי",
+    "name_en": "Ground beef, 20% fat, raw",
     "protein": 17.2,
     "fat": 20.0,
     "carbs": 0.0
   },
   {
-    "name": "כבד בקר",
-    "name_en": "Beef liver",
+    "name": "בקר טחון 20% מבושל",
+    "name_en": "Ground beef, 20% fat, cooked",
+    "protein": 23.0,
+    "fat": 22.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "כבד בקר חי",
+    "name_en": "Beef liver, raw",
     "protein": 20.4,
     "fat": 3.6,
     "carbs": 5.1
   },
   {
-    "name": "שפונדרה בקר",
-    "name_en": "Beef brisket",
+    "name": "כבד בקר מטוגן",
+    "name_en": "Beef liver, pan-fried",
+    "protein": 26.4,
+    "fat": 4.9,
+    "carbs": 4.1
+  },
+  {
+    "name": "שפונדרה בקר חי",
+    "name_en": "Beef brisket, raw",
     "protein": 18.0,
     "fat": 17.4,
     "carbs": 0.0
   },
   {
-    "name": "צלעות בקר",
-    "name_en": "Beef ribs",
+    "name": "שפונדרה בקר מבושלת (בישול ארוך)",
+    "name_en": "Beef brisket, braised",
+    "protein": 26.0,
+    "fat": 22.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "צלעות בקר חי",
+    "name_en": "Beef ribs, raw",
     "protein": 18.8,
     "fat": 19.7,
     "carbs": 0.0
   },
   {
-    "name": "פלדה בקר",
-    "name_en": "Beef chuck",
+    "name": "צלעות בקר מבושלות",
+    "name_en": "Beef ribs, cooked",
+    "protein": 25.0,
+    "fat": 27.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "פלדה בקר חי",
+    "name_en": "Beef chuck, raw",
     "protein": 20.6,
     "fat": 12.0,
     "carbs": 0.0
   },
   {
-    "name": "שייטל בקר",
-    "name_en": "Beef top round",
+    "name": "פלדה בקר מבושלת",
+    "name_en": "Beef chuck, cooked",
+    "protein": 28.0,
+    "fat": 16.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "שייטל בקר חי",
+    "name_en": "Beef top round, raw",
     "protein": 23.0,
     "fat": 4.5,
     "carbs": 0.0
   },
   {
-    "name": "קישקע בקר",
-    "name_en": "Beef tripe",
+    "name": "שייטל בקר מבושל",
+    "name_en": "Beef top round, cooked",
+    "protein": 30.0,
+    "fat": 6.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "קישקע בקר חי",
+    "name_en": "Beef tripe, raw",
     "protein": 12.1,
     "fat": 3.7,
+    "carbs": 0.0
+  },
+  {
+    "name": "קישקע בקר מבושל",
+    "name_en": "Beef tripe, cooked",
+    "protein": 15.0,
+    "fat": 4.5,
     "carbs": 0.0
   },
   {
@@ -224,52 +378,101 @@ const USDA_TABLE = [
     "carbs": 0.0
   },
   {
-    "name": "לשון בקר",
-    "name_en": "Beef tongue",
+    "name": "לשון בקר חי",
+    "name_en": "Beef tongue, raw",
     "protein": 16.4,
     "fat": 15.6,
     "carbs": 0.4
   },
   {
-    "name": "חזיר כתף (לא כשר)",
-    "name_en": "Pork shoulder",
+    "name": "לשון בקר מבושלת",
+    "name_en": "Beef tongue, cooked",
+    "protein": 19.0,
+    "fat": 18.0,
+    "carbs": 0.3
+  },
+  {
+    "name": "חזיר כתף חי (לא כשר)",
+    "name_en": "Pork shoulder, raw",
     "protein": 17.1,
     "fat": 14.0,
     "carbs": 0.0
   },
   {
-    "name": "כבש ירך",
-    "name_en": "Lamb leg",
+    "name": "חזיר כתף מבושל (לא כשר)",
+    "name_en": "Pork shoulder, roasted",
+    "protein": 25.0,
+    "fat": 20.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "כבש ירך חי",
+    "name_en": "Lamb leg, raw",
     "protein": 22.0,
     "fat": 9.5,
     "carbs": 0.0
   },
   {
-    "name": "כבש כתף",
-    "name_en": "Lamb shoulder",
+    "name": "כבש ירך מבושל בתנור",
+    "name_en": "Lamb leg, roasted",
+    "protein": 28.0,
+    "fat": 13.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "כבש כתף חי",
+    "name_en": "Lamb shoulder, raw",
     "protein": 18.3,
     "fat": 14.8,
     "carbs": 0.0
   },
   {
-    "name": "טלה טחון",
-    "name_en": "Ground lamb",
+    "name": "כבש כתף מבושל",
+    "name_en": "Lamb shoulder, cooked",
+    "protein": 25.0,
+    "fat": 19.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "טלה טחון חי",
+    "name_en": "Ground lamb, raw",
     "protein": 16.6,
     "fat": 19.7,
     "carbs": 0.0
   },
   {
-    "name": "כבש צלעות",
-    "name_en": "Lamb chops",
+    "name": "טלה טחון מבושל",
+    "name_en": "Ground lamb, cooked",
+    "protein": 25.0,
+    "fat": 26.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "כבש צלעות חי",
+    "name_en": "Lamb chops, raw",
     "protein": 21.8,
     "fat": 14.2,
     "carbs": 0.0
   },
   {
-    "name": "עגל",
-    "name_en": "Veal cutlet",
+    "name": "כבש צלעות מבושל בגריל",
+    "name_en": "Lamb chops, grilled",
+    "protein": 26.0,
+    "fat": 18.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "עגל חי",
+    "name_en": "Veal cutlet, raw",
     "protein": 19.9,
     "fat": 5.8,
+    "carbs": 0.0
+  },
+  {
+    "name": "עגל מבושל",
+    "name_en": "Veal cutlet, cooked",
+    "protein": 29.0,
+    "fat": 7.5,
     "carbs": 0.0
   },
   {
@@ -329,8 +532,8 @@ const USDA_TABLE = [
     "carbs": 3.5
   },
   {
-    "name": "סלמון פילה",
-    "name_en": "Atlantic salmon, fillet",
+    "name": "סלמון פילה חי",
+    "name_en": "Atlantic salmon, fillet, raw",
     "protein": 20.4,
     "fat": 13.4,
     "carbs": 0.0
@@ -350,87 +553,129 @@ const USDA_TABLE = [
     "carbs": 0.0
   },
   {
-    "name": "טונה טרייה",
-    "name_en": "Tuna, fresh",
+    "name": "טונה טרייה חיה",
+    "name_en": "Tuna, fresh, raw",
     "protein": 23.3,
     "fat": 4.9,
     "carbs": 0.0
   },
   {
-    "name": "בס ים",
-    "name_en": "Sea bass",
+    "name": "בס ים חי",
+    "name_en": "Sea bass, raw",
     "protein": 18.4,
     "fat": 2.0,
     "carbs": 0.0
   },
   {
-    "name": "דניס",
-    "name_en": "Sea bream (Dorade)",
+    "name": "בס ים אפוי",
+    "name_en": "Sea bass, baked",
+    "protein": 24.0,
+    "fat": 2.5,
+    "carbs": 0.0
+  },
+  {
+    "name": "דניס חי",
+    "name_en": "Sea bream (Dorade), raw",
     "protein": 18.0,
     "fat": 4.5,
     "carbs": 0.0
   },
   {
-    "name": "לוקוס",
-    "name_en": "Grouper",
+    "name": "דניס אפוי",
+    "name_en": "Sea bream (Dorade), baked",
+    "protein": 23.0,
+    "fat": 5.5,
+    "carbs": 0.0
+  },
+  {
+    "name": "לוקוס חי",
+    "name_en": "Grouper, raw",
     "protein": 19.4,
     "fat": 1.0,
     "carbs": 0.0
   },
   {
-    "name": "פורל",
-    "name_en": "Rainbow trout",
+    "name": "פורל חי",
+    "name_en": "Rainbow trout, raw",
     "protein": 20.1,
     "fat": 5.8,
     "carbs": 0.0
   },
   {
-    "name": "בורי",
-    "name_en": "Mullet",
+    "name": "פורל אפוי",
+    "name_en": "Rainbow trout, baked",
+    "protein": 25.0,
+    "fat": 7.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "בורי חי",
+    "name_en": "Mullet, raw",
     "protein": 19.0,
     "fat": 4.7,
     "carbs": 0.0
   },
   {
-    "name": "מוסר ים",
-    "name_en": "European sea bass",
+    "name": "מוסר ים חי",
+    "name_en": "European sea bass, raw",
     "protein": 17.5,
     "fat": 3.7,
     "carbs": 0.0
   },
   {
-    "name": "קרפיון",
-    "name_en": "Carp",
+    "name": "קרפיון חי",
+    "name_en": "Carp, raw",
     "protein": 17.8,
     "fat": 5.6,
     "carbs": 0.0
   },
   {
-    "name": "הליבוט",
-    "name_en": "Halibut",
+    "name": "הליבוט חי",
+    "name_en": "Halibut, raw",
     "protein": 22.5,
     "fat": 2.9,
     "carbs": 0.0
   },
   {
-    "name": "קוד (בקלה)",
-    "name_en": "Cod",
+    "name": "קוד (בקלה) חי",
+    "name_en": "Cod, raw",
     "protein": 17.8,
     "fat": 0.7,
     "carbs": 0.0
   },
   {
-    "name": "טיילפיה",
-    "name_en": "Tilapia",
+    "name": "קוד (בקלה) אפוי",
+    "name_en": "Cod, baked",
+    "protein": 23.0,
+    "fat": 0.9,
+    "carbs": 0.0
+  },
+  {
+    "name": "טיילפיה חיה",
+    "name_en": "Tilapia, raw",
     "protein": 20.1,
     "fat": 2.7,
     "carbs": 0.0
   },
   {
-    "name": "אמנון",
-    "name_en": "Tilapia (St. Peter's fish)",
+    "name": "טיילפיה אפויה",
+    "name_en": "Tilapia, baked",
+    "protein": 26.0,
+    "fat": 2.9,
+    "carbs": 0.0
+  },
+  {
+    "name": "אמנון חי",
+    "name_en": "Tilapia (St. Peter's fish), raw",
     "protein": 20.1,
     "fat": 2.7,
+    "carbs": 0.0
+  },
+  {
+    "name": "אמנון אפוי",
+    "name_en": "Tilapia (St. Peter's fish), baked",
+    "protein": 26.0,
+    "fat": 2.9,
     "carbs": 0.0
   },
   {
@@ -441,15 +686,15 @@ const USDA_TABLE = [
     "carbs": 0.0
   },
   {
-    "name": "מקרל",
-    "name_en": "Mackerel",
+    "name": "מקרל חי",
+    "name_en": "Mackerel, raw",
     "protein": 18.6,
     "fat": 13.9,
     "carbs": 0.0
   },
   {
-    "name": "הרינג",
-    "name_en": "Herring",
+    "name": "הרינג חי",
+    "name_en": "Herring, raw",
     "protein": 17.7,
     "fat": 13.2,
     "carbs": 0.0
@@ -462,36 +707,57 @@ const USDA_TABLE = [
     "carbs": 0.0
   },
   {
-    "name": "שרימפס",
-    "name_en": "Shrimp",
+    "name": "שרימפס חי",
+    "name_en": "Shrimp, raw",
     "protein": 20.1,
     "fat": 1.7,
     "carbs": 0.9
   },
   {
-    "name": "קלמרי",
-    "name_en": "Squid",
+    "name": "שרימפס מבושל",
+    "name_en": "Shrimp, cooked",
+    "protein": 24.6,
+    "fat": 1.7,
+    "carbs": 0.2
+  },
+  {
+    "name": "קלמרי חי",
+    "name_en": "Squid, raw",
     "protein": 15.6,
     "fat": 1.4,
     "carbs": 3.1
   },
   {
-    "name": "תמנון",
-    "name_en": "Octopus",
+    "name": "קלמרי מבושל",
+    "name_en": "Squid, cooked",
+    "protein": 18.0,
+    "fat": 2.0,
+    "carbs": 2.5
+  },
+  {
+    "name": "תמנון חי",
+    "name_en": "Octopus, raw",
     "protein": 14.9,
     "fat": 1.0,
     "carbs": 2.2
   },
   {
-    "name": "סרטן",
-    "name_en": "Crab",
+    "name": "תמנון מבושל",
+    "name_en": "Octopus, cooked",
+    "protein": 19.0,
+    "fat": 1.4,
+    "carbs": 2.5
+  },
+  {
+    "name": "סרטן חי",
+    "name_en": "Crab, raw",
     "protein": 18.1,
     "fat": 1.1,
     "carbs": 0.0
   },
   {
-    "name": "צדפות",
-    "name_en": "Oysters",
+    "name": "צדפות חיות",
+    "name_en": "Oysters, raw",
     "protein": 7.0,
     "fat": 2.5,
     "carbs": 4.7
@@ -1092,22 +1358,22 @@ const USDA_TABLE = [
     "carbs": 6.3
   },
   {
-    "name": "גזר",
-    "name_en": "Carrot",
+    "name": "גזר חי",
+    "name_en": "Carrot, raw",
     "protein": 0.9,
     "fat": 0.2,
     "carbs": 9.6
   },
   {
-    "name": "חציל",
-    "name_en": "Eggplant",
+    "name": "חציל חי",
+    "name_en": "Eggplant, raw",
     "protein": 1.0,
     "fat": 0.2,
     "carbs": 5.9
   },
   {
-    "name": "קישוא",
-    "name_en": "Zucchini",
+    "name": "קישוא חי",
+    "name_en": "Zucchini, raw",
     "protein": 1.2,
     "fat": 0.3,
     "carbs": 3.1
@@ -1134,15 +1400,15 @@ const USDA_TABLE = [
     "carbs": 33.1
   },
   {
-    "name": "ברוקולי",
-    "name_en": "Broccoli",
+    "name": "ברוקולי חי",
+    "name_en": "Broccoli, raw",
     "protein": 2.8,
     "fat": 0.4,
     "carbs": 6.6
   },
   {
-    "name": "כרובית",
-    "name_en": "Cauliflower",
+    "name": "כרובית חיה",
+    "name_en": "Cauliflower, raw",
     "protein": 1.9,
     "fat": 0.3,
     "carbs": 5.0
@@ -1176,8 +1442,8 @@ const USDA_TABLE = [
     "carbs": 3.3
   },
   {
-    "name": "תרד",
-    "name_en": "Spinach",
+    "name": "תרד חי",
+    "name_en": "Spinach, raw",
     "protein": 2.9,
     "fat": 0.4,
     "carbs": 3.6
@@ -1190,18 +1456,32 @@ const USDA_TABLE = [
     "carbs": 3.7
   },
   {
-    "name": "כרוב ניצנים",
-    "name_en": "Brussels sprouts",
+    "name": "כרוב ניצנים חי",
+    "name_en": "Brussels sprouts, raw",
     "protein": 3.4,
     "fat": 0.3,
     "carbs": 8.9
   },
   {
-    "name": "אספרגוס",
-    "name_en": "Asparagus",
+    "name": "כרוב ניצנים מבושל",
+    "name_en": "Brussels sprouts, boiled",
+    "protein": 2.6,
+    "fat": 0.4,
+    "carbs": 6.9
+  },
+  {
+    "name": "אספרגוס חי",
+    "name_en": "Asparagus, raw",
     "protein": 2.2,
     "fat": 0.1,
     "carbs": 3.9
+  },
+  {
+    "name": "אספרגוס מבושל",
+    "name_en": "Asparagus, boiled",
+    "protein": 2.4,
+    "fat": 0.2,
+    "carbs": 3.6
   },
   {
     "name": "סלרי",
@@ -1246,43 +1526,71 @@ const USDA_TABLE = [
     "carbs": 8.5
   },
   {
-    "name": "ארטישוק",
-    "name_en": "Artichoke",
+    "name": "ארטישוק חי",
+    "name_en": "Artichoke, raw",
     "protein": 3.3,
     "fat": 0.2,
     "carbs": 10.5
   },
   {
-    "name": "סלק",
-    "name_en": "Beet",
+    "name": "ארטישוק מבושל",
+    "name_en": "Artichoke, boiled",
+    "protein": 2.9,
+    "fat": 0.2,
+    "carbs": 8.7
+  },
+  {
+    "name": "סלק חי",
+    "name_en": "Beet, raw",
     "protein": 1.6,
     "fat": 0.2,
     "carbs": 9.6
   },
   {
-    "name": "דלעת",
-    "name_en": "Pumpkin",
+    "name": "סלק מבושל",
+    "name_en": "Beet, boiled",
+    "protein": 1.6,
+    "fat": 0.2,
+    "carbs": 10.0
+  },
+  {
+    "name": "דלעת חיה",
+    "name_en": "Pumpkin, raw",
     "protein": 1.0,
     "fat": 0.1,
     "carbs": 6.5
   },
   {
-    "name": "דלורית",
-    "name_en": "Butternut squash",
+    "name": "דלעת מבושלת",
+    "name_en": "Pumpkin, boiled",
+    "protein": 1.0,
+    "fat": 0.1,
+    "carbs": 6.0
+  },
+  {
+    "name": "דלורית חיה",
+    "name_en": "Butternut squash, raw",
     "protein": 1.0,
     "fat": 0.1,
     "carbs": 11.7
   },
   {
-    "name": "בטטה",
-    "name_en": "Sweet potato",
+    "name": "דלורית אפויה",
+    "name_en": "Butternut squash, roasted",
+    "protein": 1.4,
+    "fat": 0.1,
+    "carbs": 13.0
+  },
+  {
+    "name": "בטטה חיה",
+    "name_en": "Sweet potato, raw",
     "protein": 1.6,
     "fat": 0.1,
     "carbs": 20.1
   },
   {
-    "name": "תפוח אדמה",
-    "name_en": "Potato",
+    "name": "תפוח אדמה חי",
+    "name_en": "Potato, raw",
     "protein": 2.0,
     "fat": 0.1,
     "carbs": 17.5
