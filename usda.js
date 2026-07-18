@@ -1099,6 +1099,13 @@ const USDA_TABLE = [
     "carbs": 17.5
   },
   {
+    "name": "אורז לבן, לא מבושל",
+    "name_en": "White rice, uncooked, raw",
+    "protein": 7.1,
+    "fat": 0.7,
+    "carbs": 78.7
+  },
+  {
     "name": "אורז לבן מבושל",
     "name_en": "White rice, cooked",
     "protein": 2.7,
@@ -1120,11 +1127,25 @@ const USDA_TABLE = [
     "carbs": 28.0
   },
   {
+    "name": "פסטה, לא מבושלת",
+    "name_en": "Pasta, uncooked, raw",
+    "protein": 13.0,
+    "fat": 1.5,
+    "carbs": 71.5
+  },
+  {
     "name": "פסטה מבושלת",
     "name_en": "Pasta, cooked",
     "protein": 5.1,
     "fat": 1.1,
     "carbs": 30.9
+  },
+  {
+    "name": "פסטה מלאה, לא מבושלת",
+    "name_en": "Whole wheat pasta, uncooked, raw",
+    "protein": 14.6,
+    "fat": 1.4,
+    "carbs": 66.7
   },
   {
     "name": "פסטה מלאה מבושלת",
@@ -5178,5 +5199,54 @@ const USDA_TABLE = [
     "protein": 8.0,
     "fat": 9.0,
     "carbs": 4.0
+  },
+  {
+    "name": "תירס משומר, מתוק",
+    "name_en": "Corn, canned, sweet",
+    "protein": 3.2,
+    "fat": 1.3,
+    "carbs": 21.0
+  },
+  {
+    "name": "נקניקיות עוף, יחיעם",
+    "name_en": "Chicken sausages, Yachiam",
+    "protein": 14.0,
+    "fat": 16.0,
+    "carbs": 5.0
+  },
+  {
+    "name": "דג מקרל, משומר עם עצמות",
+    "name_en": "Mackerel, canned, with bones",
+    "protein": 23.2,
+    "fat": 6.3,
+    "carbs": 0.0
+  },
+  {
+    "name": "דג אמנון-מושט, פילה קפוא, תנובה",
+    "name_en": "Tilapia fillet, frozen, Tnuva",
+    "protein": 15.8,
+    "fat": 1.8,
+    "carbs": 0.0
+  },
+  {
+    "name": "דג מרלוזה (בקלה), פילה קפוא, תנובה",
+    "name_en": "Hake (cod), fillet, frozen, Tnuva",
+    "protein": 16.3,
+    "fat": 0.5,
+    "carbs": 0.0
+  },
+  {
+    "name": "דג סלמון, קפוא",
+    "name_en": "Salmon, frozen, raw",
+    "protein": 19.9,
+    "fat": 10.3,
+    "carbs": 0.0
+  },
+  {
+    "name": "קמח אורז, לבן",
+    "name_en": "Rice flour, white",
+    "protein": 5.9,
+    "fat": 1.4,
+    "carbs": 77.7
   }
 ];
