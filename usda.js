@@ -5486,5 +5486,61 @@ const USDA_TABLE = [
     "protein": 2.8,
     "fat": 37.8,
     "carbs": 7.8
+  },
+  {
+    "name": "שומר חי",
+    "name_en": "Fennel, raw",
+    "protein": 1.2,
+    "fat": 0.2,
+    "carbs": 4.2
+  },
+  {
+    "name": "שומר מבושל",
+    "name_en": "Fennel, boiled",
+    "protein": 1.4,
+    "fat": 0.2,
+    "carbs": 8.1
+  },
+  {
+    "name": "צנון חי",
+    "name_en": "Radish, raw",
+    "protein": 0.7,
+    "fat": 0.1,
+    "carbs": 1.8
+  },
+  {
+    "name": "לפת חיה",
+    "name_en": "Turnip, raw",
+    "protein": 0.9,
+    "fat": 0.1,
+    "carbs": 4.6
+  },
+  {
+    "name": "לפת מבושלת",
+    "name_en": "Turnip, boiled",
+    "protein": 0.7,
+    "fat": 0.1,
+    "carbs": 3.0
+  },
+  {
+    "name": "כרוב סיני חי",
+    "name_en": "Chinese cabbage, raw",
+    "protein": 1.5,
+    "fat": 0.2,
+    "carbs": 1.2
+  },
+  {
+    "name": "חוביזה (חלמית) חיה",
+    "name_en": "Mallow, raw",
+    "protein": 4.4,
+    "fat": 0.6,
+    "carbs": 4.3
+  },
+  {
+    "name": "עולש חי",
+    "name_en": "Chicory, raw",
+    "protein": 1.3,
+    "fat": 0.2,
+    "carbs": 3.3
   }
 ];
