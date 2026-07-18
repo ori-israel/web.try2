@@ -5451,5 +5451,40 @@ const USDA_TABLE = [
     "protein": 15.0,
     "fat": 7.8,
     "carbs": 20.0
+  },
+  {
+    "name": "גבינת קוטג' 0.5% שומן, תנובה",
+    "name_en": "Cheese, cow milk, cottage, 0.5% fat, Tnuva",
+    "protein": 11.7,
+    "fat": 1.0,
+    "carbs": 2.0
+  },
+  {
+    "name": "גבינת קוטג' 9% שומן, תנובה",
+    "name_en": "Cheese, cow milk, cottage, 9% fat, Tnuva",
+    "protein": 10.5,
+    "fat": 9.0,
+    "carbs": 1.2
+  },
+  {
+    "name": "סלט כרוב וגזר עם מיונז לייט (קולסלו קל)",
+    "name_en": "Coleslaw salad, light mayonnaise",
+    "protein": 1.1,
+    "fat": 1.4,
+    "carbs": 4.4
+  },
+  {
+    "name": "משקה חלב שוקו 2% שומן, תנובה",
+    "name_en": "Milk drink, chocolate, 2% fat, Tnuva",
+    "protein": 3.1,
+    "fat": 1.7,
+    "carbs": 5.0
+  },
+  {
+    "name": "סלט איקרא (בוטרגו לבנה)",
+    "name_en": "Roe salad (taramasalata)",
+    "protein": 2.8,
+    "fat": 37.8,
+    "carbs": 7.8
   }
 ];
