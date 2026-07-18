@@ -5248,5 +5248,75 @@ const USDA_TABLE = [
     "protein": 5.9,
     "fat": 1.4,
     "carbs": 77.7
+  },
+  {
+    "name": "לחם קל, מחיטה מלאה, אנגל, עינת, לחם חי",
+    "name_en": "Light bread, whole wheat, Angel/Einat/Lechem Chai",
+    "protein": 18.1,
+    "fat": 2.9,
+    "carbs": 24.2
+  },
+  {
+    "name": "לחמניה קלה, מחיטה מלאה, לחם חי, אנגל",
+    "name_en": "Light bun, whole wheat, Lechem Chai/Angel",
+    "protein": 15.9,
+    "fat": 2.2,
+    "carbs": 24.8
+  },
+  {
+    "name": "לחם 5 דגנים, לחם הארץ",
+    "name_en": "Bread, 5 grain, Lechem Haaretz",
+    "protein": 11.2,
+    "fat": 4.3,
+    "carbs": 33.7
+  },
+  {
+    "name": "לחם 10 דגנים, לחם הארץ",
+    "name_en": "Bread, 10 grain, Lechem Haaretz",
+    "protein": 10.3,
+    "fat": 5.6,
+    "carbs": 30.0
+  },
+  {
+    "name": "בייגל חיטה מלאה, אנג'ל",
+    "name_en": "Bagel, whole wheat, Angel",
+    "protein": 8.7,
+    "fat": 6.0,
+    "carbs": 35.0
+  },
+  {
+    "name": "קרואסון חמאה, בונז'ור",
+    "name_en": "Croissant, butter, Bonjour",
+    "protein": 11.0,
+    "fat": 27.3,
+    "carbs": 56.0
+  },
+  {
+    "name": "קרואסון שוקולד, בונז'ור",
+    "name_en": "Croissant, chocolate, Bonjour",
+    "protein": 9.7,
+    "fat": 19.8,
+    "carbs": 50.0
+  },
+  {
+    "name": "וופל בלגי, קפוא",
+    "name_en": "Belgian waffle, frozen",
+    "protein": 6.4,
+    "fat": 10.2,
+    "carbs": 38.4
+  },
+  {
+    "name": "טורטיה מחיטה מלאה",
+    "name_en": "Tortilla, whole wheat",
+    "protein": 9.8,
+    "fat": 9.8,
+    "carbs": 36.1
+  },
+  {
+    "name": "פיתה ג'פיתה, מקמח מלא, אנג'ל",
+    "name_en": "Thin wrap pita, whole wheat, Angel",
+    "protein": 8.1,
+    "fat": 1.4,
+    "carbs": 35.9
   }
 ];
