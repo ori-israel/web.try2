@@ -5605,5 +5605,33 @@ const USDA_TABLE = [
     "protein": 5.3,
     "fat": 15.8,
     "carbs": 42.0
+  },
+  {
+    "name": "חומוס גרגירים, מבושלים עם מלח",
+    "name_en": "Chickpeas, whole, cooked, salted",
+    "protein": 9.5,
+    "fat": 3.0,
+    "carbs": 21.4
+  },
+  {
+    "name": "חומוס גרגירים, משומרים",
+    "name_en": "Chickpeas, whole, canned",
+    "protein": 4.9,
+    "fat": 1.1,
+    "carbs": 22.6
+  },
+  {
+    "name": "עדשים מונבטות, טריות",
+    "name_en": "Lentil sprouts, fresh, raw",
+    "protein": 9.0,
+    "fat": 0.6,
+    "carbs": 22.1
+  },
+  {
+    "name": "עדשים מונבטות, מבושלות",
+    "name_en": "Lentil sprouts, cooked",
+    "protein": 8.8,
+    "fat": 0.4,
+    "carbs": 21.3
   }
 ];
