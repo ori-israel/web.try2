@@ -5374,5 +5374,82 @@ const USDA_TABLE = [
     "protein": 3.1,
     "fat": 0.0,
     "carbs": 9.9
+  },
+  {
+    "name": "גבינה צהובה 32% שומן, צ'דר, תנובה",
+    "name_en": "Cheese, cow milk, yellow, cheddar, 32% fat, Tnuva",
+    "protein": 26.5,
+    "fat": 32.0,
+    "carbs": 0.5
+  },
+  {
+    "name": "גבינה צהובה 9% שומן, לייט, תנובה",
+    "name_en": "Cheese, cow milk, yellow, light, 9% fat, Tnuva",
+    "protein": 30.0,
+    "fat": 9.0,
+    "carbs": 0.2
+  },
+  {
+    "name": "גבינת קשקבל/גאודה 27% שומן, תנובה",
+    "name_en": "Cheese, cow milk, kashkaval/gouda, 27% fat, Tnuva",
+    "protein": 28.0,
+    "fat": 25.0,
+    "carbs": 0.3
+  },
+  {
+    "name": "גבינה צהובה 28% שומן, מעושנת",
+    "name_en": "Cheese, cow milk, yellow, smoked, 28% fat",
+    "protein": 24.5,
+    "fat": 28.0,
+    "carbs": 0.6
+  },
+  {
+    "name": "גבינה צהובה 29% שומן, פרמזן מגורד, גד",
+    "name_en": "Cheese, cow milk, parmesan, grated, 29% fat, Gad",
+    "protein": 33.0,
+    "fat": 29.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "שעועית אדומה, משומרת",
+    "name_en": "Red beans, canned",
+    "protein": 5.2,
+    "fat": 0.4,
+    "carbs": 14.8
+  },
+  {
+    "name": "שקדים קלויים, עם מלח",
+    "name_en": "Almonds, roasted, salted",
+    "protein": 21.0,
+    "fat": 52.5,
+    "carbs": 10.1
+  },
+  {
+    "name": "בוטנים קלויים בשמן, עם מלח",
+    "name_en": "Peanuts, roasted in oil, salted",
+    "protein": 23.7,
+    "fat": 49.7,
+    "carbs": 13.5
+  },
+  {
+    "name": "תפוח עץ מיובש, לא מבושל",
+    "name_en": "Apple, dried, uncooked",
+    "protein": 0.9,
+    "fat": 0.3,
+    "carbs": 57.2
+  },
+  {
+    "name": "לחמניה להמבורגר, עם שומשום",
+    "name_en": "Hamburger bun, with sesame",
+    "protein": 10.0,
+    "fat": 4.3,
+    "carbs": 51.3
+  },
+  {
+    "name": "המבורגר מן הצומח, טבע דלי",
+    "name_en": "Plant-based burger patty, Teva Deli",
+    "protein": 15.0,
+    "fat": 7.8,
+    "carbs": 20.0
   }
 ];
