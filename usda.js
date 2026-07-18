@@ -5675,5 +5675,33 @@ const USDA_TABLE = [
     "protein": 19.0,
     "fat": 8.0,
     "carbs": 5.0
+  },
+  {
+    "name": "סוכריות מנטוס",
+    "name_en": "Candy, Mentos",
+    "protein": 0.0,
+    "fat": 2.0,
+    "carbs": 92.0
+  },
+  {
+    "name": "מרשמלו",
+    "name_en": "Marshmallow",
+    "protein": 1.8,
+    "fat": 0.2,
+    "carbs": 81.2
+  },
+  {
+    "name": "מסטיק בזוקה/סופר בזוקה",
+    "name_en": "Chewing gum, Bazooka/Super Bazooka",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 78.0
+  },
+  {
+    "name": "עוגה, מאפה גבינה אישי (גביניה), גדרון, סהרון",
+    "name_en": "Cheese pastry, individual (Gvinia), Gadron/Saharon",
+    "protein": 7.3,
+    "fat": 16.7,
+    "carbs": 47.4
   }
 ];
