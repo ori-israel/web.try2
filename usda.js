@@ -5759,5 +5759,26 @@ const USDA_TABLE = [
     "protein": 3.0,
     "fat": 0.0,
     "carbs": 72.0
+  },
+  {
+    "name": "נקניק קבנוס, זוגלובק, יחיעם, עוף טוב",
+    "name_en": "Kabanos sausage, Zoglobek/Yachiam/Of Tov",
+    "protein": 19.0,
+    "fat": 28.0,
+    "carbs": 5.0
+  },
+  {
+    "name": "בייקון חזיר, מבושל (לא כשר)",
+    "name_en": "Pork bacon, cooked",
+    "protein": 33.9,
+    "fat": 35.1,
+    "carbs": 1.7
+  },
+  {
+    "name": "נקניק, פסטרמה חזה הודו ברביקיו דל שומן, עוף טוב",
+    "name_en": "Turkey breast pastrami, BBQ, low fat, Of Tov",
+    "protein": 16.0,
+    "fat": 1.0,
+    "carbs": 4.0
   }
 ];
