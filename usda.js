@@ -5542,5 +5542,40 @@ const USDA_TABLE = [
     "protein": 1.3,
     "fat": 0.2,
     "carbs": 3.3
+  },
+  {
+    "name": "פומלה טרייה",
+    "name_en": "Pomelo, raw",
+    "protein": 0.8,
+    "fat": 0.0,
+    "carbs": 8.6
+  },
+  {
+    "name": "ליים טרי",
+    "name_en": "Lime, raw",
+    "protein": 0.7,
+    "fat": 0.2,
+    "carbs": 7.7
+  },
+  {
+    "name": "קלמנטינה טרייה",
+    "name_en": "Clementine, raw",
+    "protein": 0.8,
+    "fat": 0.3,
+    "carbs": 11.5
+  },
+  {
+    "name": "קרמבולה (פרי כוכב) טרי",
+    "name_en": "Starfruit (carambola), raw",
+    "protein": 1.0,
+    "fat": 0.3,
+    "carbs": 3.9
+  },
+  {
+    "name": "פיג'ויה טרייה",
+    "name_en": "Feijoa, raw",
+    "protein": 0.7,
+    "fat": 0.4,
+    "carbs": 8.8
   }
 ];
