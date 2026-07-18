@@ -5703,5 +5703,33 @@ const USDA_TABLE = [
     "protein": 7.3,
     "fat": 16.7,
     "carbs": 47.4
+  },
+  {
+    "name": "רסק עגבניות, יכין",
+    "name_en": "Tomato paste, Yachin",
+    "protein": 3.9,
+    "fat": 1.1,
+    "carbs": 20.9
+  },
+  {
+    "name": "סחוג אדום, צבר",
+    "name_en": "Red skhug (spicy relish), Tzabar",
+    "protein": 3.0,
+    "fat": 6.0,
+    "carbs": 10.0
+  },
+  {
+    "name": "זעתר, תערובת יבשה עם שומשום",
+    "name_en": "Za'atar, dry spice mix with sesame",
+    "protein": 15.6,
+    "fat": 31.4,
+    "carbs": 11.1
+  },
+  {
+    "name": "חומץ בלסמי",
+    "name_en": "Balsamic vinegar",
+    "protein": 0.5,
+    "fat": 0.0,
+    "carbs": 17.0
   }
 ];
