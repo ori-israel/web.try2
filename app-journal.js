@@ -992,12 +992,15 @@ async function initWorkoutsFromClient() {
         const hasCardio = !!CLIENT.cardioPlan?.[letter]?.description;
         if ((!workout || !workout.length) && !hasCardio) return;
 
+        // אימון בלי יום משויך הוא נתון פגום (תבנית ישנה/לא שלמה) — לא ניתן לתזמן אותו, אז לא מציגים אותו בבחירה
+        const days = CLIENT.workoutDays?.[letter];
+        if (!days || !days.length) return;
+
         if (!firstLetter) firstLetter = letter;
 
         const btn = document.createElement('button');
         btn.className = 'workout-nav-btn';
-        const days = CLIENT.workoutDays?.[letter];
-        btn.innerText = days && days.length ? days.map(d => dayNames[d]).join(' + ') : 'אימון ' + letter;
+        btn.innerText = days.map(d => dayNames[d]).join(' + ');
         btn.setAttribute('onclick', `showWorkout('${letter}')`);
         selector.appendChild(btn);
 
