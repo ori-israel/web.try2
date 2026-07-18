@@ -5577,5 +5577,33 @@ const USDA_TABLE = [
     "protein": 0.7,
     "fat": 0.4,
     "carbs": 8.8
+  },
+  {
+    "name": "משקה סויה טבעי, ללא סוכר, אלפרו",
+    "name_en": "Soy drink, natural, no added sugar, Alpro",
+    "protein": 3.7,
+    "fat": 2.2,
+    "carbs": 0.1
+  },
+  {
+    "name": "סייטן פרוסות בסגנון סלמי, טבע דלי",
+    "name_en": "Seitan, sliced, salami style, Teva Deli",
+    "protein": 23.0,
+    "fat": 0.0,
+    "carbs": 5.0
+  },
+  {
+    "name": "מעדן סויה שוקולד, אלפרו",
+    "name_en": "Soy pudding, chocolate, Alpro",
+    "protein": 3.0,
+    "fat": 2.3,
+    "carbs": 14.7
+  },
+  {
+    "name": "גלידת טופו אישית, סנדוויץ', CUTIES, טופוטי",
+    "name_en": "Tofu ice cream sandwich, Cuties, Tofutti",
+    "protein": 5.3,
+    "fat": 15.8,
+    "carbs": 42.0
   }
 ];
