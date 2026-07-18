@@ -5108,5 +5108,75 @@ const USDA_TABLE = [
     "protein": 3.1,
     "fat": 1.5,
     "carbs": 7.2
+  },
+  {
+    "name": "אבקת חלבון מי גבינה מבודד (EASY WHEY)",
+    "name_en": "Whey protein isolate powder, Easy Whey",
+    "protein": 75.0,
+    "fat": 4.5,
+    "carbs": 15.0
+  },
+  {
+    "name": "אבקת חלבון סויה מבודד (ISOLATE)",
+    "name_en": "Soy protein isolate powder",
+    "protein": 80.7,
+    "fat": 0.5,
+    "carbs": 4.6
+  },
+  {
+    "name": "אבקת חלבון אפונה",
+    "name_en": "Pea protein powder",
+    "protein": 83.1,
+    "fat": 6.8,
+    "carbs": 3.4
+  },
+  {
+    "name": "קינואה חיה, לא מבושלת",
+    "name_en": "Quinoa, uncooked, raw",
+    "protein": 14.1,
+    "fat": 6.1,
+    "carbs": 57.2
+  },
+  {
+    "name": "סובין שיבולת שועל, לא מבושל",
+    "name_en": "Oat bran, uncooked",
+    "protein": 17.3,
+    "fat": 7.0,
+    "carbs": 50.8
+  },
+  {
+    "name": "קמח שיבולת שועל",
+    "name_en": "Oat flour",
+    "protein": 14.7,
+    "fat": 9.1,
+    "carbs": 59.2
+  },
+  {
+    "name": "טופו קשה, משק ווילר",
+    "name_en": "Tofu, firm texture, Weiler Farm",
+    "protein": 17.1,
+    "fat": 10.2,
+    "carbs": 1.8
+  },
+  {
+    "name": "טופו משי רך",
+    "name_en": "Tofu, silken, soft",
+    "protein": 4.8,
+    "fat": 2.7,
+    "carbs": 2.8
+  },
+  {
+    "name": "יוגורט דנונה פרו עם פרי, עשיר בחלבון, 2.4% שומן, שטראוס",
+    "name_en": "Yoghurt, cow milk, protein-enriched, added fruit, 2.4% fat, Danone Pro, Strauss",
+    "protein": 6.7,
+    "fat": 2.4,
+    "carbs": 10.5
+  },
+  {
+    "name": "גבינת ריקוטה 9% שומן, גד",
+    "name_en": "Cheese, cow milk, ricotta, 9% fat, Gad",
+    "protein": 8.0,
+    "fat": 9.0,
+    "carbs": 4.0
   }
 ];
