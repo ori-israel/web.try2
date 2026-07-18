@@ -5780,5 +5780,33 @@ const USDA_TABLE = [
     "protein": 16.0,
     "fat": 1.0,
     "carbs": 4.0
+  },
+  {
+    "name": "וויסקי",
+    "name_en": "Whisky",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 0.1
+  },
+  {
+    "name": "ברנדי / קוניאק",
+    "name_en": "Brandy / Cognac",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "וודקה / ערק, 40% אלכוהול",
+    "name_en": "Vodka / Arak, 40% alcohol",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 0.0
+  },
+  {
+    "name": "ליקר עם שמנת (איריש קרם)",
+    "name_en": "Cream liqueur (Irish cream)",
+    "protein": 2.8,
+    "fat": 15.7,
+    "carbs": 20.9
   }
 ];
