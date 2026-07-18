@@ -5731,5 +5731,33 @@ const USDA_TABLE = [
     "protein": 0.5,
     "fat": 0.0,
     "carbs": 17.0
+  },
+  {
+    "name": "עוגת שמרים במילוי קינמון או קקאו (בבקה), אסם",
+    "name_en": "Yeast cake with cinnamon or cocoa filling (babka), Osem",
+    "protein": 6.5,
+    "fat": 15.5,
+    "carbs": 54.0
+  },
+  {
+    "name": "סופלה שוקולד",
+    "name_en": "Chocolate souffle",
+    "protein": 8.2,
+    "fat": 26.5,
+    "carbs": 28.1
+  },
+  {
+    "name": "פאי תפוחי עץ, בצק פריך",
+    "name_en": "Apple pie, shortcrust pastry",
+    "protein": 3.1,
+    "fat": 10.5,
+    "carbs": 40.8
+  },
+  {
+    "name": "עוגיות נשיקות מרנג ביתיות, אנג'ל",
+    "name_en": "Meringue kisses, homemade style, Angel",
+    "protein": 3.0,
+    "fat": 0.0,
+    "carbs": 72.0
   }
 ];
