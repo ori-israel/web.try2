@@ -46,18 +46,16 @@ let _undoTimer = null;
 
 function renderScanDetails() {
     const detailsBox = document.getElementById('scan-details-box');
-    if (scannedItems.length > 0) {
-        detailsBox.innerHTML = scannedItems.map((item, i) =>
-            `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:#888;cursor:pointer;padding:0 6px;line-height:1;min-width:32px;display:inline-flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-                <span style="flex:1;text-align:right;font-size:15px;">${_esc(item.name)} — <span onclick="editItemGrams(${i}, this)" style="color:#aaa;cursor:pointer;text-decoration:underline dotted;">${Math.round(item.grams)}g</span></span>
-            </div>`
-        ).join('') + `<div id="add-item-row" style="margin-top:6px;">
-            <button onclick="showAddItemForm()" style="background:none;border:none;color:#888;font-size:15px;cursor:pointer;padding:8px 0;width:100%;text-align:right;">+ הוסף פריט</button>
-        </div>`;
-    } else {
-        detailsBox.innerHTML = '';
-    }
+    const itemsHtml = scannedItems.map((item, i) =>
+        `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:#888;cursor:pointer;padding:0 6px;line-height:1;min-width:32px;display:inline-flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+            <span style="flex:1;text-align:right;font-size:15px;">${_esc(item.name)} — <span onclick="editItemGrams(${i}, this)" style="color:#aaa;cursor:pointer;text-decoration:underline dotted;">${Math.round(item.grams)}g</span></span>
+        </div>`
+    ).join('');
+    // כפתור "הוספת פריט" מוצג תמיד — גם כשאין עדיין פריטים (למשל אחרי מחיקת הפריט האחרון)
+    detailsBox.innerHTML = itemsHtml + `<div id="add-item-row" style="margin-top:6px;">
+        <button onclick="showAddItemForm()" style="background:none;border:none;color:#888;font-size:15px;cursor:pointer;padding:8px 0;width:100%;text-align:right;">+ הוספת פריט</button>
+    </div>`;
 }
 
 function showAddItemForm() {
