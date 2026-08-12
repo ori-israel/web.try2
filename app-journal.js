@@ -1126,11 +1126,15 @@ function checkNutritionStreak() {
     const proteinVal = userPortions.protein;
     const carbsVal = userPortions.carbs;
     const fatVal = userPortions.fat;
-    
+
     const proteinTarget = parseFloat(document.getElementById('protein-target').innerText.replace('/ ', ''));
     const carbsTarget = parseFloat(document.getElementById('carbs-target').innerText.replace('/ ', ''));
     const fatTarget = parseFloat(document.getElementById('fat-target').innerText.replace('/ ', ''));
-    
+
+    // יעדים לא חוקיים (0/NaN, למשל לפני שהם חושבו) לא נחשבים "הושג" — מונע השלמת רצף בטעות על 0>=0
+    const targetsValid = proteinTarget > 0 && carbsTarget > 0 && fatTarget > 0;
+    if (!targetsValid) return;
+
     if (proteinVal >= proteinTarget && carbsVal >= carbsTarget && fatVal >= fatTarget) {
         completeNutritionStreak();
     }
@@ -1192,6 +1196,13 @@ function updateNutritionStreak() {
     const lastDate = new Date(lastCompleted);
     const lastMidnight = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
     const daysDiff = Math.floor((todayMidnight - lastMidnight) / (1000 * 60 * 60 * 24));
+
+    // עבר יותר מיום אחד מאז שהיעד הושג לאחרונה (כלומר פוספס יום שלם לפחות) — הרצף נשבר, לאפס
+    if (daysDiff > 1 && streak !== 0) {
+        streak = 0;
+        _streaksCache.nutrition_streak = 0;
+        if (typeof syncStreaksNow === 'function') syncStreaksNow();
+    }
 
     document.getElementById('nutrition-streak-count').innerText = streak;
 }
