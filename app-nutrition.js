@@ -336,6 +336,9 @@ function openTextEntry() {
     const _scanCorr = document.getElementById('scan-correction');
     if (_scanCorr) _scanCorr.value = '';
     document.getElementById('scan-undo-toast').classList.add('hidden');
+    // "בקשת תיקון" ו"הערכה בלבד" רלוונטיים רק לזיהוי AI מתמונה - לא לחיפוש שבו המשתמש בוחר בעצמו
+    document.getElementById('scan-correction-row').style.display = 'none';
+    document.getElementById('scan-disclaimer').style.display = 'none';
     document.getElementById('scanner-step-2').classList.remove('hidden');
     showAddItemForm();
 }
@@ -513,6 +516,8 @@ async function analyzeFood(base64, mimeType, correction) {
         };
         scannedItems = (Array.isArray(result.items) ? result.items : []).map(enrichItemMacros);
 
+        document.getElementById('scan-food-label').style.display = '';
+        document.getElementById('scan-food-name').style.display = '';
         {
             const _foodNameEl = document.getElementById('scan-food-name');
             _foodNameEl.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M5.5 3v6M8 3v6M10.5 3v6"/><path d="M5.5 9c0 1.8 2.5 1.8 2.5 1.8S10.5 10.8 10.5 9"/><path d="M8 10.8v10.2"/><path d="M17 3l2 6-2 3"/><path d="M17 3v18"/></svg> ';
@@ -521,6 +526,9 @@ async function analyzeFood(base64, mimeType, correction) {
         renderScanGramsSummary();
 
         renderScanDetails();
+        // "בקשת תיקון" ו"הערכה בלבד" רלוונטיים כאן - זה זיהוי AI שיכול לטעות
+        document.getElementById('scan-correction-row').style.display = 'flex';
+        document.getElementById('scan-disclaimer').style.display = '';
         stopScanLoadingAnimation();
         finishScanLoadingAnimation();
         await new Promise(r => setTimeout(r, 350));
