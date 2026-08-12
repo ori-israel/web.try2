@@ -138,7 +138,7 @@ function _longestNutritionStreakDays(nutritionRows, targets) {
 async function _fetchTrainingStats(userId, sinceDate) {
     const [wRes, nRes] = await Promise.all([
         db.from('workout_performance_log').select('date').eq('client_id', userId),
-        db.from('daily_nutrition').select('date, protein, carbs, fat').eq('user_id', userId).gte('date', sinceDate),
+        db.from('daily_nutrition').select('date, protein:protein_g, carbs:carbs_g, fat:fat_g').eq('user_id', userId).gte('date', sinceDate),
     ]);
     const workoutDates = [...new Set((wRes.data || []).map(r => r.date))];
     const targets = _getNutritionTargets();
@@ -475,7 +475,7 @@ function _drawMacrosPanel(ctx, data, x, y, w, h) {
     ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = C.textPrimary;
     ctx.font = '700 26px Heebo, sans-serif';
-    ctx.fillText('ממוצע מנות ליום', x + w - pad, y + 44);
+    ctx.fillText('ממוצע גרם ליום', x + w - pad, y + 44);
 
     const cols = [
         { label: 'חלבון', value: data.stats.avgProtein },
@@ -489,7 +489,7 @@ function _drawMacrosPanel(ctx, data, x, y, w, h) {
         const cx = x + w - pad - colW * i - colW / 2;
         ctx.fillStyle = C.accent;
         ctx.font = '700 32px Heebo, sans-serif';
-        ctx.fillText(_fmtNum(c.value), cx, colY - 26);
+        ctx.fillText(_fmtNum(c.value) + 'g', cx, colY - 26);
         ctx.fillStyle = C.textSecondary;
         ctx.font = '400 18px Heebo, sans-serif';
         ctx.fillText(c.label, cx, colY);

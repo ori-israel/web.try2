@@ -36,7 +36,6 @@ function enrichItemMacros(item) {
     return item;
 }
 
-let scannedPortions = { protein: 0, fat: 0, carbs: 0 };
 let scannedGrams = { protein: 0, fat: 0, carbs: 0 };
 let scannedItems = [];
 let scannedImageBase64 = null;
@@ -66,7 +65,7 @@ function showAddItemForm() {
     if (!row) return;
     row.innerHTML = `
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-            <input id="add-item-name" type="text" placeholder="שם המאכל" style="flex:1;min-width:100px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:16px;padding:4px 8px;" />
+            <input id="add-item-name" type="text" placeholder="חיפוש מאכל..." autocomplete="off" style="flex:1;min-width:100px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:16px;padding:4px 8px;" />
             <input id="add-item-amount" type="number" placeholder="כמות" value="100" style="width:60px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:16px;padding:4px 6px;text-align:center;" />
             <select id="add-item-unit" style="background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:16px;padding:4px 6px;">
                 <option value="גרם">גרם</option>
@@ -76,11 +75,47 @@ function showAddItemForm() {
             </select>
             <button onclick="confirmAddItem()" style="background:#fff;color:#000;border:none;border-radius:4px;padding:4px 10px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
             <button onclick="renderScanDetails()" style="background:none;border:none;color:#888;cursor:pointer;padding:0 2px;display:inline-flex;align-items:center;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-        </div>`;
+        </div>
+        <div id="add-item-suggestions" style="display:flex;flex-direction:column;gap:1px;margin-top:4px;"></div>`;
     document.getElementById('add-item-name').focus();
     document.getElementById('add-item-amount').addEventListener('focus', function() { this.select(); });
     document.getElementById('add-item-amount').addEventListener('keydown', e => { if (e.key === 'Enter') confirmAddItem(); });
-    document.getElementById('add-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('add-item-amount').focus(); });
+    document.getElementById('add-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') { document.getElementById('add-item-suggestions').innerHTML = ''; document.getElementById('add-item-amount').focus(); } });
+    document.getElementById('add-item-name').addEventListener('input', function() { renderFoodSuggestions(this.value); });
+}
+
+// חיפוש חי במאגר המזון בזמן הקלדה - עד 6 תוצאות מתאימות
+function renderFoodSuggestions(query) {
+    const box = document.getElementById('add-item-suggestions');
+    if (!box) return;
+    const q = (query || '').trim();
+    if (q.length < 2 || typeof USDA_TABLE === 'undefined') { box.innerHTML = ''; return; }
+    const qLow = q.toLowerCase();
+    const matches = USDA_TABLE.filter(r =>
+        r.name.includes(q) || r.name_en.toLowerCase().includes(qLow)
+    ).slice(0, 6);
+    if (!matches.length) { box.innerHTML = ''; return; }
+    box.innerHTML = matches.map((r, i) => {
+        const kcal = Math.round((r.protein || 0) * 4 + (r.carbs || 0) * 4 + (r.fat || 0) * 9);
+        return `<div onclick="selectFoodSuggestion(${i})" data-sugg-idx="${i}" style="display:flex;justify-content:space-between;align-items:center;padding:8px 6px;background:#2c2c2e;border-radius:4px;cursor:pointer;font-size:13.5px;">
+            <span>${_esc(r.name)}</span>
+            <span style="color:#888;font-size:11.5px;">${kcal} קל' / 100g</span>
+        </div>`;
+    }).join('');
+    window._currentFoodSuggestions = matches;
+}
+
+function selectFoodSuggestion(i) {
+    const match = (window._currentFoodSuggestions || [])[i];
+    if (!match) return;
+    const nameEl = document.getElementById('add-item-name');
+    const unitEl = document.getElementById('add-item-unit');
+    const box = document.getElementById('add-item-suggestions');
+    if (nameEl) nameEl.value = match.name;
+    if (unitEl) unitEl.value = 'גרם';
+    if (box) box.innerHTML = '';
+    const amountEl = document.getElementById('add-item-amount');
+    if (amountEl) { amountEl.focus(); amountEl.select(); }
 }
 
 // בירור מאקרו דרך Gemini + חיפוש באינטרנט (להזנה בכתב בלבד).
@@ -246,22 +281,26 @@ function editItemGrams(idx, el) {
 }
 
 function updateScannedTotals() {
-    const round = v => Math.round(v * 2) / 2;
     scannedGrams = {
         protein: Math.round(scannedItems.reduce((s, i) => s + (i.protein_g || 0), 0)),
         fat:     Math.round(scannedItems.reduce((s, i) => s + (i.fat_g     || 0), 0)),
         carbs:   Math.round(scannedItems.reduce((s, i) => s + (i.carbs_g   || 0), 0))
     };
-    scannedPortions = {
-        protein: round(Math.max(0, scannedGrams.protein / 27.5)),
-        fat:     round(Math.max(0, scannedGrams.fat     / 12.5)),
-        carbs:   round(Math.max(0, scannedGrams.carbs   / 37.5))
-    };
+    renderScanGramsSummary();
+}
+
+// תצוגה משותפת של סיכום ארוחה בגרמים: קלוריות + חלבון/פחמימה/שומן בגרמים (ללא המרה למנות)
+function renderScanGramsSummary() {
+    const kcal = Math.round(scannedGrams.protein * 4 + scannedGrams.carbs * 4 + scannedGrams.fat * 9);
     document.getElementById('scan-portions').innerHTML =
+        `<div style="text-align:center;margin-bottom:10px;">
+            <div style="font-size:26px;font-weight:800;color:var(--accent-dark);">${kcal}</div>
+            <div style="font-size:12px;color:var(--text-secondary);">קלוריות בארוחה</div>
+        </div>` +
         `<div style="display:flex; flex-direction:column; gap:6px;">` +
-        `<div><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 10c0-3 3-6 8-6s9 2 9 6-3 5-4 7-1 5-5 5-6-2-7-5-1-4-1-7z"/><path d="M9 9l2 2M13 8l2 3M8 13l2 2"/></svg> חלבון: <b>${scannedPortions.protein} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.protein}g)</span></div>` +
-        `<div><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 12c0 4 3.6 7 8 7s8-3 8-7"/><path d="M4 12h16"/><ellipse cx="12" cy="12" rx="8" ry="2.5"/></svg> פחמימה: <b>${scannedPortions.carbs} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.carbs}g)</span></div>` +
-        `<div><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><ellipse cx="12" cy="13" rx="7" ry="8.5"/><circle cx="12" cy="14" r="3"/></svg> שומן: <b>${scannedPortions.fat} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span></div>` +
+        `<div><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 10c0-3 3-6 8-6s9 2 9 6-3 5-4 7-1 5-5 5-6-2-7-5-1-4-1-7z"/><path d="M9 9l2 2M13 8l2 3M8 13l2 2"/></svg> חלבון: <b>${scannedGrams.protein} גרם</b></div>` +
+        `<div><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 12c0 4 3.6 7 8 7s8-3 8-7"/><path d="M4 12h16"/><ellipse cx="12" cy="12" rx="8" ry="2.5"/></svg> פחמימה: <b>${scannedGrams.carbs} גרם</b></div>` +
+        `<div><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><ellipse cx="12" cy="13" rx="7" ry="8.5"/><circle cx="12" cy="14" r="3"/></svg> שומן: <b>${scannedGrams.fat} גרם</b></div>` +
         `</div>`;
 }
 
@@ -275,7 +314,7 @@ function openFoodScanner() {
     const modal = document.getElementById('food-scanner-modal');
     modal.style.display = '';
     modal.classList.remove('hidden');
-    document.getElementById('scanner-modal-title').innerHTML = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M5.5 3v6M8 3v6M10.5 3v6"/><path d="M5.5 9c0 1.8 2.5 1.8 2.5 1.8S10.5 10.8 10.5 9"/><path d="M8 10.8v10.2"/><path d="M17 3l2 6-2 3"/><path d="M17 3v18"/></svg> הוספת מנות';
+    document.getElementById('scanner-modal-title').innerHTML = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M5.5 3v6M8 3v6M10.5 3v6"/><path d="M5.5 9c0 1.8 2.5 1.8 2.5 1.8S10.5 10.8 10.5 9"/><path d="M8 10.8v10.2"/><path d="M17 3l2 6-2 3"/><path d="M17 3v18"/></svg> הוספת אוכל';
     document.getElementById('scanner-step-1').classList.remove('hidden');
     document.getElementById('scanner-step-2').classList.add('hidden');
     document.getElementById('scanner-loading').classList.add('hidden');
@@ -287,12 +326,11 @@ function openFoodScanner() {
     scannedImageBase64 = null;
     scannedImageMime = null;
     scannedItems = [];
-    scannedPortions = { protein: 0, fat: 0, carbs: 0 };
+    scannedGrams = { protein: 0, fat: 0, carbs: 0 };
 }
 
 function openTextEntry() {
     scannedItems = [];
-    scannedPortions = { protein: 0, fat: 0, carbs: 0 };
     scannedGrams = { protein: 0, fat: 0, carbs: 0 };
     const modal = document.getElementById('food-scanner-modal');
     modal.style.display = '';
@@ -476,16 +514,10 @@ async function analyzeFood(base64, mimeType, correction) {
         if (!jsonMatch) throw new Error('no JSON');
         const result = JSON.parse(jsonMatch[0]);
 
-        const round = v => Math.round(v * 2) / 2;
         scannedGrams = {
             protein: Math.round(result.protein_g || 0),
             fat:     Math.round(result.fat_g     || 0),
             carbs:   Math.round(result.carbs_g   || 0)
-        };
-        scannedPortions = {
-            protein: round(Math.max(0, scannedGrams.protein / 27.5)),
-            fat:     round(Math.max(0, scannedGrams.fat     / 12.5)),
-            carbs:   round(Math.max(0, scannedGrams.carbs   / 37.5))
         };
         scannedItems = (Array.isArray(result.items) ? result.items : []).map(enrichItemMacros);
 
@@ -494,12 +526,7 @@ async function analyzeFood(base64, mimeType, correction) {
             _foodNameEl.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M5.5 3v6M8 3v6M10.5 3v6"/><path d="M5.5 9c0 1.8 2.5 1.8 2.5 1.8S10.5 10.8 10.5 9"/><path d="M8 10.8v10.2"/><path d="M17 3l2 6-2 3"/><path d="M17 3v18"/></svg> ';
             _foodNameEl.appendChild(document.createTextNode(result.food));
         }
-        document.getElementById('scan-portions').innerHTML =
-            `<div style="display:flex; flex-direction:column; gap:6px;">` +
-            `<div><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 10c0-3 3-6 8-6s9 2 9 6-3 5-4 7-1 5-5 5-6-2-7-5-1-4-1-7z"/><path d="M9 9l2 2M13 8l2 3M8 13l2 2"/></svg> חלבון: <b>${scannedPortions.protein} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.protein}g)</span></div>` +
-            `<div><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 12c0 4 3.6 7 8 7s8-3 8-7"/><path d="M4 12h16"/><ellipse cx="12" cy="12" rx="8" ry="2.5"/></svg> פחמימה: <b>${scannedPortions.carbs} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.carbs}g)</span></div>` +
-            `<div><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><ellipse cx="12" cy="13" rx="7" ry="8.5"/><circle cx="12" cy="14" r="3"/></svg> שומן: <b>${scannedPortions.fat} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span></div>` +
-            `</div>`;
+        renderScanGramsSummary();
 
         renderScanDetails();
         stopScanLoadingAnimation();
@@ -519,7 +546,7 @@ async function analyzeFood(base64, mimeType, correction) {
         errEl.appendChild(document.createTextNode(errMsg));
         errEl.classList.remove('hidden');
         document.getElementById('scan-portions').innerHTML = '';
-        scannedPortions = { protein: 0, fat: 0, carbs: 0 };
+        scannedGrams = { protein: 0, fat: 0, carbs: 0 };
     }
 }
 
@@ -564,16 +591,10 @@ ${itemsList}
         const result = JSON.parse(jsonMatch[0]);
 
         scannedItems = (Array.isArray(result.items) ? result.items : []).map(enrichItemMacros);
-        const round = v => Math.round(v * 2) / 2;
         scannedGrams = {
             protein: Math.round(scannedItems.reduce((s, i) => s + (i.protein_g || 0), 0)),
             fat:     Math.round(scannedItems.reduce((s, i) => s + (i.fat_g     || 0), 0)),
             carbs:   Math.round(scannedItems.reduce((s, i) => s + (i.carbs_g   || 0), 0))
-        };
-        scannedPortions = {
-            protein: round(Math.max(0, scannedGrams.protein / 27.5)),
-            fat:     round(Math.max(0, scannedGrams.fat     / 12.5)),
-            carbs:   round(Math.max(0, scannedGrams.carbs   / 37.5))
         };
 
         {
@@ -581,12 +602,7 @@ ${itemsList}
             _foodNameEl.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M5.5 3v6M8 3v6M10.5 3v6"/><path d="M5.5 9c0 1.8 2.5 1.8 2.5 1.8S10.5 10.8 10.5 9"/><path d="M8 10.8v10.2"/><path d="M17 3l2 6-2 3"/><path d="M17 3v18"/></svg> ';
             _foodNameEl.appendChild(document.createTextNode(result.food));
         }
-        document.getElementById('scan-portions').innerHTML =
-            `<div style="display:flex; flex-direction:column; gap:6px;">` +
-            `<div><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 10c0-3 3-6 8-6s9 2 9 6-3 5-4 7-1 5-5 5-6-2-7-5-1-4-1-7z"/><path d="M9 9l2 2M13 8l2 3M8 13l2 2"/></svg> חלבון: <b>${scannedPortions.protein} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.protein}g)</span></div>` +
-            `<div><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 12c0 4 3.6 7 8 7s8-3 8-7"/><path d="M4 12h16"/><ellipse cx="12" cy="12" rx="8" ry="2.5"/></svg> פחמימה: <b>${scannedPortions.carbs} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.carbs}g)</span></div>` +
-            `<div><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><ellipse cx="12" cy="13" rx="7" ry="8.5"/><circle cx="12" cy="14" r="3"/></svg> שומן: <b>${scannedPortions.fat} מנות</b> <span style="color:#888;font-size:13px;">(${scannedGrams.fat}g)</span></div>` +
-            `</div>`;
+        renderScanGramsSummary();
         renderScanDetails();
         const _sc = document.getElementById('scan-correction');
         if (_sc) _sc.value = '';
@@ -650,11 +666,11 @@ function deleteFoodLogEntry(idx) {
     const entries = loadFoodLogEntries();
     const removed = entries.splice(idx, 1)[0];
     saveFoodLogEntries(entries);
-    // הפחת מהמונים
+    // הפחת מהמונה היומי
     if (removed) {
-        if (removed.portions_protein) modifyPortion('protein', -removed.portions_protein);
-        if (removed.portions_carbs)   modifyPortion('carbs',   -removed.portions_carbs);
-        if (removed.portions_fat)     modifyPortion('fat',     -removed.portions_fat);
+        if ((removed.protein_g || removed.carbs_g || removed.fat_g) && typeof addFoodMacros === 'function') {
+            addFoodMacros(-(removed.protein_g || 0), -(removed.carbs_g || 0), -(removed.fat_g || 0));
+        }
         // מחיקה גם בסופאבייס
         if (removed.id && typeof sbDeleteFoodLog === 'function') sbDeleteFoodLog(removed.id).catch(() => {});
     }
@@ -758,7 +774,7 @@ async function _renderFoodLogPastDay(dateStr) {
         let totalP=0,totalC=0,totalF=0;
         let html='', lastTime=null;
         items.forEach(r => {
-            totalP+=r.portions_protein||0; totalC+=r.portions_carbs||0; totalF+=r.portions_fat||0;
+            totalP+=r.protein_g||0; totalC+=r.carbs_g||0; totalF+=r.fat_g||0;
             if (r.time !== lastTime) {
                 if (lastTime!==null) html+=`</div><hr style="border:none;border-top:2px solid var(--border);margin:4px 0 10px;">`;
                 html+=`<div style="margin-bottom:6px;"><div style="font-size:11px;font-weight:700;color:var(--accent);padding:8px 4px 4px;text-align:right;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v4.5l3 2"/></svg> ${r.time||''}</div>`;
@@ -766,12 +782,13 @@ async function _renderFoodLogPastDay(dateStr) {
             }
             html+=`<div style="padding:7px 4px;border-bottom:1px solid var(--border-light);font-size:13px;text-align:right;">
                 <div>${_esc(r.food)}</div>
-                <div style="font-size:11px;color:var(--text-muted);">${r.portions_protein?`<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 10c0-3 3-6 8-6s9 2 9 6-3 5-4 7-1 5-5 5-6-2-7-5-1-4-1-7z"/><path d="M9 9l2 2M13 8l2 3M8 13l2 2"/></svg>${r.portions_protein} `:''}${r.portions_carbs?`<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 12c0 4 3.6 7 8 7s8-3 8-7"/><path d="M4 12h16"/><ellipse cx="12" cy="12" rx="8" ry="2.5"/></svg>${r.portions_carbs} `:''}${r.portions_fat?`<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><ellipse cx="12" cy="13" rx="7" ry="8.5"/><circle cx="12" cy="14" r="3"/></svg>${r.portions_fat}`:''}
+                <div style="font-size:11px;color:var(--text-muted);">${r.grams?`${r.grams}g · `:''}${r.protein_g?`<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 10c0-3 3-6 8-6s9 2 9 6-3 5-4 7-1 5-5 5-6-2-7-5-1-4-1-7z"/><path d="M9 9l2 2M13 8l2 3M8 13l2 2"/></svg>${r.protein_g}g `:''}${r.carbs_g?`<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 12c0 4 3.6 7 8 7s8-3 8-7"/><path d="M4 12h16"/><ellipse cx="12" cy="12" rx="8" ry="2.5"/></svg>${r.carbs_g}g `:''}${r.fat_g?`<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><ellipse cx="12" cy="13" rx="7" ry="8.5"/><circle cx="12" cy="14" r="3"/></svg>${r.fat_g}g`:''}
                 </div></div>`;
         });
         if (lastTime!==null) html+='</div>';
+        const totalKcal = Math.round(totalP*4 + totalC*4 + totalF*9);
         el.innerHTML = html + `<div style="padding:10px 4px 4px;font-size:12px;color:var(--text-secondary);display:flex;gap:12px;">
-            <span>סה"כ:</span>${totalP?`<span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 10c0-3 3-6 8-6s9 2 9 6-3 5-4 7-1 5-5 5-6-2-7-5-1-4-1-7z"/><path d="M9 9l2 2M13 8l2 3M8 13l2 2"/></svg> ${totalP} מנות</span>`:''}${totalC?`<span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 12c0 4 3.6 7 8 7s8-3 8-7"/><path d="M4 12h16"/><ellipse cx="12" cy="12" rx="8" ry="2.5"/></svg> ${totalC} מנות</span>`:''}${totalF?`<span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><ellipse cx="12" cy="13" rx="7" ry="8.5"/><circle cx="12" cy="14" r="3"/></svg> ${totalF} מנות</span>`:''}
+            <span>סה"כ: ${totalKcal} קלוריות</span>${totalP?`<span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 10c0-3 3-6 8-6s9 2 9 6-3 5-4 7-1 5-5 5-6-2-7-5-1-4-1-7z"/><path d="M9 9l2 2M13 8l2 3M8 13l2 2"/></svg> ${Math.round(totalP)}g</span>`:''}${totalC?`<span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 12c0 4 3.6 7 8 7s8-3 8-7"/><path d="M4 12h16"/><ellipse cx="12" cy="12" rx="8" ry="2.5"/></svg> ${Math.round(totalC)}g</span>`:''}${totalF?`<span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><ellipse cx="12" cy="13" rx="7" ry="8.5"/><circle cx="12" cy="14" r="3"/></svg> ${Math.round(totalF)}g</span>`:''}
         </div>`;
     } catch(e) {
         el.innerHTML = '<div style="text-align:center;color:#e55;padding:12px;">שגיאה בטעינה</div>';
@@ -796,9 +813,9 @@ function renderFoodLog() {
     }
     let totalProtein = 0, totalCarbs = 0, totalFat = 0;
     entries.forEach(e => {
-        totalProtein += e.portions_protein || 0;
-        totalCarbs   += e.portions_carbs   || 0;
-        totalFat     += e.portions_fat     || 0;
+        totalProtein += e.protein_g || 0;
+        totalCarbs   += e.carbs_g   || 0;
+        totalFat     += e.fat_g     || 0;
     });
     // קיבוץ לפי דקה — כל פריטים באותה דקה = ארוחה אחת
     let html = '';
@@ -816,7 +833,7 @@ function renderFoodLog() {
             <div style="flex:1;min-width:0;text-align:right;padding-right:4px;">
                 <div style="font-size:13px;line-height:1.4;word-break:break-word;">${e.name}</div>
                 <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
-                    ${e.grams ? `${e.grams}g` : ''}${e.portions_protein ? ` · <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 10c0-3 3-6 8-6s9 2 9 6-3 5-4 7-1 5-5 5-6-2-7-5-1-4-1-7z"/><path d="M9 9l2 2M13 8l2 3M8 13l2 2"/></svg>${e.portions_protein}` : ''}${e.portions_carbs ? ` · <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 12c0 4 3.6 7 8 7s8-3 8-7"/><path d="M4 12h16"/><ellipse cx="12" cy="12" rx="8" ry="2.5"/></svg>${e.portions_carbs}` : ''}${e.portions_fat ? ` · <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><ellipse cx="12" cy="13" rx="7" ry="8.5"/><circle cx="12" cy="14" r="3"/></svg>${e.portions_fat}` : ''}
+                    ${e.grams ? `${e.grams}g · ` : ''}${e.protein_g ? ` <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 10c0-3 3-6 8-6s9 2 9 6-3 5-4 7-1 5-5 5-6-2-7-5-1-4-1-7z"/><path d="M9 9l2 2M13 8l2 3M8 13l2 2"/></svg>${e.protein_g}g` : ''}${e.carbs_g ? ` · <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 12c0 4 3.6 7 8 7s8-3 8-7"/><path d="M4 12h16"/><ellipse cx="12" cy="12" rx="8" ry="2.5"/></svg>${e.carbs_g}g` : ''}${e.fat_g ? ` · <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><ellipse cx="12" cy="13" rx="7" ry="8.5"/><circle cx="12" cy="14" r="3"/></svg>${e.fat_g}g` : ''}
                 </div>
             </div>
             <div style="display:flex;align-items:center;gap:2px;flex-shrink:0;border-right:1px solid var(--border-light);padding-right:8px;margin-right:8px;">
@@ -827,12 +844,13 @@ function renderFoodLog() {
     });
     if (lastTime !== null) html += `</div>`;
 
+    const totalKcal = Math.round(totalProtein * 4 + totalCarbs * 4 + totalFat * 9);
     el.innerHTML = html +
         `<div style="padding:10px 4px 4px;font-size:12px;color:var(--text-secondary);display:flex;gap:12px;">
-            <span>סה"כ:</span>
-            ${totalProtein ? `<span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 10c0-3 3-6 8-6s9 2 9 6-3 5-4 7-1 5-5 5-6-2-7-5-1-4-1-7z"/><path d="M9 9l2 2M13 8l2 3M8 13l2 2"/></svg> ${totalProtein} מנות</span>` : ''}
-            ${totalCarbs   ? `<span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 12c0 4 3.6 7 8 7s8-3 8-7"/><path d="M4 12h16"/><ellipse cx="12" cy="12" rx="8" ry="2.5"/></svg> ${totalCarbs} מנות</span>`   : ''}
-            ${totalFat     ? `<span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><ellipse cx="12" cy="13" rx="7" ry="8.5"/><circle cx="12" cy="14" r="3"/></svg> ${totalFat} מנות</span>`     : ''}
+            <span>סה"כ: ${totalKcal} קלוריות</span>
+            ${totalProtein ? `<span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 10c0-3 3-6 8-6s9 2 9 6-3 5-4 7-1 5-5 5-6-2-7-5-1-4-1-7z"/><path d="M9 9l2 2M13 8l2 3M8 13l2 2"/></svg> ${Math.round(totalProtein)}g</span>` : ''}
+            ${totalCarbs   ? `<span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 12c0 4 3.6 7 8 7s8-3 8-7"/><path d="M4 12h16"/><ellipse cx="12" cy="12" rx="8" ry="2.5"/></svg> ${Math.round(totalCarbs)}g</span>`   : ''}
+            ${totalFat     ? `<span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><ellipse cx="12" cy="13" rx="7" ry="8.5"/><circle cx="12" cy="14" r="3"/></svg> ${Math.round(totalFat)}g</span>`     : ''}
         </div>`;
 }
 
@@ -889,79 +907,65 @@ async function saveFoodLogEdit() {
 
     try {
         const isGrams = unit === 'גרם';
+        let newMacros = null;
 
         // בדיקת USDA לפני Gemini — חינם ומדויק
         if (isGrams) {
             const usdaItem = enrichItemMacros({ name, grams: amount, lookup_name: name });
             if (usdaItem.protein_g > 0 || usdaItem.fat_g > 0 || usdaItem.carbs_g > 0) {
-                const newPortions = _calcPortionsFromMacros(usdaItem.protein_g, usdaItem.carbs_g, usdaItem.fat_g);
-                const entries = loadFoodLogEntries();
-                const oldEntry = entries[idx];
-                if (oldEntry.portions_protein) modifyPortion('protein', -oldEntry.portions_protein);
-                if (oldEntry.portions_carbs)   modifyPortion('carbs',   -oldEntry.portions_carbs);
-                if (oldEntry.portions_fat)     modifyPortion('fat',     -oldEntry.portions_fat);
-                entries[idx] = { ...oldEntry, name: `${name} (${amount} ${unit})`, grams: amount, portions_protein: newPortions.protein || null, portions_carbs: newPortions.carbs || null, portions_fat: newPortions.fat || null };
-                saveFoodLogEntries(entries);
-                if (entries[idx].id && typeof sbUpdateFoodLog === 'function') {
-                    sbUpdateFoodLog(entries[idx].id, { food: entries[idx].name, portions_protein: entries[idx].portions_protein || 0, portions_carbs: entries[idx].portions_carbs || 0, portions_fat: entries[idx].portions_fat || 0 }).catch(() => {});
-                }
-                if (newPortions.protein) modifyPortion('protein', newPortions.protein);
-                if (newPortions.carbs)   modifyPortion('carbs',   newPortions.carbs);
-                if (newPortions.fat)     modifyPortion('fat',     newPortions.fat);
-                renderFoodLog();
-                closeFoodLogEdit();
-                return;
+                newMacros = { grams: amount, protein_g: usdaItem.protein_g, carbs_g: usdaItem.carbs_g, fat_g: usdaItem.fat_g };
             }
         }
 
-        const prompt  = isGrams
-            ? `מהם ערכי המאקרו של ${amount} גרם ${name}? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. החזר JSON בלבד: {"grams":${amount},"protein_g":X,"fat_g":X,"carbs_g":X}`
-            : `${amount} ${unit} של ${name} — כמה גרם וערכי מאקרו? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. החזר JSON בלבד: {"grams":X,"protein_g":X,"fat_g":X,"carbs_g":X}`;
+        if (!newMacros) {
+            const prompt = isGrams
+                ? `מהם ערכי המאקרו של ${amount} גרם ${name}? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. החזר JSON בלבד: {"grams":${amount},"protein_g":X,"fat_g":X,"carbs_g":X}`
+                : `${amount} ${unit} של ${name} — כמה גרם וערכי מאקרו? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. החזר JSON בלבד: {"grams":X,"protein_g":X,"fat_g":X,"carbs_g":X}`;
 
-        let text;
-        try {
-            text = await geminiMacroLookup(prompt);
-        } catch (e) {
-            if (e.code === 429) throw new Error(e.message);
-            throw new Error('שגיאה בחישוב');
+            let text;
+            try {
+                text = await geminiMacroLookup(prompt);
+            } catch (e) {
+                if (e.code === 429) throw new Error(e.message);
+                throw new Error('שגיאה בחישוב');
+            }
+            const jsonMatch = text.match(/\{[\s\S]*?\}/);
+            if (!jsonMatch) throw new Error('שגיאה בניתוח');
+            const macros = JSON.parse(jsonMatch[0]);
+            newMacros = { grams: Math.round(macros.grams || amount), protein_g: macros.protein_g || 0, carbs_g: macros.carbs_g || 0, fat_g: macros.fat_g || 0 };
         }
-        const jsonMatch = text.match(/\{[\s\S]*?\}/);
-        if (!jsonMatch) throw new Error('שגיאה בניתוח');
-        const macros = JSON.parse(jsonMatch[0]);
 
-        // חשב מנות לפי היעדים הקיימים
-        const newPortions = _calcPortionsFromMacros(macros.protein_g || 0, macros.carbs_g || 0, macros.fat_g || 0);
-
-        // הסר ישן, הוסף חדש
+        // הסר את המאקרו הישן מהיום, הוסף את החדש
         const entries = loadFoodLogEntries();
         const oldEntry = entries[idx];
-        if (oldEntry.portions_protein) modifyPortion('protein', -oldEntry.portions_protein);
-        if (oldEntry.portions_carbs)   modifyPortion('carbs',   -oldEntry.portions_carbs);
-        if (oldEntry.portions_fat)     modifyPortion('fat',     -oldEntry.portions_fat);
+        if (typeof addFoodMacros === 'function') {
+            addFoodMacros(-(oldEntry.protein_g || 0), -(oldEntry.carbs_g || 0), -(oldEntry.fat_g || 0));
+        }
 
         entries[idx] = {
             ...oldEntry,
-            name: `${name} (${amount} ${unit})`,
-            grams: Math.round(macros.grams || amount),
-            portions_protein: newPortions.protein || null,
-            portions_carbs:   newPortions.carbs   || null,
-            portions_fat:     newPortions.fat     || null
+            name:      `${name} (${amount} ${unit})`,
+            grams:     newMacros.grams,
+            protein_g: Math.round(newMacros.protein_g * 10) / 10 || null,
+            carbs_g:   Math.round(newMacros.carbs_g   * 10) / 10 || null,
+            fat_g:     Math.round(newMacros.fat_g     * 10) / 10 || null
         };
         saveFoodLogEntries(entries);
 
         // עדכון גם בסופאבייס
         if (entries[idx].id && typeof sbUpdateFoodLog === 'function') {
             sbUpdateFoodLog(entries[idx].id, {
-                food:             entries[idx].name,
-                portions_protein: entries[idx].portions_protein || 0,
-                portions_carbs:   entries[idx].portions_carbs   || 0,
-                portions_fat:     entries[idx].portions_fat     || 0
+                food:      entries[idx].name,
+                grams:     entries[idx].grams     || 0,
+                protein_g: entries[idx].protein_g || 0,
+                carbs_g:   entries[idx].carbs_g   || 0,
+                fat_g:     entries[idx].fat_g     || 0
             }).catch(() => {});
         }
 
-        if (newPortions.protein) modifyPortion('protein', newPortions.protein);
-        if (newPortions.carbs)   modifyPortion('carbs',   newPortions.carbs);
-        if (newPortions.fat)     modifyPortion('fat',     newPortions.fat);
+        if (typeof addFoodMacros === 'function') {
+            addFoodMacros(entries[idx].protein_g || 0, entries[idx].carbs_g || 0, entries[idx].fat_g || 0);
+        }
 
         renderFoodLog();
         closeFoodLogEdit();
@@ -973,16 +977,6 @@ async function saveFoodLogEdit() {
     }
 }
 
-// חישוב מנות מגרמי מאקרו — אותה נוסחה כמו הסורק
-function _calcPortionsFromMacros(protein_g, carbs_g, fat_g) {
-    const round = v => Math.round(v * 2) / 2;
-    return {
-        protein: round(Math.max(0, (protein_g || 0) / 27.5)) || null,
-        carbs:   round(Math.max(0, (carbs_g   || 0) / 37.5)) || null,
-        fat:     round(Math.max(0, (fat_g     || 0) / 12.5)) || null
-    };
-}
-
 async function addScannedPortions() {
     const btn = document.querySelector('.scan-action-btn.primary');
     if (btn && btn.disabled) return;
@@ -991,47 +985,44 @@ async function addScannedPortions() {
     if (pendingInput && pendingInput.value.trim()) {
         if (btn) { btn.disabled = true; btn.textContent = 'מחשב...'; }
         await confirmAddItem();
-        if (btn) { btn.disabled = false; btn.innerHTML = 'הוספת מנות <span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = 'הוספה ליומן <span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>'; }
     }
 
-    const protein = scannedPortions.protein || 0;
-    const carbs   = scannedPortions.carbs   || 0;
-    const fat     = scannedPortions.fat     || 0;
-    const added = [];
-    if (protein > 0) { modifyPortion('protein', protein); added.push(`חלבון +${protein}`); }
-    if (carbs   > 0) { modifyPortion('carbs',   carbs);   added.push(`פחמימה +${carbs}`); }
-    if (fat     > 0) { modifyPortion('fat',     fat);     added.push(`שומן +${fat}`); }
+    const protein = scannedGrams.protein || 0;
+    const carbs   = scannedGrams.carbs   || 0;
+    const fat     = scannedGrams.fat     || 0;
 
-    // שמור ליומן — כל מאכל בנפרד
+    if ((protein || carbs || fat) && typeof addFoodMacros === 'function') {
+        addFoodMacros(protein, carbs, fat);
+    }
+
+    // שמור ליומן — כל מאכל בנפרד, בגרמים ובמאקרו מדויקים
     if (scannedItems && scannedItems.length > 0) {
-        const round = v => Math.round(v * 2) / 2;
         scannedItems.forEach(item => {
-            const p = round(Math.max(0, (item.protein_g || 0) / 27.5)) || null;
-            const c = round(Math.max(0, (item.carbs_g   || 0) / 37.5)) || null;
-            const f = round(Math.max(0, (item.fat_g     || 0) / 12.5)) || null;
             addFoodLogEntry({
-                name: item.name,
-                grams: Math.round(item.grams || 0) || null,
-                portions_protein: p,
-                portions_carbs:   c,
-                portions_fat:     f
+                name:      item.name,
+                grams:     Math.round(item.grams || 0) || null,
+                protein_g: Math.round((item.protein_g || 0) * 10) / 10 || null,
+                carbs_g:   Math.round((item.carbs_g   || 0) * 10) / 10 || null,
+                fat_g:     Math.round((item.fat_g     || 0) * 10) / 10 || null
             });
         });
     } else if (protein || carbs || fat) {
         addFoodLogEntry({
-            name: 'ארוחה',
-            grams: null,
-            portions_protein: protein || null,
-            portions_carbs:   carbs   || null,
-            portions_fat:     fat     || null
+            name:      'ארוחה',
+            grams:     null,
+            protein_g: protein || null,
+            carbs_g:   carbs   || null,
+            fat_g:     fat     || null
         });
     }
 
     closeFoodScanner();
+    const kcal = Math.round(protein * 4 + carbs * 4 + fat * 9);
     const toast = document.createElement('div');
-    toast.innerHTML = added.length
-        ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> נוסף: ' + added.join(' | ')
-        : '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 9v4"/><path d="M10.3 3.9L2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/></svg> לא נוספו מנות';
+    toast.innerHTML = (protein || carbs || fat)
+        ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> נוסף ליומן: ${kcal} קלוריות`
+        : '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 9v4"/><path d="M10.3 3.9L2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/></svg> לא נוסף מזון';
     toast.style.cssText = `position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:9999;box-shadow:0 4px 15px rgba(0,0,0,0.2);animation:fadeIn 0.3s ease;white-space:nowrap;`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);

@@ -244,12 +244,7 @@ function _buildClientStats(client) {
     const currentWeek = clientScores.find(s => s.week_start === monStr)  || null;
     const prevWeek    = clientScores.find(s => s.week_start === prevMonStr) || null;
 
-    const pv = profile.portion_values || {};
-    const pvP = pv.protein ?? 27.5;
-    const pvC = pv.carbs   ?? 37.5;
-    const pvF = pv.fat     ?? 12.5;
-
-    // Portion targets — same formula as app.js calcPortionTargets()
+    // יעדי גרמים — אותה נוסחה כמו app-core.js calcPortionTargets()
     const weight   = profile.current_weight || 80;
     const age      = profile.birth_date ? Math.floor((new Date() - new Date(profile.birth_date)) / (1000*60*60*24*365.25)) : 30;
     const gender   = profile.gender || 'male';
@@ -266,9 +261,9 @@ function _buildClientStats(client) {
     const carbRatio     = (profile.carb_ratio != null) ? profile.carb_ratio : (goal === 'cut' ? 0.7 : 0.6);
     const carbCals      = remaining * carbRatio;
     const fatCals       = remaining * (1 - carbRatio);
-    const tgProtein     = Math.round((proteinGrams / pvP) * 2) / 2;
-    const tgCarbs       = Math.round((carbCals / 4 / pvC) * 2) / 2;
-    const tgFat         = Math.round((fatCals / 9 / pvF) * 2) / 2;
+    const tgProtein     = Math.round(proteinGrams);
+    const tgCarbs       = Math.round(carbCals / 4);
+    const tgFat         = Math.round(fatCals / 9);
 
     const nutritionMeetsGoal = n => n.protein >= tgProtein && n.carbs >= tgCarbs && n.fat >= tgFat;
 

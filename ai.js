@@ -228,17 +228,17 @@ async function sendAIMessage() {
                 try {
                     for (const foodAddMatch of foodAddMatches) {
                     const foodData = JSON.parse(foodAddMatch[1]);
-                    const portions = _calcPortionsFromMacros(foodData.protein_g || 0, foodData.carbs_g || 0, foodData.fat_g || 0);
+                    const protein_g = foodData.protein_g || 0;
+                    const carbs_g   = foodData.carbs_g   || 0;
+                    const fat_g     = foodData.fat_g     || 0;
                     addFoodLogEntry({
-                        name:             foodData.name,
-                        grams:            Math.round(foodData.grams || 0),
-                        portions_protein: portions.protein || null,
-                        portions_carbs:   portions.carbs   || null,
-                        portions_fat:     portions.fat     || null
+                        name:      foodData.name,
+                        grams:     Math.round(foodData.grams || 0),
+                        protein_g: protein_g || null,
+                        carbs_g:   carbs_g   || null,
+                        fat_g:     fat_g     || null
                     });
-                    if (portions.protein) modifyPortion('protein', portions.protein);
-                    if (portions.carbs)   modifyPortion('carbs',   portions.carbs);
-                    if (portions.fat)     modifyPortion('fat',     portions.fat);
+                    if (typeof addFoodMacros === 'function') addFoodMacros(protein_g, carbs_g, fat_g);
                     }
                     const addedDiv = document.createElement('div');
                     addedDiv.style.cssText = 'margin-top:8px;padding:6px 10px;background:var(--accent);color:#fff;border-radius:8px;font-size:14px;display:inline-block;';
@@ -377,15 +377,15 @@ async function buildSystemPrompt() {
 
     const todayShort = new Date().toLocaleDateString('he-IL', {weekday:'short', day:'numeric', month:'numeric'});
     const nextMeetingStr = CLIENT.nextMeetingDate ? new Date(CLIENT.nextMeetingDate).toLocaleDateString('he-IL', {weekday:'short', day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit'}) : 'טרם נקבעה';
-    const _up  = (typeof window._getUserPortions  === 'function') ? window._getUserPortions()  : {};
-    const _tgt = (typeof window._getPortionTargets === 'function') ? window._getPortionTargets() : {};
+    // _up/_tgt מכילים גרמים (שם _getUserPortions נשמר לתאימות, התוכן הוא גרמים מאז המעבר)
+    const _up  = (typeof window._getUserPortions === 'function') ? window._getUserPortions() : {};
+    const _tgt = (typeof window._getGramTargets  === 'function') ? window._getGramTargets()  : {};
     const pVal = String(_up.protein  ?? document.getElementById('protein-val')?.innerText  ?? '0');
     const cVal = String(_up.carbs    ?? document.getElementById('carbs-val')?.innerText    ?? '0');
     const fVal = String(_up.fat      ?? document.getElementById('fat-val')?.innerText      ?? '0');
     const pTgt = String(_tgt.protein ?? document.getElementById('protein-target')?.innerText?.replace('/ ','') ?? '0');
     const cTgt = String(_tgt.carbs   ?? document.getElementById('carbs-target')?.innerText?.replace('/ ','')  ?? '0');
     const fTgt = String(_tgt.fat     ?? document.getElementById('fat-target')?.innerText?.replace('/ ','')    ?? '0');
-    const pv   = typeof portionValues !== 'undefined' ? portionValues : { protein: 27.5, carbs: 37.5, fat: 12.5 };
     const workoutTargets = (typeof _exerciseTargets !== 'undefined') ? _exerciseTargets : {};
 
     // בניית לוח אימונים לפי ימים (ללא אותיות)
@@ -448,7 +448,7 @@ async function buildSystemPrompt() {
     // קבוצה משתנה — תמיד חיה
     const [curWorkoutRes, curNutRes, curWeightRes] = await Promise.allSettled([
         db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', monStr).lte('date', sunStr),
-        db.from('daily_nutrition').select('date, protein, carbs, fat').eq('user_id', userId).gte('date', monStr).lte('date', sunStr),
+        db.from('daily_nutrition').select('date, protein:protein_g, carbs:carbs_g, fat:fat_g').eq('user_id', userId).gte('date', monStr).lte('date', sunStr),
         db.from('weight_history').select('date').eq('user_id', userId).gte('date', monStr).lte('date', sunStr).limit(1),
     ]);
 
@@ -460,7 +460,7 @@ async function buildSystemPrompt() {
         const weeklyTarget  = Object.values(CLIENT.workoutDays || {}).reduce((s, days) => s + days.length, 0) || CLIENT.workoutsPerWeek || 3;
         const workoutCount  = new Set((curWorkoutData || []).map(r => r.date)).size;
 
-        // יעדי מנות אישיים — נוסחה זהה ל-calcPortionTargets()/cron/auth.js
+        // יעדי גרמים אישיים — נוסחה זהה ל-calcPortionTargets()/cron/auth.js
         const _w   = CLIENT.currentWeight || CLIENT.startWeight || 80;
         const _age = CLIENT.birthDate ? Math.floor((new Date() - new Date(CLIENT.birthDate)) / (1000*60*60*24*365.25)) : 30;
         let _bmr   = (10 * _w) + (6.25 * (CLIENT.height || 170)) - (5 * _age);
@@ -472,9 +472,9 @@ async function buildSystemPrompt() {
         const _cr    = (CLIENT.carbRatio != null) ? CLIENT.carbRatio : (CLIENT.goal === 'cut' ? 0.7 : 0.6);
         const _cc    = _rem * _cr;
         const _fc    = _rem * (1 - _cr);
-        const tgProtein = Math.round((_pg / pv.protein) * 2) / 2;
-        const tgCarbs   = Math.round((_cc / 4 / pv.carbs) * 2) / 2;
-        const tgFat     = Math.round((_fc / 9 / pv.fat) * 2) / 2;
+        const tgProtein = Math.round(_pg);
+        const tgCarbs   = Math.round(_cc / 4);
+        const tgFat     = Math.round(_fc / 9);
 
         let nutritionMet = 0;
         (curNutData || []).forEach(r => {
@@ -551,30 +551,27 @@ async function buildSystemPrompt() {
                 const dayLines = Object.keys(byDay).sort().map(date => {
                     const items = byDay[date].map(r => {
                         const macros = [];
-                        if (r.portions_protein) macros.push(`ח${r.portions_protein}`);
-                        if (r.portions_carbs)   macros.push(`פ${r.portions_carbs}`);
-                        if (r.portions_fat)     macros.push(`ש${r.portions_fat}`);
+                        if (r.protein_g) macros.push(`ח${r.protein_g}g`);
+                        if (r.carbs_g)   macros.push(`פ${r.carbs_g}g`);
+                        if (r.fat_g)     macros.push(`ש${r.fat_g}g`);
                         const m = macros.length ? ` (${macros.join('/')})` : '';
-                        return `${r.time || '--:--'} ${r.food}${m}`;
+                        return `${r.time || '--:--'} ${r.food}${r.grams ? ` ${r.grams}g` : ''}${m}`;
                     }).join(', ');
                     return `• ${date}: ${items}`;
                 });
-                prompt += '\n\nיומן מאכלים (7 ימים, במנות; ח=חלבון פ=פחמימה ש=שומן):\n' + dayLines.join('\n');
-                prompt += '\nהמרה קבועה (אל תנחש): מנה=110/150/112.5 קל׳ (ח/פ/ש), או 27.5/37.5/12.5 גרם מאקרו.';
+                prompt += '\n\nיומן מאכלים (7 ימים, בגרמים מדויקים; ח=חלבון פ=פחמימה ש=שומן):\n' + dayLines.join('\n');
+                prompt += '\nהמאקרו כאן מדויק כפי שנרשם — אל תעגל ואל תמיר, השתמש בערכים כמו שהם.';
             }
         } catch (e) { /* נכשל בשקט */ }
     }
 
-    // מאקרו חי של היום — משתנה תוך כדי שיחה, לכן בבלוק המשתנה בסוף
+    // מאקרו חי של היום (בגרמים) — משתנה תוך כדי שיחה, לכן בבלוק המשתנה בסוף
     const _p = parseFloat(pVal) || 0;
     const _c = parseFloat(cVal) || 0;
     const _f = parseFloat(fVal) || 0;
-    const _pG    = Math.round(_p * pv.protein * 10) / 10;
-    const _cG    = Math.round(_c * pv.carbs   * 10) / 10;
-    const _fG    = Math.round(_f * pv.fat      * 10) / 10;
-    const _pKcal = Math.round(_p * pv.protein * 4);
-    const _cKcal = Math.round(_c * pv.carbs   * 4);
-    const _fKcal = Math.round(_f * pv.fat      * 9);
+    const _pKcal = Math.round(_p * 4);
+    const _cKcal = Math.round(_c * 4);
+    const _fKcal = Math.round(_f * 9);
     const _total = _pKcal + _cKcal + _fKcal;
     const _ptgt = parseFloat(pTgt) || 0;
     const _ctgt = parseFloat(cTgt) || 0;
@@ -582,8 +579,8 @@ async function buildSystemPrompt() {
     const _pRem = Math.round((_ptgt - _p) * 10) / 10;
     const _cRem = Math.round((_ctgt - _c) * 10) / 10;
     const _fRem = Math.round((_ftgt - _f) * 10) / 10;
-    volatile += `\n\nתזונה היום: חלבון ${_p}/${_ptgt} מנות (נשאר: ${_pRem}) | פחמימה ${_c}/${_ctgt} מנות (נשאר: ${_cRem}) | שומן ${_f}/${_ftgt} מנות (נשאר: ${_fRem}) | סה"כ ${_total} קק"ל (יעד: ${targetCalories} קק"ל)`;
-    volatile += `\nכשנשאלים "כמה נשאר" — תן תשובה ישירה בלי חישובים: "נשאר X מנות חלבון, Y פחמימה, Z שומן" בלבד.`;
+    volatile += `\n\nתזונה היום: חלבון ${_p}/${_ptgt} גרם (נשאר: ${_pRem}) | פחמימה ${_c}/${_ctgt} גרם (נשאר: ${_cRem}) | שומן ${_f}/${_ftgt} גרם (נשאר: ${_fRem}) | סה"כ ${_total} קק"ל (יעד: ${targetCalories} קק"ל)`;
+    volatile += `\nכשנשאלים "כמה נשאר" — תן תשובה ישירה בלי חישובים: "נשאר Xג חלבון, Yג פחמימה, Zג שומן" בלבד.`;
     volatile += `\nכשנשאלים כמה קלוריות/חלבון/פחמימה/שומן נאכלו היום — תמיד השתמש בערכים המוכנים משורת "תזונה היום" (כולל ה-סה"כ) בדיוק כפי שהם, אל תחשב בעצמך מפריטי יומן המאכלים.`;
 
     // קבוע (נשמר במטמון) + משתנה (בסוף) = אותו מידע בדיוק, סדר ממוטב למטמון

@@ -86,7 +86,7 @@ function _sbSaveNutritionKeepalive(userId, protein, carbs, fat) {
         },
         body: JSON.stringify([{
             user_id: userId, date: today,
-            protein, carbs, fat,
+            protein_g: protein, carbs_g: carbs, fat_g: fat,
             updated_at: new Date().toISOString(),
         }]),
         keepalive: true,
@@ -241,7 +241,7 @@ async function sbFetchTodayNutrition(userId) {
     const today = _localDate();
     const { data, error } = await db
         .from('daily_nutrition')
-        .select('protein, carbs, fat')
+        .select('protein:protein_g, carbs:carbs_g, fat:fat_g')
         .eq('user_id', userId)
         .eq('date', today)
         .maybeSingle();
@@ -252,7 +252,7 @@ async function sbFetchTodayNutrition(userId) {
 async function sbSaveNutrition(userId, protein, carbs, fat) {
     const today = _localDate();
     const { error } = await db.from('daily_nutrition').upsert(
-        { user_id: userId, date: today, protein, carbs, fat, updated_at: new Date().toISOString() },
+        { user_id: userId, date: today, protein_g: protein, carbs_g: carbs, fat_g: fat, updated_at: new Date().toISOString() },
         { onConflict: 'user_id,date' }
     );
     if (error) throw error;
@@ -264,14 +264,15 @@ async function sbAddFoodLog(entry) {
     const uid = getActiveUserId();
     if (!uid || !entry || !entry.id) return;
     const { error } = await db.from('food_log').insert({
-        id:               entry.id,
-        user_id:          uid,
-        date:             _localDate(),
-        time:             entry.time || null,
-        food:             entry.name || 'ארוחה',
-        portions_protein: entry.portions_protein || 0,
-        portions_carbs:   entry.portions_carbs   || 0,
-        portions_fat:     entry.portions_fat     || 0
+        id:        entry.id,
+        user_id:   uid,
+        date:      _localDate(),
+        time:      entry.time || null,
+        food:      entry.name || 'ארוחה',
+        grams:     entry.grams     || null,
+        protein_g: entry.protein_g || 0,
+        carbs_g:   entry.carbs_g   || 0,
+        fat_g:     entry.fat_g     || 0
     });
     if (error) console.warn('sbAddFoodLog:', error.message);
 }
@@ -292,7 +293,7 @@ async function sbUpdateFoodLog(id, fields) {
 
 async function sbFetchFoodLogRange(userId, fromDate) {
     const { data, error } = await db.from('food_log')
-        .select('date, time, food, portions_protein, portions_carbs, portions_fat')
+        .select('date, time, food, grams, protein_g, carbs_g, fat_g')
         .eq('user_id', userId)
         .gte('date', fromDate)
         .order('date', { ascending: true })
@@ -591,7 +592,7 @@ async function sbFetchCoachDashData(clientIds) {
           .in('client_id', clientIds)
           .gte('date', fourAgoStr),
         db.from('daily_nutrition')
-          .select('user_id, date, protein, carbs, fat')
+          .select('user_id, date, protein:protein_g, carbs:carbs_g, fat:fat_g')
           .in('user_id', clientIds)
           .gte('date', fourAgoStr),
         db.from('weight_history')

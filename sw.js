@@ -60,9 +60,9 @@ async function syncNutrition() {
         body: JSON.stringify([{
             user_id:    item.userId,
             date:       item.date,
-            protein:    item.protein,
-            carbs:      item.carbs,
-            fat:        item.fat,
+            protein_g:  item.protein,
+            carbs_g:    item.carbs,
+            fat_g:      item.fat,
             updated_at: new Date().toISOString(),
         }]),
     });

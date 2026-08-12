@@ -72,9 +72,9 @@ function closeCompleteMsg() {
     if (msg) msg.style.display = 'none';
 }
 
-    // --- לוגיקה של המונים ואיפוס ---
-    let userPortions = { protein: 0, carbs: 0, fat: 0 };
-    function _portionsKey()         { return 'user_portions_v3_'   + (getActiveUserId() || 'default'); }
+    // --- לוגיקה של מעקב תזונה יומי בגרמים ואיפוס ---
+    let dailyGrams = { protein: 0, carbs: 0, fat: 0 };
+    function _portionsKey()         { return 'daily_grams_v1_'   + (getActiveUserId() || 'default'); }
 
     function _resetKey() {
         const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
@@ -108,28 +108,40 @@ function closeCompleteMsg() {
     }
     setInterval(() => manageDailyReset(), 60 * 1000);
 
-    function modifyPortion(type, amount) {
-        let current = userPortions[type] + amount;
-        if (current < 0) current = 0;
-        userPortions[type] = current;
-        document.getElementById(type + '-val').innerText = current;
-        localStorage.setItem(_portionsKey(), JSON.stringify(userPortions));
-        updatePortionProgress(type);
+    function updateKcalDisplay() {
+        const kcal = Math.round(dailyGrams.protein * 4 + dailyGrams.carbs * 4 + dailyGrams.fat * 9);
+        const el = document.getElementById('kcal-val');
+        if (el) el.innerText = kcal;
+    }
+
+    // הוספת/הפחתת גרמי מאקרו מהיום (דלתא) - נקרא כשמוסיפים/מוחקים/עורכים פריט ביומן המזון
+    function addFoodMacros(protein_g, carbs_g, fat_g) {
+        dailyGrams = {
+            protein: Math.max(0, Math.round((dailyGrams.protein + (protein_g || 0)) * 10) / 10),
+            carbs:   Math.max(0, Math.round((dailyGrams.carbs   + (carbs_g   || 0)) * 10) / 10),
+            fat:     Math.max(0, Math.round((dailyGrams.fat     + (fat_g     || 0)) * 10) / 10),
+        };
+        document.getElementById('protein-val').innerText = dailyGrams.protein;
+        document.getElementById('carbs-val').innerText   = dailyGrams.carbs;
+        document.getElementById('fat-val').innerText     = dailyGrams.fat;
+        localStorage.setItem(_portionsKey(), JSON.stringify(dailyGrams));
+        updateAllMacroProgress();
+        updateKcalDisplay();
         checkNutritionStreak();
         const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
         if (uid) {
             if (typeof sbQueueNutritionSync === 'function') {
-                sbQueueNutritionSync(uid, userPortions.protein, userPortions.carbs, userPortions.fat);
+                sbQueueNutritionSync(uid, dailyGrams.protein, dailyGrams.carbs, dailyGrams.fat);
             } else if (typeof sbSaveNutrition === 'function') {
-                sbSaveNutrition(uid, userPortions.protein, userPortions.carbs, userPortions.fat).catch(() => {});
+                sbSaveNutrition(uid, dailyGrams.protein, dailyGrams.carbs, dailyGrams.fat).catch(() => {});
             }
         }
     }
-    window.modifyPortion = modifyPortion;
-    window._getUserPortions = () => ({ ...userPortions });
+    window.addFoodMacros = addFoodMacros;
+    window._getUserPortions = () => ({ ...dailyGrams }); // שם נשמר לתאימות עם קוד קורא קיים (ai.js) - התוכן הוא גרמים
 
-    function updatePortionProgress(type) {
-        const val = userPortions[type];
+    function updateMacroProgress(type) {
+        const val = dailyGrams[type];
         const targetText = document.getElementById(type + '-target').innerText.replace('/ ', '');
         const target = parseFloat(targetText);
         if (!target) return;
@@ -146,17 +158,18 @@ function closeCompleteMsg() {
         }
     }
 
-    function updateAllPortionProgress() {
-        ['protein', 'carbs', 'fat'].forEach(updatePortionProgress);
+    function updateAllMacroProgress() {
+        ['protein', 'carbs', 'fat'].forEach(updateMacroProgress);
     }
 
-    function loadPortions() {
+    function loadDailyNutrition() {
         const saved = localStorage.getItem(_portionsKey());
-        userPortions = saved ? JSON.parse(saved) : { protein: 0, carbs: 0, fat: 0 };
-        document.getElementById('protein-val').innerText = userPortions.protein;
-        document.getElementById('carbs-val').innerText = userPortions.carbs;
-        document.getElementById('fat-val').innerText = userPortions.fat;
-        setTimeout(updateAllPortionProgress, 50);
+        dailyGrams = saved ? JSON.parse(saved) : { protein: 0, carbs: 0, fat: 0 };
+        document.getElementById('protein-val').innerText = dailyGrams.protein;
+        document.getElementById('carbs-val').innerText = dailyGrams.carbs;
+        document.getElementById('fat-val').innerText = dailyGrams.fat;
+        updateKcalDisplay();
+        setTimeout(updateAllMacroProgress, 50);
 
         // טעינה מ-Supabase — מקור האמת האמיתי
         const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
@@ -167,20 +180,21 @@ function closeCompleteMsg() {
                 // (מגן מפני מצב שהשמירה לשרת טרם הגיעה, ו-localStorage מכיל ערך עדכני יותר)
                 if (data) {
                     const local = JSON.parse(localStorage.getItem(_portionsKey()) || '{}');
-                    userPortions = {
+                    dailyGrams = {
                         protein: Math.max(data.protein || 0, local.protein || 0),
                         carbs:   Math.max(data.carbs   || 0, local.carbs   || 0),
                         fat:     Math.max(data.fat      || 0, local.fat      || 0),
                     };
                 } else {
                     // אין רשומה לסופאבייס היום = יום חדש → איפוס
-                    userPortions = { protein: 0, carbs: 0, fat: 0 };
+                    dailyGrams = { protein: 0, carbs: 0, fat: 0 };
                 }
-                localStorage.setItem(_portionsKey(), JSON.stringify(userPortions));
-                document.getElementById('protein-val').innerText = userPortions.protein;
-                document.getElementById('carbs-val').innerText = userPortions.carbs;
-                document.getElementById('fat-val').innerText = userPortions.fat;
-                updateAllPortionProgress();
+                localStorage.setItem(_portionsKey(), JSON.stringify(dailyGrams));
+                document.getElementById('protein-val').innerText = dailyGrams.protein;
+                document.getElementById('carbs-val').innerText = dailyGrams.carbs;
+                document.getElementById('fat-val').innerText = dailyGrams.fat;
+                updateKcalDisplay();
+                updateAllMacroProgress();
             }).catch(() => {});
         }
     }

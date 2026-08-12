@@ -103,7 +103,7 @@ async function renderWeeklyScore(userId) {
         const [{ data: workoutData }, { data: nutritionRows }, { data: weightData }] = await Promise.all([
             db.from('workout_performance_log').select('date')
               .eq('client_id', userId).gte('date', monStr).lte('date', sunStr),
-            db.from('daily_nutrition').select('date, protein, carbs, fat')
+            db.from('daily_nutrition').select('date, protein:protein_g, carbs:carbs_g, fat:fat_g')
               .eq('user_id', userId).gte('date', monStr).lte('date', sunStr),
             db.from('weight_history').select('date')
               .eq('user_id', userId).gte('date', monStr).lte('date', sunStr).limit(1),
@@ -117,7 +117,7 @@ async function renderWeeklyScore(userId) {
 
         let nutritionMet = 0;
         (nutritionRows || []).forEach(r => {
-            if (r.protein >= targets.protein && r.carbs >= targets.carbs && r.fat >= targets.fat) nutritionMet++;
+            if (r.protein >= targets.proteinGrams && r.carbs >= targets.carbsGrams && r.fat >= targets.fatGrams) nutritionMet++;
         });
         const nutritionScore = Math.min(nutritionMet / 7, 1);
 
@@ -199,7 +199,7 @@ async function renderScoreHistory(userId) {
 
         const [wkRes, nutRes, wtRes] = await Promise.all([
             db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', rawStart).lte('date', curEnd),
-            db.from('daily_nutrition').select('date,protein,carbs,fat').eq('user_id', userId).gte('date', rawStart).lte('date', curEnd),
+            db.from('daily_nutrition').select('date,protein:protein_g,carbs:carbs_g,fat:fat_g').eq('user_id', userId).gte('date', rawStart).lte('date', curEnd),
             db.from('weight_history').select('date').eq('user_id', userId).gte('date', rawStart).lte('date', curEnd),
         ]);
         if (getActiveUserId() !== userId) return;
@@ -213,7 +213,7 @@ async function renderScoreHistory(userId) {
             const days = new Set(wkRows.filter(r => r.date >= start && r.date <= end).map(r => r.date)).size;
             let nutMet = 0;
             nutRows.forEach(r => {
-                if (r.date >= start && r.date <= end && r.protein >= targets2.protein && r.carbs >= targets2.carbs && r.fat >= targets2.fat) nutMet++;
+                if (r.date >= start && r.date <= end && r.protein >= targets2.proteinGrams && r.carbs >= targets2.carbsGrams && r.fat >= targets2.fatGrams) nutMet++;
             });
             const hasWt = wtRows.some(r => r.date >= start && r.date <= end);
             return Math.round((
@@ -1123,19 +1123,15 @@ function completeWorkoutStreak(letter) {
 }
 
 function checkNutritionStreak() {
-    const proteinVal = userPortions.protein;
-    const carbsVal = userPortions.carbs;
-    const fatVal = userPortions.fat;
+    if (typeof window._getUserPortions !== 'function' || typeof window._getGramTargets !== 'function') return;
+    const grams   = window._getUserPortions();  // שם נשמר לתאימות, מכיל גרמים
+    const targets = window._getGramTargets();
 
-    const proteinTarget = parseFloat(document.getElementById('protein-target').innerText.replace('/ ', ''));
-    const carbsTarget = parseFloat(document.getElementById('carbs-target').innerText.replace('/ ', ''));
-    const fatTarget = parseFloat(document.getElementById('fat-target').innerText.replace('/ ', ''));
-
-    // יעדים לא חוקיים (0/NaN, למשל לפני שהם חושבו) לא נחשבים "הושג" — מונע השלמת רצף בטעות על 0>=0
-    const targetsValid = proteinTarget > 0 && carbsTarget > 0 && fatTarget > 0;
+    // יעדים לא חוקיים (0/undefined, למשל לפני שהם חושבו) לא נחשבים "הושג" — מונע השלמת רצף בטעות על 0>=0
+    const targetsValid = targets.protein > 0 && targets.carbs > 0 && targets.fat > 0;
     if (!targetsValid) return;
 
-    if (proteinVal >= proteinTarget && carbsVal >= carbsTarget && fatVal >= fatTarget) {
+    if (grams.protein >= targets.protein && grams.carbs >= targets.carbs && grams.fat >= targets.fat) {
         completeNutritionStreak();
     }
 }
@@ -1154,7 +1150,8 @@ async function completeNutritionStreak() {
     if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
     const uid = getActiveUserId();
     if (uid) {
-        try { await sbSaveNutrition(uid, userPortions.protein, userPortions.carbs, userPortions.fat); } catch (_) {}
+        const grams = typeof window._getUserPortions === 'function' ? window._getUserPortions() : { protein: 0, carbs: 0, fat: 0 };
+        try { await sbSaveNutrition(uid, grams.protein, grams.carbs, grams.fat); } catch (_) {}
         if (typeof _trackingWidgetCache !== 'undefined') {
             delete _trackingWidgetCache['weekly_' + uid];
             if (typeof renderWeeklyScore === 'function') renderWeeklyScore(uid);

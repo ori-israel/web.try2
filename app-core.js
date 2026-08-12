@@ -113,11 +113,7 @@ function toggleTheme() {
     const carbCals = remainingCals * carbRatio;
     const fatCals = remainingCals * (1 - carbRatio);
     return {
-        protein: Math.round((proteinGrams / portionValues.protein) * 2) / 2,
-        carbs:   Math.round((carbCals / 4 / portionValues.carbs) * 2) / 2,
-        fat:     Math.round((fatCals / 9 / portionValues.fat) * 2) / 2,
         totalCalories,
-        // יעדי גרמים מדויקים (לצד יעדי המנות המעוגלים) — לשימוש עתידי במעבר לגרמים
         proteinGrams: Math.round(proteinGrams),
         carbsGrams:   Math.round(carbCals / 4),
         fatGrams:     Math.round(fatCals / 9),
@@ -125,14 +121,14 @@ function toggleTheme() {
 }
 
     function generatePortionGoals() {
-    const { protein: pPortions, carbs: cPortions, fat: fPortions, totalCalories, proteinGrams, carbsGrams, fatGrams } = calcPortionTargets();
+    const { totalCalories, proteinGrams, carbsGrams, fatGrams } = calcPortionTargets();
 
-    // 7. עדכון HTML
-    document.getElementById('protein-target').innerText = `/ ${pPortions}`;
-    document.getElementById('carbs-target').innerText = `/ ${cPortions}`;
-    document.getElementById('fat-target').innerText = `/ ${fPortions}`;
-    window._getPortionTargets = () => ({ protein: pPortions, carbs: cPortions, fat: fPortions });
-    // יעדי גרמים מדויקים — לשימוש עתידי (שלבים הבאים במעבר לגרמים), אינו משפיע על שום דבר שמוצג היום
+    // עדכון HTML — יעדים בגרמים (המסך היומי עובד בגרמים, לא במנות)
+    document.getElementById('protein-target').innerText = `/ ${proteinGrams}`;
+    document.getElementById('carbs-target').innerText = `/ ${carbsGrams}`;
+    document.getElementById('fat-target').innerText = `/ ${fatGrams}`;
+    const kcalTargetEl = document.getElementById('kcal-target');
+    if (kcalTargetEl) kcalTargetEl.innerText = totalCalories;
     window._getGramTargets = () => ({ protein: proteinGrams, carbs: carbsGrams, fat: fatGrams, totalCalories });
 
     const goalText = CLIENT.goal === 'cut' ? 'חיטוב' : 'מסה';
@@ -370,7 +366,7 @@ function triggerPWAInstall() {
     manageDailyReset();
     updateCounter();
     initVideos();
-    loadPortions();
+    loadDailyNutrition();
     renderFoodLog();
     loadChecklist();
     generatePortionGoals();
@@ -404,9 +400,9 @@ document.addEventListener('visibilitychange', () => {
             }
         }
     }
-    if (document.visibilityState === 'visible' && typeof loadPortions === 'function') {
+    if (document.visibilityState === 'visible' && typeof loadDailyNutrition === 'function') {
         manageDailyReset();
-        loadPortions();
+        loadDailyNutrition();
         // בדיקת באנרים כשהמשתמש חוזר לאפליקציה — תופס מעבר שעת ההצגה בלי רענון
         if (typeof checkThursdayBanner  === 'function') checkThursdayBanner();
         if (typeof checkMeetingReminder === 'function') checkMeetingReminder();
@@ -414,8 +410,8 @@ document.addEventListener('visibilitychange', () => {
 });
 
 window.addEventListener('pageshow', (e) => {
-    if (e.persisted && typeof loadPortions === 'function') {
-        loadPortions();
+    if (e.persisted && typeof loadDailyNutrition === 'function') {
+        loadDailyNutrition();
     }
 });
 

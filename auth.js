@@ -145,7 +145,7 @@ async function reinitApp() {
     if (typeof initWorkoutsChecklist  === 'function') initWorkoutsChecklist();
     if (typeof initVideos             === 'function') initVideos();
     if (typeof buildWorkoutAccordions === 'function') buildWorkoutAccordions();
-    if (typeof loadPortions           === 'function') loadPortions();
+    if (typeof loadDailyNutrition     === 'function') loadDailyNutrition();
     if (typeof loadChecklist          === 'function') loadChecklist();
     if (typeof generatePortionGoals   === 'function') generatePortionGoals();
     if (typeof updateGoalRecommendations==='function') updateGoalRecommendations();

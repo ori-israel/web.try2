@@ -1,6 +1,6 @@
    <div id="tab1" class="tab-content active">
         <div class="nutrition-header-top">
-            <h2 class="nutrition-title">מעקב מנות יומי</h2>
+            <h2 class="nutrition-title">מעקב תזונה יומי</h2>
             <div class="nutrition-header-btns">
                 <div id="nutrition-streak-display" class="nutrition-streak-badge">
                     <span class="streak-fire" style="display:inline-flex;width:22px;height:22px;border-radius:50%;background:rgba(249,115,22,0.14);align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="13" height="13" fill="#f97316" stroke="#f97316" stroke-width="1" stroke-linejoin="round"><path d="M12 2.5c-1.2 3.3-5 5.7-5 9.5a5 5 0 0 0 10 0c0-1.6-.7-2.9-1.8-4 .1 1.7-.9 2.4-1.6 2 .9-2 -.2-4.2-1.6-7.5z"/></svg></span>
@@ -11,40 +11,34 @@
             </div>
         </div>
 
-        <p class="portion-hint">כל לחיצה = חצי מנה</p>
-        <!-- ה-Dashboard של המנות -->
+        <!-- ה-Dashboard היומי (גרמים) -->
         <div id="macros-dashboard">
-        <div class="macros-row">
-            <div class="macro-card">
-                <div class="macro-card-label">חלבון</div>
-                <div class="macro-card-value"><span id="protein-val">0</span><span class="macro-card-target" id="protein-target">/ 0</span></div>
-                <div class="macro-card-bar"><div class="portion-progress-bar" id="protein-progress-bar"></div></div>
-                <div class="macro-card-btns">
-                    <button class="macro-btn macro-btn-minus" onclick="modifyPortion('protein', -0.5)" aria-label="הפחת חצי מנת חלבון">-</button>
-                    <button class="macro-btn macro-btn-plus" onclick="modifyPortion('protein', 0.5)" aria-label="הוסף חצי מנת חלבון">+</button>
-                </div>
+            <div class="daily-kcal-block">
+                <div class="daily-kcal-num"><span id="kcal-val">0</span><span class="daily-kcal-target">/ <span id="kcal-target">0</span></span></div>
+                <div class="daily-kcal-lbl">קלוריות היום</div>
             </div>
-            <div class="macro-card">
-                <div class="macro-card-label">פחמימה</div>
-                <div class="macro-card-value"><span id="carbs-val">0</span><span class="macro-card-target" id="carbs-target">/ 0</span></div>
-                <div class="macro-card-bar"><div class="portion-progress-bar" id="carbs-progress-bar"></div></div>
-                <div class="macro-card-btns">
-                    <button class="macro-btn macro-btn-minus" onclick="modifyPortion('carbs', -0.5)" aria-label="הפחת חצי מנת פחמימה">-</button>
-                    <button class="macro-btn macro-btn-plus" onclick="modifyPortion('carbs', 0.5)" aria-label="הוסף חצי מנת פחמימה">+</button>
+            <div class="macro-progress-row">
+                <div class="macro-progress-top">
+                    <div class="macro-progress-name"><span class="macro-dot dot-protein"></span>חלבון</div>
+                    <div class="macro-progress-nums"><span id="protein-val">0</span><span class="macro-card-target" id="protein-target">/ 0</span> גרם</div>
                 </div>
+                <div class="macro-progress-track"><div class="macro-progress-fill fill-protein portion-progress-bar" id="protein-progress-bar"></div></div>
             </div>
-            <div class="macro-card">
-                <div class="macro-card-label">שומן</div>
-                <div class="macro-card-value"><span id="fat-val">0</span><span class="macro-card-target" id="fat-target">/ 0</span></div>
-                <div class="macro-card-bar"><div class="portion-progress-bar" id="fat-progress-bar"></div></div>
-                <div class="macro-card-btns">
-                    <button class="macro-btn macro-btn-minus" onclick="modifyPortion('fat', -0.5)" aria-label="הפחת חצי מנת שומן">-</button>
-                    <button class="macro-btn macro-btn-plus" onclick="modifyPortion('fat', 0.5)" aria-label="הוסף חצי מנת שומן">+</button>
+            <div class="macro-progress-row">
+                <div class="macro-progress-top">
+                    <div class="macro-progress-name"><span class="macro-dot dot-carbs"></span>פחמימה</div>
+                    <div class="macro-progress-nums"><span id="carbs-val">0</span><span class="macro-card-target" id="carbs-target">/ 0</span> גרם</div>
                 </div>
+                <div class="macro-progress-track"><div class="macro-progress-fill fill-carbs portion-progress-bar" id="carbs-progress-bar"></div></div>
             </div>
-        </div>
-
-
+            <div class="macro-progress-row">
+                <div class="macro-progress-top">
+                    <div class="macro-progress-name"><span class="macro-dot dot-fat"></span>שומן</div>
+                    <div class="macro-progress-nums"><span id="fat-val">0</span><span class="macro-card-target" id="fat-target">/ 0</span> גרם</div>
+                </div>
+                <div class="macro-progress-track"><div class="macro-progress-fill fill-fat portion-progress-bar" id="fat-progress-bar"></div></div>
+            </div>
+            <button class="add-food-btn" onclick="openFoodScanner()">+ הוסף אוכל</button>
         </div><!-- /macros-dashboard -->
 
         <!-- יומן אוכל יומי -->
@@ -56,8 +50,6 @@
             <div id="food-log-nav"></div>
             <div id="food-log-list" style="font-size:14px;"></div>
         </div>
-
-        <button class="food-scan-btn" onclick="openFoodScanner()"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3v6M8 3v6M10.5 3v6"/><path d="M5.5 9c0 1.8 2.5 1.8 2.5 1.8S10.5 10.8 10.5 9"/><path d="M8 10.8v10.2"/><path d="M17 3l2 6-2 3"/><path d="M17 3v18"/></svg> הוספת מנות</button>
 
         <!-- רעיונות למאכלים -->
 <div class="accordion-container">

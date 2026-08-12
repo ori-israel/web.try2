@@ -19,12 +19,7 @@ async function computeScore(supabase, profile, weekStart, weekEnd) {
     const weeklyTarget  = Object.values(profile.workout_days || {}).reduce((s, days) => s + days.length, 0) || profile.workouts_per_week || 3;
     const workoutsScore = Math.min(workoutDates.size / weeklyTarget, 1);
 
-    // תזונה (40%): יום נספר רק אם כל 3 המנות עומדות ביעד האישי
-    const pv  = profile.portion_values || {};
-    const pvP = pv.protein ?? 27.5;
-    const pvC = pv.carbs   ?? 37.5;
-    const pvF = pv.fat     ?? 12.5;
-
+    // תזונה (40%): יום נספר רק אם כל שלושת המאקרו (בגרמים) עומדים ביעד האישי
     const weight   = profile.current_weight || profile.start_weight || 80;
     const age      = profile.birth_date ? Math.floor((new Date() - new Date(profile.birth_date)) / (1000*60*60*24*365.25)) : 30;
     const gender   = profile.gender || 'male';
@@ -41,13 +36,13 @@ async function computeScore(supabase, profile, weekStart, weekEnd) {
     const carbRatio    = (profile.carb_ratio != null) ? profile.carb_ratio : (goal === 'cut' ? 0.7 : 0.6);
     const carbCals     = remaining * carbRatio;
     const fatCals      = remaining * (1 - carbRatio);
-    const tgProtein    = Math.round((proteinGrams / pvP) * 2) / 2;
-    const tgCarbs      = Math.round((carbCals / 4 / pvC) * 2) / 2;
-    const tgFat        = Math.round((fatCals / 9 / pvF) * 2) / 2;
+    const tgProtein    = Math.round(proteinGrams);
+    const tgCarbs      = Math.round(carbCals / 4);
+    const tgFat        = Math.round(fatCals / 9);
 
     const { data: nutritionData } = await supabase
         .from('daily_nutrition')
-        .select('protein, carbs, fat')
+        .select('protein:protein_g, carbs:carbs_g, fat:fat_g')
         .eq('user_id', userId)
         .gte('date', weekStart)
         .lte('date', weekEnd);
