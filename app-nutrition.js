@@ -312,28 +312,20 @@ function openFoodScanner() {
     const modal = document.getElementById('food-scanner-modal');
     modal.style.display = '';
     modal.classList.remove('hidden');
-    document.getElementById('scanner-modal-title').innerHTML = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M5.5 3v6M8 3v6M10.5 3v6"/><path d="M5.5 9c0 1.8 2.5 1.8 2.5 1.8S10.5 10.8 10.5 9"/><path d="M8 10.8v10.2"/><path d="M17 3l2 6-2 3"/><path d="M17 3v18"/></svg> הוספת אוכל';
-    document.getElementById('scanner-step-1').classList.remove('hidden');
-    document.getElementById('scanner-step-2').classList.add('hidden');
-    document.getElementById('scanner-loading').classList.add('hidden');
-    document.getElementById('food-preview').classList.add('hidden');
-    const _scanCorr = document.getElementById('scan-correction');
-    if (_scanCorr) _scanCorr.value = '';
-    document.getElementById('scan-food-label').style.display = '';
-    document.getElementById('scan-food-name').style.display = '';
     scannedImageBase64 = null;
     scannedImageMime = null;
-    scannedItems = [];
-    scannedGrams = { protein: 0, fat: 0, carbs: 0 };
+    document.getElementById('food-preview').classList.add('hidden');
+    // ברירת המחדל בפתיחה היא מסך החיפוש - אין צורך ללחוץ על טאב כדי לראות אותו
+    openTextEntry();
 }
 
+// חזרה למסך החיפוש - נקרא גם בפתיחת המודל וגם בלחיצה על טאב "חיפוש" (למשל כשחוזרים מתוצאת צילום)
 function openTextEntry() {
     scannedItems = [];
     scannedGrams = { protein: 0, fat: 0, carbs: 0 };
     const modal = document.getElementById('food-scanner-modal');
     modal.style.display = '';
     modal.classList.remove('hidden');
-    document.getElementById('scanner-modal-title').innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M4 20h16"/></svg> הזנת ארוחה בכתב';
     document.getElementById('scanner-step-1').classList.add('hidden');
     document.getElementById('scanner-loading').classList.add('hidden');
     document.getElementById('scanner-error').classList.add('hidden');
@@ -341,6 +333,8 @@ function openTextEntry() {
     document.getElementById('scan-food-name').style.display = 'none';
     document.getElementById('scan-portions').innerHTML = '';
     document.getElementById('scan-details-box').innerHTML = '<div id="add-item-row"></div>';
+    const _scanCorr = document.getElementById('scan-correction');
+    if (_scanCorr) _scanCorr.value = '';
     document.getElementById('scan-undo-toast').classList.add('hidden');
     document.getElementById('scanner-step-2').classList.remove('hidden');
     showAddItemForm();
