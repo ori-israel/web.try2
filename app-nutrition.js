@@ -62,19 +62,21 @@ function showAddItemForm() {
     const row = document.getElementById('add-item-row');
     if (!row) return;
     row.innerHTML = `
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-            <input id="add-item-name" type="text" placeholder="חיפוש מאכל..." autocomplete="off" style="flex:1;min-width:100px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:16px;padding:4px 8px;" />
-            <input id="add-item-amount" type="number" placeholder="כמות" value="100" style="width:60px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:16px;padding:4px 6px;text-align:center;" />
-            <select id="add-item-unit" style="background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:16px;padding:4px 6px;">
+        <div class="entry-pill">
+            <button class="entry-pill-btn entry-pill-cancel" onclick="renderScanDetails()" aria-label="ביטול"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+            <div class="entry-pill-div"></div>
+            <input id="add-item-amount" type="number" placeholder="כמות" value="100" class="entry-pill-amt" />
+            <select id="add-item-unit" class="entry-pill-unit">
                 <option value="גרם">גרם</option>
                 <option value="יחידות">יחידות</option>
                 <option value="כוסות">כוסות</option>
                 <option value="כפות">כפות</option>
             </select>
-            <button onclick="confirmAddItem()" style="background:#fff;color:#000;border:none;border-radius:4px;padding:4px 10px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
-            <button onclick="renderScanDetails()" style="background:none;border:none;color:#888;cursor:pointer;padding:0 2px;display:inline-flex;align-items:center;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+            <div class="entry-pill-div"></div>
+            <input id="add-item-name" type="text" placeholder="חיפוש מאכל..." autocomplete="off" class="entry-pill-search" />
+            <button class="entry-pill-btn entry-pill-confirm" onclick="confirmAddItem()" aria-label="אישור"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
         </div>
-        <div id="add-item-suggestions" style="display:flex;flex-direction:column;gap:1px;margin-top:4px;"></div>`;
+        <div id="add-item-suggestions" style="display:flex;flex-direction:column;gap:1px;margin-top:6px;"></div>`;
     document.getElementById('add-item-name').focus();
     document.getElementById('add-item-amount').addEventListener('focus', function() { this.select(); });
     document.getElementById('add-item-amount').addEventListener('keydown', e => { if (e.key === 'Enter') confirmAddItem(); });

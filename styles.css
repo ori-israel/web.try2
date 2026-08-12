@@ -768,6 +768,84 @@ h1 {
     box-shadow: var(--shadow-sm);
 }
 
+/* ── שורת הזנת פריט (חיפוש/כמות/יחידה) — גלולה מאוחדת ── */
+
+.entry-pill {
+    display: flex;
+    align-items: center;
+    background: var(--portion-bg);
+    border: 1px solid var(--portion-border);
+    border-radius: 26px;
+    padding: 4px 5px;
+    gap: 0;
+}
+
+.entry-pill-div {
+    width: 1px;
+    height: 20px;
+    background: var(--portion-border);
+    flex-shrink: 0;
+}
+
+.entry-pill-amt {
+    width: 40px;
+    text-align: center;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    font-variant-numeric: tabular-nums;
+}
+
+.entry-pill-unit {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-secondary);
+    font-size: 12.5px;
+    font-family: inherit;
+    max-width: 52px;
+}
+
+.entry-pill-search {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: inherit;
+    padding: 0 8px;
+}
+
+.entry-pill-search::placeholder { color: var(--text-muted); }
+
+.entry-pill-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.entry-pill-cancel {
+    background: transparent;
+    color: var(--text-muted);
+}
+
+.entry-pill-confirm {
+    background: var(--accent);
+    color: #fff;
+}
+
 /* ============================================
    Streaks
    ============================================ */
