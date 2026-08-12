@@ -117,17 +117,23 @@ function toggleTheme() {
         carbs:   Math.round((carbCals / 4 / portionValues.carbs) * 2) / 2,
         fat:     Math.round((fatCals / 9 / portionValues.fat) * 2) / 2,
         totalCalories,
+        // יעדי גרמים מדויקים (לצד יעדי המנות המעוגלים) — לשימוש עתידי במעבר לגרמים
+        proteinGrams: Math.round(proteinGrams),
+        carbsGrams:   Math.round(carbCals / 4),
+        fatGrams:     Math.round(fatCals / 9),
     };
 }
 
     function generatePortionGoals() {
-    const { protein: pPortions, carbs: cPortions, fat: fPortions, totalCalories } = calcPortionTargets();
+    const { protein: pPortions, carbs: cPortions, fat: fPortions, totalCalories, proteinGrams, carbsGrams, fatGrams } = calcPortionTargets();
 
     // 7. עדכון HTML
     document.getElementById('protein-target').innerText = `/ ${pPortions}`;
     document.getElementById('carbs-target').innerText = `/ ${cPortions}`;
     document.getElementById('fat-target').innerText = `/ ${fPortions}`;
     window._getPortionTargets = () => ({ protein: pPortions, carbs: cPortions, fat: fPortions });
+    // יעדי גרמים מדויקים — לשימוש עתידי (שלבים הבאים במעבר לגרמים), אינו משפיע על שום דבר שמוצג היום
+    window._getGramTargets = () => ({ protein: proteinGrams, carbs: carbsGrams, fat: fatGrams, totalCalories });
 
     const goalText = CLIENT.goal === 'cut' ? 'חיטוב' : 'מסה';
     document.getElementById('header-goal-display').innerText = `${goalText} | ${totalCalories} קק"ל`;
