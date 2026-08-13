@@ -105,6 +105,11 @@ function populateProfileForm() {
     document.getElementById('prof-goal').value         = CLIENT.goal           || 'bulk';
     document.getElementById('prof-carb-ratio').value   = (CLIENT.carbRatio != null) ? String(CLIENT.carbRatio) : '';
     setCoachFieldsState(false);
+    // מנויים עצמאיים (בלי מאמן אנושי) יכולים לערוך בעצמם מטרה ויחס פחמימה/שומן, גם בלי מצב מאמן
+    if (CLIENT.isSubscriber) {
+        document.getElementById('prof-goal').disabled = false;
+        document.getElementById('prof-carb-ratio').disabled = false;
+    }
     _refreshAvatarUI(CLIENT.avatarUrl || null);
 }
 
@@ -198,11 +203,16 @@ function saveProfile() {
             subscriptionType: document.getElementById('prof-subscription-type').value || null,
             height:                parseFloat(document.getElementById('prof-height').value),
             gender:                document.getElementById('prof-gender').value,
-            goal:                  document.getElementById('prof-goal').value,
-            carbRatio:             document.getElementById('prof-carb-ratio').value === '' ? null : parseFloat(document.getElementById('prof-carb-ratio').value),
         });
         data.subscriptionEndDate = _computeSubscriptionEndDate(data.startDate, data.subscriptionDurationMonths);
         document.getElementById('prof-subscription-end-date-display').textContent = data.subscriptionEndDate || 'לא נקבע';
+    }
+    // מטרה ויחס פחמימה/שומן: גם מאמן וגם מנוי עצמאי (בלי מאמן) יכולים לערוך
+    if (isCoachUnlocked || CLIENT.isSubscriber) {
+        Object.assign(data, {
+            goal:      document.getElementById('prof-goal').value,
+            carbRatio: document.getElementById('prof-carb-ratio').value === '' ? null : parseFloat(document.getElementById('prof-carb-ratio').value),
+        });
     }
 
     try {
