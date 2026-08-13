@@ -131,7 +131,7 @@ function toggleTheme() {
     if (kcalTargetEl) kcalTargetEl.innerText = totalCalories;
     window._getGramTargets = () => ({ protein: proteinGrams, carbs: carbsGrams, fat: fatGrams, totalCalories });
 
-    const goalText = CLIENT.goal === 'cut' ? 'חיטוב' : CLIENT.goal === 'maintain' ? 'שמירה על משקל' : 'מסה';
+    const goalText = CLIENT.goal === 'cut' ? 'חיטוב' : CLIENT.goal === 'maintain' ? 'שמירה על המשקל הנוכחי' : 'מסה';
     document.getElementById('header-goal-display').innerText = `${goalText} | ${totalCalories} קק"ל`;
     // שם המאמן מוצג רק ללקוחות ליווי - למנויים אין מאמן אישי, השורה נסגרת לגמרי
     const coachLine = document.getElementById('coach-name-line');

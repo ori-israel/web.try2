@@ -418,7 +418,7 @@ async function buildSystemPrompt() {
 ליווי: יום ${dayNumber}/${CLIENT.coachingDurationMonths ? CLIENT.coachingDurationMonths*30 : '?'} | התחלה: ${startDate} | היום: ${todayShort} | ${todayWorkoutInfo}
 מחר: ${tomorrowInfo}
 משקל: נוכחי ${weight} | התחלה ${CLIENT.startWeight} | יעד ${goalWeight} ק"ג
-מטרה: ${goal==='cut'?'חיטוב':goal==='maintain'?'שמירה על משקל':'מסה'} | TDEE: ${tdee} | יעד קלורי: ${targetCalories} (${goal==='cut'?'-250':goal==='maintain'?'0':'+250'})
+מטרה: ${goal==='cut'?'חיטוב':goal==='maintain'?'שמירה על המשקל הנוכחי':'מסה'} | TDEE: ${tdee} | יעד קלורי: ${targetCalories} (${goal==='cut'?'-250':goal==='maintain'?'0':'+250'})
 פעילות: מכפיל ${activityLevel} | ${CLIENT.workoutsPerWeek||3} אימונים/שבוע
 סטריקים: אימון ${workoutStreak} | תזונה ${nutritionStreak}
 יעד פגישה: ${CLIENT.coachingGoal} | זום הבא: ${nextMeetingStr}
