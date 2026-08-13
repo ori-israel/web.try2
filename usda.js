@@ -5816,5 +5816,277 @@ const USDA_TABLE = [
     "fat": 15.7,
     "carbs": 20.9,
     "alcohol": 14.3
+  },
+  {
+    "name": "ג'ין",
+    "name_en": "Gin",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 0.0,
+    "alcohol": 33.4
+  },
+  {
+    "name": "רום לבן",
+    "name_en": "White rum",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 0.0,
+    "alcohol": 33.4
+  },
+  {
+    "name": "רום כהה / ספייסד",
+    "name_en": "Dark / spiced rum",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 3.0,
+    "alcohol": 33.4
+  },
+  {
+    "name": "טקילה",
+    "name_en": "Tequila",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 0.0,
+    "alcohol": 33.4
+  },
+  {
+    "name": "אבסינת'",
+    "name_en": "Absinthe",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 0.0,
+    "alcohol": 50.0
+  },
+  {
+    "name": "סמבוקה",
+    "name_en": "Sambuca",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 35.0,
+    "alcohol": 30.9
+  },
+  {
+    "name": "אמרטו",
+    "name_en": "Amaretto",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 30.0,
+    "alcohol": 22.0
+  },
+  {
+    "name": "לימונצ'לו",
+    "name_en": "Limoncello",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 28.0,
+    "alcohol": 24.0
+  },
+  {
+    "name": "קמפרי",
+    "name_en": "Campari",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 25.0,
+    "alcohol": 20.0
+  },
+  {
+    "name": "אפרול",
+    "name_en": "Aperol",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 20.0,
+    "alcohol": 8.7
+  },
+  {
+    "name": "וורמוט מתוק",
+    "name_en": "Sweet vermouth",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 16.0,
+    "alcohol": 12.6
+  },
+  {
+    "name": "וורמוט יבש",
+    "name_en": "Dry vermouth",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 3.0,
+    "alcohol": 14.2
+  },
+  {
+    "name": "ליקר קפה",
+    "name_en": "Coffee liqueur",
+    "protein": 0.3,
+    "fat": 0.1,
+    "carbs": 34.0,
+    "alcohol": 13.4
+  },
+  {
+    "name": "פורט (יין מבוצר מתוק)",
+    "name_en": "Port wine",
+    "protein": 0.1,
+    "fat": 0.0,
+    "carbs": 12.0,
+    "alcohol": 15.8
+  },
+  {
+    "name": "שרי",
+    "name_en": "Sherry",
+    "protein": 0.1,
+    "fat": 0.0,
+    "carbs": 5.0,
+    "alcohol": 15.8
+  },
+  {
+    "name": "יין רוזה",
+    "name_en": "Rosé wine",
+    "protein": 0.1,
+    "fat": 0.0,
+    "carbs": 3.0,
+    "alcohol": 10.2
+  },
+  {
+    "name": "שמפניה / פרוסקו",
+    "name_en": "Champagne / Prosecco",
+    "protein": 0.1,
+    "fat": 0.0,
+    "carbs": 2.5,
+    "alcohol": 10.2
+  },
+  {
+    "name": "יין מבעבע מתוק (מוסקטו)",
+    "name_en": "Sweet sparkling wine (Moscato)",
+    "protein": 0.1,
+    "fat": 0.0,
+    "carbs": 12.0,
+    "alcohol": 6.3
+  },
+  {
+    "name": "בירה כהה / סטאוט",
+    "name_en": "Dark beer / stout",
+    "protein": 0.6,
+    "fat": 0.0,
+    "carbs": 5.5,
+    "alcohol": 5.0
+  },
+  {
+    "name": "בירה חיטה",
+    "name_en": "Wheat beer",
+    "protein": 0.6,
+    "fat": 0.0,
+    "carbs": 5.2,
+    "alcohol": 3.9
+  },
+  {
+    "name": "בירה IPA",
+    "name_en": "IPA beer",
+    "protein": 0.5,
+    "fat": 0.0,
+    "carbs": 4.0,
+    "alcohol": 5.3
+  },
+  {
+    "name": "סיידר",
+    "name_en": "Cider",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 10.0,
+    "alcohol": 3.5
+  },
+  {
+    "name": "מוחיטו",
+    "name_en": "Mojito",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 8.0,
+    "alcohol": 8.0
+  },
+  {
+    "name": "ג'ין טוניק",
+    "name_en": "Gin & tonic",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 8.0,
+    "alcohol": 6.5
+  },
+  {
+    "name": "וודקה סודה",
+    "name_en": "Vodka soda",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 0.0,
+    "alcohol": 8.0
+  },
+  {
+    "name": "פינה קולדה",
+    "name_en": "Piña colada",
+    "protein": 0.5,
+    "fat": 3.0,
+    "carbs": 22.0,
+    "alcohol": 6.5
+  },
+  {
+    "name": "מרגריטה",
+    "name_en": "Margarita",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 12.0,
+    "alcohol": 10.5
+  },
+  {
+    "name": "קוסמופוליטן",
+    "name_en": "Cosmopolitan",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 10.0,
+    "alcohol": 12.0
+  },
+  {
+    "name": "אפרול שפריץ",
+    "name_en": "Aperol spritz",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 6.0,
+    "alcohol": 5.7
+  },
+  {
+    "name": "דייקירי",
+    "name_en": "Daiquiri",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 10.0,
+    "alcohol": 10.5
+  },
+  {
+    "name": "בלאדי מרי",
+    "name_en": "Bloody Mary",
+    "protein": 0.5,
+    "fat": 0.0,
+    "carbs": 4.0,
+    "alcohol": 6.5
+  },
+  {
+    "name": "וויסקי סאוור",
+    "name_en": "Whiskey sour",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 12.0,
+    "alcohol": 10.5
+  },
+  {
+    "name": "נגרוני",
+    "name_en": "Negroni",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 5.0,
+    "alcohol": 19.7
+  },
+  {
+    "name": "אולד פאשן",
+    "name_en": "Old fashioned",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 5.0,
+    "alcohol": 24.8
   }
 ];
