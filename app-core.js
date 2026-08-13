@@ -105,11 +105,11 @@ function toggleTheme() {
     let bmr = (10 * weight) + (6.25 * CLIENT.height) - (5 * ageCalc);
     bmr = CLIENT.gender === 'male' ? bmr + 5 : bmr - 161;
     const tdee = Math.round(bmr * CLIENT.activityLevel);
-    const totalCalories = CLIENT.goal === 'cut' ? tdee - 250 : tdee + 250;
+    const totalCalories = CLIENT.goal === 'cut' ? tdee - 250 : CLIENT.goal === 'maintain' ? tdee : tdee + 250;
     const proteinGrams = weight * CLIENT.proteinRatio;
     const proteinCals = proteinGrams * 4;
     const remainingCals = totalCalories - proteinCals;
-    const carbRatio = (CLIENT.carbRatio != null) ? CLIENT.carbRatio : (CLIENT.goal === 'cut' ? 0.7 : 0.6);
+    const carbRatio = (CLIENT.carbRatio != null) ? CLIENT.carbRatio : (CLIENT.goal === 'cut' ? 0.7 : CLIENT.goal === 'maintain' ? 0.65 : 0.6);
     const carbCals = remainingCals * carbRatio;
     const fatCals = remainingCals * (1 - carbRatio);
     return {
@@ -131,7 +131,7 @@ function toggleTheme() {
     if (kcalTargetEl) kcalTargetEl.innerText = totalCalories;
     window._getGramTargets = () => ({ protein: proteinGrams, carbs: carbsGrams, fat: fatGrams, totalCalories });
 
-    const goalText = CLIENT.goal === 'cut' ? 'חיטוב' : 'מסה';
+    const goalText = CLIENT.goal === 'cut' ? 'חיטוב' : CLIENT.goal === 'maintain' ? 'שמירה על משקל' : 'מסה';
     document.getElementById('header-goal-display').innerText = `${goalText} | ${totalCalories} קק"ל`;
     // שם המאמן מוצג רק ללקוחות ליווי - למנויים אין מאמן אישי, השורה נסגרת לגמרי
     const coachLine = document.getElementById('coach-name-line');

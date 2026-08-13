@@ -255,10 +255,10 @@ function _buildClientStats(client) {
     let bmr = (10 * weight) + (6.25 * height) - (5 * age);
     bmr = gender === 'male' ? bmr + 5 : bmr - 161;
     const tdee          = Math.round(bmr * activity);
-    const totalCal      = goal === 'cut' ? tdee - 250 : tdee + 250;
+    const totalCal      = goal === 'cut' ? tdee - 250 : goal === 'maintain' ? tdee : tdee + 250;
     const proteinGrams  = weight * pRatio;
     const remaining     = totalCal - proteinGrams * 4;
-    const carbRatio     = (profile.carb_ratio != null) ? profile.carb_ratio : (goal === 'cut' ? 0.7 : 0.6);
+    const carbRatio     = (profile.carb_ratio != null) ? profile.carb_ratio : (goal === 'cut' ? 0.7 : goal === 'maintain' ? 0.65 : 0.6);
     const carbCals      = remaining * carbRatio;
     const fatCals       = remaining * (1 - carbRatio);
     const tgProtein     = Math.round(proteinGrams);

@@ -373,7 +373,7 @@ async function buildSystemPrompt() {
     let bmr = (10 * (parseFloat(weight) || 80)) + (6.25 * (parseFloat(height) || 170)) - (5 * ageCalc);
     bmr = isMale ? bmr + 5 : bmr - 161;
     const tdee = Math.round(bmr * (parseFloat(activityLevel) || 1.375));
-    const targetCalories = goal === 'cut' ? tdee - 250 : tdee + 250;
+    const targetCalories = goal === 'cut' ? tdee - 250 : goal === 'maintain' ? tdee : tdee + 250;
 
     const todayShort = new Date().toLocaleDateString('he-IL', {weekday:'short', day:'numeric', month:'numeric'});
     const nextMeetingStr = CLIENT.nextMeetingDate ? new Date(CLIENT.nextMeetingDate).toLocaleDateString('he-IL', {weekday:'short', day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit'}) : 'טרם נקבעה';
@@ -418,7 +418,7 @@ async function buildSystemPrompt() {
 ליווי: יום ${dayNumber}/${CLIENT.coachingDurationMonths ? CLIENT.coachingDurationMonths*30 : '?'} | התחלה: ${startDate} | היום: ${todayShort} | ${todayWorkoutInfo}
 מחר: ${tomorrowInfo}
 משקל: נוכחי ${weight} | התחלה ${CLIENT.startWeight} | יעד ${goalWeight} ק"ג
-מטרה: ${goal==='bulk'?'מסה':'חיטוב'} | TDEE: ${tdee} | יעד קלורי: ${targetCalories} (${goal==='cut'?'-250':'+250'})
+מטרה: ${goal==='cut'?'חיטוב':goal==='maintain'?'שמירה על משקל':'מסה'} | TDEE: ${tdee} | יעד קלורי: ${targetCalories} (${goal==='cut'?'-250':goal==='maintain'?'0':'+250'})
 פעילות: מכפיל ${activityLevel} | ${CLIENT.workoutsPerWeek||3} אימונים/שבוע
 סטריקים: אימון ${workoutStreak} | תזונה ${nutritionStreak}
 יעד פגישה: ${CLIENT.coachingGoal} | זום הבא: ${nextMeetingStr}
@@ -467,10 +467,10 @@ async function buildSystemPrompt() {
         let _bmr   = (10 * _w) + (6.25 * (CLIENT.height || 170)) - (5 * _age);
         _bmr       = (CLIENT.gender || 'male') === 'male' ? _bmr + 5 : _bmr - 161;
         const _tdee  = Math.round(_bmr * (CLIENT.activityLevel || 1.4));
-        const _total = CLIENT.goal === 'cut' ? _tdee - 250 : _tdee + 250;
+        const _total = CLIENT.goal === 'cut' ? _tdee - 250 : CLIENT.goal === 'maintain' ? _tdee : _tdee + 250;
         const _pg    = _w * (CLIENT.proteinRatio || 2);
         const _rem   = _total - _pg * 4;
-        const _cr    = (CLIENT.carbRatio != null) ? CLIENT.carbRatio : (CLIENT.goal === 'cut' ? 0.7 : 0.6);
+        const _cr    = (CLIENT.carbRatio != null) ? CLIENT.carbRatio : (CLIENT.goal === 'cut' ? 0.7 : CLIENT.goal === 'maintain' ? 0.65 : 0.6);
         const _cc    = _rem * _cr;
         const _fc    = _rem * (1 - _cr);
         const tgProtein = Math.round(_pg);
