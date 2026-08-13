@@ -6088,5 +6088,205 @@ const USDA_TABLE = [
     "fat": 0.0,
     "carbs": 5.0,
     "alcohol": 24.8
+  },
+  {
+    "name": "גראפה",
+    "name_en": "Grappa",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 0.0,
+    "alcohol": 33.4
+  },
+  {
+    "name": "אוזו",
+    "name_en": "Ouzo",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 1.0,
+    "alcohol": 33.4
+  },
+  {
+    "name": "פסטיס",
+    "name_en": "Pastis",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 2.0,
+    "alcohol": 37.6
+  },
+  {
+    "name": "פיסקו",
+    "name_en": "Pisco",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 0.0,
+    "alcohol": 33.4
+  },
+  {
+    "name": "קשסה",
+    "name_en": "Cachaça",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 0.0,
+    "alcohol": 33.4
+  },
+  {
+    "name": "שנאפס מנטה",
+    "name_en": "Peppermint schnapps",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 20.0,
+    "alcohol": 41.6
+  },
+  {
+    "name": "סאקה",
+    "name_en": "Sake",
+    "protein": 0.5,
+    "fat": 0.0,
+    "carbs": 5.0,
+    "alcohol": 16.1
+  },
+  {
+    "name": "סוג'ו",
+    "name_en": "Soju",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 0.0,
+    "alcohol": 16.7
+  },
+  {
+    "name": "מיד (יין דבש)",
+    "name_en": "Mead",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 7.0,
+    "alcohol": 10.4
+  },
+  {
+    "name": "מים קשים (הארד סלצר)",
+    "name_en": "Hard seltzer",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 0.6,
+    "alcohol": 4.0
+  },
+  {
+    "name": "קולר מאלט (כמו סמירנוף אייס)",
+    "name_en": "Malt cooler (e.g. Smirnoff Ice)",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 9.0,
+    "alcohol": 3.8
+  },
+  {
+    "name": "לונג איילנד איסד טי",
+    "name_en": "Long Island iced tea",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 12.0,
+    "alcohol": 13.6
+  },
+  {
+    "name": "מנהטן",
+    "name_en": "Manhattan",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 7.0,
+    "alcohol": 22.0
+  },
+  {
+    "name": "מרטיני",
+    "name_en": "Martini",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 1.0,
+    "alcohol": 25.0
+  },
+  {
+    "name": "וייט רשן",
+    "name_en": "White Russian",
+    "protein": 0.3,
+    "fat": 12.0,
+    "carbs": 14.5,
+    "alcohol": 15.0
+  },
+  {
+    "name": "בלאק רשן",
+    "name_en": "Black Russian",
+    "protein": 0.2,
+    "fat": 0.1,
+    "carbs": 17.0,
+    "alcohol": 22.5
+  },
+  {
+    "name": "מדסלייד",
+    "name_en": "Mudslide",
+    "protein": 0.5,
+    "fat": 9.6,
+    "carbs": 16.0,
+    "alcohol": 16.9
+  },
+  {
+    "name": "מימוזה",
+    "name_en": "Mimosa",
+    "protein": 0.3,
+    "fat": 0.0,
+    "carbs": 6.8,
+    "alcohol": 5.0
+  },
+  {
+    "name": "בליני",
+    "name_en": "Bellini",
+    "protein": 0.1,
+    "fat": 0.0,
+    "carbs": 6.0,
+    "alcohol": 6.8
+  },
+  {
+    "name": "סנגריה",
+    "name_en": "Sangria",
+    "protein": 0.1,
+    "fat": 0.0,
+    "carbs": 15.0,
+    "alcohol": 6.7
+  },
+  {
+    "name": "קפה אירי",
+    "name_en": "Irish coffee",
+    "protein": 0.2,
+    "fat": 2.0,
+    "carbs": 14.0,
+    "alcohol": 9.3
+  },
+  {
+    "name": "סקרוררייבר",
+    "name_en": "Screwdriver",
+    "protein": 0.3,
+    "fat": 0.0,
+    "carbs": 8.3,
+    "alcohol": 7.9
+  },
+  {
+    "name": "גראסהופר",
+    "name_en": "Grasshopper",
+    "protein": 0.3,
+    "fat": 11.9,
+    "carbs": 20.0,
+    "alcohol": 15.9
+  },
+  {
+    "name": "ברנדי אלכסנדר",
+    "name_en": "Brandy Alexander",
+    "protein": 0.3,
+    "fat": 11.9,
+    "carbs": 11.0,
+    "alcohol": 21.2
+  },
+  {
+    "name": "הוט טודי",
+    "name_en": "Hot toddy",
+    "protein": 0.0,
+    "fat": 0.0,
+    "carbs": 9.0,
+    "alcohol": 7.4
   }
 ];
