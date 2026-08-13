@@ -101,7 +101,7 @@ async function sendAIMessage() {
     `;
 
     try {
-        const historySlice = aiChatHistory.slice(-6).filter((m, i) => !(i === 0 && m.role === 'assistant'));
+        const historySlice = aiChatHistory.slice(-20).filter((m, i) => !(i === 0 && m.role === 'assistant'));
         const messages = historySlice.map((m, i) => ({
             role: m.role === 'assistant' ? 'model' : 'user',
             parts: [{ text: (i === historySlice.length - 1 && m.role === 'user') ? msgWithUSDA : m.content }]
@@ -430,7 +430,8 @@ async function buildSystemPrompt() {
 • [שם] [כמות] — חלבון Xג, פחמימות Xג, שומן Xג
 • [שם] [כמות] — חלבון Xג, פחמימות Xג, שומן Xג
 להוסיף?"
-רק אחרי שהמשתמש אישר — כתוב "מעולה! הוספתי." ואחריה בשורות נפרדות: FOOD_ADD:{"name":"שם (כמות יחידה)","grams":X,"protein_g":X,"fat_g":X,"carbs_g":X} | FOOD_ADD הוא קוד מערכת בלתי נראה — אל תסביר אותו, רק כתוב אותו בשורה נפרדת | אם תיקן — עדכן ושאל שוב | אל תוסיף FOOD_ADD ללא אישור`;
+רק אחרי שהמשתמש אישר — כתוב "מעולה! הוספתי." ואחריה בשורות נפרדות: FOOD_ADD:{"name":"שם (כמות יחידה)","grams":X,"protein_g":X,"fat_g":X,"carbs_g":X} | FOOD_ADD הוא קוד מערכת בלתי נראה — אל תסביר אותו, רק כתוב אותו בשורה נפרדת | אם תיקן — עדכן ושאל שוב | אל תוסיף FOOD_ADD ללא אישור
+הצעת_ארוחה: כשמשתמש מבקש רעיון/הצעה לארוחה — קודם שאל כ-3 שאלות קצרות, בניסוח טבעי ולא קבוע לפי המצב, מתוך: (1) כמה מאמץ/זמן הכנה יש לו כרגע (מהיר בלי בישול, או מוכן להשקיע במטבח), (2) אילו מצרכים יש/אין לו בבית, (3) האם זו הארוחה האחרונה שלו היום או יש עוד ארוחות אחריה, (4) לפי הקשר — חשק (מתוק/מלוח/חם/קר) | שאל שאלה אחת בכל הודעה, לא את כולן ביחד | אחרי שיש מספיק מידע — תן המלצה אחת מדויקת בלבד (לא רשימת אפשרויות) המתאימה למה שנשאר לו היום ולהעדפותיו (אוהב/לא אוהב), עם שלבי הכנה פשוטים | אחרי ההמלצה אפשר להמשיך ולכוונן ביחד (למשל להחליף מרכיב) כשיחה רגילה | אם המשתמש כבר חרג מהיעד היום — ציין את זה בעדינות ואפשר להציע כיוון קליל יותר, אבל לעולם אל תגיד לו לא לאכול או תשפוט אותו על זה, זו בחירה שלו | כלל בטיחות קשיח וללא פשרות: לעולם אל תמליץ על מאכל שמכיל אלרגן שלו, גם אם הוא מבקש או מתעקש`;
 
     // בלוק משתנה — מתעדכן תוך כדי שיחה (מאקרו חי + ציון נוכחי). מצורף בסוף כדי לא לשבור מטמון.
     let volatile = '';
@@ -536,14 +537,17 @@ async function buildSystemPrompt() {
 
     prompt += stableText;
 
-    // יומן מאכלים — מה/כמה/מתי אכל ב-7 הימים האחרונים (לתובנות תזונה מדויקות)
+    // יומן מאכלים — נשלף פעם אחת מתחילת הליווי, ומשמש גם לפירוט 7 ימים אחרונים וגם למאכלים השכיחים ביותר
     if (typeof sbFetchFoodLogRange === 'function') {
         try {
-            const fromDate = new Date();
-            fromDate.setDate(fromDate.getDate() - 6); // היום + 6 ימים אחורה = 7 ימים
             const _fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-            const foodRows = await sbFetchFoodLogRange(userId, _fmt(fromDate));
-            if (foodRows && foodRows.length) {
+            const allFoodRows = await sbFetchFoodLogRange(userId, startDate || _fmt(new Date()));
+            if (allFoodRows && allFoodRows.length) {
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+                const sevenDaysAgoStr = _fmt(sevenDaysAgo);
+                const foodRows = allFoodRows.filter(r => r.date >= sevenDaysAgoStr);
+
                 const byDay = {};
                 foodRows.forEach(r => {
                     (byDay[r.date] = byDay[r.date] || []).push(r);
@@ -559,8 +563,17 @@ async function buildSystemPrompt() {
                     }).join(', ');
                     return `• ${date}: ${items}`;
                 });
-                prompt += '\n\nיומן מאכלים (7 ימים, בגרמים מדויקים; ח=חלבון פ=פחמימה ש=שומן):\n' + dayLines.join('\n');
-                prompt += '\nהמאקרו כאן מדויק כפי שנרשם — אל תעגל ואל תמיר, השתמש בערכים כמו שהם.';
+                if (dayLines.length) {
+                    prompt += '\n\nיומן מאכלים (7 ימים, בגרמים מדויקים; ח=חלבון פ=פחמימה ש=שומן):\n' + dayLines.join('\n');
+                    prompt += '\nהמאקרו כאן מדויק כפי שנרשם — אל תעגל ואל תמיר, השתמש בערכים כמו שהם.';
+                }
+
+                const freqCount = {};
+                allFoodRows.forEach(r => { freqCount[r.food] = (freqCount[r.food] || 0) + 1; });
+                const topFoods = Object.entries(freqCount).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([name]) => name);
+                if (topFoods.length) {
+                    prompt += `\n\nמאכלים שהמשתמש הכי הרבה מזין ביומן (מכל ההיסטוריה, מהשכיח לפחות שכיח): ${topFoods.join(', ')} — אפשר להיעזר בזה כשמציעים ארוחה, זה מה שהוא כנראה אוהב/רגיל לאכול.`;
+                }
             }
         } catch (e) { /* נכשל בשקט */ }
     }

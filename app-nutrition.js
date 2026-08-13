@@ -321,6 +321,14 @@ function openFoodScanner() {
     openTextEntry();
 }
 
+// פותח את הצ'אט עם המאמן AI ושולח אוטומטית בקשה לרעיון לארוחה
+function openMealIdeaChat() {
+    openAIChat();
+    const input = document.getElementById('ai-chat-input');
+    input.value = 'רוצה רעיון לארוחה? אפשר להחליט ביחד.';
+    sendAIMessage();
+}
+
 // חזרה למסך החיפוש - נקרא גם בפתיחת המודל וגם בלחיצה על טאב "חיפוש" (למשל כשחוזרים מתוצאת צילום)
 function openTextEntry() {
     scannedItems = [];
