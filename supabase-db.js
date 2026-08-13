@@ -35,11 +35,11 @@ function _openSWDB() {
     });
 }
 
-async function sbQueueNutritionSync(userId, protein, carbs, fat) {
+async function sbQueueNutritionSync(userId, protein, carbs, fat, alcohol) {
     if (!userId) return;
 
     // 1. שמירה ישירה מיידית — עובד כל עוד הדף חי
-    sbSaveNutrition(userId, protein, carbs, fat).catch(() => {});
+    sbSaveNutrition(userId, protein, carbs, fat, alcohol).catch(() => {});
 
     // 2. IDB + SW background sync — גיבוי לסגירה מיידית
     const token = _cachedToken;
@@ -49,7 +49,7 @@ async function sbQueueNutritionSync(userId, protein, carbs, fat) {
         const tx  = db2.transaction(_IDB_STORE, 'readwrite');
         tx.objectStore(_IDB_STORE).put({
             id: 'latest_' + userId,
-            userId, protein, carbs, fat,
+            userId, protein, carbs, fat, alcohol,
             date:        _localDate(),
             token,
             supabaseUrl: SUPABASE_URL,
@@ -67,12 +67,12 @@ async function sbQueueNutritionSync(userId, protein, carbs, fat) {
             }
         }
     } catch (_) {
-        _sbSaveNutritionKeepalive(userId, protein, carbs, fat);
+        _sbSaveNutritionKeepalive(userId, protein, carbs, fat, alcohol);
     }
 }
 
 // keepalive fetch fallback
-function _sbSaveNutritionKeepalive(userId, protein, carbs, fat) {
+function _sbSaveNutritionKeepalive(userId, protein, carbs, fat, alcohol) {
     const token = _cachedToken;
     if (!token) return;
     const today = _localDate();
@@ -86,7 +86,7 @@ function _sbSaveNutritionKeepalive(userId, protein, carbs, fat) {
         },
         body: JSON.stringify([{
             user_id: userId, date: today,
-            protein_g: protein, carbs_g: carbs, fat_g: fat,
+            protein_g: protein, carbs_g: carbs, fat_g: fat, alcohol_g: alcohol || 0,
             updated_at: new Date().toISOString(),
         }]),
         keepalive: true,
@@ -241,7 +241,7 @@ async function sbFetchTodayNutrition(userId) {
     const today = _localDate();
     const { data, error } = await db
         .from('daily_nutrition')
-        .select('protein:protein_g, carbs:carbs_g, fat:fat_g')
+        .select('protein:protein_g, carbs:carbs_g, fat:fat_g, alcohol:alcohol_g')
         .eq('user_id', userId)
         .eq('date', today)
         .maybeSingle();
@@ -249,10 +249,10 @@ async function sbFetchTodayNutrition(userId) {
     return data;
 }
 
-async function sbSaveNutrition(userId, protein, carbs, fat) {
+async function sbSaveNutrition(userId, protein, carbs, fat, alcohol) {
     const today = _localDate();
     const { error } = await db.from('daily_nutrition').upsert(
-        { user_id: userId, date: today, protein_g: protein, carbs_g: carbs, fat_g: fat, updated_at: new Date().toISOString() },
+        { user_id: userId, date: today, protein_g: protein, carbs_g: carbs, fat_g: fat, alcohol_g: alcohol || 0, updated_at: new Date().toISOString() },
         { onConflict: 'user_id,date' }
     );
     if (error) throw error;
@@ -273,6 +273,7 @@ async function sbAddFoodLog(entry) {
         protein_g: entry.protein_g || 0,
         carbs_g:   entry.carbs_g   || 0,
         fat_g:     entry.fat_g     || 0,
+        alcohol_g: entry.alcohol_g || 0,
         recipe_items: entry.recipe_items || null
     });
     if (error) console.warn('sbAddFoodLog:', error.message);
@@ -294,7 +295,7 @@ async function sbUpdateFoodLog(id, fields) {
 
 async function sbFetchFoodLogRange(userId, fromDate) {
     const { data, error } = await db.from('food_log')
-        .select('date, time, food, grams, protein_g, carbs_g, fat_g, recipe_items')
+        .select('date, time, food, grams, protein_g, carbs_g, fat_g, alcohol_g, recipe_items')
         .eq('user_id', userId)
         .gte('date', fromDate)
         .order('date', { ascending: true })
@@ -307,7 +308,7 @@ async function sbFetchFoodLogRange(userId, fromDate) {
 
 async function sbFetchCustomFoods(userId) {
     const { data, error } = await db.from('custom_foods')
-        .select('id, name, unit, unit_amount, protein_g, carbs_g, fat_g')
+        .select('id, name, unit, unit_amount, protein_g, carbs_g, fat_g, alcohol_g')
         .eq('user_id', userId)
         .order('created_at', { ascending: true });
     if (error) { console.warn('sbFetchCustomFoods:', error.message); return []; }
@@ -324,7 +325,8 @@ async function sbAddCustomFood(food) {
         unit_amount: food.unit_amount,
         protein_g:   food.protein_g || 0,
         carbs_g:     food.carbs_g   || 0,
-        fat_g:       food.fat_g     || 0
+        fat_g:       food.fat_g     || 0,
+        alcohol_g:   food.alcohol_g || 0
     }).select('id').single();
     if (error) { console.warn('sbAddCustomFood:', error.message); return null; }
     return data?.id || null;
@@ -775,8 +777,8 @@ async function loadUserIntoApp(userId) {
 
     // ── תזונה יומית ───────────────────────────────────────
     const portions = todayNutrition
-        ? { protein: todayNutrition.protein || 0, carbs: todayNutrition.carbs || 0, fat: todayNutrition.fat || 0 }
-        : { protein: 0, carbs: 0, fat: 0 };
+        ? { protein: todayNutrition.protein || 0, carbs: todayNutrition.carbs || 0, fat: todayNutrition.fat || 0, alcohol: todayNutrition.alcohol || 0 }
+        : { protein: 0, carbs: 0, fat: 0, alcohol: 0 };
     // ⚠️ CRITICAL: key MUST include userId — never use global 'user_portions_v3'
     //    Changing this causes cross-user data contamination (client A sees client B's portions)
     const _portionsKey = 'user_portions_v3_' + userId;
@@ -802,12 +804,13 @@ async function loadUserIntoApp(userId) {
         protein: Math.max(portions.protein, _local?.protein || 0, _idbPending?.protein || 0),
         carbs:   Math.max(portions.carbs,   _local?.carbs   || 0, _idbPending?.carbs   || 0),
         fat:     Math.max(portions.fat,      _local?.fat     || 0, _idbPending?.fat      || 0),
+        alcohol: Math.max(portions.alcohol,  _local?.alcohol || 0, _idbPending?.alcohol || 0),
     };
     localStorage.setItem(_portionsKey, JSON.stringify(merged));
 
     // If IDB had data higher than SB, re-queue the save
-    if (_idbPending && (merged.fat > portions.fat || merged.protein > portions.protein || merged.carbs > portions.carbs)) {
-        sbQueueNutritionSync(userId, merged.protein, merged.carbs, merged.fat);
+    if (_idbPending && (merged.fat > portions.fat || merged.protein > portions.protein || merged.carbs > portions.carbs || merged.alcohol > portions.alcohol)) {
+        sbQueueNutritionSync(userId, merged.protein, merged.carbs, merged.fat, merged.alcohol);
     }
 
     // ── היסטוריית משקל ────────────────────────────────────

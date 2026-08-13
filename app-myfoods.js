@@ -33,7 +33,8 @@ function _customFoodMacrosForAmount(food, amount) {
     return {
         protein_g: Math.round(food.protein_g * ratio * 10) / 10,
         carbs_g:   Math.round(food.carbs_g   * ratio * 10) / 10,
-        fat_g:     Math.round(food.fat_g     * ratio * 10) / 10
+        fat_g:     Math.round(food.fat_g     * ratio * 10) / 10,
+        alcohol_g: Math.round((food.alcohol_g || 0) * ratio * 10) / 10
     };
 }
 
@@ -78,7 +79,7 @@ function renderMyFoodsList() {
             return;
         }
         list.innerHTML = _myFoods.map(f => {
-            const kcal = Math.round((f.protein_g || 0) * 4 + (f.carbs_g || 0) * 4 + (f.fat_g || 0) * 9);
+            const kcal = Math.round((f.protein_g || 0) * 4 + (f.carbs_g || 0) * 4 + (f.fat_g || 0) * 9 + (f.alcohol_g || 0) * 7);
             return `<div class="myfoods-item">
                 <div class="myfoods-item-ic"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-1.2 2.8-4.5 5-4.5 8.3a4.5 4.5 0 0 0 9 0C16.5 8 13.2 5.8 12 3z"/></svg></div>
                 <div class="myfoods-item-body">
@@ -97,7 +98,7 @@ function renderMyFoodsList() {
         }
         list.innerHTML = _myRecipes.map(r => {
             const ings = r.ingredients || [];
-            const kcal = Math.round(ings.reduce((s, i) => s + (i.protein_g || 0) * 4 + (i.carbs_g || 0) * 4 + (i.fat_g || 0) * 9, 0));
+            const kcal = Math.round(ings.reduce((s, i) => s + (i.protein_g || 0) * 4 + (i.carbs_g || 0) * 4 + (i.fat_g || 0) * 9 + (i.alcohol_g || 0) * 7, 0));
             return `<div class="myfoods-item">
                 <div class="myfoods-item-ic recipe"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
                 <div class="myfoods-item-body">
@@ -123,6 +124,8 @@ function openCustomFoodForm(id = null) {
     document.getElementById('cf-protein').value = food ? food.protein_g : 0;
     document.getElementById('cf-carbs').value   = food ? food.carbs_g   : 0;
     document.getElementById('cf-fat').value     = food ? food.fat_g     : 0;
+    document.getElementById('cf-alcohol').value = food ? (food.alcohol_g || 0) : 0;
+    _setCfAlcoholOn(!!(food && food.alcohol_g));
     document.getElementById('cf-error').style.display = 'none';
 
     if (!id) {
@@ -139,6 +142,19 @@ function openCustomFoodForm(id = null) {
 function _cfUnitDefaultAmount() {
     const unit = document.getElementById('cf-unit').value;
     document.getElementById('cf-amount').value = unit === 'גרם' ? 100 : 1;
+}
+
+function _setCfAlcoholOn(on) {
+    document.getElementById('cf-alc-capsule').classList.toggle('off', !on);
+    document.getElementById('cf-alc-switch').classList.toggle('on', on);
+    document.getElementById('cf-alc-spacer').style.display = on ? '' : 'none';
+    document.getElementById('cf-alc-box').style.display = on ? '' : 'none';
+    if (!on) document.getElementById('cf-alcohol').value = 0;
+}
+
+function toggleCfAlcohol() {
+    const isOn = document.getElementById('cf-alc-switch').classList.contains('on');
+    _setCfAlcoholOn(!isOn);
 }
 
 function closeCustomFoodForm() {
@@ -159,7 +175,7 @@ async function aiEstimateCustomFood() {
     const prevText = btn.innerHTML;
     btn.innerHTML = 'מעריך...';
     try {
-        const prompt = `מהם ערכי המאקרו של ${amount} ${unit} ${name}? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. החזר JSON בלבד ללא הסברים: {"protein_g": X, "fat_g": X, "carbs_g": X}`;
+        const prompt = `מהם ערכי המאקרו של ${amount} ${unit} ${name}? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. אם המאכל/משקה מכיל אלכוהול טהור — כלול גם alcohol_g, אחרת 0. החזר JSON בלבד ללא הסברים: {"protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X}`;
         const text = await geminiMacroLookup(prompt);
         const match = text.match(/\{[\s\S]*?\}/);
         if (!match) throw new Error('no json');
@@ -167,6 +183,8 @@ async function aiEstimateCustomFood() {
         document.getElementById('cf-protein').value = Math.round((macros.protein_g || 0) * 10) / 10;
         document.getElementById('cf-carbs').value   = Math.round((macros.carbs_g   || 0) * 10) / 10;
         document.getElementById('cf-fat').value     = Math.round((macros.fat_g     || 0) * 10) / 10;
+        document.getElementById('cf-alcohol').value = Math.round((macros.alcohol_g || 0) * 10) / 10;
+        if (macros.alcohol_g > 0) _setCfAlcoholOn(true);
     } catch (e) {
         const err = document.getElementById('cf-error');
         err.textContent = 'לא הצלחנו להעריך, נסה למלא ידנית.';
@@ -182,6 +200,8 @@ async function saveCustomFood() {
     const protein_g = parseFloat(document.getElementById('cf-protein').value) || 0;
     const carbs_g   = parseFloat(document.getElementById('cf-carbs').value) || 0;
     const fat_g     = parseFloat(document.getElementById('cf-fat').value) || 0;
+    const alcOn     = document.getElementById('cf-alc-switch').classList.contains('on');
+    const alcohol_g = alcOn ? (parseFloat(document.getElementById('cf-alcohol').value) || 0) : 0;
     const err = document.getElementById('cf-error');
     err.style.display = 'none';
 
@@ -197,7 +217,7 @@ async function saveCustomFood() {
         return;
     }
 
-    const payload = { name, unit, unit_amount, protein_g, carbs_g, fat_g };
+    const payload = { name, unit, unit_amount, protein_g, carbs_g, fat_g, alcohol_g };
     if (_cfEditId) {
         await sbUpdateCustomFood(_cfEditId, payload);
     } else {
@@ -251,11 +271,13 @@ function renderRecipeIngredientsList() {
             <button class="ing-remove" onclick="removeRecipeIngredient(${i})" aria-label="הסרה">×</button>
         </div>`).join('');
 
-    let p = 0, c = 0, f = 0;
-    _crIngredients.forEach(ing => { p += ing.protein_g || 0; c += ing.carbs_g || 0; f += ing.fat_g || 0; });
+    let p = 0, c = 0, f = 0, a = 0;
+    _crIngredients.forEach(ing => { p += ing.protein_g || 0; c += ing.carbs_g || 0; f += ing.fat_g || 0; a += ing.alcohol_g || 0; });
     document.getElementById('cr-sum-protein').textContent = Math.round(p);
     document.getElementById('cr-sum-carbs').textContent   = Math.round(c);
     document.getElementById('cr-sum-fat').textContent     = Math.round(f);
+    document.getElementById('cr-sum-alcohol').textContent = Math.round(a);
+    document.getElementById('cr-sum-alcohol-box').style.display = a > 0 ? '' : 'none';
 }
 
 function removeRecipeIngredient(i) {
@@ -295,7 +317,7 @@ function _renderRecipeIngSuggestions(query) {
     const usdaMatches = (typeof USDA_TABLE !== 'undefined' ? USDA_TABLE : [])
         .filter(r => r.name.includes(q) || r.name_en.toLowerCase().includes(qLow))
         .slice(0, 4)
-        .map(r => ({ type: 'usda', ref: r, label: r.name, kcal: Math.round((r.protein || 0) * 4 + (r.carbs || 0) * 4 + (r.fat || 0) * 9) + ' קל\' / 100 גרם' }));
+        .map(r => ({ type: 'usda', ref: r, label: r.name, kcal: Math.round((r.protein || 0) * 4 + (r.carbs || 0) * 4 + (r.fat || 0) * 9 + (r.alcohol || 0) * 7) + ' קל\' / 100 גרם' }));
 
     const foodMatches = _myFoods
         .filter(f => f.name.includes(q))
@@ -334,7 +356,7 @@ function confirmAddRecipeIngredient() {
     const unit   = document.getElementById('cr-ing-unit').value;
     if (!name || !amount) return;
 
-    let macros = { protein_g: 0, carbs_g: 0, fat_g: 0 };
+    let macros = { protein_g: 0, carbs_g: 0, fat_g: 0, alcohol_g: 0 };
     if (_crIngPending && _crIngPending.label === name && _crIngPending.type === 'custom') {
         macros = _customFoodMacrosForAmount(_crIngPending.ref, amount);
     } else if (unit === 'גרם') {
@@ -346,7 +368,8 @@ function confirmAddRecipeIngredient() {
             macros = {
                 protein_g: Math.round(usda.protein * ratio * 10) / 10,
                 carbs_g:   Math.round(usda.carbs   * ratio * 10) / 10,
-                fat_g:     Math.round(usda.fat     * ratio * 10) / 10
+                fat_g:     Math.round(usda.fat     * ratio * 10) / 10,
+                alcohol_g: Math.round((usda.alcohol || 0) * ratio * 10) / 10
             };
         }
     }
@@ -432,29 +455,33 @@ function _rlUpdateAmount(i, value) {
     ing.protein_g = Math.round((original.protein_g || 0) * ratio * 10) / 10;
     ing.carbs_g   = Math.round((original.carbs_g   || 0) * ratio * 10) / 10;
     ing.fat_g     = Math.round((original.fat_g     || 0) * ratio * 10) / 10;
+    ing.alcohol_g = Math.round((original.alcohol_g || 0) * ratio * 10) / 10;
     _rlUpdateSummary();
 }
 
 function _rlUpdateSummary() {
-    let p = 0, c = 0, f = 0;
-    _rlItems.forEach(ing => { p += ing.protein_g || 0; c += ing.carbs_g || 0; f += ing.fat_g || 0; });
+    let p = 0, c = 0, f = 0, a = 0;
+    _rlItems.forEach(ing => { p += ing.protein_g || 0; c += ing.carbs_g || 0; f += ing.fat_g || 0; a += ing.alcohol_g || 0; });
     document.getElementById('rl-sum-protein').textContent = Math.round(p);
     document.getElementById('rl-sum-carbs').textContent   = Math.round(c);
     document.getElementById('rl-sum-fat').textContent     = Math.round(f);
+    document.getElementById('rl-sum-alcohol').textContent = Math.round(a);
+    document.getElementById('rl-sum-alcohol-box').style.display = a > 0 ? '' : 'none';
 }
 
 function confirmRecipeLog() {
-    let protein_g = 0, carbs_g = 0, fat_g = 0;
-    _rlItems.forEach(ing => { protein_g += ing.protein_g || 0; carbs_g += ing.carbs_g || 0; fat_g += ing.fat_g || 0; });
+    let protein_g = 0, carbs_g = 0, fat_g = 0, alcohol_g = 0;
+    _rlItems.forEach(ing => { protein_g += ing.protein_g || 0; carbs_g += ing.carbs_g || 0; fat_g += ing.fat_g || 0; alcohol_g += ing.alcohol_g || 0; });
     protein_g = Math.round(protein_g * 10) / 10;
     carbs_g   = Math.round(carbs_g   * 10) / 10;
     fat_g     = Math.round(fat_g     * 10) / 10;
+    alcohol_g = Math.round(alcohol_g * 10) / 10;
 
-    if (typeof addFoodMacros === 'function') addFoodMacros(protein_g, carbs_g, fat_g);
+    if (typeof addFoodMacros === 'function') addFoodMacros(protein_g, carbs_g, fat_g, alcohol_g);
 
     addFoodLogEntry({
         name: _rlRecipe.name,
-        protein_g, carbs_g, fat_g,
+        protein_g, carbs_g, fat_g, alcohol_g,
         recipe_items: _rlItems
     });
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'oi-fitness-v244';
+const CACHE_NAME = 'oi-fitness-v246';
 const PRECACHE = [
     '/', '/index.html', '/styles.css',
     '/app-core.js', '/app-workouts.js', '/app-journal.js', '/app-nutrition.js', '/app-report.js',
@@ -63,6 +63,7 @@ async function syncNutrition() {
             protein_g:  item.protein,
             carbs_g:    item.carbs,
             fat_g:      item.fat,
+            alcohol_g:  item.alcohol || 0,
             updated_at: new Date().toISOString(),
         }]),
     });

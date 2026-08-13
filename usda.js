@@ -3245,28 +3245,32 @@ const USDA_TABLE = [
     "name_en": "Light beer",
     "protein": 0.5,
     "fat": 0.0,
-    "carbs": 3.6
+    "carbs": 3.6,
+    "alcohol": 3.3
   },
   {
     "name": "בירה רגילה",
     "name_en": "Regular beer",
     "protein": 0.5,
     "fat": 0.0,
-    "carbs": 4.6
+    "carbs": 4.6,
+    "alcohol": 3.9
   },
   {
     "name": "יין אדום",
     "name_en": "Red wine",
     "protein": 0.1,
     "fat": 0.0,
-    "carbs": 2.6
+    "carbs": 2.6,
+    "alcohol": 10.6
   },
   {
     "name": "יין לבן",
     "name_en": "White wine",
     "protein": 0.1,
     "fat": 0.0,
-    "carbs": 2.6
+    "carbs": 2.6,
+    "alcohol": 9.9
   },
   {
     "name": "חזה עוף מבושל בתנור",
@@ -5786,27 +5790,31 @@ const USDA_TABLE = [
     "name_en": "Whisky",
     "protein": 0.0,
     "fat": 0.0,
-    "carbs": 0.1
+    "carbs": 0.1,
+    "alcohol": 33.4
   },
   {
     "name": "ברנדי / קוניאק",
     "name_en": "Brandy / Cognac",
     "protein": 0.0,
     "fat": 0.0,
-    "carbs": 0.0
+    "carbs": 0.0,
+    "alcohol": 33.4
   },
   {
     "name": "וודקה / ערק, 40% אלכוהול",
     "name_en": "Vodka / Arak, 40% alcohol",
     "protein": 0.0,
     "fat": 0.0,
-    "carbs": 0.0
+    "carbs": 0.0,
+    "alcohol": 33.4
   },
   {
     "name": "ליקר עם שמנת (איריש קרם)",
     "name_en": "Cream liqueur (Irish cream)",
     "protein": 2.8,
     "fat": 15.7,
-    "carbs": 20.9
+    "carbs": 20.9,
+    "alcohol": 14.3
   }
 ];

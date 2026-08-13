@@ -73,7 +73,7 @@ function closeCompleteMsg() {
 }
 
     // --- לוגיקה של מעקב תזונה יומי בגרמים ואיפוס ---
-    let dailyGrams = { protein: 0, carbs: 0, fat: 0 };
+    let dailyGrams = { protein: 0, carbs: 0, fat: 0, alcohol: 0 };
     function _portionsKey()         { return 'daily_grams_v1_'   + (getActiveUserId() || 'default'); }
 
     function _resetKey() {
@@ -109,17 +109,28 @@ function closeCompleteMsg() {
     setInterval(() => manageDailyReset(), 60 * 1000);
 
     function updateKcalDisplay() {
-        const kcal = Math.round(dailyGrams.protein * 4 + dailyGrams.carbs * 4 + dailyGrams.fat * 9);
+        const alcoholKcal = Math.round(dailyGrams.alcohol * 7);
+        const kcal = Math.round(dailyGrams.protein * 4 + dailyGrams.carbs * 4 + dailyGrams.fat * 9) + alcoholKcal;
         const el = document.getElementById('kcal-val');
         if (el) el.innerText = kcal;
+        const noteEl = document.getElementById('kcal-alcohol-note');
+        if (noteEl) {
+            if (alcoholKcal > 0) {
+                document.getElementById('kcal-alcohol-note-val').innerText = alcoholKcal;
+                noteEl.style.display = '';
+            } else {
+                noteEl.style.display = 'none';
+            }
+        }
     }
 
     // הוספת/הפחתת גרמי מאקרו מהיום (דלתא) - נקרא כשמוסיפים/מוחקים/עורכים פריט ביומן המזון
-    function addFoodMacros(protein_g, carbs_g, fat_g) {
+    function addFoodMacros(protein_g, carbs_g, fat_g, alcohol_g) {
         dailyGrams = {
             protein: Math.max(0, Math.round((dailyGrams.protein + (protein_g || 0)) * 10) / 10),
             carbs:   Math.max(0, Math.round((dailyGrams.carbs   + (carbs_g   || 0)) * 10) / 10),
             fat:     Math.max(0, Math.round((dailyGrams.fat     + (fat_g     || 0)) * 10) / 10),
+            alcohol: Math.max(0, Math.round((dailyGrams.alcohol + (alcohol_g || 0)) * 10) / 10),
         };
         document.getElementById('protein-val').innerText = dailyGrams.protein;
         document.getElementById('carbs-val').innerText   = dailyGrams.carbs;
@@ -131,9 +142,9 @@ function closeCompleteMsg() {
         const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
         if (uid) {
             if (typeof sbQueueNutritionSync === 'function') {
-                sbQueueNutritionSync(uid, dailyGrams.protein, dailyGrams.carbs, dailyGrams.fat);
+                sbQueueNutritionSync(uid, dailyGrams.protein, dailyGrams.carbs, dailyGrams.fat, dailyGrams.alcohol);
             } else if (typeof sbSaveNutrition === 'function') {
-                sbSaveNutrition(uid, dailyGrams.protein, dailyGrams.carbs, dailyGrams.fat).catch(() => {});
+                sbSaveNutrition(uid, dailyGrams.protein, dailyGrams.carbs, dailyGrams.fat, dailyGrams.alcohol).catch(() => {});
             }
         }
     }
@@ -164,7 +175,8 @@ function closeCompleteMsg() {
 
     function loadDailyNutrition() {
         const saved = localStorage.getItem(_portionsKey());
-        dailyGrams = saved ? JSON.parse(saved) : { protein: 0, carbs: 0, fat: 0 };
+        dailyGrams = saved ? JSON.parse(saved) : { protein: 0, carbs: 0, fat: 0, alcohol: 0 };
+        if (dailyGrams.alcohol == null) dailyGrams.alcohol = 0;
         document.getElementById('protein-val').innerText = dailyGrams.protein;
         document.getElementById('carbs-val').innerText = dailyGrams.carbs;
         document.getElementById('fat-val').innerText = dailyGrams.fat;
@@ -184,10 +196,11 @@ function closeCompleteMsg() {
                         protein: Math.max(data.protein || 0, local.protein || 0),
                         carbs:   Math.max(data.carbs   || 0, local.carbs   || 0),
                         fat:     Math.max(data.fat      || 0, local.fat      || 0),
+                        alcohol: Math.max(data.alcohol  || 0, local.alcohol || 0),
                     };
                 } else {
                     // אין רשומה לסופאבייס היום = יום חדש → איפוס
-                    dailyGrams = { protein: 0, carbs: 0, fat: 0 };
+                    dailyGrams = { protein: 0, carbs: 0, fat: 0, alcohol: 0 };
                 }
                 localStorage.setItem(_portionsKey(), JSON.stringify(dailyGrams));
                 document.getElementById('protein-val').innerText = dailyGrams.protein;

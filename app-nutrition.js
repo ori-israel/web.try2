@@ -30,13 +30,14 @@ function enrichItemMacros(item) {
             protein_g: Math.round(usda.protein * ratio * 10) / 10,
             fat_g:     Math.round(usda.fat     * ratio * 10) / 10,
             carbs_g:   Math.round(usda.carbs   * ratio * 10) / 10,
+            alcohol_g: Math.round((usda.alcohol || 0) * ratio * 10) / 10,
             _fromTable: true
         };
     }
     return item;
 }
 
-let scannedGrams = { protein: 0, fat: 0, carbs: 0 };
+let scannedGrams = { protein: 0, fat: 0, carbs: 0, alcohol: 0 };
 let scannedItems = [];
 let scannedImageBase64 = null;
 let scannedImageMime = null;
@@ -102,7 +103,7 @@ function renderFoodSuggestions(query) {
         .filter(r => r.name.includes(q))
         .slice(0, 3)
         .map(r => {
-            const kcal = Math.round((r.ingredients || []).reduce((s, i) => s + (i.protein_g || 0) * 4 + (i.carbs_g || 0) * 4 + (i.fat_g || 0) * 9, 0));
+            const kcal = Math.round((r.ingredients || []).reduce((s, i) => s + (i.protein_g || 0) * 4 + (i.carbs_g || 0) * 4 + (i.fat_g || 0) * 9 + (i.alcohol_g || 0) * 7, 0));
             return { type: 'recipe', ref: r, label: r.name, sub: `מתכון · ${kcal} קל'`, icon: _SUGG_ICON_RECIPE };
         });
 
@@ -110,7 +111,7 @@ function renderFoodSuggestions(query) {
         .filter(f => f.name.includes(q))
         .slice(0, 3)
         .map(f => {
-            const kcal = Math.round((f.protein_g || 0) * 4 + (f.carbs_g || 0) * 4 + (f.fat_g || 0) * 9);
+            const kcal = Math.round((f.protein_g || 0) * 4 + (f.carbs_g || 0) * 4 + (f.fat_g || 0) * 9 + (f.alcohol_g || 0) * 7);
             return { type: 'custom', ref: f, label: f.name, sub: `${kcal} קל' ל-${f.unit_amount} ${f.unit}`, icon: _SUGG_ICON_CUSTOM };
         });
 
@@ -118,7 +119,7 @@ function renderFoodSuggestions(query) {
         .filter(r => r.name.includes(q) || r.name_en.toLowerCase().includes(qLow))
         .slice(0, 6)
         .map(r => {
-            const kcal = Math.round((r.protein || 0) * 4 + (r.carbs || 0) * 4 + (r.fat || 0) * 9);
+            const kcal = Math.round((r.protein || 0) * 4 + (r.carbs || 0) * 4 + (r.fat || 0) * 9 + (r.alcohol || 0) * 7);
             return { type: 'usda', ref: r, label: r.name, sub: `${kcal} קל' / 100g`, icon: _SUGG_ICON_USDA };
         });
 
@@ -232,7 +233,8 @@ async function confirmAddItem() {
             grams: unit === 'גרם' ? amount : null,
             protein_g: macros.protein_g,
             fat_g: macros.fat_g,
-            carbs_g: macros.carbs_g
+            carbs_g: macros.carbs_g,
+            alcohol_g: macros.alcohol_g || 0
         });
         updateScannedTotals();
         renderScanDetails();
@@ -260,8 +262,8 @@ async function confirmAddItem() {
 
     try {
         const prompt = isGrams
-            ? `מהם ערכי המאקרו של ${amount} גרם ${name}? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. החזר JSON בלבד ללא הסברים: {"grams": ${amount}, "protein_g": X, "fat_g": X, "carbs_g": X}`
-            : `${amount} ${unit} של ${name} — כמה גרם זה וערכי מאקרו? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. החזר JSON בלבד ללא הסברים: {"grams": X, "protein_g": X, "fat_g": X, "carbs_g": X}`;
+            ? `מהם ערכי המאקרו של ${amount} גרם ${name}? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. אם המאכל/משקה מכיל אלכוהול טהור — כלול גם alcohol_g (גרם אלכוהול טהור), אחרת 0. החזר JSON בלבד ללא הסברים: {"grams": ${amount}, "protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X}`
+            : `${amount} ${unit} של ${name} — כמה גרם זה וערכי מאקרו? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. אם המאכל/משקה מכיל אלכוהול טהור — כלול גם alcohol_g (גרם אלכוהול טהור), אחרת 0. החזר JSON בלבד ללא הסברים: {"grams": X, "protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X}`;
         let text;
         try {
             text = await geminiMacroLookup(prompt);
@@ -281,10 +283,11 @@ async function confirmAddItem() {
             grams: macros.grams || amount,
             protein_g: macros.protein_g || 0,
             fat_g: macros.fat_g || 0,
-            carbs_g: macros.carbs_g || 0
+            carbs_g: macros.carbs_g || 0,
+            alcohol_g: macros.alcohol_g || 0
         });
     } catch (e) {
-        scannedItems.push({ name, grams: amount, protein_g: 0, fat_g: 0, carbs_g: 0 });
+        scannedItems.push({ name, grams: amount, protein_g: 0, fat_g: 0, carbs_g: 0, alcohol_g: 0 });
     }
     updateScannedTotals();
     renderScanDetails();
@@ -343,14 +346,15 @@ function updateScannedTotals() {
     scannedGrams = {
         protein: Math.round(scannedItems.reduce((s, i) => s + (i.protein_g || 0), 0)),
         fat:     Math.round(scannedItems.reduce((s, i) => s + (i.fat_g     || 0), 0)),
-        carbs:   Math.round(scannedItems.reduce((s, i) => s + (i.carbs_g   || 0), 0))
+        carbs:   Math.round(scannedItems.reduce((s, i) => s + (i.carbs_g   || 0), 0)),
+        alcohol: Math.round(scannedItems.reduce((s, i) => s + (i.alcohol_g || 0), 0))
     };
     renderScanGramsSummary();
 }
 
 // תצוגה משותפת של סיכום ארוחה בגרמים: קלוריות + חלבון/פחמימה/שומן בגרמים (ללא המרה למנות)
 function renderScanGramsSummary() {
-    const kcal = Math.round(scannedGrams.protein * 4 + scannedGrams.carbs * 4 + scannedGrams.fat * 9);
+    const kcal = Math.round(scannedGrams.protein * 4 + scannedGrams.carbs * 4 + scannedGrams.fat * 9 + scannedGrams.alcohol * 7);
     document.getElementById('scan-portions').innerHTML =
         `<div style="text-align:center;margin-bottom:10px;">
             <div style="font-size:26px;font-weight:800;color:var(--accent-dark);">${kcal}</div>
@@ -360,6 +364,7 @@ function renderScanGramsSummary() {
         `<div><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 10c0-3 3-6 8-6s9 2 9 6-3 5-4 7-1 5-5 5-6-2-7-5-1-4-1-7z"/><path d="M9 9l2 2M13 8l2 3M8 13l2 2"/></svg> חלבון: <b>${scannedGrams.protein} גרם</b></div>` +
         `<div><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 12c0 4 3.6 7 8 7s8-3 8-7"/><path d="M4 12h16"/><ellipse cx="12" cy="12" rx="8" ry="2.5"/></svg> פחמימה: <b>${scannedGrams.carbs} גרם</b></div>` +
         `<div><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><ellipse cx="12" cy="13" rx="7" ry="8.5"/><circle cx="12" cy="14" r="3"/></svg> שומן: <b>${scannedGrams.fat} גרם</b></div>` +
+        (scannedGrams.alcohol > 0 ? `<div style="color:var(--alcohol);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M8 3h8l-1.5 8.5a2.5 2.5 0 0 1-2.47 2.07l-.03 0a2.5 2.5 0 0 1-2.47-2.07L8 3z"/><path d="M12 13.5V21"/><path d="M8.5 21h7"/></svg> אלכוהול: <b>${scannedGrams.alcohol} גרם</b></div>` : '') +
         `</div>`;
 }
 
@@ -392,7 +397,7 @@ function openMealIdeaChat() {
 // חזרה למסך החיפוש - נקרא גם בפתיחת המודל וגם בלחיצה על טאב "חיפוש" (למשל כשחוזרים מתוצאת צילום)
 function openTextEntry() {
     scannedItems = [];
-    scannedGrams = { protein: 0, fat: 0, carbs: 0 };
+    scannedGrams = { protein: 0, fat: 0, carbs: 0, alcohol: 0 };
     const modal = document.getElementById('food-scanner-modal');
     modal.style.display = '';
     modal.classList.remove('hidden');
@@ -531,8 +536,9 @@ async function analyzeFood(base64, mimeType, correction) {
 - אסור לאחד שני מאכלים שונים לפריט אחד
 - עבור כל פריט ב-items: חשב מאקרו לאותו פריט בלבד לפי USDA
 - protein_g/fat_g/carbs_g ברמת ה-food = סכום כל הפריטים
+- אם פריט הוא משקה אלכוהולי (יין, בירה, קוקטייל וכו') — כלול גם alcohol_g (גרם אלכוהול טהור באותו פריט), אחרת 0
 החזר JSON בלבד, ללא טקסט נוסף:
-{"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם מאכל מלא", "lookup_name": "שם קצר לחיפוש (מילה אחת או שתיים, ללא תוספות)", "grams": X, "protein_g": X, "fat_g": X, "carbs_g": X}, ...]}`;
+{"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X, "items": [{"name": "שם מאכל מלא", "lookup_name": "שם קצר לחיפוש (מילה אחת או שתיים, ללא תוספות)", "grams": X, "protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X}, ...]}`;
 
     try {
         const { data: { session: _scanSession } } = await db.auth.getSession();
@@ -582,7 +588,8 @@ async function analyzeFood(base64, mimeType, correction) {
         scannedGrams = {
             protein: Math.round(result.protein_g || 0),
             fat:     Math.round(result.fat_g     || 0),
-            carbs:   Math.round(result.carbs_g   || 0)
+            carbs:   Math.round(result.carbs_g   || 0),
+            alcohol: Math.round(result.alcohol_g || 0)
         };
         scannedItems = (Array.isArray(result.items) ? result.items : []).map(enrichItemMacros);
 
@@ -616,7 +623,7 @@ async function analyzeFood(base64, mimeType, correction) {
         errEl.appendChild(document.createTextNode(errMsg));
         errEl.classList.remove('hidden');
         document.getElementById('scan-portions').innerHTML = '';
-        scannedGrams = { protein: 0, fat: 0, carbs: 0 };
+        scannedGrams = { protein: 0, fat: 0, carbs: 0, alcohol: 0 };
     }
 }
 
@@ -644,7 +651,8 @@ ${itemsList}
 
 עדכן את הרשימה לפי הוראות המשתמש בדיוק. שנה/הסר/הוסף רק את מה שצוין במפורש. אל תשנה גרמים או פרטים של פריטים שלא הוזכרו — שמור אותם זהים לחלוטין.
 החזר JSON בלבד:
-{"food": "תיאור קצר", "protein_g": X, "fat_g": X, "carbs_g": X, "items": [{"name": "שם", "lookup_name": "שם קצר", "grams": X, "protein_g": X, "fat_g": X, "carbs_g": X}]}`;
+אם פריט מכיל אלכוהול טהור — כלול גם alcohol_g, אחרת 0.
+{"food": "תיאור קצר", "protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X, "items": [{"name": "שם", "lookup_name": "שם קצר", "grams": X, "protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X}]}`;
 
     try {
         const { data: { session: _s } } = await db.auth.getSession();
@@ -664,7 +672,8 @@ ${itemsList}
         scannedGrams = {
             protein: Math.round(scannedItems.reduce((s, i) => s + (i.protein_g || 0), 0)),
             fat:     Math.round(scannedItems.reduce((s, i) => s + (i.fat_g     || 0), 0)),
-            carbs:   Math.round(scannedItems.reduce((s, i) => s + (i.carbs_g   || 0), 0))
+            carbs:   Math.round(scannedItems.reduce((s, i) => s + (i.carbs_g   || 0), 0)),
+            alcohol: Math.round(scannedItems.reduce((s, i) => s + (i.alcohol_g || 0), 0))
         };
 
         {
@@ -760,8 +769,8 @@ function deleteFoodLogEntry(idx) {
     saveFoodLogEntries(entries);
     // הפחת מהמונה היומי
     if (removed) {
-        if ((removed.protein_g || removed.carbs_g || removed.fat_g) && typeof addFoodMacros === 'function') {
-            addFoodMacros(-(removed.protein_g || 0), -(removed.carbs_g || 0), -(removed.fat_g || 0));
+        if ((removed.protein_g || removed.carbs_g || removed.fat_g || removed.alcohol_g) && typeof addFoodMacros === 'function') {
+            addFoodMacros(-(removed.protein_g || 0), -(removed.carbs_g || 0), -(removed.fat_g || 0), -(removed.alcohol_g || 0));
         }
         // מחיקה גם בסופאבייס
         if (removed.id && typeof sbDeleteFoodLog === 'function') sbDeleteFoodLog(removed.id).catch(() => {});
@@ -863,8 +872,8 @@ async function _renderFoodLogPastDay(dateStr) {
             el.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:12px 0;font-size:13px;">אין רישומים ביום זה</div>';
             return;
         }
-        let totalP=0,totalC=0,totalF=0;
-        items.forEach(r => { totalP+=r.protein_g||0; totalC+=r.carbs_g||0; totalF+=r.fat_g||0; });
+        let totalP=0,totalC=0,totalF=0,totalA=0;
+        items.forEach(r => { totalP+=r.protein_g||0; totalC+=r.carbs_g||0; totalF+=r.fat_g||0; totalA+=r.alcohol_g||0; });
         const meals = _groupFoodLogByMeal(items, r => r.time);
         let html='<div class="fl-timeline"><div class="fl-timeline-line"></div>';
         meals.forEach(meal => {
@@ -874,7 +883,7 @@ async function _renderFoodLogPastDay(dateStr) {
                 const detId = `fld-past-${meal.mealNumber}-${ri}`;
                 html+=`<div class="fl-card"><div class="fl-card-body"${hasRecipe ? ` onclick="toggleFoodLogRecipeDetails('${detId}')" style="cursor:pointer;"` : ''}>
                     <div class="fl-card-name">${_esc(r.food)}${hasRecipe ? ' <span style="color:var(--text-muted);font-size:11px;">(פרטים ›)</span>' : ''}</div>
-                    <div class="fl-card-macros">${r.grams?`<span class="g">${r.grams}g</span>`:''}${r.protein_g?`<span class="fl-m-p">${r.protein_g}g חלבון</span>`:''}${r.carbs_g?`<span class="fl-m-c">${r.carbs_g}g פחמימה</span>`:''}${r.fat_g?`<span class="fl-m-f">${r.fat_g}g שומן</span>`:''}
+                    <div class="fl-card-macros">${r.grams?`<span class="g">${r.grams}g</span>`:''}${r.protein_g?`<span class="fl-m-p">${r.protein_g}g חלבון</span>`:''}${r.carbs_g?`<span class="fl-m-c">${r.carbs_g}g פחמימה</span>`:''}${r.fat_g?`<span class="fl-m-f">${r.fat_g}g שומן</span>`:''}${r.alcohol_g?`<span class="fl-m-a">${r.alcohol_g}g אלכוהול</span>`:''}
                     </div>
                     ${hasRecipe ? `<div id="${detId}" style="display:none;margin-top:6px;font-size:11.5px;color:var(--text-secondary);">${r.recipe_items.map(ing => `${_esc(ing.name)} — ${ing.amount} ${_esc(ing.unit)}`).join('<br>')}</div>` : ''}
                 </div></div>`;
@@ -882,10 +891,10 @@ async function _renderFoodLogPastDay(dateStr) {
             html+='</div>';
         });
         html+='</div>';
-        const totalKcal = Math.round(totalP*4 + totalC*4 + totalF*9);
+        const totalKcal = Math.round(totalP*4 + totalC*4 + totalF*9 + totalA*7);
         el.innerHTML = html + `<div class="fl-summary">
             <div class="fl-summary-kcal">${totalKcal}<span>קלוריות</span></div>
-            <div class="fl-summary-macros">${totalP?`<b class="fl-m-p">${Math.round(totalP)}g</b>`:''}${totalC?`<b class="fl-m-c">${Math.round(totalC)}g</b>`:''}${totalF?`<b class="fl-m-f">${Math.round(totalF)}g</b>`:''}</div>
+            <div class="fl-summary-macros">${totalP?`<b class="fl-m-p">${Math.round(totalP)}g</b>`:''}${totalC?`<b class="fl-m-c">${Math.round(totalC)}g</b>`:''}${totalF?`<b class="fl-m-f">${Math.round(totalF)}g</b>`:''}${totalA?`<b class="fl-m-a">${Math.round(totalA)}g</b>`:''}</div>
         </div>`;
     } catch(e) {
         el.innerHTML = '<div style="text-align:center;color:#e55;padding:12px;">שגיאה בטעינה</div>';
@@ -913,11 +922,12 @@ function renderFoodLog() {
         el.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:12px 0;font-size:13px;">עוד לא הוזן אוכל היום</div>';
         return;
     }
-    let totalProtein = 0, totalCarbs = 0, totalFat = 0;
+    let totalProtein = 0, totalCarbs = 0, totalFat = 0, totalAlcohol = 0;
     entries.forEach(e => {
         totalProtein += e.protein_g || 0;
         totalCarbs   += e.carbs_g   || 0;
         totalFat     += e.fat_g     || 0;
+        totalAlcohol += e.alcohol_g || 0;
     });
     // קיבוץ לארוחות לפי פערי זמן (90 דקות) — לא רק פריטים באותה דקה בדיוק
     entries.forEach((e, i) => { e._idx = i; });
@@ -930,7 +940,7 @@ function renderFoodLog() {
             html += `<div class="fl-card">
                 <div class="fl-card-body"${hasRecipe ? ` onclick="toggleFoodLogRecipeDetails('fld-${e._idx}')" style="cursor:pointer;"` : ''}>
                     <div class="fl-card-name">${_esc(e.name)}${hasRecipe ? ' <span style="color:var(--text-muted);font-size:11px;">(פרטים ›)</span>' : ''}</div>
-                    <div class="fl-card-macros">${e.grams ? `<span class="g">${e.grams}g</span>` : ''}${e.protein_g ? `<span class="fl-m-p">${e.protein_g}g חלבון</span>` : ''}${e.carbs_g ? `<span class="fl-m-c">${e.carbs_g}g פחמימה</span>` : ''}${e.fat_g ? `<span class="fl-m-f">${e.fat_g}g שומן</span>` : ''}
+                    <div class="fl-card-macros">${e.grams ? `<span class="g">${e.grams}g</span>` : ''}${e.protein_g ? `<span class="fl-m-p">${e.protein_g}g חלבון</span>` : ''}${e.carbs_g ? `<span class="fl-m-c">${e.carbs_g}g פחמימה</span>` : ''}${e.fat_g ? `<span class="fl-m-f">${e.fat_g}g שומן</span>` : ''}${e.alcohol_g ? `<span class="fl-m-a">${e.alcohol_g}g אלכוהול</span>` : ''}
                     </div>
                     ${hasRecipe ? `<div id="fld-${e._idx}" style="display:none;margin-top:6px;font-size:11.5px;color:var(--text-secondary);">${e.recipe_items.map(ing => `${_esc(ing.name)} — ${ing.amount} ${_esc(ing.unit)}`).join('<br>')}</div>` : ''}
                 </div>
@@ -944,11 +954,11 @@ function renderFoodLog() {
     });
     html += '</div>';
 
-    const totalKcal = Math.round(totalProtein * 4 + totalCarbs * 4 + totalFat * 9);
+    const totalKcal = Math.round(totalProtein * 4 + totalCarbs * 4 + totalFat * 9 + totalAlcohol * 7);
     el.innerHTML = html +
         `<div class="fl-summary">
             <div class="fl-summary-kcal">${totalKcal}<span>קלוריות</span></div>
-            <div class="fl-summary-macros">${totalProtein ? `<b class="fl-m-p">${Math.round(totalProtein)}g</b>` : ''}${totalCarbs ? `<b class="fl-m-c">${Math.round(totalCarbs)}g</b>` : ''}${totalFat ? `<b class="fl-m-f">${Math.round(totalFat)}g</b>` : ''}</div>
+            <div class="fl-summary-macros">${totalProtein ? `<b class="fl-m-p">${Math.round(totalProtein)}g</b>` : ''}${totalCarbs ? `<b class="fl-m-c">${Math.round(totalCarbs)}g</b>` : ''}${totalFat ? `<b class="fl-m-f">${Math.round(totalFat)}g</b>` : ''}${totalAlcohol ? `<b class="fl-m-a">${Math.round(totalAlcohol)}g</b>` : ''}</div>
         </div>`;
 }
 
@@ -1011,14 +1021,14 @@ async function saveFoodLogEdit() {
         if (isGrams) {
             const usdaItem = enrichItemMacros({ name, grams: amount, lookup_name: name });
             if (usdaItem.protein_g > 0 || usdaItem.fat_g > 0 || usdaItem.carbs_g > 0) {
-                newMacros = { grams: amount, protein_g: usdaItem.protein_g, carbs_g: usdaItem.carbs_g, fat_g: usdaItem.fat_g };
+                newMacros = { grams: amount, protein_g: usdaItem.protein_g, carbs_g: usdaItem.carbs_g, fat_g: usdaItem.fat_g, alcohol_g: usdaItem.alcohol_g || 0 };
             }
         }
 
         if (!newMacros) {
             const prompt = isGrams
-                ? `מהם ערכי המאקרו של ${amount} גרם ${name}? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. החזר JSON בלבד: {"grams":${amount},"protein_g":X,"fat_g":X,"carbs_g":X}`
-                : `${amount} ${unit} של ${name} — כמה גרם וערכי מאקרו? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. החזר JSON בלבד: {"grams":X,"protein_g":X,"fat_g":X,"carbs_g":X}`;
+                ? `מהם ערכי המאקרו של ${amount} גרם ${name}? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. אם מכיל אלכוהול טהור — כלול alcohol_g, אחרת 0. החזר JSON בלבד: {"grams":${amount},"protein_g":X,"fat_g":X,"carbs_g":X,"alcohol_g":X}`
+                : `${amount} ${unit} של ${name} — כמה גרם וערכי מאקרו? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. אם מכיל אלכוהול טהור — כלול alcohol_g, אחרת 0. החזר JSON בלבד: {"grams":X,"protein_g":X,"fat_g":X,"carbs_g":X,"alcohol_g":X}`;
 
             let text;
             try {
@@ -1030,14 +1040,14 @@ async function saveFoodLogEdit() {
             const jsonMatch = text.match(/\{[\s\S]*?\}/);
             if (!jsonMatch) throw new Error('שגיאה בניתוח');
             const macros = JSON.parse(jsonMatch[0]);
-            newMacros = { grams: Math.round(macros.grams || amount), protein_g: macros.protein_g || 0, carbs_g: macros.carbs_g || 0, fat_g: macros.fat_g || 0 };
+            newMacros = { grams: Math.round(macros.grams || amount), protein_g: macros.protein_g || 0, carbs_g: macros.carbs_g || 0, fat_g: macros.fat_g || 0, alcohol_g: macros.alcohol_g || 0 };
         }
 
         // הסר את המאקרו הישן מהיום, הוסף את החדש
         const entries = loadFoodLogEntries();
         const oldEntry = entries[idx];
         if (typeof addFoodMacros === 'function') {
-            addFoodMacros(-(oldEntry.protein_g || 0), -(oldEntry.carbs_g || 0), -(oldEntry.fat_g || 0));
+            addFoodMacros(-(oldEntry.protein_g || 0), -(oldEntry.carbs_g || 0), -(oldEntry.fat_g || 0), -(oldEntry.alcohol_g || 0));
         }
 
         entries[idx] = {
@@ -1046,7 +1056,8 @@ async function saveFoodLogEdit() {
             grams:     newMacros.grams,
             protein_g: Math.round(newMacros.protein_g * 10) / 10 || null,
             carbs_g:   Math.round(newMacros.carbs_g   * 10) / 10 || null,
-            fat_g:     Math.round(newMacros.fat_g     * 10) / 10 || null
+            fat_g:     Math.round(newMacros.fat_g     * 10) / 10 || null,
+            alcohol_g: Math.round(newMacros.alcohol_g * 10) / 10 || null
         };
         saveFoodLogEntries(entries);
 
@@ -1057,12 +1068,13 @@ async function saveFoodLogEdit() {
                 grams:     entries[idx].grams     || 0,
                 protein_g: entries[idx].protein_g || 0,
                 carbs_g:   entries[idx].carbs_g   || 0,
-                fat_g:     entries[idx].fat_g     || 0
+                fat_g:     entries[idx].fat_g     || 0,
+                alcohol_g: entries[idx].alcohol_g || 0
             }).catch(() => {});
         }
 
         if (typeof addFoodMacros === 'function') {
-            addFoodMacros(entries[idx].protein_g || 0, entries[idx].carbs_g || 0, entries[idx].fat_g || 0);
+            addFoodMacros(entries[idx].protein_g || 0, entries[idx].carbs_g || 0, entries[idx].fat_g || 0, entries[idx].alcohol_g || 0);
         }
 
         renderFoodLog();
@@ -1089,9 +1101,10 @@ async function addScannedPortions() {
     const protein = scannedGrams.protein || 0;
     const carbs   = scannedGrams.carbs   || 0;
     const fat     = scannedGrams.fat     || 0;
+    const alcohol = scannedGrams.alcohol || 0;
 
-    if ((protein || carbs || fat) && typeof addFoodMacros === 'function') {
-        addFoodMacros(protein, carbs, fat);
+    if ((protein || carbs || fat || alcohol) && typeof addFoodMacros === 'function') {
+        addFoodMacros(protein, carbs, fat, alcohol);
     }
 
     // שמור ליומן — כל מאכל בנפרד, בגרמים ובמאקרו מדויקים
@@ -1102,23 +1115,25 @@ async function addScannedPortions() {
                 grams:     Math.round(item.grams || 0) || null,
                 protein_g: Math.round((item.protein_g || 0) * 10) / 10 || null,
                 carbs_g:   Math.round((item.carbs_g   || 0) * 10) / 10 || null,
-                fat_g:     Math.round((item.fat_g     || 0) * 10) / 10 || null
+                fat_g:     Math.round((item.fat_g     || 0) * 10) / 10 || null,
+                alcohol_g: Math.round((item.alcohol_g || 0) * 10) / 10 || null
             });
         });
-    } else if (protein || carbs || fat) {
+    } else if (protein || carbs || fat || alcohol) {
         addFoodLogEntry({
             name:      'ארוחה',
             grams:     null,
             protein_g: protein || null,
             carbs_g:   carbs   || null,
-            fat_g:     fat     || null
+            fat_g:     fat     || null,
+            alcohol_g: alcohol || null
         });
     }
 
     closeFoodScanner();
-    const kcal = Math.round(protein * 4 + carbs * 4 + fat * 9);
+    const kcal = Math.round(protein * 4 + carbs * 4 + fat * 9 + alcohol * 7);
     const toast = document.createElement('div');
-    toast.innerHTML = (protein || carbs || fat)
+    toast.innerHTML = (protein || carbs || fat || alcohol)
         ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> נוסף ליומן: ${kcal} קלוריות`
         : '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 9v4"/><path d="M10.3 3.9L2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/></svg> לא נוסף מזון';
     toast.style.cssText = `position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:9999;box-shadow:0 4px 15px rgba(0,0,0,0.2);animation:fadeIn 0.3s ease;white-space:nowrap;`;

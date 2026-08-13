@@ -231,14 +231,16 @@ async function sendAIMessage() {
                     const protein_g = foodData.protein_g || 0;
                     const carbs_g   = foodData.carbs_g   || 0;
                     const fat_g     = foodData.fat_g     || 0;
+                    const alcohol_g = foodData.alcohol_g || 0;
                     addFoodLogEntry({
                         name:      foodData.name,
                         grams:     Math.round(foodData.grams || 0),
                         protein_g: protein_g || null,
                         carbs_g:   carbs_g   || null,
-                        fat_g:     fat_g     || null
+                        fat_g:     fat_g     || null,
+                        alcohol_g: alcohol_g || null
                     });
-                    if (typeof addFoodMacros === 'function') addFoodMacros(protein_g, carbs_g, fat_g);
+                    if (typeof addFoodMacros === 'function') addFoodMacros(protein_g, carbs_g, fat_g, alcohol_g);
                     }
                     const addedDiv = document.createElement('div');
                     addedDiv.style.cssText = 'margin-top:8px;padding:6px 10px;background:var(--accent);color:#fff;border-radius:8px;font-size:14px;display:inline-block;';
@@ -382,6 +384,7 @@ async function buildSystemPrompt() {
     const pVal = String(_up.protein  ?? document.getElementById('protein-val')?.innerText  ?? '0');
     const cVal = String(_up.carbs    ?? document.getElementById('carbs-val')?.innerText    ?? '0');
     const fVal = String(_up.fat      ?? document.getElementById('fat-val')?.innerText      ?? '0');
+    const aVal = String(_up.alcohol  ?? '0');
     const pTgt = String(_tgt.protein ?? document.getElementById('protein-target')?.innerText?.replace('/ ','') ?? '0');
     const cTgt = String(_tgt.carbs   ?? document.getElementById('carbs-target')?.innerText?.replace('/ ','')  ?? '0');
     const fTgt = String(_tgt.fat     ?? document.getElementById('fat-target')?.innerText?.replace('/ ','')    ?? '0');
@@ -429,7 +432,7 @@ async function buildSystemPrompt() {
 • [שם] [כמות] — חלבון Xג, פחמימות Xג, שומן Xג
 • [שם] [כמות] — חלבון Xג, פחמימות Xג, שומן Xג
 להוסיף?"
-רק אחרי שהמשתמש אישר — כתוב "מעולה! הוספתי." ואחריה בשורות נפרדות: FOOD_ADD:{"name":"שם (כמות יחידה)","grams":X,"protein_g":X,"fat_g":X,"carbs_g":X} | FOOD_ADD הוא קוד מערכת בלתי נראה — אל תסביר אותו, רק כתוב אותו בשורה נפרדת | אם תיקן — עדכן ושאל שוב | אל תוסיף FOOD_ADD ללא אישור
+רק אחרי שהמשתמש אישר — כתוב "מעולה! הוספתי." ואחריה בשורות נפרדות: FOOD_ADD:{"name":"שם (כמות יחידה)","grams":X,"protein_g":X,"fat_g":X,"carbs_g":X,"alcohol_g":X} | אם המאכל/משקה מכיל אלכוהול טהור כלול alcohol_g (גרם אלכוהול, לא נפח המשקה), אחרת 0 | FOOD_ADD הוא קוד מערכת בלתי נראה — אל תסביר אותו, רק כתוב אותו בשורה נפרדת | אם תיקן — עדכן ושאל שוב | אל תוסיף FOOD_ADD ללא אישור
 הצעת_ארוחה: כשמשתמש מבקש רעיון/הצעה לארוחה — קודם שאל לפחות 3 שאלות קצרות (מקסימום 4), בניסוח טבעי ולא קבוע לפי המצב, מתוך: (1) כמה מאמץ/זמן הכנה יש לו כרגע (מהיר בלי בישול, או מוכן להשקיע במטבח), (2) אילו מצרכים יש/אין לו בבית, (3) האם זו הארוחה האחרונה שלו היום או יש עוד ארוחות אחריה, (4) לפי הקשר — חשק (מתוק/מלוח/חם/קר) | שאל שאלה אחת בכל הודעה, לא את כולן ביחד, ואל תתקדם להמלצה לפני שאלת לפחות 3 | אחרי שיש מספיק מידע — תן המלצה אחת מדויקת בלבד (לא רשימת אפשרויות): שם הארוחה והמרכיבים בכמות, הסבר קצר (משפט אחד) למה נבחרה בדיוק היא (מתאימה למה שנשאר לו/למצרכים שיש לו/להעדפות שלו), וסיכום מאקרו של הארוחה כולה (קלוריות, חלבון, פחמימה, שומן) | בשלב הזה בלי שלבי הכנה — בסוף ההמלצה תמיד שאל אם הוא רוצה את המתכון המדויק, ותן שלבי הכנה פשוטים רק אם הוא מאשר | אחרי זה אפשר להמשיך ולכוונן ביחד (למשל להחליף מרכיב) כשיחה רגילה | אם המשתמש כבר חרג מהיעד היום — ציין את זה בעדינות ואפשר להציע כיוון קליל יותר, אבל לעולם אל תגיד לו לא לאכול או תשפוט אותו על זה, זו בחירה שלו | כלל בטיחות קשיח וללא פשרות: לעולם אל תמליץ על מאכל שמכיל אלרגן שלו, גם אם הוא מבקש או מתעקש`;
 
     // בלוק משתנה — מתעדכן תוך כדי שיחה (מאקרו חי + ציון נוכחי). מצורף בסוף כדי לא לשבור מטמון.
@@ -580,17 +583,19 @@ async function buildSystemPrompt() {
     const _p = parseFloat(pVal) || 0;
     const _c = parseFloat(cVal) || 0;
     const _f = parseFloat(fVal) || 0;
+    const _a = parseFloat(aVal) || 0;
     const _pKcal = Math.round(_p * 4);
     const _cKcal = Math.round(_c * 4);
     const _fKcal = Math.round(_f * 9);
-    const _total = _pKcal + _cKcal + _fKcal;
+    const _aKcal = Math.round(_a * 7);
+    const _total = _pKcal + _cKcal + _fKcal + _aKcal;
     const _ptgt = parseFloat(pTgt) || 0;
     const _ctgt = parseFloat(cTgt) || 0;
     const _ftgt = parseFloat(fTgt) || 0;
     const _pRem = Math.round((_ptgt - _p) * 10) / 10;
     const _cRem = Math.round((_ctgt - _c) * 10) / 10;
     const _fRem = Math.round((_ftgt - _f) * 10) / 10;
-    volatile += `\n\nתזונה היום: חלבון ${_p}/${_ptgt} גרם (נשאר: ${_pRem}) | פחמימה ${_c}/${_ctgt} גרם (נשאר: ${_cRem}) | שומן ${_f}/${_ftgt} גרם (נשאר: ${_fRem}) | סה"כ ${_total} קק"ל (יעד: ${targetCalories} קק"ל)`;
+    volatile += `\n\nתזונה היום: חלבון ${_p}/${_ptgt} גרם (נשאר: ${_pRem}) | פחמימה ${_c}/${_ctgt} גרם (נשאר: ${_cRem}) | שומן ${_f}/${_ftgt} גרם (נשאר: ${_fRem})${_a > 0 ? ` | אלכוהול ${_a} גרם (${_aKcal} קק"ל)` : ''} | סה"כ ${_total} קק"ל (יעד: ${targetCalories} קק"ל)`;
     volatile += `\nכשנשאלים "כמה נשאר" — תן תשובה ישירה בלי חישובים: "נשאר Xג חלבון, Yג פחמימה, Zג שומן" בלבד.`;
     volatile += `\nכשנשאלים כמה קלוריות/חלבון/פחמימה/שומן נאכלו היום — תמיד השתמש בערכים המוכנים משורת "תזונה היום" (כולל ה-סה"כ) בדיוק כפי שהם, אל תחשב בעצמך מפריטי יומן המאכלים.`;
 
