@@ -846,6 +846,101 @@ h1 {
     color: #fff;
 }
 
+/* ── יומן מזון: ציר זמן ── */
+
+.fl-timeline {
+    position: relative;
+    padding-right: 20px;
+}
+
+.fl-timeline-line {
+    position: absolute;
+    right: 7px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--border);
+}
+
+.fl-meal {
+    position: relative;
+    margin-bottom: 14px;
+}
+
+.fl-meal:last-child { margin-bottom: 0; }
+
+.fl-dot {
+    position: absolute;
+    right: -20px;
+    top: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--bg-card);
+}
+
+.fl-time {
+    font-size: 12px;
+    color: var(--accent-dark);
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.fl-card {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--portion-bg);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+}
+
+.fl-card-body { flex: 1; min-width: 0; }
+.fl-card-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; word-break: break-word; }
+.fl-card-macros { display: flex; gap: 8px; font-size: 11.5px; flex-wrap: wrap; }
+.fl-card-macros .g { color: var(--text-muted); }
+.fl-m-p { color: #22c55e; font-weight: 700; }
+.fl-m-c { color: #f59e0b; font-weight: 700; }
+.fl-m-f { color: #ef4444; font-weight: 700; }
+
+.fl-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    margin-right: 6px;
+}
+
+.fl-card-actions button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.fl-card-actions button.edit { color: var(--accent); }
+
+.fl-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.14), rgba(99, 102, 241, 0.08));
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-top: 10px;
+}
+
+.fl-summary-kcal { font-size: 22px; font-weight: 800; color: var(--accent-dark); }
+.fl-summary-kcal span { font-size: 12px; color: var(--text-secondary); font-weight: 400; margin-right: 4px; }
+.fl-summary-macros { font-size: 12px; color: var(--text-secondary); display: flex; gap: 8px; }
+.fl-summary-macros b { font-variant-numeric: tabular-nums; }
+
 /* ============================================
    Streaks
    ============================================ */
