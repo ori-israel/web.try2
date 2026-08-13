@@ -1372,9 +1372,12 @@
       <p id="scan-food-name" style="font-weight:bold; font-size:18px; margin:0 0 12px;"></p>
       <div id="scan-portions" style="margin:8px 0;"></div>
       <div id="scan-details-box" style="font-size:13px;color:#aaa;margin:6px 0 4px;display:flex;flex-direction:column;gap:2px;"></div>
-      <div id="scan-correction-row" class="entry-pill" style="margin-top:8px;">
-        <input id="scan-correction" type="text" placeholder="הזיהוי לא מדויק? כתבו מה לתקן" class="entry-pill-search" />
-        <button class="entry-pill-btn entry-pill-confirm" onclick="recalculate()" aria-label="בקשת תיקון"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
+      <div id="scan-correction-row" style="margin-top:10px;">
+        <div style="font-size:11px;color:var(--text-muted,#888);margin-bottom:6px;font-weight:600;">לא זוהה נכון? כתבו מה לתקן:</div>
+        <div class="entry-pill">
+          <input id="scan-correction" type="text" placeholder="למשל: זה לא היה אורז אלא קינואה" class="entry-pill-search" />
+          <button class="entry-pill-btn entry-pill-confirm" onclick="recalculate()" aria-label="בקשת תיקון"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
+        </div>
       </div>
       <div id="scan-undo-toast" class="hidden" style="text-align:center;margin-top:8px;">
         <button onclick="undoDeleteItem()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:20px;padding:6px 18px;font-size:13px;cursor:pointer;">↩ חזרה</button>

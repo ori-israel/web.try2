@@ -339,7 +339,7 @@ function openTextEntry() {
     if (_scanCorr) _scanCorr.value = '';
     document.getElementById('scan-undo-toast').classList.add('hidden');
     // "בקשת תיקון" ו"הערכה בלבד" רלוונטיים רק לזיהוי AI מתמונה - לא לחיפוש שבו המשתמש בוחר בעצמו
-    document.getElementById('scan-correction-row').style.display = 'none';
+    document.getElementById('scan-correction-row').style.display = 'none'; // מוסתר בחיפוש - אין זיהוי AI לתקן
     document.getElementById('scan-disclaimer').style.display = 'none';
     document.getElementById('scanner-step-2').classList.remove('hidden');
     showAddItemForm();
@@ -529,7 +529,7 @@ async function analyzeFood(base64, mimeType, correction) {
 
         renderScanDetails();
         // "בקשת תיקון" ו"הערכה בלבד" רלוונטיים כאן - זה זיהוי AI שיכול לטעות
-        document.getElementById('scan-correction-row').style.display = 'flex';
+        document.getElementById('scan-correction-row').style.display = 'block';
         document.getElementById('scan-disclaimer').style.display = '';
         stopScanLoadingAnimation();
         finishScanLoadingAnimation();
