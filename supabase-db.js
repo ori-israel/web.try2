@@ -272,7 +272,8 @@ async function sbAddFoodLog(entry) {
         grams:     entry.grams     || null,
         protein_g: entry.protein_g || 0,
         carbs_g:   entry.carbs_g   || 0,
-        fat_g:     entry.fat_g     || 0
+        fat_g:     entry.fat_g     || 0,
+        recipe_items: entry.recipe_items || null
     });
     if (error) console.warn('sbAddFoodLog:', error.message);
 }
@@ -293,13 +294,91 @@ async function sbUpdateFoodLog(id, fields) {
 
 async function sbFetchFoodLogRange(userId, fromDate) {
     const { data, error } = await db.from('food_log')
-        .select('date, time, food, grams, protein_g, carbs_g, fat_g')
+        .select('date, time, food, grams, protein_g, carbs_g, fat_g, recipe_items')
         .eq('user_id', userId)
         .gte('date', fromDate)
         .order('date', { ascending: true })
         .order('time', { ascending: true });
     if (error) { console.warn('sbFetchFoodLogRange:', error.message); return []; }
     return data || [];
+}
+
+// ── מאכלים ומתכונים אישיים ("המזונות שלי") ──────────────────
+
+async function sbFetchCustomFoods(userId) {
+    const { data, error } = await db.from('custom_foods')
+        .select('id, name, unit, unit_amount, protein_g, carbs_g, fat_g')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true });
+    if (error) { console.warn('sbFetchCustomFoods:', error.message); return []; }
+    return data || [];
+}
+
+async function sbAddCustomFood(food) {
+    const uid = getActiveUserId();
+    if (!uid) return null;
+    const { data, error } = await db.from('custom_foods').insert({
+        user_id:     uid,
+        name:        food.name,
+        unit:        food.unit,
+        unit_amount: food.unit_amount,
+        protein_g:   food.protein_g || 0,
+        carbs_g:     food.carbs_g   || 0,
+        fat_g:       food.fat_g     || 0
+    }).select('id').single();
+    if (error) { console.warn('sbAddCustomFood:', error.message); return null; }
+    return data?.id || null;
+}
+
+async function sbUpdateCustomFood(id, fields) {
+    const uid = getActiveUserId();
+    if (!uid || !id) return;
+    const { error } = await db.from('custom_foods').update(fields).eq('id', id).eq('user_id', uid);
+    if (error) console.warn('sbUpdateCustomFood:', error.message);
+}
+
+async function sbDeleteCustomFood(id) {
+    const uid = getActiveUserId();
+    if (!uid || !id) return;
+    const { error } = await db.from('custom_foods').delete().eq('id', id).eq('user_id', uid);
+    if (error) console.warn('sbDeleteCustomFood:', error.message);
+}
+
+async function sbFetchCustomRecipes(userId) {
+    const { data, error } = await db.from('custom_recipes')
+        .select('id, name, ingredients')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true });
+    if (error) { console.warn('sbFetchCustomRecipes:', error.message); return []; }
+    return data || [];
+}
+
+async function sbAddCustomRecipe(recipe) {
+    const uid = getActiveUserId();
+    if (!uid) return null;
+    const { data, error } = await db.from('custom_recipes').insert({
+        user_id:     uid,
+        name:        recipe.name,
+        ingredients: recipe.ingredients || []
+    }).select('id').single();
+    if (error) { console.warn('sbAddCustomRecipe:', error.message); return null; }
+    return data?.id || null;
+}
+
+async function sbUpdateCustomRecipe(id, fields) {
+    const uid = getActiveUserId();
+    if (!uid || !id) return;
+    const { error } = await db.from('custom_recipes')
+        .update({ ...fields, updated_at: new Date().toISOString() })
+        .eq('id', id).eq('user_id', uid);
+    if (error) console.warn('sbUpdateCustomRecipe:', error.message);
+}
+
+async function sbDeleteCustomRecipe(id) {
+    const uid = getActiveUserId();
+    if (!uid || !id) return;
+    const { error } = await db.from('custom_recipes').delete().eq('id', id).eq('user_id', uid);
+    if (error) console.warn('sbDeleteCustomRecipe:', error.message);
 }
 
 // ── היסטוריית משקל ──────────────────────────────────────────

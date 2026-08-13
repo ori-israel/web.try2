@@ -84,37 +84,80 @@ function showAddItemForm() {
     document.getElementById('add-item-name').addEventListener('input', function() { renderFoodSuggestions(this.value); });
 }
 
-// חיפוש חי במאגר המזון בזמן הקלדה - עד 6 תוצאות מתאימות
+// אייקונים לפי מקור התוצאה בחיפוש המאוחד (מאגר האפליקציה / מאכל אישי / מתכון)
+const _SUGG_ICON_USDA   = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="1.5"/><path d="M3 8l2-4h14l2 4"/><path d="M9 12h6"/></svg>';
+const _SUGG_ICON_CUSTOM = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#34d399" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-1.2 2.8-4.5 5-4.5 8.3a4.5 4.5 0 0 0 9 0C16.5 8 13.2 5.8 12 3z"/></svg>';
+const _SUGG_ICON_RECIPE = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#60a5fa" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>';
+
+// חיפוש חי מאוחד: מאגר האפליקציה + מאכלים אישיים + מתכונים אישיים - עד 8 תוצאות
 function renderFoodSuggestions(query) {
     const box = document.getElementById('add-item-suggestions');
     if (!box) return;
     const q = (query || '').trim();
-    if (q.length < 2 || typeof USDA_TABLE === 'undefined') { box.innerHTML = ''; return; }
+    window._selectedFoodSource = null; // מתאפס בכל הקלדה - נקבע מחדש רק בבחירה מהרשימה
+    if (q.length < 2) { box.innerHTML = ''; return; }
     const qLow = q.toLowerCase();
-    const matches = USDA_TABLE.filter(r =>
-        r.name.includes(q) || r.name_en.toLowerCase().includes(qLow)
-    ).slice(0, 6);
+
+    const recipeMatches = (typeof _myRecipes !== 'undefined' ? _myRecipes : [])
+        .filter(r => r.name.includes(q))
+        .slice(0, 3)
+        .map(r => {
+            const kcal = Math.round((r.ingredients || []).reduce((s, i) => s + (i.protein_g || 0) * 4 + (i.carbs_g || 0) * 4 + (i.fat_g || 0) * 9, 0));
+            return { type: 'recipe', ref: r, label: r.name, sub: `מתכון · ${kcal} קל'`, icon: _SUGG_ICON_RECIPE };
+        });
+
+    const foodMatches = (typeof _myFoods !== 'undefined' ? _myFoods : [])
+        .filter(f => f.name.includes(q))
+        .slice(0, 3)
+        .map(f => {
+            const kcal = Math.round((f.protein_g || 0) * 4 + (f.carbs_g || 0) * 4 + (f.fat_g || 0) * 9);
+            return { type: 'custom', ref: f, label: f.name, sub: `${kcal} קל' ל-${f.unit_amount} ${f.unit}`, icon: _SUGG_ICON_CUSTOM };
+        });
+
+    const usdaMatches = (typeof USDA_TABLE !== 'undefined' ? USDA_TABLE : [])
+        .filter(r => r.name.includes(q) || r.name_en.toLowerCase().includes(qLow))
+        .slice(0, 6)
+        .map(r => {
+            const kcal = Math.round((r.protein || 0) * 4 + (r.carbs || 0) * 4 + (r.fat || 0) * 9);
+            return { type: 'usda', ref: r, label: r.name, sub: `${kcal} קל' / 100g`, icon: _SUGG_ICON_USDA };
+        });
+
+    const matches = [...recipeMatches, ...foodMatches, ...usdaMatches].slice(0, 8);
     if (!matches.length) { box.innerHTML = ''; return; }
-    box.innerHTML = matches.map((r, i) => {
-        const kcal = Math.round((r.protein || 0) * 4 + (r.carbs || 0) * 4 + (r.fat || 0) * 9);
-        return `<div onclick="selectFoodSuggestion(${i})" data-sugg-idx="${i}" style="display:flex;justify-content:space-between;align-items:center;padding:8px 6px;background:#2c2c2e;border-radius:4px;cursor:pointer;font-size:13.5px;">
-            <span>${_esc(r.name)}</span>
-            <span style="color:#888;font-size:11.5px;">${kcal} קל' / 100g</span>
-        </div>`;
-    }).join('');
+    box.innerHTML = matches.map((m, i) =>
+        `<div onclick="selectFoodSuggestion(${i})" data-sugg-idx="${i}" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 6px;background:#2c2c2e;border-radius:4px;cursor:pointer;font-size:13.5px;">
+            <span style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="flex-shrink:0;display:flex;">${m.icon}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${_esc(m.label)}</span></span>
+            <span style="color:#888;font-size:11.5px;flex-shrink:0;">${m.sub}</span>
+        </div>`
+    ).join('');
     window._currentFoodSuggestions = matches;
 }
 
 function selectFoodSuggestion(i) {
     const match = (window._currentFoodSuggestions || [])[i];
     if (!match) return;
+    const box = document.getElementById('add-item-suggestions');
+
+    if (match.type === 'recipe') {
+        if (box) box.innerHTML = '';
+        document.getElementById('add-item-name').value = '';
+        if (typeof openRecipeLogAdjust === 'function') openRecipeLogAdjust(match.ref.id);
+        return;
+    }
+
     const nameEl = document.getElementById('add-item-name');
     const unitEl = document.getElementById('add-item-unit');
-    const box = document.getElementById('add-item-suggestions');
-    if (nameEl) nameEl.value = match.name;
-    if (unitEl) unitEl.value = 'גרם';
-    if (box) box.innerHTML = '';
     const amountEl = document.getElementById('add-item-amount');
+    if (nameEl) nameEl.value = match.label;
+    if (match.type === 'custom') {
+        window._selectedFoodSource = match;
+        if (unitEl) unitEl.value = match.ref.unit;
+        if (amountEl) amountEl.value = match.ref.unit_amount;
+    } else {
+        window._selectedFoodSource = null; // usda - ניתן לחפש בטבלה בזמן האישור, לא צריך לשמור הפניה
+        if (unitEl) unitEl.value = 'גרם';
+    }
+    if (box) box.innerHTML = '';
     if (amountEl) { amountEl.focus(); amountEl.select(); }
 }
 
@@ -179,6 +222,22 @@ async function confirmAddItem() {
     const amount = parseFloat(amountEl.value) || 100;
     const unit   = unitEl ? unitEl.value : 'גרם';
     if (!name) { nameEl.focus(); return; }
+
+    // מאכל אישי שנבחר מהחיפוש - מאקרו לפי היחידה שהוגדרה לו
+    const selSource = window._selectedFoodSource;
+    if (selSource && selSource.type === 'custom' && selSource.label === name) {
+        const macros = _customFoodMacrosForAmount(selSource.ref, amount);
+        scannedItems.push({
+            name: `${name} (${amount} ${unit})`,
+            grams: unit === 'גרם' ? amount : null,
+            protein_g: macros.protein_g,
+            fat_g: macros.fat_g,
+            carbs_g: macros.carbs_g
+        });
+        updateScannedTotals();
+        renderScanDetails();
+        return;
+    }
 
     const isGrams = unit === 'גרם';
 
@@ -311,6 +370,7 @@ function openFoodScanner() {
         s.src = '/usda.js';
         document.head.appendChild(s);
     }
+    if (typeof _loadMyFoodsData === 'function' && !_myFoodsLoaded) _loadMyFoodsData();
     const modal = document.getElementById('food-scanner-modal');
     modal.style.display = '';
     modal.classList.remove('hidden');
@@ -809,11 +869,15 @@ async function _renderFoodLogPastDay(dateStr) {
         let html='<div class="fl-timeline"><div class="fl-timeline-line"></div>';
         meals.forEach(meal => {
             html+=`<div class="fl-meal"><div class="fl-dot"></div><div class="fl-time">${meal.time||''} · ארוחה ${meal.mealNumber}</div>`;
-            meal.items.forEach(r => {
-                html+=`<div class="fl-card"><div class="fl-card-body">
-                    <div class="fl-card-name">${_esc(r.food)}</div>
+            meal.items.forEach((r, ri) => {
+                const hasRecipe = r.recipe_items && r.recipe_items.length;
+                const detId = `fld-past-${meal.mealNumber}-${ri}`;
+                html+=`<div class="fl-card"><div class="fl-card-body"${hasRecipe ? ` onclick="toggleFoodLogRecipeDetails('${detId}')" style="cursor:pointer;"` : ''}>
+                    <div class="fl-card-name">${_esc(r.food)}${hasRecipe ? ' <span style="color:var(--text-muted);font-size:11px;">(פרטים ›)</span>' : ''}</div>
                     <div class="fl-card-macros">${r.grams?`<span class="g">${r.grams}g</span>`:''}${r.protein_g?`<span class="fl-m-p">${r.protein_g}g חלבון</span>`:''}${r.carbs_g?`<span class="fl-m-c">${r.carbs_g}g פחמימה</span>`:''}${r.fat_g?`<span class="fl-m-f">${r.fat_g}g שומן</span>`:''}
-                    </div></div></div>`;
+                    </div>
+                    ${hasRecipe ? `<div id="${detId}" style="display:none;margin-top:6px;font-size:11.5px;color:var(--text-secondary);">${r.recipe_items.map(ing => `${_esc(ing.name)} — ${ing.amount} ${_esc(ing.unit)}`).join('<br>')}</div>` : ''}
+                </div></div>`;
             });
             html+='</div>';
         });
@@ -826,6 +890,11 @@ async function _renderFoodLogPastDay(dateStr) {
     } catch(e) {
         el.innerHTML = '<div style="text-align:center;color:#e55;padding:12px;">שגיאה בטעינה</div>';
     }
+}
+
+function toggleFoodLogRecipeDetails(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 function renderFoodLog() {
@@ -857,11 +926,13 @@ function renderFoodLog() {
     meals.forEach(meal => {
         html += `<div class="fl-meal"><div class="fl-dot"></div><div class="fl-time">${meal.time || ''} · ארוחה ${meal.mealNumber}</div>`;
         meal.items.forEach(e => {
+            const hasRecipe = e.recipe_items && e.recipe_items.length;
             html += `<div class="fl-card">
-                <div class="fl-card-body">
-                    <div class="fl-card-name">${_esc(e.name)}</div>
+                <div class="fl-card-body"${hasRecipe ? ` onclick="toggleFoodLogRecipeDetails('fld-${e._idx}')" style="cursor:pointer;"` : ''}>
+                    <div class="fl-card-name">${_esc(e.name)}${hasRecipe ? ' <span style="color:var(--text-muted);font-size:11px;">(פרטים ›)</span>' : ''}</div>
                     <div class="fl-card-macros">${e.grams ? `<span class="g">${e.grams}g</span>` : ''}${e.protein_g ? `<span class="fl-m-p">${e.protein_g}g חלבון</span>` : ''}${e.carbs_g ? `<span class="fl-m-c">${e.carbs_g}g פחמימה</span>` : ''}${e.fat_g ? `<span class="fl-m-f">${e.fat_g}g שומן</span>` : ''}
                     </div>
+                    ${hasRecipe ? `<div id="fld-${e._idx}" style="display:none;margin-top:6px;font-size:11.5px;color:var(--text-secondary);">${e.recipe_items.map(ing => `${_esc(ing.name)} — ${ing.amount} ${_esc(ing.unit)}`).join('<br>')}</div>` : ''}
                 </div>
                 <div class="fl-card-actions">
                     <button class="edit" onclick="openFoodLogEdit(${e._idx})" title="עריכה"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
