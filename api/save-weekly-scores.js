@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const { calcBMR, calcTDEE } = require('../bmr.js');
 
 const WEEKS_BACK = 8; // כמה שבועות שהסתיימו לבדוק ולהשלים בכל ריצה
 
@@ -27,9 +28,8 @@ async function computeScore(supabase, profile, weekStart, weekEnd) {
     const activity = profile.activity_level || 1.4;
     const goal     = profile.goal || 'maintain';
     const pRatio   = profile.protein_ratio || 2.0;
-    let bmr = (10 * weight) + (6.25 * height) - (5 * age);
-    bmr = gender === 'male' ? bmr + 5 : bmr - 161;
-    const tdee         = Math.round(bmr * activity);
+    const bmr = calcBMR(weight, height, age, gender);
+    const tdee         = calcTDEE(bmr, activity);
     const totalCal     = goal === 'cut' ? tdee - 250 : goal === 'maintain' ? tdee : tdee + 250;
     const proteinGrams = weight * pRatio;
     const remaining    = totalCal - proteinGrams * 4;

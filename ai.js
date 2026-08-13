@@ -370,9 +370,8 @@ async function buildSystemPrompt() {
 
     // חישוב קלוריות יעד
     const ageCalc = age || 25;
-    let bmr = (10 * (parseFloat(weight) || 80)) + (6.25 * (parseFloat(height) || 170)) - (5 * ageCalc);
-    bmr = isMale ? bmr + 5 : bmr - 161;
-    const tdee = Math.round(bmr * (parseFloat(activityLevel) || 1.375));
+    const bmr = calcBMR(parseFloat(weight) || 80, parseFloat(height) || 170, ageCalc, isMale ? 'male' : 'female');
+    const tdee = calcTDEE(bmr, parseFloat(activityLevel) || 1.375);
     const targetCalories = goal === 'cut' ? tdee - 250 : goal === 'maintain' ? tdee : tdee + 250;
 
     const todayShort = new Date().toLocaleDateString('he-IL', {weekday:'short', day:'numeric', month:'numeric'});
@@ -464,9 +463,8 @@ async function buildSystemPrompt() {
         // יעדי גרמים אישיים — נוסחה זהה ל-calcPortionTargets()/cron/auth.js
         const _w   = CLIENT.currentWeight || CLIENT.startWeight || 80;
         const _age = CLIENT.birthDate ? Math.floor((new Date() - new Date(CLIENT.birthDate)) / (1000*60*60*24*365.25)) : 30;
-        let _bmr   = (10 * _w) + (6.25 * (CLIENT.height || 170)) - (5 * _age);
-        _bmr       = (CLIENT.gender || 'male') === 'male' ? _bmr + 5 : _bmr - 161;
-        const _tdee  = Math.round(_bmr * (CLIENT.activityLevel || 1.4));
+        const _bmr   = calcBMR(_w, CLIENT.height || 170, _age, CLIENT.gender || 'male');
+        const _tdee  = calcTDEE(_bmr, CLIENT.activityLevel || 1.4);
         const _total = CLIENT.goal === 'cut' ? _tdee - 250 : CLIENT.goal === 'maintain' ? _tdee : _tdee + 250;
         const _pg    = _w * (CLIENT.proteinRatio || 2);
         const _rem   = _total - _pg * 4;

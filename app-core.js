@@ -102,9 +102,8 @@ function toggleTheme() {
     function calcPortionTargets() {
     const weight = parseFloat(sessionStorage.getItem('current_weight')) || CLIENT.currentWeight;
     const ageCalc = Math.floor((new Date() - new Date(CLIENT.birthDate)) / (1000 * 60 * 60 * 24 * 365.25));
-    let bmr = (10 * weight) + (6.25 * CLIENT.height) - (5 * ageCalc);
-    bmr = CLIENT.gender === 'male' ? bmr + 5 : bmr - 161;
-    const tdee = Math.round(bmr * CLIENT.activityLevel);
+    const bmr = calcBMR(weight, CLIENT.height, ageCalc, CLIENT.gender);
+    const tdee = calcTDEE(bmr, CLIENT.activityLevel);
     const totalCalories = CLIENT.goal === 'cut' ? tdee - 250 : CLIENT.goal === 'maintain' ? tdee : tdee + 250;
     const proteinGrams = weight * CLIENT.proteinRatio;
     const proteinCals = proteinGrams * 4;

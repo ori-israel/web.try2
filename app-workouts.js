@@ -332,11 +332,10 @@ function closeCompleteMsg() {
     const proteinMax = (weightForProtein * 2.2).toFixed(0);
 
     // 3. חישוב BMR - נוסחת Mifflin-St Jeor
-    let bmr = (10 * weight) + (6.25 * height) - (5 * age);
-    bmr = (gender === 'male') ? bmr + 5 : bmr - 161;
+    const bmr = calcBMR(weight, height, age, gender);
 
     // 4. חישוב תחזוקה (TDEE) - כאן משתמשים במקדם המדויק (למשל 1.465)
-    const maintenance = Math.round(bmr * activityMultiplier);
+    const maintenance = calcTDEE(bmr, activityMultiplier);
 
     // 5. הצגת תוצאות
     const resultDiv = document.getElementById('calc-result');
