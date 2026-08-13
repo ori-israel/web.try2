@@ -717,23 +717,48 @@ h1 {
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.add-food-btn {
-    width: 100%;
-    border: none;
-    border-radius: var(--radius);
-    background: var(--gradient-btn);
-    color: #fff;
-    font-size: 15px;
-    font-weight: 700;
-    padding: 13px 0;
-    margin-top: 6px;
-    margin-bottom: 18px;
-    cursor: pointer;
-    font-family: inherit;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+/* ── שורת פעולות תזונה: הוספת אוכל / מה אכלתי היום / המזונות שלי ── */
+.food-action-row {
+    display: flex;
+    gap: 6px;
+    margin: 6px 0 18px;
 }
-
-.add-food-btn:active { transform: scale(0.98); }
+.food-action-tile {
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 16px;
+    padding: 14px 4px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.food-action-tile:active { transform: scale(0.94); }
+.food-action-ic {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.food-action-tile.primary .food-action-ic {
+    background: var(--gradient-btn);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+}
+.food-action-lb {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+.food-action-tile.primary .food-action-lb { color: var(--text-primary); }
 
 /* ── שיטות הוספת אוכל (מודל הסריקה) ─────────── */
 
@@ -1357,40 +1382,6 @@ th {
     margin-top: -6px;
     margin-bottom: 10px;
 }
-
-/* יומן אוכל יומי — סגנון ייעודי */
-.food-log-btn {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(99, 102, 241, 0.06));
-    color: var(--accent-dark);
-    padding: 12px 18px;
-    border: 1px solid rgba(59, 130, 246, 0.25);
-    border-radius: 24px;
-    text-align: right;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    margin: 0 0 12px;
-    font-family: inherit;
-    letter-spacing: -0.1px;
-}
-.food-log-btn-text { display: flex; align-items: center; gap: 8px; }
-.food-log-btn-chev-circle {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--accent);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-.food-log-btn:active { opacity: 0.8; }
 
 /* הצעת ארוחה מהמאמן AI */
 .meal-idea-card {

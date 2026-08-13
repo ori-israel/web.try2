@@ -40,14 +40,23 @@
                     <div class="macro-progress-track"><div class="macro-progress-fill fill-fat portion-progress-bar" id="fat-progress-bar"></div></div>
                 </div>
             </div>
-            <button class="add-food-btn" onclick="openFoodScanner()">+ הוספת אוכל</button>
         </div><!-- /macros-dashboard -->
 
-        <!-- יומן אוכל יומי -->
-        <button class="food-log-btn" onclick="toggleAccordion('food-log-accordion')">
-            <span class="food-log-btn-text"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="18" rx="2"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><path d="M8.5 11h7"/><path d="M8.5 14.5h7"/><path d="M8.5 18h4"/></svg> מה אכלתי היום</span>
-            <span class="food-log-btn-chev-circle"><svg class="food-log-btn-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
-        </button>
+        <!-- שורת פעולות: הוספת אוכל / מה אכלתי היום / המזונות שלי -->
+        <div class="food-action-row">
+            <button class="food-action-tile primary" onclick="openFoodScanner()">
+                <span class="food-action-ic"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span>
+                <span class="food-action-lb">הוספת אוכל</span>
+            </button>
+            <button class="food-action-tile" onclick="toggleAccordion('food-log-accordion')">
+                <span class="food-action-ic" style="background:rgba(59,130,246,0.14);color:var(--accent-dark);"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="19.5" cy="18" r="1" fill="currentColor" stroke="none"/></svg></span>
+                <span class="food-action-lb">מה אכלתי היום?</span>
+            </button>
+            <button class="food-action-tile" onclick="openMyFoods()">
+                <span class="food-action-ic" style="background:rgba(52,211,153,0.14);color:#34d399;"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v16l-6-3.5L6 20z"/></svg></span>
+                <span class="food-action-lb">המזונות שלי</span>
+            </button>
+        </div>
         <div id="food-log-accordion" class="accordion-content food-log-content">
             <div id="food-log-nav"></div>
             <div id="food-log-list" style="font-size:14px;"></div>

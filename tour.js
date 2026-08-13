@@ -13,8 +13,9 @@
     tab1: [
       { sel: '#nutrition-streak-display', text: 'מספר הימים ברצף עם עמידה ביעדי התזונה <svg viewBox="0 0 24 24" width="14" height="14" fill="#f97316" stroke="#f97316" stroke-width="1" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 2.5c-1.2 3.3-5 5.7-5 9.5a5 5 0 0 0 10 0c0-1.6-.7-2.9-1.8-4 .1 1.7-.9 2.4-1.6 2 .9-2 -.2-4.2-1.6-7.5z"/></svg>' },
       { sel: '#macros-progress-group',   text: 'הקלוריות ביום, וכמות החלבון, הפחמימות והשומן בגרמים מתוך היעד' },
-      { sel: '.food-log-btn',            text: 'כל האוכל שאכלת היום מרוכז כאן' },
-      { sel: '.add-food-btn',            text: 'להוספת אוכל: צילום תמונה וזיהוי אוטומטי ב-AI, העלאה מהגלריה, או חיפוש במאגר המזון. כדאי לנסות לבד' },
+      { sel: '.food-action-row .food-action-tile:nth-child(1)', text: 'להוספת אוכל: צילום תמונה וזיהוי אוטומטי ב-AI, העלאה מהגלריה, או חיפוש במאגר המזון. כדאי לנסות לבד' },
+      { sel: '.food-action-row .food-action-tile:nth-child(2)', text: 'כל האוכל שאכלת היום מרוכז כאן' },
+      { sel: '.food-action-row .food-action-tile:nth-child(3)', text: 'מאכלים ומתכונים אישיים ששמרת, לשימוש חוזר מהיר בלי לחפש כל פעם מחדש' },
       { sel: '.meal-idea-card',          text: 'המאמן AI מציע ארוחה בהתאמה אישית, לפי מה שנשאר לך היום ולפי הטעם שלך' },
       { sel: 'button[onclick="openCalc()"]', text: 'חישוב כמות הקלוריות והחלבון הדרושה לפי המטרה' },
     ],
