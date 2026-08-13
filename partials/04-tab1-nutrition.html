@@ -13,30 +13,32 @@
 
         <!-- ה-Dashboard היומי (גרמים) -->
         <div id="macros-dashboard">
-            <div class="daily-kcal-block">
-                <div class="daily-kcal-num"><span id="kcal-val">0</span><span class="daily-kcal-target">/ <span id="kcal-target">0</span></span></div>
-                <div class="daily-kcal-lbl">קלוריות היום</div>
-            </div>
-            <div class="macro-progress-row">
-                <div class="macro-progress-top">
-                    <div class="macro-progress-name"><span class="macro-dot dot-protein"></span>חלבון</div>
-                    <div class="macro-progress-nums"><span id="protein-val">0</span><span class="macro-card-target" id="protein-target">/ 0</span> גרם</div>
+            <div id="macros-progress-group">
+                <div class="daily-kcal-block">
+                    <div class="daily-kcal-num"><span id="kcal-val">0</span><span class="daily-kcal-target">/ <span id="kcal-target">0</span></span></div>
+                    <div class="daily-kcal-lbl">קלוריות היום</div>
                 </div>
-                <div class="macro-progress-track"><div class="macro-progress-fill fill-protein portion-progress-bar" id="protein-progress-bar"></div></div>
-            </div>
-            <div class="macro-progress-row">
-                <div class="macro-progress-top">
-                    <div class="macro-progress-name"><span class="macro-dot dot-carbs"></span>פחמימה</div>
-                    <div class="macro-progress-nums"><span id="carbs-val">0</span><span class="macro-card-target" id="carbs-target">/ 0</span> גרם</div>
+                <div class="macro-progress-row">
+                    <div class="macro-progress-top">
+                        <div class="macro-progress-name"><span class="macro-dot dot-protein"></span>חלבון</div>
+                        <div class="macro-progress-nums"><span id="protein-val">0</span><span class="macro-card-target" id="protein-target">/ 0</span> גרם</div>
+                    </div>
+                    <div class="macro-progress-track"><div class="macro-progress-fill fill-protein portion-progress-bar" id="protein-progress-bar"></div></div>
                 </div>
-                <div class="macro-progress-track"><div class="macro-progress-fill fill-carbs portion-progress-bar" id="carbs-progress-bar"></div></div>
-            </div>
-            <div class="macro-progress-row">
-                <div class="macro-progress-top">
-                    <div class="macro-progress-name"><span class="macro-dot dot-fat"></span>שומן</div>
-                    <div class="macro-progress-nums"><span id="fat-val">0</span><span class="macro-card-target" id="fat-target">/ 0</span> גרם</div>
+                <div class="macro-progress-row">
+                    <div class="macro-progress-top">
+                        <div class="macro-progress-name"><span class="macro-dot dot-carbs"></span>פחמימה</div>
+                        <div class="macro-progress-nums"><span id="carbs-val">0</span><span class="macro-card-target" id="carbs-target">/ 0</span> גרם</div>
+                    </div>
+                    <div class="macro-progress-track"><div class="macro-progress-fill fill-carbs portion-progress-bar" id="carbs-progress-bar"></div></div>
                 </div>
-                <div class="macro-progress-track"><div class="macro-progress-fill fill-fat portion-progress-bar" id="fat-progress-bar"></div></div>
+                <div class="macro-progress-row">
+                    <div class="macro-progress-top">
+                        <div class="macro-progress-name"><span class="macro-dot dot-fat"></span>שומן</div>
+                        <div class="macro-progress-nums"><span id="fat-val">0</span><span class="macro-card-target" id="fat-target">/ 0</span> גרם</div>
+                    </div>
+                    <div class="macro-progress-track"><div class="macro-progress-fill fill-fat portion-progress-bar" id="fat-progress-bar"></div></div>
+                </div>
             </div>
             <button class="add-food-btn" onclick="openFoodScanner()">+ הוספת אוכל</button>
         </div><!-- /macros-dashboard -->
