@@ -370,7 +370,6 @@ function triggerPWAInstall() {
     renderFoodLog();
     loadChecklist();
     generatePortionGoals();
-    updateGoalRecommendations();
     initWorkoutJournal();
     loadSavedWeight();
     loadCoachingGoal();
@@ -435,97 +434,6 @@ window.addEventListener('pageshow', (e) => {
 }
     }
 
-    // בנק המאכלים — סגור כברירת מחדל, נפתח רק בבחירה, נשמר לאורך הסשן (עד יציאה מהאפליקציה)
-    function _foodBankTabKey() {
-        const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
-        return 'food_bank_tab_' + (uid || 'local');
-    }
-    function selectFoodBankTab(id, btnEl) {
-        const alreadyOpen = btnEl && btnEl.classList.contains('active');
-        document.querySelectorAll('.food-bank-pane').forEach(pane => { pane.style.display = 'none'; });
-        document.querySelectorAll('.food-bank-tab').forEach(btn => btn.classList.remove('active'));
-        if (alreadyOpen) {
-            sessionStorage.removeItem(_foodBankTabKey());
-            const tabsRow = document.querySelector('.food-bank-tabs');
-            if (tabsRow) tabsRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            return;
-        }
-        const pane = document.getElementById(id);
-        if (pane) pane.style.display = 'block';
-        if (btnEl) btnEl.classList.add('active');
-        sessionStorage.setItem(_foodBankTabKey(), id);
-    }
-    (function _restoreFoodBankTab() {
-        const saved = sessionStorage.getItem(_foodBankTabKey());
-        if (!saved) return;
-        const pane = document.getElementById(saved);
-        const btn = document.querySelector('.food-bank-tab[data-bank="' + saved + '"]');
-        if (pane) pane.style.display = 'block';
-        if (btn) btn.classList.add('active');
-    })();
-
-    function updateGoalRecommendations() {
-    const listContainer = document.getElementById('goal-food-list');
-    const tabLabel = document.getElementById('goal-bank-tab-label');
-    const caption = document.getElementById('goal-food-caption');
-
-    if (!listContainer || !tabLabel || !caption) return;
-
-    const currentGoal = CLIENT.goal;
-
-    if (currentGoal === "cut" || currentGoal === "חיטוב") {
-        tabLabel.textContent = 'חיטוב';
-        caption.textContent = 'מאכלים שיעזרו לכם לרדת במשקל מבלי להיות רעבים';
-        listContainer.innerHTML = `
-            <li>חזה עוף (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
-            <li>פילה הודו (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
-            <li>פילה דג לבן (160 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
-            <li>טונה במים (קופסה מסוננת ~120 גרם) = 1 חלבון</li>
-            <li>קוטג' 1% (250 גרם) = 1 חלבון</li>
-            <li>חלבון ביצה (8 יח') = 1 חלבון</li>
-            <li>יוגורט חלבון דל שומן (2 יח') = 1 חלבון</li>
-            <li>תפוח אדמה (220 גרם\u00A0<b>לפני בישול</b>) = 1 פחמימה</li>
-            <li>בטטה (220 גרם\u00A0<b>לפני בישול</b>) = 1 פחמימה</li>
-            <li>עדשים (60 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
-            <li>שעועית לבנה (60 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
-            <li>קינואה (50 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
-            <li>לחם קל (2 פרוסות) = 1 פחמימה</li>
-            <li>פריכיות דקות (6–7 יח') = 1 פחמימה</li>
-            <li>תפוח (1.5 יח') = 1 פחמימה</li>
-            <li>תותים (300 גרם) = 1 פחמימה</li>
-            <li>פופקורן ללא שמן (5–6 כוסות) = 1 פחמימה</li>
-            <li>דלעת (500 גרם\u00A0<b>לפני בישול</b>) = 1 פחמימה</li>
-            <li>פריכיות כוסמין (6 יח') = 1 פחמימה</li>
-            <li>חלב דל שומן (כוס 330 מ"ל) = 0.5 פחמימה + 0.5 חלבון</li>
-            <li>כרוב = 0 מנות (ללא הגבלה)</li>
-        `;
-    } else {
-        tabLabel.textContent = 'מסה';
-        caption.textContent = 'מאכלים שיעזרו לך להגיע ליעדי החלבון והקלוריות מבלי לאכול בכוח';
-        listContainer.innerHTML = `
-            <li>פרגיות (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
-            <li>בקר טחון 15% (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
-            <li>סלמון (150 גרם\u00A0<b>לפני בישול</b>) = 1 חלבון</li>
-            <li>אורז לבן (50 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
-            <li>פסטה (50 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
-            <li>קוסקוס (50 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
-            <li>פתיתים (50 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
-            <li>שיבולת שועל (50 גרם\u00A0<b>לפני בישול/יבש</b>) = 1 פחמימה</li>
-            <li>תמר מג'הול (2 יח') = 1 פחמימה</li>
-            <li>בננה גדולה (1 יח') = 1 פחמימה</li>
-            <li>טורטייה (יחידה אחת) = 1 פחמימה</li>
-            <li>בייגל (חצי יחידה) = 1 פחמימה</li>
-            <li>גרנולה (5 כפות גדושות) = 1 פחמימה</li>
-            <li>חמאת בוטנים (כף גדושה) = 1 שומן</li>
-            <li>טחינה גולמית (כף) = 1 שומן</li>
-            <li>שמן זית (כף) = 1 שומן</li>
-            <li>אגוזי מלך (6 יח') = 1 שומן</li>
-            <li>קשיו (10–12 יח') = 1 שומן</li>
-            <li>אבוקדו (חצי יחידה) = 1 שומן</li>
-            <li>חלב 3% (כוס 330 מ"ל) = 0.5 פחמימה + 0.5 חלבון</li>
-        `;
-    }
-}
     function toggleChapter(btn) {
   const container = btn.parentElement;
   const isActive = container.classList.contains('active');

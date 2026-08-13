@@ -148,7 +148,6 @@ async function reinitApp() {
     if (typeof loadDailyNutrition     === 'function') loadDailyNutrition();
     if (typeof loadChecklist          === 'function') loadChecklist();
     if (typeof generatePortionGoals   === 'function') generatePortionGoals();
-    if (typeof updateGoalRecommendations==='function') updateGoalRecommendations();
     if (typeof loadPerfData           === 'function') loadPerfData();
     if (typeof loadSavedWeight        === 'function') loadSavedWeight();
     if (typeof loadCoachingGoal       === 'function') loadCoachingGoal();
