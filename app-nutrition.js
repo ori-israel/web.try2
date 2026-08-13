@@ -653,6 +653,28 @@ function cleanupOldFoodLogs() {
     toRemove.forEach(k => localStorage.removeItem(k));
 }
 
+// מקבץ פריטי יומן לארוחות לפי פערי זמן — פריטים שהוזנו בתוך 90 דקות זה מזה נחשבים אותה ארוחה
+function _groupFoodLogByMeal(items, getTime) {
+    const MEAL_GAP_MINUTES = 90;
+    const toMinutes = t => {
+        if (!t) return null;
+        const [h, m] = t.split(':').map(Number);
+        return h * 60 + m;
+    };
+    const groups = [];
+    let current = null;
+    items.forEach(item => {
+        const mins = toMinutes(getTime(item));
+        if (!current || mins == null || current.lastMinutes == null || mins - current.lastMinutes > MEAL_GAP_MINUTES) {
+            current = { time: getTime(item), items: [], lastMinutes: mins };
+            groups.push(current);
+        }
+        current.items.push(item);
+        current.lastMinutes = mins;
+    });
+    return groups.map((g, i) => ({ time: g.time, mealNumber: i + 1, items: g.items }));
+}
+
 function loadFoodLogEntries() {
     try { return JSON.parse(localStorage.getItem(_foodLogKey()) || '[]'); } catch { return []; }
 }
@@ -782,21 +804,19 @@ async function _renderFoodLogPastDay(dateStr) {
             return;
         }
         let totalP=0,totalC=0,totalF=0;
-        let html='<div class="fl-timeline"><div class="fl-timeline-line"></div>', lastTime=null, mealOpen=false;
-        items.forEach(r => {
-            totalP+=r.protein_g||0; totalC+=r.carbs_g||0; totalF+=r.fat_g||0;
-            if (r.time !== lastTime) {
-                if (mealOpen) html+='</div>';
-                html+=`<div class="fl-meal"><div class="fl-dot"></div><div class="fl-time">${r.time||''}</div>`;
-                lastTime=r.time;
-                mealOpen=true;
-            }
-            html+=`<div class="fl-card"><div class="fl-card-body">
-                <div class="fl-card-name">${_esc(r.food)}</div>
-                <div class="fl-card-macros">${r.grams?`<span class="g">${r.grams}g</span>`:''}${r.protein_g?`<span class="fl-m-p">${r.protein_g}g חלבון</span>`:''}${r.carbs_g?`<span class="fl-m-c">${r.carbs_g}g פחמימה</span>`:''}${r.fat_g?`<span class="fl-m-f">${r.fat_g}g שומן</span>`:''}
-                </div></div></div>`;
+        items.forEach(r => { totalP+=r.protein_g||0; totalC+=r.carbs_g||0; totalF+=r.fat_g||0; });
+        const meals = _groupFoodLogByMeal(items, r => r.time);
+        let html='<div class="fl-timeline"><div class="fl-timeline-line"></div>';
+        meals.forEach(meal => {
+            html+=`<div class="fl-meal"><div class="fl-dot"></div><div class="fl-time">${meal.time||''} · ארוחה ${meal.mealNumber}</div>`;
+            meal.items.forEach(r => {
+                html+=`<div class="fl-card"><div class="fl-card-body">
+                    <div class="fl-card-name">${_esc(r.food)}</div>
+                    <div class="fl-card-macros">${r.grams?`<span class="g">${r.grams}g</span>`:''}${r.protein_g?`<span class="fl-m-p">${r.protein_g}g חלבון</span>`:''}${r.carbs_g?`<span class="fl-m-c">${r.carbs_g}g פחמימה</span>`:''}${r.fat_g?`<span class="fl-m-f">${r.fat_g}g שומן</span>`:''}
+                    </div></div></div>`;
+            });
+            html+='</div>';
         });
-        if (mealOpen) html+='</div>';
         html+='</div>';
         const totalKcal = Math.round(totalP*4 + totalC*4 + totalF*9);
         el.innerHTML = html + `<div class="fl-summary">
@@ -830,30 +850,27 @@ function renderFoodLog() {
         totalCarbs   += e.carbs_g   || 0;
         totalFat     += e.fat_g     || 0;
     });
-    // קיבוץ לפי דקה — כל פריטים באותה דקה = ארוחה אחת
+    // קיבוץ לארוחות לפי פערי זמן (90 דקות) — לא רק פריטים באותה דקה בדיוק
+    entries.forEach((e, i) => { e._idx = i; });
+    const meals = _groupFoodLogByMeal(entries, e => e.time);
     let html = '<div class="fl-timeline"><div class="fl-timeline-line"></div>';
-    let lastTime = null, mealOpen = false;
-    entries.forEach((e, i) => {
-        const isNewMeal = e.time !== lastTime;
-        if (isNewMeal) {
-            if (mealOpen) html += '</div>';
-            html += `<div class="fl-meal"><div class="fl-dot"></div><div class="fl-time">${e.time}</div>`;
-            lastTime = e.time;
-            mealOpen = true;
-        }
-        html += `<div class="fl-card">
-            <div class="fl-card-body">
-                <div class="fl-card-name">${_esc(e.name)}</div>
-                <div class="fl-card-macros">${e.grams ? `<span class="g">${e.grams}g</span>` : ''}${e.protein_g ? `<span class="fl-m-p">${e.protein_g}g חלבון</span>` : ''}${e.carbs_g ? `<span class="fl-m-c">${e.carbs_g}g פחמימה</span>` : ''}${e.fat_g ? `<span class="fl-m-f">${e.fat_g}g שומן</span>` : ''}
+    meals.forEach(meal => {
+        html += `<div class="fl-meal"><div class="fl-dot"></div><div class="fl-time">${meal.time || ''} · ארוחה ${meal.mealNumber}</div>`;
+        meal.items.forEach(e => {
+            html += `<div class="fl-card">
+                <div class="fl-card-body">
+                    <div class="fl-card-name">${_esc(e.name)}</div>
+                    <div class="fl-card-macros">${e.grams ? `<span class="g">${e.grams}g</span>` : ''}${e.protein_g ? `<span class="fl-m-p">${e.protein_g}g חלבון</span>` : ''}${e.carbs_g ? `<span class="fl-m-c">${e.carbs_g}g פחמימה</span>` : ''}${e.fat_g ? `<span class="fl-m-f">${e.fat_g}g שומן</span>` : ''}
+                    </div>
                 </div>
-            </div>
-            <div class="fl-card-actions">
-                <button class="edit" onclick="openFoodLogEdit(${i})" title="עריכה"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
-                <button onclick="deleteFoodLogEntry(${i})" title="מחיקה"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-            </div>
-        </div>`;
+                <div class="fl-card-actions">
+                    <button class="edit" onclick="openFoodLogEdit(${e._idx})" title="עריכה"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+                    <button onclick="deleteFoodLogEntry(${e._idx})" title="מחיקה"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                </div>
+            </div>`;
+        });
+        html += '</div>';
     });
-    if (mealOpen) html += '</div>';
     html += '</div>';
 
     const totalKcal = Math.round(totalProtein * 4 + totalCarbs * 4 + totalFat * 9);
