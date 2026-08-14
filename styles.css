@@ -2766,7 +2766,9 @@ html.modal-open body {
 
 .modal-overlay {
     position: fixed;
-    inset: 0;
+    top: var(--vvtop, 0px);
+    right: 0;
+    left: 0;
     height: var(--vvh, 100vh);
     background: var(--overlay-bg);
     backdrop-filter: blur(8px);
@@ -2778,6 +2780,12 @@ html.modal-open body {
     overflow-y: auto;
 }
 .modal-overlay.hidden { display: none !important; }
+
+/* מסך מלא (סריקת ברקוד) — גם הוא צריך להישאר צמוד ל-visual viewport האמיתי */
+.bc-modal {
+    top: var(--vvtop, 0px) !important;
+    height: var(--vvh, 100vh) !important;
+}
 
 /* כשהמקלדת פתוחה: להצמיד למעלה במקום למרכז, כדי שהמודל לא ייתקע חצי מתחת למקלדת */
 :root.kb-open .modal-overlay { align-items: flex-start; padding-top: 16px; }
