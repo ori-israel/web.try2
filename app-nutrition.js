@@ -19,8 +19,18 @@ function findInUSDA(name) {
     found = USDA_TABLE.find(r => r.name.includes(name) || name.includes(r.name) ||
         r.name_en.toLowerCase().includes(n) || n.includes(r.name_en.toLowerCase()));
     if (found) return found;
-    // 3. חיפוש לפי מילים בודדות — מחלץ מילות מפתח (לא כולל מילות הכנה כלליות) ומחפש כל אחת
-    const words = name.replace(/[()״׳,]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !_USDA_STOPWORDS.has(w));
+    // 3. חיפוש לפי הביטוי המרכזי — כל המילים ברצף עד מילת ההכנה הראשונה
+    // (לדוגמה מתוך "תפוח אדמה בתנור עם שמן" מחלץ "תפוח אדמה", לא סתם "אדמה")
+    const allWords = name.replace(/[()״׳,]/g, ' ').split(/\s+/).filter(Boolean);
+    let coreEnd = allWords.findIndex(w => _USDA_STOPWORDS.has(w));
+    if (coreEnd === -1) coreEnd = allWords.length;
+    const core = allWords.slice(0, coreEnd).join(' ');
+    if (core && core !== name) {
+        found = USDA_TABLE.find(r => r.name.includes(core) || core.includes(r.name));
+        if (found) return found;
+    }
+    // 4. חיפוש לפי מילים בודדות — מחלץ מילות מפתח (לא כולל מילות הכנה כלליות) ומחפש כל אחת
+    const words = allWords.filter(w => w.length > 2 && !_USDA_STOPWORDS.has(w));
     for (const word of words) {
         const wLow = word.toLowerCase();
         found = USDA_TABLE.find(r => r.name.includes(word) || r.name_en.toLowerCase().includes(wLow));
@@ -584,7 +594,7 @@ async function analyzeFood(base64, mimeType, correction) {
 - protein_g/fat_g/carbs_g ברמת ה-food = סכום כל הפריטים
 - אם פריט הוא משקה אלכוהולי (יין, בירה, קוקטייל וכו') — כלול גם alcohol_g (גרם אלכוהול טהור באותו פריט), אחרת 0
 החזר JSON בלבד, ללא טקסט נוסף:
-{"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X, "items": [{"name": "שם מאכל מלא", "lookup_name": "שם קצר לחיפוש (מילה אחת או שתיים, ללא תוספות)", "grams": X, "protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X}, ...]}`;
+{"food": "שם האוכל בעברית", "protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X, "items": [{"name": "שם מאכל מלא", "lookup_name": "שם המאכל הגולמי בלבד ביחיד, בלי תוספות הכנה/תיבול/צורת בישול (למשל 'תפוח אדמה' לא 'תפוחי אדמה בתנור עם שמן', 'עוף' לא 'חזה עוף צלוי')", "grams": X, "protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X}, ...]}`;
 
     try {
         const { data: { session: _scanSession } } = await db.auth.getSession();
@@ -700,7 +710,7 @@ ${itemsList}
 עדכן את הרשימה לפי הוראות המשתמש בדיוק. שנה/הסר/הוסף רק את מה שצוין במפורש. אל תשנה גרמים או פרטים של פריטים שלא הוזכרו — שמור אותם זהים לחלוטין.
 החזר JSON בלבד:
 אם פריט מכיל אלכוהול טהור — כלול גם alcohol_g, אחרת 0.
-{"food": "תיאור קצר", "protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X, "items": [{"name": "שם", "lookup_name": "שם קצר", "grams": X, "protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X}]}`;
+{"food": "תיאור קצר", "protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X, "items": [{"name": "שם", "lookup_name": "שם המאכל הגולמי בלבד ביחיד, בלי תוספות הכנה/תיבול/צורת בישול", "grams": X, "protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X}]}`;
 
     try {
         const { data: { session: _s } } = await db.auth.getSession();
