@@ -862,17 +862,58 @@ function addFoodLogEntry(entry) {
     if (typeof sbAddFoodLog === 'function') sbAddFoodLog(newEntry).catch(() => {});
 }
 
-function deleteFoodLogEntry(idx) {
+let _flDeletedEntry = null;
+let _flDeletedIdx   = null;
+let _flUndoTimer    = null;
+
+async function deleteFoodLogEntry(idx) {
+    const ok = await showConfirmDanger('למחוק פריט זה מהיומן?');
+    if (!ok) return;
+
     const entries = loadFoodLogEntries();
     const removed = entries.splice(idx, 1)[0];
     saveFoodLogEntries(entries);
-    // הפחת מהמונה היומי
     if (removed) {
         if (typeof addFoodMacros === 'function') addFoodMacros();
-        // מחיקה גם בסופאבייס
         if (removed.id && typeof sbDeleteFoodLog === 'function') sbDeleteFoodLog(removed.id).catch(() => {});
     }
     renderFoodLog();
+
+    _flDeletedEntry = removed;
+    _flDeletedIdx   = idx;
+    _flShowUndoToast();
+}
+
+function undoDeleteFoodLogEntry() {
+    if (_flDeletedEntry === null) return;
+    clearTimeout(_flUndoTimer);
+    const entries = loadFoodLogEntries();
+    const insertAt = Math.min(_flDeletedIdx, entries.length);
+    entries.splice(insertAt, 0, _flDeletedEntry);
+    saveFoodLogEntries(entries);
+    if (typeof addFoodMacros === 'function') addFoodMacros();
+    if (_flDeletedEntry.id && typeof sbAddFoodLog === 'function') sbAddFoodLog(_flDeletedEntry).catch(() => {});
+    _flDeletedEntry = null;
+    _flDeletedIdx   = null;
+    const toast = document.getElementById('fl-undo-toast');
+    if (toast) toast.remove();
+    renderFoodLog();
+}
+
+function _flShowUndoToast() {
+    const old = document.getElementById('fl-undo-toast');
+    if (old) old.remove();
+    const toast = document.createElement('div');
+    toast.id = 'fl-undo-toast';
+    toast.innerHTML = `<span>הפריט נמחק</span><button onclick="undoDeleteFoodLogEntry()">↩ בטל</button>`;
+    toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#2c2c2e;color:#fff;padding:10px 12px 10px 18px;border-radius:25px;font-size:13.5px;z-index:9999;box-shadow:0 4px 15px rgba(0,0,0,0.25);display:flex;align-items:center;gap:10px;white-space:nowrap;';
+    toast.querySelector('button').style.cssText = 'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:20px;padding:5px 14px;font-size:12.5px;cursor:pointer;';
+    document.body.appendChild(toast);
+    _flUndoTimer = setTimeout(() => {
+        toast.remove();
+        _flDeletedEntry = null;
+        _flDeletedIdx   = null;
+    }, 4000);
 }
 
 let _flDate = null; // null = היום
