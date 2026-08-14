@@ -17,6 +17,7 @@ import xml.etree.ElementTree as ET
 
 import requests
 from il_supermarket_scarper import ScarpingTask, ScraperFactory
+from il_supermarket_scarper.utils.file_types import FileTypesFilters
 
 DUMP_FOLDER = "barcode_dump"
 
@@ -27,14 +28,18 @@ ENABLED_CHAINS = [
     ScraperFactory.VICTORY_NEW_SOURCE.name,
 ]
 
+# רק קבצי "מחיר מלא" (כל המוצרים בסניף) — לא מבצעים/עדכונים חלקיים
+FILES_TYPES = [FileTypesFilters.PRICE_FULL_FILE.name]
+
 
 def download_price_files():
     print(f"מוריד קבצי מחירים מ: {ENABLED_CHAINS}")
     scraper = ScarpingTask(
         enabled_scrapers=ENABLED_CHAINS,
+        files_types=FILES_TYPES,
         output_configuration={"output_mode": "disk", "base_storage_path": DUMP_FOLDER},
     )
-    scraper.start(limit=1)  # limit=1 = הקובץ העדכני האחרון בלבד לכל רשת/סניף
+    scraper.start(limit=5)  # עד 5 קבצי PriceFull (סניפים שונים) לכל רשת
     scraper.join()  # start() רץ ברקע ב-thread נפרד — בלי join הפרסור ירוץ על תיקייה ריקה
 
 
