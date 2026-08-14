@@ -2757,10 +2757,17 @@ input[type="radio"] { accent-color: var(--accent); }
 }
 .food-scan-btn:active { transform: scale(0.98); }
 
-/* נעילת גלילת הדף כשמודל פתוח (ר' app-core.js) — מונע קפיצת תוכן קבוע באייפון כשהמקלדת נפתחת */
+/* נעילת גלילת הדף כשמודל פתוח (ר' app-core.js) — מונע גלילה של מה שמאחורי המודל,
+   וקפיצת תוכן קבוע באייפון כשהמקלדת נפתחת. צריך overflow:hidden גם על html
+   וגם על body — רק על body לא מספיק לחסום גלילה באייפון. */
+html.modal-open {
+    overflow: hidden;
+    height: 100%;
+}
 html.modal-open body {
     position: fixed;
     width: 100%;
+    height: 100%;
     overflow: hidden;
 }
 
@@ -2786,9 +2793,6 @@ html.modal-open body {
     top: var(--vvtop, 0px) !important;
     height: var(--vvh, 100vh) !important;
 }
-
-/* כשהמקלדת פתוחה: להצמיד למעלה במקום למרכז, כדי שהמודל לא ייתקע חצי מתחת למקלדת */
-:root.kb-open .modal-overlay { align-items: flex-start; padding-top: 16px; }
 
 .modal-card {
     background: var(--bg-card);
