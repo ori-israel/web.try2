@@ -1,5 +1,14 @@
 // ===== תזונה: סורק מזון, מאקרו, יומן אוכל, מנות =====
 
+// מילות הכנה/תיאור כלליות — לא שם מאכל אמיתי, אסור להתאים לפיהן במאגר
+// (לדוגמה: "בטטה בתנור עם שמן" לא אמור להתאים למוצר אקראי שיש בשמו "שמן")
+const _USDA_STOPWORDS = new Set([
+    'עם', 'בלי', 'ללא', 'עוד', 'טרי', 'טריה', 'חי', 'חיה', 'קפוא', 'קפואה',
+    'מבושל', 'מבושלת', 'צלוי', 'צלויה', 'קלוי', 'קלויה', 'מטוגן', 'מטוגנת',
+    'אפוי', 'אפויה', 'מוקפץ', 'מוקפצת', 'בתנור', 'במחבת', 'בגריל', 'ברביקיו',
+    'שמן', 'מלח', 'פלפל', 'תבלינים', 'עור', 'גרם', 'יחידות', 'יחידה', 'כוסות', 'כפות'
+]);
+
 function findInUSDA(name) {
     if (!name) return null;
     const n = name.toLowerCase().trim();
@@ -10,8 +19,8 @@ function findInUSDA(name) {
     found = USDA_TABLE.find(r => r.name.includes(name) || name.includes(r.name) ||
         r.name_en.toLowerCase().includes(n) || n.includes(r.name_en.toLowerCase()));
     if (found) return found;
-    // 3. חיפוש לפי מילים בודדות — מחלץ מילות מפתח ומחפש כל אחת
-    const words = name.replace(/[()״׳,]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+    // 3. חיפוש לפי מילים בודדות — מחלץ מילות מפתח (לא כולל מילות הכנה כלליות) ומחפש כל אחת
+    const words = name.replace(/[()״׳,]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !_USDA_STOPWORDS.has(w));
     for (const word of words) {
         const wLow = word.toLowerCase();
         found = USDA_TABLE.find(r => r.name.includes(word) || r.name_en.toLowerCase().includes(wLow));
@@ -622,13 +631,15 @@ async function analyzeFood(base64, mimeType, correction) {
         if (!jsonMatch) throw new Error('no JSON');
         const result = JSON.parse(jsonMatch[0]);
 
-        scannedGrams = {
-            protein: Math.round(result.protein_g || 0),
-            fat:     Math.round(result.fat_g     || 0),
-            carbs:   Math.round(result.carbs_g   || 0),
-            alcohol: Math.round(result.alcohol_g || 0)
-        };
         scannedItems = (Array.isArray(result.items) ? result.items : []).map(enrichItemMacros);
+        // הסכום היומי תמיד מחושב מסכימת הפריטים בפועל (אחרי enrichItemMacros) —
+        // לא מהערכה כוללת נפרדת של ה-AI, כדי שלא ייווצר פער בין הכרטיס ליומן לבין הסכום היומי
+        scannedGrams = {
+            protein: Math.round(scannedItems.reduce((s, i) => s + (i.protein_g || 0), 0)),
+            fat:     Math.round(scannedItems.reduce((s, i) => s + (i.fat_g     || 0), 0)),
+            carbs:   Math.round(scannedItems.reduce((s, i) => s + (i.carbs_g   || 0), 0)),
+            alcohol: Math.round(scannedItems.reduce((s, i) => s + (i.alcohol_g || 0), 0))
+        };
 
         document.getElementById('scan-food-label').style.display = '';
         document.getElementById('scan-food-name').style.display = '';
