@@ -2757,6 +2757,13 @@ input[type="radio"] { accent-color: var(--accent); }
 }
 .food-scan-btn:active { transform: scale(0.98); }
 
+/* נעילת גלילת הדף כשמודל פתוח (ר' app-core.js) — מונע קפיצת תוכן קבוע באייפון כשהמקלדת נפתחת */
+html.modal-open body {
+    position: fixed;
+    width: 100%;
+    overflow: hidden;
+}
+
 .modal-overlay {
     position: fixed;
     inset: 0;

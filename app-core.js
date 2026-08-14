@@ -25,6 +25,32 @@
     update();
 })();
 
+// נעילת גלילת הדף כשמודל פתוח — מונע קפיצה/היעלמות של אלמנטים קבועים
+// באייפון כשהמקלדת נפתחת (position:fixed מתנהג לא צפוי אם הדף מאחוריו זז).
+// עוקב אחרי כל מודל (כולל כאלה שנטענים ל-DOM אחרי הסקריפט הזה) עם MutationObserver.
+(function() {
+    var scrollY = 0;
+    function isAnyModalOpen() {
+        return !!document.querySelector('.modal-overlay:not(.hidden), #barcode-scanner-modal:not(.hidden)');
+    }
+    function updateBodyLock() {
+        var shouldLock = isAnyModalOpen();
+        var isLocked = document.documentElement.classList.contains('modal-open');
+        if (shouldLock && !isLocked) {
+            scrollY = window.scrollY || 0;
+            document.documentElement.classList.add('modal-open');
+            document.body.style.top = -scrollY + 'px';
+        } else if (!shouldLock && isLocked) {
+            document.documentElement.classList.remove('modal-open');
+            document.body.style.top = '';
+            window.scrollTo(0, scrollY);
+        }
+    }
+    var observer = new MutationObserver(updateBodyLock);
+    observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+    updateBodyLock();
+})();
+
 function localDateStr() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
