@@ -10,7 +10,7 @@ function _loadZXing() {
     if (_bcZXingLoading) return _bcZXingLoading;
     _bcZXingLoading = new Promise((resolve, reject) => {
         const s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/@zxing/browser@latest';
+        s.src = 'https://cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/zxing-browser.min.js';
         s.onload = resolve;
         s.onerror = reject;
         document.head.appendChild(s);
