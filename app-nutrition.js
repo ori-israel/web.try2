@@ -1,35 +1,30 @@
 // ===== תזונה: סורק מזון, מאקרו, יומן אוכל, מנות =====
 
-// מילות הכנה/תיאור כלליות — לא שם מאכל אמיתי, אסור להתאים לפיהן במאגר
-// (לדוגמה: "בטטה בתנור עם שמן" לא אמור להתאים למוצר אקראי שיש בשמו "שמן")
-const _USDA_STOPWORDS = new Set([
-    'עם', 'בלי', 'ללא', 'עוד', 'טרי', 'טריה', 'חי', 'חיה', 'קפוא', 'קפואה',
-    'מבושל', 'מבושלת', 'צלוי', 'צלויה', 'קלוי', 'קלויה', 'מטוגן', 'מטוגנת',
-    'אפוי', 'אפויה', 'מוקפץ', 'מוקפצת', 'בתנור', 'במחבת', 'בגריל', 'ברביקיו',
-    'שמן', 'מלח', 'פלפל', 'תבלינים', 'עור', 'גרם', 'יחידות', 'יחידה', 'כוסות', 'כפות'
-]);
-
-function findInUSDA(name) {
+// מחפש במאגר בשתי רמות ביטחון: "גבוהה" (שם זהה/מוכל במלואו) ו"חלשה" (ביטוי מרכזי/מילה בודדת).
+// ההבחנה חשובה כי רק התאמה בביטחון גבוה בטוחה להחליף ניחוש של AI בעיוורון (ר' enrichItemMacros).
+function _findInUSDAConfident(name) {
     if (!name) return null;
     const n = name.toLowerCase().trim();
-    // 1. חיפוש מדויק
     let found = USDA_TABLE.find(r => r.name === name || r.name_en.toLowerCase() === n);
     if (found) return found;
-    // 2. חיפוש חלקי
     found = USDA_TABLE.find(r => r.name.includes(name) || name.includes(r.name) ||
         r.name_en.toLowerCase().includes(n) || n.includes(r.name_en.toLowerCase()));
-    if (found) return found;
-    // 3. חיפוש לפי הביטוי המרכזי — כל המילים ברצף עד מילת ההכנה הראשונה
-    // (לדוגמה מתוך "תפוח אדמה בתנור עם שמן" מחלץ "תפוח אדמה", לא סתם "אדמה")
+    return found || null;
+}
+
+function _findInUSDAFuzzy(name) {
+    if (!name) return null;
+    // מילות הכנה/תיאור כלליות — לא שם מאכל אמיתי, אסור להתאים לפיהן במאגר
+    // (לדוגמה: "בטטה בתנור עם שמן" לא אמור להתאים למוצר אקראי שיש בשמו "שמן")
     const allWords = name.replace(/[()״׳,]/g, ' ').split(/\s+/).filter(Boolean);
     let coreEnd = allWords.findIndex(w => _USDA_STOPWORDS.has(w));
     if (coreEnd === -1) coreEnd = allWords.length;
     const core = allWords.slice(0, coreEnd).join(' ');
+    let found = null;
     if (core && core !== name) {
         found = USDA_TABLE.find(r => r.name.includes(core) || core.includes(r.name));
         if (found) return found;
     }
-    // 4. חיפוש לפי מילים בודדות — מחלץ מילות מפתח (לא כולל מילות הכנה כלליות) ומחפש כל אחת
     const words = allWords.filter(w => w.length > 2 && !_USDA_STOPWORDS.has(w));
     for (const word of words) {
         const wLow = word.toLowerCase();
@@ -39,12 +34,49 @@ function findInUSDA(name) {
     return null;
 }
 
-// מחשב מאקרו לפריט לפי גרמים — מטבלה אם אפשר, אחרת מ-AI
+const _USDA_STOPWORDS = new Set([
+    'עם', 'בלי', 'ללא', 'עוד', 'טרי', 'טריה', 'חי', 'חיה', 'קפוא', 'קפואה',
+    'מבושל', 'מבושלת', 'צלוי', 'צלויה', 'קלוי', 'קלויה', 'מטוגן', 'מטוגנת',
+    'אפוי', 'אפויה', 'מוקפץ', 'מוקפצת', 'בתנור', 'במחבת', 'בגריל', 'ברביקיו',
+    'שמן', 'מלח', 'פלפל', 'תבלינים', 'עור', 'גרם', 'יחידות', 'יחידה', 'כוסות', 'כפות'
+]);
+
+// לשימוש כללי (חיפוש ידני, לא תלוי-AI) — כולל גם התאמות חלשות
+function findInUSDA(name) {
+    return _findInUSDAConfident(name) || _findInUSDAFuzzy(name);
+}
+
+// קלוריות משוערות ממאקרו — לצורך השוואת סבירות בלבד
+function _roughKcal(p, c, f) { return (p || 0) * 4 + (c || 0) * 4 + (f || 0) * 9; }
+
+// מחשב מאקרו לפריט לפי גרמים — מטבלה אם אפשר, אחרת מ-AI.
+// הגנות מפני ערכים דפוקים (התאמה שגויה במאגר, או הזיה של ה-AI):
+// 1. התאמה בביטחון נמוך (findInUSDAFuzzy) מתקבלת רק אם היא לא סותרת בצורה קיצונית
+//    את ההערכה המקורית של ה-AI לאותו פריט — אחרת ה-AI כנראה יותר אמין ממנה.
+// 2. תקרה קשיחה: שום פריט מזון לא יכול להכיל יותר מ-50% ממשקלו בחלבון/פחמימה/שומן בנפרד
+//    (בלתי אפשרי כמעט פיזית למאכל אמיתי) — נחתך אוטומטית בלי קשר למקור הערך.
 function enrichItemMacros(item) {
-    const usda = findInUSDA(item.lookup_name) || findInUSDA(item.name) || findInUSDA(item.name_en);
+    const confident = _findInUSDAConfident(item.lookup_name) || _findInUSDAConfident(item.name) || _findInUSDAConfident(item.name_en);
+    let usda = confident;
+
+    if (!usda && item.grams) {
+        const fuzzy = _findInUSDAFuzzy(item.lookup_name) || _findInUSDAFuzzy(item.name) || _findInUSDAFuzzy(item.name_en);
+        if (fuzzy) {
+            const ratio = item.grams / 100;
+            const fuzzyKcal = _roughKcal(fuzzy.protein * ratio, fuzzy.carbs * ratio, fuzzy.fat * ratio);
+            const aiKcal = _roughKcal(item.protein_g, item.carbs_g, item.fat_g);
+            // אם ה-AI כבר נתן הערכה משלו לפריט הזה, ההתאמה החלשה מתקבלת רק אם היא לא רחוקה
+            // ביותר מפי 2.5 מהערכת ה-AI (בשני הכיוונים) — אחרת כנראה טעות התאמה, לא שיפור
+            const noAiEstimate = !aiKcal;
+            const withinReason = aiKcal > 0 && fuzzyKcal <= aiKcal * 2.5 && fuzzyKcal >= aiKcal / 2.5;
+            if (noAiEstimate || withinReason) usda = fuzzy;
+        }
+    }
+
+    let result = item;
     if (usda && item.grams) {
         const ratio = item.grams / 100;
-        return {
+        result = {
             ...item,
             protein_g: Math.round(usda.protein * ratio * 10) / 10,
             fat_g:     Math.round(usda.fat     * ratio * 10) / 10,
@@ -53,7 +85,16 @@ function enrichItemMacros(item) {
             _fromTable: true
         };
     }
-    return item;
+
+    // תקרה קשיחה — בלי קשר אם הערך הגיע מהמאגר או מה-AI
+    if (result.grams) {
+        const cap = result.grams * 0.5;
+        ['protein_g', 'carbs_g', 'fat_g'].forEach(key => {
+            if (result[key] > cap) result = { ...result, [key]: Math.round(cap * 10) / 10 };
+        });
+    }
+
+    return result;
 }
 
 let scannedGrams = { protein: 0, fat: 0, carbs: 0, alcohol: 0 };
