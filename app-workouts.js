@@ -124,14 +124,17 @@ function closeCompleteMsg() {
         }
     }
 
-    // הוספת/הפחתת גרמי מאקרו מהיום (דלתא) - נקרא כשמוסיפים/מוחקים/עורכים פריט ביומן המזון
-    function addFoodMacros(protein_g, carbs_g, fat_g, alcohol_g) {
-        dailyGrams = {
-            protein: Math.max(0, Math.round((dailyGrams.protein + (protein_g || 0)) * 10) / 10),
-            carbs:   Math.max(0, Math.round((dailyGrams.carbs   + (carbs_g   || 0)) * 10) / 10),
-            fat:     Math.max(0, Math.round((dailyGrams.fat     + (fat_g     || 0)) * 10) / 10),
-            alcohol: Math.max(0, Math.round((dailyGrams.alcohol + (alcohol_g || 0)) * 10) / 10),
-        };
+    // מחשב מחדש את סך המאקרו היומי ישירות מרשימת הפריטים שבפועל שמורים ביומן המזון -
+    // מקור אמת יחיד. נקרא (בלי פרמטרים) אחרי כל הוספה/מחיקה/עריכה של פריט ביומן,
+    // כדי שהסכום למעלה תמיד יהיה זהה בדיוק לרשימת הפריטים ולא יוכל להתפספס/להצטבר לא נכון
+    function addFoodMacros() {
+        const entries = typeof loadFoodLogEntries === 'function' ? loadFoodLogEntries() : [];
+        dailyGrams = entries.reduce((sum, e) => ({
+            protein: Math.round((sum.protein + (e.protein_g || 0)) * 10) / 10,
+            carbs:   Math.round((sum.carbs   + (e.carbs_g   || 0)) * 10) / 10,
+            fat:     Math.round((sum.fat     + (e.fat_g     || 0)) * 10) / 10,
+            alcohol: Math.round((sum.alcohol + (e.alcohol_g || 0)) * 10) / 10,
+        }), { protein: 0, carbs: 0, fat: 0, alcohol: 0 });
         document.getElementById('protein-val').innerText = dailyGrams.protein;
         document.getElementById('carbs-val').innerText   = dailyGrams.carbs;
         document.getElementById('fat-val').innerText     = dailyGrams.fat;
@@ -174,42 +177,33 @@ function closeCompleteMsg() {
     }
 
     function loadDailyNutrition() {
-        const saved = localStorage.getItem(_portionsKey());
-        dailyGrams = saved ? JSON.parse(saved) : { protein: 0, carbs: 0, fat: 0, alcohol: 0 };
-        if (dailyGrams.alcohol == null) dailyGrams.alcohol = 0;
-        document.getElementById('protein-val').innerText = dailyGrams.protein;
-        document.getElementById('carbs-val').innerText = dailyGrams.carbs;
-        document.getElementById('fat-val').innerText = dailyGrams.fat;
-        updateKcalDisplay();
-        setTimeout(updateAllMacroProgress, 50);
-
-        // טעינה מ-Supabase — מקור האמת האמיתי
-        const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
-        if (uid && typeof sbFetchTodayNutrition === 'function') {
-            sbFetchTodayNutrition(uid).then(data => {
-                if (getActiveUserId() !== uid) return; // משתמש השתנה בינתיים
-                // מיזוג: אם סופאבייס החזיר ערך — קח את המקסימום מול localStorage
-                // (מגן מפני מצב שהשמירה לשרת טרם הגיעה, ו-localStorage מכיל ערך עדכני יותר)
-                if (data) {
-                    const local = JSON.parse(localStorage.getItem(_portionsKey()) || '{}');
-                    dailyGrams = {
-                        protein: Math.max(data.protein || 0, local.protein || 0),
-                        carbs:   Math.max(data.carbs   || 0, local.carbs   || 0),
-                        fat:     Math.max(data.fat      || 0, local.fat      || 0),
-                        alcohol: Math.max(data.alcohol  || 0, local.alcohol || 0),
-                    };
-                } else {
-                    // אין רשומה לסופאבייס היום = יום חדש → איפוס
-                    dailyGrams = { protein: 0, carbs: 0, fat: 0, alcohol: 0 };
-                }
-                localStorage.setItem(_portionsKey(), JSON.stringify(dailyGrams));
-                document.getElementById('protein-val').innerText = dailyGrams.protein;
-                document.getElementById('carbs-val').innerText = dailyGrams.carbs;
-                document.getElementById('fat-val').innerText = dailyGrams.fat;
-                updateKcalDisplay();
-                updateAllMacroProgress();
-            }).catch(() => {});
+        // אדמין שצופה בלקוח: אין יומן מקומי אמיתי במכשיר האדמין - שולפים קריאה בלבד מסופאבייס
+        const isAdminViewingOther = typeof SB_VIEW_ID !== 'undefined' && SB_VIEW_ID && typeof SB_USER !== 'undefined' && SB_USER && SB_VIEW_ID !== SB_USER.id;
+        if (isAdminViewingOther) {
+            dailyGrams = { protein: 0, carbs: 0, fat: 0, alcohol: 0 };
+            document.getElementById('protein-val').innerText = 0;
+            document.getElementById('carbs-val').innerText = 0;
+            document.getElementById('fat-val').innerText = 0;
+            updateKcalDisplay();
+            const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+            if (uid && typeof sbFetchTodayNutrition === 'function') {
+                sbFetchTodayNutrition(uid).then(data => {
+                    if (getActiveUserId() !== uid) return; // משתמש שנצפה השתנה בינתיים
+                    dailyGrams = data
+                        ? { protein: data.protein || 0, carbs: data.carbs || 0, fat: data.fat || 0, alcohol: data.alcohol || 0 }
+                        : { protein: 0, carbs: 0, fat: 0, alcohol: 0 };
+                    document.getElementById('protein-val').innerText = dailyGrams.protein;
+                    document.getElementById('carbs-val').innerText = dailyGrams.carbs;
+                    document.getElementById('fat-val').innerText = dailyGrams.fat;
+                    updateKcalDisplay();
+                    updateAllMacroProgress();
+                }).catch(() => {});
+            }
+            return;
         }
+        // משתמש רגיל: מקור האמת היחיד הוא היומן המקומי בפועל - מחושב תמיד מחדש, לא נטען ממונה נפרד
+        addFoodMacros();
+        setTimeout(updateAllMacroProgress, 50);
     }
 
     function toggleTask(el, event) {

@@ -215,7 +215,6 @@ function confirmBarcodeAdd() {
     const fat_g     = Math.round(_bcProduct.fat_g     * ratio * 10) / 10;
     const alcohol_g = Math.round((_bcProduct.alcohol_g || 0) * ratio * 10) / 10;
 
-    if (typeof addFoodMacros === 'function') addFoodMacros(protein_g, carbs_g, fat_g, alcohol_g);
     if (typeof addFoodLogEntry === 'function') {
         addFoodLogEntry({
             name: `${_bcProduct.name} (${amount} גרם)`,
@@ -226,6 +225,7 @@ function confirmBarcodeAdd() {
             alcohol_g: alcohol_g || null,
         });
     }
+    if (typeof addFoodMacros === 'function') addFoodMacros();
 
     closeBarcodeScanner();
     if (typeof closeFoodScanner === 'function') closeFoodScanner();

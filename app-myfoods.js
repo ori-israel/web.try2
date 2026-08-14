@@ -477,13 +477,13 @@ function confirmRecipeLog() {
     fat_g     = Math.round(fat_g     * 10) / 10;
     alcohol_g = Math.round(alcohol_g * 10) / 10;
 
-    if (typeof addFoodMacros === 'function') addFoodMacros(protein_g, carbs_g, fat_g, alcohol_g);
-
     addFoodLogEntry({
         name: _rlRecipe.name,
         protein_g, carbs_g, fat_g, alcohol_g,
         recipe_items: _rlItems
     });
+
+    if (typeof addFoodMacros === 'function') addFoodMacros();
 
     closeRecipeLogAdjust();
     if (typeof closeFoodScanner === 'function') closeFoodScanner();

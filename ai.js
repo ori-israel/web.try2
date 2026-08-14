@@ -240,8 +240,8 @@ async function sendAIMessage() {
                         fat_g:     fat_g     || null,
                         alcohol_g: alcohol_g || null
                     });
-                    if (typeof addFoodMacros === 'function') addFoodMacros(protein_g, carbs_g, fat_g, alcohol_g);
                     }
+                    if (typeof addFoodMacros === 'function') addFoodMacros();
                     const addedDiv = document.createElement('div');
                     addedDiv.style.cssText = 'margin-top:8px;padding:6px 10px;background:var(--accent);color:#fff;border-radius:8px;font-size:14px;display:inline-block;';
                     addedDiv.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> נוסף ליומן';

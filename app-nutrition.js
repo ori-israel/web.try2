@@ -868,9 +868,7 @@ function deleteFoodLogEntry(idx) {
     saveFoodLogEntries(entries);
     // הפחת מהמונה היומי
     if (removed) {
-        if ((removed.protein_g || removed.carbs_g || removed.fat_g || removed.alcohol_g) && typeof addFoodMacros === 'function') {
-            addFoodMacros(-(removed.protein_g || 0), -(removed.carbs_g || 0), -(removed.fat_g || 0), -(removed.alcohol_g || 0));
-        }
+        if (typeof addFoodMacros === 'function') addFoodMacros();
         // מחיקה גם בסופאבייס
         if (removed.id && typeof sbDeleteFoodLog === 'function') sbDeleteFoodLog(removed.id).catch(() => {});
     }
@@ -1142,12 +1140,8 @@ async function saveFoodLogEdit() {
             newMacros = { grams: Math.round(macros.grams || amount), protein_g: macros.protein_g || 0, carbs_g: macros.carbs_g || 0, fat_g: macros.fat_g || 0, alcohol_g: macros.alcohol_g || 0 };
         }
 
-        // הסר את המאקרו הישן מהיום, הוסף את החדש
         const entries = loadFoodLogEntries();
         const oldEntry = entries[idx];
-        if (typeof addFoodMacros === 'function') {
-            addFoodMacros(-(oldEntry.protein_g || 0), -(oldEntry.carbs_g || 0), -(oldEntry.fat_g || 0), -(oldEntry.alcohol_g || 0));
-        }
 
         entries[idx] = {
             ...oldEntry,
@@ -1172,9 +1166,7 @@ async function saveFoodLogEdit() {
             }).catch(() => {});
         }
 
-        if (typeof addFoodMacros === 'function') {
-            addFoodMacros(entries[idx].protein_g || 0, entries[idx].carbs_g || 0, entries[idx].fat_g || 0, entries[idx].alcohol_g || 0);
-        }
+        if (typeof addFoodMacros === 'function') addFoodMacros();
 
         renderFoodLog();
         closeFoodLogEdit();
@@ -1189,12 +1181,13 @@ async function saveFoodLogEdit() {
 async function addScannedPortions() {
     const btn = document.querySelector('.scan-action-btn.primary');
     if (btn && btn.disabled) return;
+    if (btn) btn.disabled = true; // חוסם לחיצה כפולה על כל הפונקציה, לא רק בזמן חיפוש טקסט פתוח
 
     const pendingInput = document.getElementById('add-item-name');
     if (pendingInput && pendingInput.value.trim()) {
-        if (btn) { btn.disabled = true; btn.textContent = 'מחשב...'; }
+        if (btn) btn.textContent = 'מחשב...';
         await confirmAddItem();
-        if (btn) { btn.disabled = false; btn.innerHTML = 'הוספה ליומן <span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>'; }
+        if (btn) btn.innerHTML = 'הוספה ליומן <span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>';
     }
 
     const protein = scannedGrams.protein || 0;
@@ -1202,21 +1195,21 @@ async function addScannedPortions() {
     const fat     = scannedGrams.fat     || 0;
     const alcohol = scannedGrams.alcohol || 0;
 
-    if ((protein || carbs || fat || alcohol) && typeof addFoodMacros === 'function') {
-        addFoodMacros(protein, carbs, fat, alcohol);
-    }
-
-    // שמור ליומן — כל מאכל בנפרד, בגרמים ובמאקרו מדויקים
+    // שמור ליומן — כל מאכל בנפרד, בגרמים ובמאקרו מדויקים. כשל בפריט אחד לא עוצר את השאר
     if (scannedItems && scannedItems.length > 0) {
         scannedItems.forEach(item => {
-            addFoodLogEntry({
-                name:      item.name,
-                grams:     Math.round(item.grams || 0) || null,
-                protein_g: Math.round((item.protein_g || 0) * 10) / 10 || null,
-                carbs_g:   Math.round((item.carbs_g   || 0) * 10) / 10 || null,
-                fat_g:     Math.round((item.fat_g     || 0) * 10) / 10 || null,
-                alcohol_g: Math.round((item.alcohol_g || 0) * 10) / 10 || null
-            });
+            try {
+                addFoodLogEntry({
+                    name:      item.name,
+                    grams:     Math.round(item.grams || 0) || null,
+                    protein_g: Math.round((item.protein_g || 0) * 10) / 10 || null,
+                    carbs_g:   Math.round((item.carbs_g   || 0) * 10) / 10 || null,
+                    fat_g:     Math.round((item.fat_g     || 0) * 10) / 10 || null,
+                    alcohol_g: Math.round((item.alcohol_g || 0) * 10) / 10 || null
+                });
+            } catch (e) {
+                console.warn('addFoodLogEntry failed:', item.name, e);
+            }
         });
     } else if (protein || carbs || fat || alcohol) {
         addFoodLogEntry({
@@ -1229,6 +1222,10 @@ async function addScannedPortions() {
         });
     }
 
+    // מחשב מחדש את הסכום היומי מהיומן בפועל, אחרי שכל הפריטים כבר נשמרו
+    if (typeof addFoodMacros === 'function') addFoodMacros();
+
+    if (btn) btn.disabled = false;
     closeFoodScanner();
     const kcal = Math.round(protein * 4 + carbs * 4 + fat * 9 + alcohol * 7);
     const toast = document.createElement('div');
