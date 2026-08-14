@@ -52,7 +52,8 @@ async function openBarcodeScanner() {
     } catch (e) {
         console.warn('barcode camera error:', e);
         closeBarcodeScanner();
-        if (typeof showAlert === 'function') showAlert('לא הצלחנו לגשת למצלמה. ודא שנתת הרשאת מצלמה לאתר.');
+        const detail = e && (e.name || e.message) ? ` (${e.name || ''} ${e.message || ''})`.trim() : '';
+        if (typeof showAlert === 'function') showAlert(`לא הצלחנו לגשת למצלמה. יש לוודא שניתנה הרשאת מצלמה לאפליקציה.${detail}`);
     }
 }
 
