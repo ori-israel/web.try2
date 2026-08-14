@@ -21,11 +21,42 @@ from il_supermarket_scarper.utils.file_types import FileTypesFilters
 
 DUMP_FOLDER = "barcode_dump"
 
-# רשתות ההתחלה (שלב בדיקה) — להרחיב לכל 33 הרשתות אחרי שזה עובד נקי
+# כל הרשתות הנתמכות בספרייה, חוץ מויקטורי — laibcatalog.co.il (המקור שלה)
+# חוסם IP-ים של שרתי GitHub Actions באופן עקבי (נבדק, לא זמני). לטפל בנפרד.
 ENABLED_CHAINS = [
-    ScraperFactory.SHUFERSAL.name,
+    ScraperFactory.BAREKET.name,
+    ScraperFactory.YAYNO_BITAN_AND_CARREFOUR.name,
+    ScraperFactory.CITY_MARKET_KIRYATGAT.name,
+    ScraperFactory.CITY_MARKET_SHOPS.name,
+    ScraperFactory.DOR_ALON.name,
+    ScraperFactory.GOOD_PHARM.name,
+    ScraperFactory.HAZI_HINAM.name,
+    ScraperFactory.HET_COHEN_NEW_SOURCE.name,
+    ScraperFactory.KESHET.name,
+    ScraperFactory.KING_STORE.name,
+    ScraperFactory.MAAYAN_2000.name,
+    ScraperFactory.MAHSANI_ASHUK_NEW_SOURCE.name,
+    ScraperFactory.NETIV_HASED.name,
+    ScraperFactory.MESHMAT_YOSEF_1.name,
+    ScraperFactory.MESHMAT_YOSEF_2.name,
+    ScraperFactory.OSHER_AD.name,
+    ScraperFactory.POLIZER.name,
     ScraperFactory.RAMI_LEVY.name,
-    ScraperFactory.VICTORY_NEW_SOURCE.name,
+    ScraperFactory.SALACH_DABACH.name,
+    ScraperFactory.SHEFA_BARCART_ASHEM.name,
+    ScraperFactory.SHUFERSAL.name,
+    ScraperFactory.SHUK_AHIR.name,
+    ScraperFactory.STOP_MARKET.name,
+    ScraperFactory.SUPER_PHARM.name,
+    ScraperFactory.SUPER_YUDA.name,
+    ScraperFactory.SUPER_SAPIR.name,
+    ScraperFactory.FRESH_MARKET_AND_SUPER_DOSH.name,
+    ScraperFactory.TIV_TAAM.name,
+    ScraperFactory.YELLOW.name,
+    ScraperFactory.YOHANANOF.name,
+    ScraperFactory.ZOL_VEBEGADOL.name,
+    ScraperFactory.WOLT.name,
+    # ScraperFactory.VICTORY_NEW_SOURCE.name,  # חסום מ-GitHub Actions, לטפל בנפרד
 ]
 
 # רק קבצי "מחיר מלא" (כל המוצרים בסניף) — לא מבצעים/עדכונים חלקיים
