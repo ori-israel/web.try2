@@ -10,6 +10,21 @@
     }, { passive: false });
 })();
 
+// גובה viewport אמיתי בזמן שהמקלדת פתוחה (iOS Safari לא מכווץ inset:0 בעצמו)
+// --vvh נעדכן תמיד; .kb-open מסמן שהמקלדת כנראה פתוחה, כדי שמודלים לא ייצמדו למרכז מתחת למקלדת
+(function() {
+    if (!window.visualViewport) return;
+    var vv = window.visualViewport;
+    function update() {
+        document.documentElement.style.setProperty('--vvh', vv.height + 'px');
+        var kbOpen = (window.innerHeight - vv.height) > 120;
+        document.documentElement.classList.toggle('kb-open', kbOpen);
+    }
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    update();
+})();
+
 function localDateStr() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;

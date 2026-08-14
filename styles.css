@@ -2760,6 +2760,7 @@ input[type="radio"] { accent-color: var(--accent); }
 .modal-overlay {
     position: fixed;
     inset: 0;
+    height: var(--vvh, 100vh);
     background: var(--overlay-bg);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -2767,8 +2768,12 @@ input[type="radio"] { accent-color: var(--accent); }
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow-y: auto;
 }
 .modal-overlay.hidden { display: none !important; }
+
+/* כשהמקלדת פתוחה: להצמיד למעלה במקום למרכז, כדי שהמודל לא ייתקע חצי מתחת למקלדת */
+:root.kb-open .modal-overlay { align-items: flex-start; padding-top: 16px; }
 
 .modal-card {
     background: var(--bg-card);
@@ -2778,10 +2783,11 @@ input[type="radio"] { accent-color: var(--accent); }
     max-width: 380px;
     position: relative;
     direction: rtl;
-    max-height: 85vh;
+    max-height: calc(var(--vvh, 100vh) - 30px);
     overflow-y: auto;
     border: 0.5px solid var(--border);
     box-shadow: var(--shadow-lg);
+    flex-shrink: 0;
 }
 
 /* ── App dialog ── */
