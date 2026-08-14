@@ -24,7 +24,7 @@ DUMP_FOLDER = "barcode_dump"
 ENABLED_CHAINS = [
     ScraperFactory.SHUFERSAL.name,
     ScraperFactory.RAMI_LEVY.name,
-    ScraperFactory.VICTORY.name,
+    ScraperFactory.VICTORY_NEW_SOURCE.name,
 ]
 
 
@@ -32,9 +32,10 @@ def download_price_files():
     print(f"מוריד קבצי מחירים מ: {ENABLED_CHAINS}")
     scraper = ScarpingTask(
         enabled_scrapers=ENABLED_CHAINS,
-        dump_folder_name=DUMP_FOLDER,
+        output_configuration={"output_mode": "disk", "base_storage_path": DUMP_FOLDER},
     )
     scraper.start(limit=1)  # limit=1 = הקובץ העדכני האחרון בלבד לכל רשת/סניף
+    scraper.join()  # start() רץ ברקע ב-thread נפרד — בלי join הפרסור ירוץ על תיקייה ריקה
 
 
 def _local_tag(elem):
