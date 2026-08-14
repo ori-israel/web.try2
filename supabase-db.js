@@ -383,6 +383,31 @@ async function sbDeleteCustomRecipe(id) {
     if (error) console.warn('sbDeleteCustomRecipe:', error.message);
 }
 
+// ── ברקודים (סריקת מוצרים) ──────────────────────────────────
+
+async function sbLookupBarcode(barcode) {
+    const { data, error } = await db
+        .from('barcode_products')
+        .select('barcode, name, protein_g, carbs_g, fat_g, alcohol_g')
+        .eq('barcode', barcode)
+        .maybeSingle();
+    if (error) { console.warn('sbLookupBarcode:', error.message); return null; }
+    return data;
+}
+
+async function sbSaveBarcodeMacros(barcode, macros) {
+    const { error } = await db
+        .from('barcode_products')
+        .update({
+            protein_g: macros.protein_g || 0,
+            carbs_g:   macros.carbs_g   || 0,
+            fat_g:     macros.fat_g     || 0,
+            alcohol_g: macros.alcohol_g || 0,
+        })
+        .eq('barcode', barcode);
+    if (error) console.warn('sbSaveBarcodeMacros:', error.message);
+}
+
 // ── היסטוריית משקל ──────────────────────────────────────────
 
 async function sbFetchWeightHistory(userId) {

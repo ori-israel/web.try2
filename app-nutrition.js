@@ -124,7 +124,19 @@ function renderFoodSuggestions(query) {
         });
 
     const matches = [...recipeMatches, ...foodMatches, ...usdaMatches].slice(0, 8);
-    if (!matches.length) { box.innerHTML = ''; return; }
+    window._foodSuggQuery = q;
+    _renderFoodSuggestionMatches(matches, box);
+    if (matches.length < 8 && typeof searchBarcodeProductsByName === 'function') {
+        searchBarcodeProductsByName(q).then(barcodeMatches => {
+            if (window._foodSuggQuery !== q || !barcodeMatches.length) return;
+            const merged = [...matches, ...barcodeMatches].slice(0, 8);
+            _renderFoodSuggestionMatches(merged, box);
+        }).catch(() => {});
+    }
+}
+
+function _renderFoodSuggestionMatches(matches, box) {
+    if (!matches.length) { box.innerHTML = ''; window._currentFoodSuggestions = []; return; }
     box.innerHTML = matches.map((m, i) =>
         `<div onclick="selectFoodSuggestion(${i})" data-sugg-idx="${i}" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 6px;background:#2c2c2e;border-radius:4px;cursor:pointer;font-size:13.5px;">
             <span style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="flex-shrink:0;display:flex;">${m.icon}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${_esc(m.label)}</span></span>
@@ -154,6 +166,9 @@ function selectFoodSuggestion(i) {
         window._selectedFoodSource = match;
         if (unitEl) unitEl.value = match.ref.unit;
         if (amountEl) amountEl.value = match.ref.unit_amount;
+    } else if (match.type === 'barcode') {
+        window._selectedFoodSource = match;
+        if (unitEl) unitEl.value = 'גרם';
     } else {
         window._selectedFoodSource = null; // usda - ניתן לחפש בטבלה בזמן האישור, לא צריך לשמור הפניה
         if (unitEl) unitEl.value = 'גרם';
@@ -239,6 +254,28 @@ async function confirmAddItem() {
         updateScannedTotals();
         renderScanDetails();
         return;
+    }
+
+    // מוצר שנמצא במאגר הישראלי לפי שם - נשלף לפי ברקוד (יחסית ל-100 גרם)
+    if (selSource && selSource.type === 'barcode' && selSource.label === name && unit === 'גרם') {
+        const row = document.getElementById('add-item-row');
+        if (row) row.innerHTML = `<span style="color:#888;font-size:12px;">מחפש מידע תזונתי...</span>`;
+        const macros = await resolveBarcodeProductMacros(selSource.ref.barcode);
+        if (macros) {
+            const ratio = amount / 100;
+            scannedItems.push({
+                name: `${name} (${amount} ${unit})`,
+                grams: amount,
+                protein_g: Math.round(macros.protein_g * ratio * 10) / 10,
+                fat_g: Math.round(macros.fat_g * ratio * 10) / 10,
+                carbs_g: Math.round(macros.carbs_g * ratio * 10) / 10,
+                alcohol_g: Math.round((macros.alcohol_g || 0) * ratio * 10) / 10
+            });
+            updateScannedTotals();
+            renderScanDetails();
+            return;
+        }
+        if (row) row.innerHTML = `<button onclick="showAddItemForm()" style="background:none;border:none;color:#888;font-size:15px;cursor:pointer;padding:8px 0;width:100%;text-align:right;">+ הוספת פריט</button>`;
     }
 
     const isGrams = unit === 'גרם';
