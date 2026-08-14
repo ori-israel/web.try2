@@ -39,7 +39,14 @@ async function openBarcodeScanner() {
         const video = document.getElementById('bc-video');
         _bcDetecting = false;
         _bcControls = await codeReader.decodeFromConstraints(
-            { video: { facingMode: 'environment' } },
+            {
+                video: {
+                    facingMode: 'environment',
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 },
+                    advanced: [{ focusMode: 'continuous' }],
+                },
+            },
             video,
             (result) => {
                 if (result && !_bcDetecting) { _bcDetecting = true; onBarcodeDetected(result.getText()); }

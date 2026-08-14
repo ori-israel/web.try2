@@ -52,6 +52,14 @@
     var observer = new MutationObserver(updateBodyLock);
     observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
     updateBodyLock();
+
+    // חסימה ישירה של מחוות גלילה מחוץ לתוכן הגלילי של המודל עצמו — הגנה כפולה,
+    // כי position:fixed לבד לא תמיד אמין מספיק לחסימת גלילה באייפון
+    document.addEventListener('touchmove', function(e) {
+        if (!document.documentElement.classList.contains('modal-open')) return;
+        if (e.target.closest('.modal-card, .bc-confirm-body, .bc-notfound-body, .bc-video')) return;
+        e.preventDefault();
+    }, { passive: false });
 })();
 
 function localDateStr() {
