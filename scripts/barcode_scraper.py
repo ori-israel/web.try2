@@ -36,7 +36,7 @@ ENABLED_CHAINS = [
     ScraperFactory.KING_STORE.name,
     ScraperFactory.MAAYAN_2000.name,
     ScraperFactory.MAHSANI_ASHUK_NEW_SOURCE.name,
-    ScraperFactory.NETIV_HASED.name,
+    # ScraperFactory.NETIV_HASED.name,  # קורס בעקביות בספרייה עצמה (מסומן "לא יציב"), לטפל בנפרד
     ScraperFactory.MESHMAT_YOSEF_1.name,
     ScraperFactory.MESHMAT_YOSEF_2.name,
     ScraperFactory.OSHER_AD.name,
