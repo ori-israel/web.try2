@@ -26,7 +26,7 @@ DUMP_FOLDER = "barcode_dump"
 ENABLED_CHAINS = [
     ScraperFactory.BAREKET.name,
     ScraperFactory.YAYNO_BITAN_AND_CARREFOUR.name,
-    ScraperFactory.CITY_MARKET_KIRYATGAT.name,
+    # ScraperFactory.CITY_MARKET_KIRYATGAT.name,  # קורס בעקביות בספרייה עצמה (מסומן "לא יציב"), לטפל בנפרד
     ScraperFactory.CITY_MARKET_SHOPS.name,
     ScraperFactory.DOR_ALON.name,
     ScraperFactory.GOOD_PHARM.name,
