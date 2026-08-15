@@ -162,7 +162,10 @@ function closeCompleteMsg() {
     window._getUserPortions = () => ({ ...dailyGrams }); // שם נשמר לתאימות עם קוד קורא קיים (ai.js) - התוכן הוא גרמים
 
     function updateMacroProgress(type) {
-        const val = dailyGrams[type];
+        // קורא מה-DOM (מה-val שכבר מוצג) ולא מ-dailyGrams - כי dailyGrams לא מתעדכן כשצופים
+        // בלקוח אחר כאדמין (הערך האמיתי שם מגיע מסופאבייס ונכתב ישירות ל-DOM)
+        const valText = document.getElementById(type + '-val')?.innerText || '0';
+        const val = parseFloat(valText) || 0;
         const targetText = document.getElementById(type + '-target').innerText.replace('/ ', '');
         const target = parseFloat(targetText);
         if (!target) return;
