@@ -1240,33 +1240,38 @@ async function addScannedPortions() {
     const fat     = scannedGrams.fat     || 0;
     const alcohol = scannedGrams.alcohol || 0;
 
-    // שמור ליומן — כל מאכל בנפרד, בגרמים ובמאקרו מדויקים. כשל בפריט אחד לא עוצר את השאר
+    // שמור ליומן - כתיבה אטומית אחת של כל הפריטים ביחד (לא לולאה של כתיבות נפרדות
+    // שיכולות להתערבב זו בזו), כדי שלעולם לא יתכן שפריט שאושר לא יגיע ליומן
     const _failedItemNames = [];
-    if (scannedItems && scannedItems.length > 0) {
-        scannedItems.forEach(item => {
+    const _itemsToSave = (scannedItems && scannedItems.length > 0)
+        ? scannedItems
+        : ((protein || carbs || fat || alcohol) ? [{ name: 'ארוחה', grams: null, protein_g: protein, carbs_g: carbs, fat_g: fat, alcohol_g: alcohol }] : []);
+
+    if (_itemsToSave.length > 0) {
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        const existingEntries = loadFoodLogEntries();
+        const newEntries = [];
+        _itemsToSave.forEach(item => {
             try {
-                addFoodLogEntry({
+                newEntries.push({
                     name:      item.name,
                     grams:     Math.round(item.grams || 0) || null,
                     protein_g: Math.round((item.protein_g || 0) * 10) / 10 || null,
                     carbs_g:   Math.round((item.carbs_g   || 0) * 10) / 10 || null,
                     fat_g:     Math.round((item.fat_g     || 0) * 10) / 10 || null,
-                    alcohol_g: Math.round((item.alcohol_g || 0) * 10) / 10 || null
+                    alcohol_g: Math.round((item.alcohol_g || 0) * 10) / 10 || null,
+                    id:        (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()),
+                    time:      timeStr
                 });
             } catch (e) {
-                console.warn('addFoodLogEntry failed:', item.name, e);
+                console.warn('פריט לא עובד לשמירה:', item.name, e);
                 _failedItemNames.push(item.name);
             }
         });
-    } else if (protein || carbs || fat || alcohol) {
-        addFoodLogEntry({
-            name:      'ארוחה',
-            grams:     null,
-            protein_g: protein || null,
-            carbs_g:   carbs   || null,
-            fat_g:     fat     || null,
-            alcohol_g: alcohol || null
-        });
+        saveFoodLogEntries(existingEntries.concat(newEntries));
+        renderFoodLog();
+        newEntries.forEach(entry => { if (typeof sbAddFoodLog === 'function') sbAddFoodLog(entry).catch(() => {}); });
     }
 
     // מחשב מחדש את הסכום היומי מהיומן בפועל, אחרי שכל הפריטים כבר נשמרו
