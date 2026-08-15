@@ -1018,7 +1018,7 @@ h1 {
 
 .bc-macro-card { background: var(--bg-card-alt); border-radius: 16px; padding: 14px 16px; margin-top: 14px; }
 
-.bc-add-btn { flex: none; margin-top: 16px; width: 100%; padding: 14px; font-size: 15px; }
+.scan-action-btn.bc-add-btn { flex: none; margin-top: 16px; width: 100%; padding: 14px; font-size: 15px; }
 
 .bc-notfound-body {
     flex: 1;
