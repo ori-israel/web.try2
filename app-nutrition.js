@@ -1003,6 +1003,19 @@ function _flNext() {
 
 function _flGoToday() { _flSelectDate(_flToday()); }
 
+// רק ליום הנוכחי: הטבעות למעלה בדשבורד מחושבות פה ישירות (לא מקומי - אין יומן מקומי לצד אדמין).
+// נקרא גם כשהיומן ריק (0 בכל מקום), לא רק כשיש בו פריטים
+function _pdRefreshTodayTotals(dateStr, userId, totalP, totalC, totalF, totalA) {
+    if (dateStr !== (typeof localDateStr === 'function' ? localDateStr() : dateStr)) return;
+    const totalKcal = Math.round(totalP*4 + totalC*4 + totalF*9 + totalA*7);
+    const pv = document.getElementById('protein-val'); if (pv) pv.innerText = Math.round(totalP*10)/10;
+    const cv = document.getElementById('carbs-val');   if (cv) cv.innerText = Math.round(totalC*10)/10;
+    const fv = document.getElementById('fat-val');     if (fv) fv.innerText = Math.round(totalF*10)/10;
+    const kv = document.getElementById('kcal-val');    if (kv) kv.innerText = totalKcal;
+    if (typeof updateAllMacroProgress === 'function') updateAllMacroProgress();
+    if (typeof sbSaveNutrition === 'function') sbSaveNutrition(userId, totalP, totalC, totalF, totalA).catch(() => {});
+}
+
 async function _renderFoodLogPastDay(dateStr) {
     _renderFoodLogNav();
     const el = document.getElementById('food-log-list');
@@ -1014,6 +1027,7 @@ async function _renderFoodLogPastDay(dateStr) {
         const items = (rows || []).filter(r => r.date === dateStr);
         if (!items.length) {
             el.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:12px 0;font-size:13px;">אין רישומים ביום זה</div>';
+            _pdRefreshTodayTotals(dateStr, userId, 0, 0, 0, 0);
             return;
         }
         let totalP=0,totalC=0,totalF=0,totalA=0;
@@ -1044,15 +1058,7 @@ async function _renderFoodLogPastDay(dateStr) {
             <div class="fl-summary-macros">${totalP?`<b class="fl-m-p">${Math.round(totalP)}g</b>`:''}${totalC?`<b class="fl-m-c">${Math.round(totalC)}g</b>`:''}${totalF?`<b class="fl-m-f">${Math.round(totalF)}g</b>`:''}${totalA?`<b class="fl-m-a">${Math.round(totalA)}g</b>`:''}</div>
         </div>`;
 
-        // רק ליום הנוכחי: הטבעות למעלה בדשבורד מחושבות פה ישירות (לא מקומי - אין יומן מקומי לצד אדמין)
-        if (dateStr === (typeof localDateStr === 'function' ? localDateStr() : dateStr)) {
-            const pv = document.getElementById('protein-val'); if (pv) pv.innerText = Math.round(totalP*10)/10;
-            const cv = document.getElementById('carbs-val');   if (cv) cv.innerText = Math.round(totalC*10)/10;
-            const fv = document.getElementById('fat-val');     if (fv) fv.innerText = Math.round(totalF*10)/10;
-            const kv = document.getElementById('kcal-val');    if (kv) kv.innerText = totalKcal;
-            if (typeof updateAllMacroProgress === 'function') updateAllMacroProgress();
-            if (typeof sbSaveNutrition === 'function') sbSaveNutrition(userId, totalP, totalC, totalF, totalA).catch(() => {});
-        }
+        _pdRefreshTodayTotals(dateStr, userId, totalP, totalC, totalF, totalA);
     } catch(e) {
         el.innerHTML = '<div style="text-align:center;color:#e55;padding:12px;">שגיאה בטעינה</div>';
     }
