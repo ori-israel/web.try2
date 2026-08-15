@@ -917,6 +917,7 @@ h1 {
     align-items: center;
     justify-content: space-between;
     padding: 16px;
+    padding-top: max(16px, env(safe-area-inset-top));
 }
 
 .bc-round-btn {
@@ -1005,7 +1006,7 @@ h1 {
 }
 .bc-loading-bar { width: 12%; height: 100%; border-radius: 2px; background: var(--accent); }
 
-.bc-topbar { display: flex; justify-content: flex-end; padding: 14px 16px; }
+.bc-topbar { display: flex; justify-content: flex-end; padding: 14px 16px; padding-top: max(14px, env(safe-area-inset-top)); }
 
 .bc-confirm-body { flex: 1; padding: 0 20px 20px; display: flex; flex-direction: column; }
 .bc-confirm-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
