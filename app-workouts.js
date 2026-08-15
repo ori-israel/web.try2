@@ -177,28 +177,13 @@ function closeCompleteMsg() {
     }
 
     function loadDailyNutrition() {
-        // אדמין שצופה בלקוח: אין יומן מקומי אמיתי במכשיר האדמין - שולפים קריאה בלבד מסופאבייס
+        // אדמין שצופה בלקוח: אין יומן מקומי אמיתי במכשיר האדמין. renderFoodLog/_renderFoodLogPastDay
+        // (שרץ מיד אחרי זה באותו onload) הוא כבר מקור האמת שמחשב את זה ישירות מיומן המזון בסופאבייס -
+        // לא לשלוף פה שוב בנפרד, כי שתי שליפות מקבילות לאותם אלמנטים = מרוץ שמנצח בו מי שמסיים אחרון,
+        // ולפעמים זה הנתון הישן. רק לאפס תצוגה שקטה שלא תישאר תקועה עד שהשליפה השנייה תסיים.
         const isAdminViewingOther = typeof SB_VIEW_ID !== 'undefined' && SB_VIEW_ID && typeof SB_USER !== 'undefined' && SB_USER && SB_VIEW_ID !== SB_USER.id;
         if (isAdminViewingOther) {
             dailyGrams = { protein: 0, carbs: 0, fat: 0, alcohol: 0 };
-            document.getElementById('protein-val').innerText = 0;
-            document.getElementById('carbs-val').innerText = 0;
-            document.getElementById('fat-val').innerText = 0;
-            updateKcalDisplay();
-            const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
-            if (uid && typeof sbFetchTodayNutrition === 'function') {
-                sbFetchTodayNutrition(uid).then(data => {
-                    if (getActiveUserId() !== uid) return; // משתמש שנצפה השתנה בינתיים
-                    dailyGrams = data
-                        ? { protein: data.protein || 0, carbs: data.carbs || 0, fat: data.fat || 0, alcohol: data.alcohol || 0 }
-                        : { protein: 0, carbs: 0, fat: 0, alcohol: 0 };
-                    document.getElementById('protein-val').innerText = dailyGrams.protein;
-                    document.getElementById('carbs-val').innerText = dailyGrams.carbs;
-                    document.getElementById('fat-val').innerText = dailyGrams.fat;
-                    updateKcalDisplay();
-                    updateAllMacroProgress();
-                }).catch(() => {});
-            }
             return;
         }
         // משתמש רגיל: מקור האמת היחיד הוא היומן המקומי בפועל - מחושב תמיד מחדש, לא נטען ממונה נפרד
