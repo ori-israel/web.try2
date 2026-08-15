@@ -404,6 +404,10 @@ async function confirmLabelAdd() {
         if (typeof showAlert === 'function') showAlert('כדי לשמור ב"מאכלים שלי" צריך למלא שם.');
         return;
     }
+    if (saveToMyFoods && typeof _myFoods !== 'undefined' && typeof MYFOODS_MAX_FOODS !== 'undefined' && _myFoods.length >= MYFOODS_MAX_FOODS) {
+        if (typeof showAlert === 'function') showAlert('הגעת למגבלה של 60 מאכלים אישיים שמורים. כדי לשמור מאכל חדש, אפשר למחוק אחד ישן קודם.');
+        return;
+    }
 
     const ratio = amount / 100;
     const protein_g = Math.round(_labelMacros.protein_g * ratio * 10) / 10;
@@ -425,14 +429,18 @@ async function confirmLabelAdd() {
     }
 
     if (saveToMyFoods && typeof sbAddCustomFood === 'function') {
-        await sbAddCustomFood({
+        const savedId = await sbAddCustomFood({
             name, unit: 'גרם', unit_amount: 100,
             protein_g: _labelMacros.protein_g,
             carbs_g:   _labelMacros.carbs_g,
             fat_g:     _labelMacros.fat_g,
             alcohol_g: _labelMacros.alcohol_g
         });
-        if (typeof _loadMyFoodsData === 'function') await _loadMyFoodsData();
+        if (!savedId) {
+            if (typeof showAlert === 'function') showAlert('הפריט נוסף ליומן, אבל השמירה ב"מאכלים שלי" נכשלה. אפשר לנסות שוב מתוך "המזונות שלי".');
+        } else if (typeof _loadMyFoodsData === 'function') {
+            await _loadMyFoodsData();
+        }
     }
 
     if (typeof addFoodMacros === 'function') addFoodMacros();
