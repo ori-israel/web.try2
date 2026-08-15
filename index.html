@@ -1373,10 +1373,9 @@
   </div>
 
   <!-- שלב 3: אישור המוצר -->
-  <div id="bc-confirm-step" class="bc-step bc-solid hidden">
-    <div class="bc-topbar">
-      <button class="bc-round-btn alt" onclick="closeBarcodeScanner()" aria-label="סגירה"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-    </div>
+  <div id="bc-confirm-step" class="bc-step bc-popup-overlay hidden">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeBarcodeScanner()" aria-label="סגירה"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <div class="bc-confirm-body">
       <div class="bc-confirm-top">
         <div id="bc-product-name" class="bc-product-name"></div>
@@ -1411,6 +1410,7 @@
         </div>
       </div>
       <button class="scan-action-btn primary bc-add-btn" onclick="confirmBarcodeAdd()">הוספה ליומן <span style="display:inline-flex;width:18px;height:18px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span></button>
+    </div>
     </div>
   </div>
 
