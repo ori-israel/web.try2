@@ -28,15 +28,34 @@
     update();
 })();
 
-// נעילת גלילת הדף כשמודל פתוח — מונע קפיצה/היעלמות של אלמנטים קבועים
+// נעילת גלילת הדף כשמודל/פופאפ פתוח — מונע קפיצה/היעלמות של אלמנטים קבועים
 // באייפון כשהמקלדת נפתחת (position:fixed מתנהג לא צפוי אם הדף מאחוריו זז).
-// עוקב אחרי כל מודל (כולל כאלה שנטענים ל-DOM אחרי הסקריפט הזה) עם MutationObserver.
+// מקור אמת יחיד לכל האתר: כל modal-overlay (חוץ מ-app-dialog) + barcode-scanner-modal
+// דרך MutationObserver גנרי, רשימת IDs קבועה לפופאפים במבנה אחר, ומונה ידני
+// לאוברליים שנוצרים דינמית (תמונת התקדמות, גרף כוח, שיא אישי).
 (function() {
     var scrollY = 0;
+    var EXTRA_MODAL_IDS = [
+        'weight-chart-modal', 'profile-overlay', 'new-client-modal', 'workout-editor-modal',
+        'calendly-modal', 'achievement-popup', 'workout-complete-msg', 'nutrition-complete-msg',
+        'pwa-install-popup', 'renewal-reminder-popup', 'pwa-ios-popup', 'birthday-modal',
+        'weekly-survey-banner', 'ai-chat-overlay', 'survey-overlay', 'calc-overlay'
+    ];
+    var dynamicOverlayCount = 0;
+    window._dynamicOverlayOpen = function () { dynamicOverlayCount++; updateBodyLock(); };
+    window._dynamicOverlayClosed = function () { dynamicOverlayCount = Math.max(0, dynamicOverlayCount - 1); updateBodyLock(); };
+
+    function _isVisible(el) {
+        if (!el || el.classList.contains('hidden')) return false;
+        return getComputedStyle(el).display !== 'none';
+    }
     function isAnyModalOpen() {
+        if (dynamicOverlayCount > 0) return true;
         // app-dialog (אישור/התראה) לא כולל שדה קלט בפועל (showPrompt לא בשימוש) - לא זקוק לנעילה הכבדה
         // שמיועדת להגנה מפני מקלדת. נעילה עליו גרמה לקפיצה ויזואלית למעלה וחזרה בכל אישור/מחיקה
-        return !!document.querySelector('.modal-overlay:not(#app-dialog):not(.hidden), #barcode-scanner-modal:not(.hidden)');
+        if (document.querySelector('.modal-overlay:not(#app-dialog):not(.hidden)')) return true;
+        if (_isVisible(document.getElementById('barcode-scanner-modal'))) return true;
+        return EXTRA_MODAL_IDS.some(id => _isVisible(document.getElementById(id)));
     }
     function updateBodyLock() {
         var shouldLock = isAnyModalOpen();
@@ -53,6 +72,7 @@
     }
     var observer = new MutationObserver(updateBodyLock);
     observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+    document.addEventListener('DOMContentLoaded', updateBodyLock);
     updateBodyLock();
 
     // חסימה ישירה של מחוות גלילה מחוץ לתוכן הגלילי של המודל עצמו — הגנה כפולה,
@@ -812,58 +832,5 @@ function _showProgressPhotoToast(msg, success = true) {
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 3000);
 }
-
-// ── נעילת גלילת רקע כשחלון/מודל פתוח ─────────────────────────
-// עוקב אחרי כל המודלים הקבועים ב-DOM (לפי ID) וגם אחרי מודלים
-// שנוצרים דינמית (progress photo, גרף כוח, שיא אישי), ונועל/משחרר
-// גלילה של הרקע לפי מי שפתוח כרגע. מקור אמת אחד לכל האתר.
-(function () {
-    const MODAL_IDS = [
-        'food-scanner-modal', 'food-log-edit-modal', 'weight-chart-modal', 'profile-overlay',
-        'new-client-modal', 'workout-editor-modal', 'questionnaire-modal', 'video-modal',
-        'calendly-modal', 'app-dialog', 'achievement-popup', 'workout-complete-msg',
-        'nutrition-complete-msg', 'pwa-install-popup', 'renewal-reminder-popup', 'pwa-ios-popup',
-        'birthday-modal', 'weekly-survey-banner', 'ai-chat-overlay', 'survey-overlay', 'calc-overlay',
-        'progress-card-modal', 'client-workout-editor-modal'
-    ];
-    let dynamicOverlayCount = 0;
-    window._dynamicOverlayOpen = function () { dynamicOverlayCount++; _refreshScrollLock(); };
-    window._dynamicOverlayClosed = function () { dynamicOverlayCount = Math.max(0, dynamicOverlayCount - 1); _refreshScrollLock(); };
-
-    function _isModalVisible(el) {
-        if (!el || el.classList.contains('hidden')) return false;
-        return getComputedStyle(el).display !== 'none';
-    }
-    // overflow:hidden לבד לא עוצר גלילת מגע ב-iOS Safari/PWA, אז "מקפיאים"
-    // את הדף במקום עם position:fixed ומחזירים לגלילה במקום המדויק בסגירה
-    let _savedScrollY = 0;
-    function _refreshScrollLock() {
-        const anyModalOpen = MODAL_IDS.some(id => _isModalVisible(document.getElementById(id)));
-        const shouldLock = anyModalOpen || dynamicOverlayCount > 0;
-        const isLocked = document.body.classList.contains('scroll-locked');
-        if (shouldLock && !isLocked) {
-            _savedScrollY = window.scrollY || window.pageYOffset || 0;
-            document.body.classList.add('scroll-locked');
-            document.body.style.position = 'fixed';
-            document.body.style.top = (-_savedScrollY) + 'px';
-            document.body.style.width = '100%';
-        } else if (!shouldLock && isLocked) {
-            document.body.classList.remove('scroll-locked');
-            document.body.style.position = '';
-            document.body.style.top = '';
-            document.body.style.width = '';
-            window.scrollTo(0, _savedScrollY);
-        }
-    }
-    document.addEventListener('DOMContentLoaded', function () {
-        MODAL_IDS.forEach(id => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            new MutationObserver(_refreshScrollLock).observe(el, { attributes: true, attributeFilter: ['style', 'class'] });
-        });
-        _refreshScrollLock();
-    });
-})();
-
 
 
