@@ -871,6 +871,7 @@ let _flDeletedIdx   = null;
 let _flUndoTimer    = null;
 
 async function deleteFoodLogEntry(idx) {
+    const scrollY = window.scrollY;
     const ok = await showConfirmDanger('למחוק פריט זה מהיומן?');
     if (!ok) return;
 
@@ -882,6 +883,7 @@ async function deleteFoodLogEntry(idx) {
         if (removed.id && typeof sbDeleteFoodLog === 'function') sbDeleteFoodLog(removed.id).catch(() => {});
     }
     renderFoodLog();
+    requestAnimationFrame(() => window.scrollTo(0, scrollY));
 
     _flDeletedEntry = removed;
     _flDeletedIdx   = idx;
@@ -1057,10 +1059,12 @@ async function _renderFoodLogPastDay(dateStr) {
 }
 
 async function deletePastDayFoodLogEntry(id, dateStr) {
+    const scrollY = window.scrollY;
     const ok = await showConfirmDanger('למחוק פריט זה מהיומן?');
     if (!ok) return;
     if (typeof sbDeleteFoodLog === 'function') await sbDeleteFoodLog(id).catch(() => {});
     await _renderFoodLogPastDay(dateStr);
+    requestAnimationFrame(() => window.scrollTo(0, scrollY));
 }
 
 function toggleFoodLogRecipeDetails(id) {
