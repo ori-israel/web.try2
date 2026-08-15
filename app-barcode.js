@@ -246,3 +246,194 @@ function switchBarcodeToTextSearch() {
     if (typeof openTextEntry === 'function') openTextEntry();
     setTimeout(() => document.getElementById('add-item-name')?.focus(), 100);
 }
+
+// ===== צילום טבלת ערכים תזונתיים (גב האריזה) =====
+
+let _labelMacros = null; // { protein_g, carbs_g, fat_g, alcohol_g } ל-100 גרם
+
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('label-image-input');
+    if (input) input.addEventListener('change', function (e) {
+        handleLabelImageFile(e.target.files[0]);
+        e.target.value = '';
+    });
+});
+
+// דחיסה ברזולוציה גבוהה יותר מהתמונה הרגילה - כאן צריך לקרוא מספרים קטנים מודפסים, לא רק להעריך מנה
+function _compressLabelImage(base64, mimeType) {
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload = function () {
+            const MAX = 1400;
+            let { width, height } = img;
+            if (width > MAX || height > MAX) {
+                if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+                else                { width = Math.round(width * MAX / height); height = MAX; }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            resolve({ base64: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
+        };
+        img.src = `data:${mimeType};base64,${base64}`;
+    });
+}
+
+function handleLabelImageFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (ev) {
+        const dataUrl = ev.target.result;
+        readNutritionLabel(dataUrl.split(',')[1], file.type);
+    };
+    reader.readAsDataURL(file);
+}
+
+async function readNutritionLabel(base64, mimeType) {
+    const loadingModal = document.getElementById('label-loading-modal');
+    loadingModal.classList.remove('hidden');
+
+    try {
+        const compressed = await _compressLabelImage(base64, mimeType);
+        const { data: { session } } = await db.auth.getSession();
+        if (!session) throw new Error('לא מחובר');
+
+        const prompt = `בתמונה מוצגת טבלת ערכים תזונתיים מודפסת על אריזת מוצר מזון. קרא את הערכים המודפסים בטבלה (אל תעריך). אם הטבלה מציגה ערכים למנה (Serving) ולא ל-100 גרם/מ"ל, המר אותם ל-100 גרם/מ"ל לפי גודל המנה הרשום בטבלה. אם מופיע אלכוהול טהור כלול alcohol_g, אחרת 0. אם לא ניתן לקרוא ערך מסוים בבירור, שים 0. החזר JSON בלבד ללא הסברים: {"protein_g": X, "carbs_g": X, "fat_g": X, "alcohol_g": X}`;
+
+        const response = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+            body: JSON.stringify({
+                model: 'gemini-3.5-flash',
+                payload: {
+                    contents: [{ role: 'user', parts: [
+                        { inline_data: { mime_type: compressed.mimeType, data: compressed.base64 } },
+                        { text: prompt }
+                    ] }],
+                    generation_config: { response_mime_type: 'application/json' }
+                }
+            })
+        });
+        if (!response.ok) { const e = await response.json().catch(() => ({})); throw new Error(e.error || 'gemini error'); }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '', buffer = '';
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const jsonStr = line.slice(6).trim();
+                if (!jsonStr || jsonStr === '[DONE]') continue;
+                try {
+                    const parsed = JSON.parse(jsonStr);
+                    const t = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (t) fullText += t;
+                } catch {}
+            }
+        }
+
+        const match = fullText.match(/\{[\s\S]*?\}/);
+        if (!match) throw new Error('no json');
+        const macros = JSON.parse(match[0]);
+        _labelMacros = {
+            protein_g: macros.protein_g || 0,
+            carbs_g:   macros.carbs_g   || 0,
+            fat_g:     macros.fat_g     || 0,
+            alcohol_g: macros.alcohol_g || 0
+        };
+
+        document.getElementById('label-name-input').value = '';
+        document.getElementById('label-amount').value = '100';
+        document.getElementById('label-save-myfoods').checked = false;
+        updateLabelConfirmTotals();
+        loadingModal.classList.add('hidden');
+        document.getElementById('label-confirm-modal').classList.remove('hidden');
+    } catch (e) {
+        loadingModal.classList.add('hidden');
+        if (typeof showAlert === 'function') showAlert('לא הצלחנו לקרוא את הטבלה. אפשר לנסות שוב עם תמונה ברורה יותר.');
+    }
+}
+
+function updateLabelConfirmTotals() {
+    if (!_labelMacros) return;
+    const amount = parseFloat(document.getElementById('label-amount').value) || 0;
+    const ratio = amount / 100;
+    const p = Math.round(_labelMacros.protein_g * ratio * 10) / 10;
+    const c = Math.round(_labelMacros.carbs_g   * ratio * 10) / 10;
+    const f = Math.round(_labelMacros.fat_g     * ratio * 10) / 10;
+    const a = Math.round((_labelMacros.alcohol_g || 0) * ratio * 10) / 10;
+    const kcal = Math.round(p * 4 + c * 4 + f * 9 + a * 7);
+
+    document.getElementById('label-kcal-val').textContent = kcal;
+    document.getElementById('label-kcal-lbl').textContent = `קלוריות ב-${amount} גרם`;
+    document.getElementById('label-protein-val').textContent = p;
+    document.getElementById('label-carbs-val').textContent = c;
+    document.getElementById('label-fat-val').textContent = f;
+    document.getElementById('label-alcohol-row').classList.toggle('hidden', a <= 0);
+    document.getElementById('label-alcohol-val').textContent = a;
+}
+
+function closeLabelConfirm() {
+    document.getElementById('label-confirm-modal').classList.add('hidden');
+    _labelMacros = null;
+}
+
+async function confirmLabelAdd() {
+    if (!_labelMacros) return;
+    const name = document.getElementById('label-name-input').value.trim();
+    const amount = parseFloat(document.getElementById('label-amount').value) || 0;
+    const saveToMyFoods = document.getElementById('label-save-myfoods').checked;
+
+    if (saveToMyFoods && !name) {
+        if (typeof showAlert === 'function') showAlert('כדי לשמור ב"מאכלים שלי" צריך למלא שם.');
+        return;
+    }
+
+    const ratio = amount / 100;
+    const protein_g = Math.round(_labelMacros.protein_g * ratio * 10) / 10;
+    const carbs_g   = Math.round(_labelMacros.carbs_g   * ratio * 10) / 10;
+    const fat_g     = Math.round(_labelMacros.fat_g     * ratio * 10) / 10;
+    const alcohol_g = Math.round((_labelMacros.alcohol_g || 0) * ratio * 10) / 10;
+
+    if (typeof addFoodLogEntry === 'function') {
+        addFoodLogEntry({
+            name: name || 'מאכל',
+            unit_amount: amount,
+            unit: 'גרם',
+            grams: amount,
+            protein_g: protein_g || null,
+            carbs_g:   carbs_g   || null,
+            fat_g:     fat_g     || null,
+            alcohol_g: alcohol_g || null,
+        });
+    }
+
+    if (saveToMyFoods && typeof sbAddCustomFood === 'function') {
+        await sbAddCustomFood({
+            name, unit: 'גרם', unit_amount: 100,
+            protein_g: _labelMacros.protein_g,
+            carbs_g:   _labelMacros.carbs_g,
+            fat_g:     _labelMacros.fat_g,
+            alcohol_g: _labelMacros.alcohol_g
+        });
+        if (typeof _loadMyFoodsData === 'function') await _loadMyFoodsData();
+    }
+
+    if (typeof addFoodMacros === 'function') addFoodMacros();
+    closeLabelConfirm();
+    if (typeof closeFoodScanner === 'function') closeFoodScanner();
+
+    const kcal = Math.round(protein_g * 4 + carbs_g * 4 + fat_g * 9 + alcohol_g * 7);
+    const toast = document.createElement('div');
+    toast.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> נוסף ליומן: ${kcal} קלוריות`;
+    toast.style.cssText = 'position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:10100;box-shadow:0 4px 15px rgba(0,0,0,0.2);white-space:nowrap;';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
