@@ -217,7 +217,9 @@ function confirmBarcodeAdd() {
 
     if (typeof addFoodLogEntry === 'function') {
         addFoodLogEntry({
-            name: `${_bcProduct.name} (${amount} גרם)`,
+            name: _bcProduct.name,
+            unit_amount: amount,
+            unit: 'גרם',
             grams: amount,
             protein_g: protein_g || null,
             carbs_g:   carbs_g   || null,
