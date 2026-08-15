@@ -86,11 +86,15 @@ function enrichItemMacros(item) {
         };
     }
 
-    // תקרה קשיחה — בלי קשר אם הערך הגיע מהמאגר או מה-AI
+    // תקרה קשיחה — בלי קשר אם הערך הגיע מהמאגר או מה-AI.
+    // חלבון: אין מאכל שלם/מבושל שעובר 50% מהמשקל בחלבון (זה היה הבאג המקורי).
+    // שומן/פחמימה: יכולים להגיע ל-100% מהמשקל באמת (שמן = שומן טהור, סוכר = פחמימה טהורה) -
+    // התקרה עליהם היא רק הגבול הפיזי (לא ניתן שמאקרו יהיה יותר ממשקל המאכל עצמו).
     if (result.grams) {
-        const cap = result.grams * 0.5;
-        ['protein_g', 'carbs_g', 'fat_g'].forEach(key => {
-            if (result[key] > cap) result = { ...result, [key]: Math.round(cap * 10) / 10 };
+        const proteinCap = result.grams * 0.5;
+        if (result.protein_g > proteinCap) result = { ...result, protein_g: Math.round(proteinCap * 10) / 10 };
+        ['carbs_g', 'fat_g'].forEach(key => {
+            if (result[key] > result.grams) result = { ...result, [key]: Math.round(result.grams * 10) / 10 };
         });
     }
 
@@ -1237,6 +1241,7 @@ async function addScannedPortions() {
     const alcohol = scannedGrams.alcohol || 0;
 
     // שמור ליומן — כל מאכל בנפרד, בגרמים ובמאקרו מדויקים. כשל בפריט אחד לא עוצר את השאר
+    const _failedItemNames = [];
     if (scannedItems && scannedItems.length > 0) {
         scannedItems.forEach(item => {
             try {
@@ -1250,6 +1255,7 @@ async function addScannedPortions() {
                 });
             } catch (e) {
                 console.warn('addFoodLogEntry failed:', item.name, e);
+                _failedItemNames.push(item.name);
             }
         });
     } else if (protein || carbs || fat || alcohol) {
@@ -1268,6 +1274,9 @@ async function addScannedPortions() {
 
     if (btn) btn.disabled = false;
     closeFoodScanner();
+    if (_failedItemNames.length && typeof showAlert === 'function') {
+        showAlert('הפריטים הבאים לא נשמרו ביומן, כדאי להוסיף אותם ידנית: ' + _failedItemNames.join(', '));
+    }
     const kcal = Math.round(protein * 4 + carbs * 4 + fat * 9 + alcohol * 7);
     const toast = document.createElement('div');
     toast.innerHTML = (protein || carbs || fat || alcohol)
