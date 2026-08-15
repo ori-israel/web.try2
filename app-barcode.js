@@ -59,8 +59,7 @@ async function openBarcodeScanner() {
     } catch (e) {
         console.warn('barcode camera error:', e);
         closeBarcodeScanner();
-        const detail = e && (e.name || e.message) ? ` (${e.name || ''} ${e.message || ''})`.trim() : '';
-        if (typeof showAlert === 'function') showAlert(`לא הצלחנו לגשת למצלמה. יש לוודא שניתנה הרשאת מצלמה לאפליקציה.${detail}`);
+        if (typeof showAlert === 'function') showAlert('לא הצלחנו לגשת למצלמה. יש לוודא שניתנה הרשאת מצלמה לאפליקציה.');
     }
 }
 
@@ -349,6 +348,7 @@ async function readNutritionLabel(base64, mimeType) {
         const match = fullText.match(/\{[\s\S]*?\}/);
         if (!match) throw new Error('no json');
         const macros = JSON.parse(match[0]);
+        if (!macros.protein_g && !macros.carbs_g && !macros.fat_g) throw new Error('nothing read');
         _labelMacros = {
             protein_g: macros.protein_g || 0,
             carbs_g:   macros.carbs_g   || 0,
@@ -366,7 +366,7 @@ async function readNutritionLabel(base64, mimeType) {
     } catch (e) {
         loadingModal.classList.add('hidden');
         if (_labelReadCancelled) return;
-        if (typeof showAlert === 'function') showAlert('לא הצלחנו לקרוא את הטבלה. אפשר לנסות שוב עם תמונה ברורה יותר.');
+        if (typeof showAlert === 'function') showAlert('לא הצלחנו לקרוא את הערכים. אפשר לנסות שוב עם תמונה ברורה יותר.');
     }
 }
 
