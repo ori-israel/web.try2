@@ -295,7 +295,7 @@ async function sbUpdateFoodLog(id, fields) {
 
 async function sbFetchFoodLogRange(userId, fromDate) {
     const { data, error } = await db.from('food_log')
-        .select('date, time, food, grams, protein_g, carbs_g, fat_g, alcohol_g, recipe_items')
+        .select('id, date, time, food, grams, protein_g, carbs_g, fat_g, alcohol_g, recipe_items')
         .eq('user_id', userId)
         .gte('date', fromDate)
         .order('date', { ascending: true })

@@ -1028,6 +1028,9 @@ async function _renderFoodLogPastDay(dateStr) {
                     <div class="fl-card-macros">${r.grams?`<span class="g">${r.grams}g</span>`:''}${r.protein_g?`<span class="fl-m-p">${r.protein_g}g חלבון</span>`:''}${r.carbs_g?`<span class="fl-m-c">${r.carbs_g}g פחמימה</span>`:''}${r.fat_g?`<span class="fl-m-f">${r.fat_g}g שומן</span>`:''}${r.alcohol_g?`<span class="fl-m-a">${r.alcohol_g}g אלכוהול</span>`:''}
                     </div>
                     ${hasRecipe ? `<div id="${detId}" style="display:none;margin-top:6px;font-size:11.5px;color:var(--text-secondary);">${r.recipe_items.map(ing => `${_esc(ing.name)} — ${ing.amount} ${_esc(ing.unit)}`).join('<br>')}</div>` : ''}
+                </div>
+                <div class="fl-card-actions">
+                    <button onclick="deletePastDayFoodLogEntry('${r.id}', '${dateStr}')" title="מחיקה"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
                 </div></div>`;
             });
             html+='</div>';
@@ -1038,9 +1041,26 @@ async function _renderFoodLogPastDay(dateStr) {
             <div class="fl-summary-kcal">${totalKcal}<span>קלוריות</span></div>
             <div class="fl-summary-macros">${totalP?`<b class="fl-m-p">${Math.round(totalP)}g</b>`:''}${totalC?`<b class="fl-m-c">${Math.round(totalC)}g</b>`:''}${totalF?`<b class="fl-m-f">${Math.round(totalF)}g</b>`:''}${totalA?`<b class="fl-m-a">${Math.round(totalA)}g</b>`:''}</div>
         </div>`;
+
+        // רק ליום הנוכחי: הטבעות למעלה בדשבורד מחושבות פה ישירות (לא מקומי - אין יומן מקומי לצד אדמין)
+        if (dateStr === (typeof localDateStr === 'function' ? localDateStr() : dateStr)) {
+            const pv = document.getElementById('protein-val'); if (pv) pv.innerText = Math.round(totalP*10)/10;
+            const cv = document.getElementById('carbs-val');   if (cv) cv.innerText = Math.round(totalC*10)/10;
+            const fv = document.getElementById('fat-val');     if (fv) fv.innerText = Math.round(totalF*10)/10;
+            const kv = document.getElementById('kcal-val');    if (kv) kv.innerText = totalKcal;
+            if (typeof updateAllMacroProgress === 'function') updateAllMacroProgress();
+            if (typeof sbSaveNutrition === 'function') sbSaveNutrition(userId, totalP, totalC, totalF, totalA).catch(() => {});
+        }
     } catch(e) {
         el.innerHTML = '<div style="text-align:center;color:#e55;padding:12px;">שגיאה בטעינה</div>';
     }
+}
+
+async function deletePastDayFoodLogEntry(id, dateStr) {
+    const ok = await showConfirmDanger('למחוק פריט זה מהיומן?');
+    if (!ok) return;
+    if (typeof sbDeleteFoodLog === 'function') await sbDeleteFoodLog(id).catch(() => {});
+    await _renderFoodLogPastDay(dateStr);
 }
 
 function toggleFoodLogRecipeDetails(id) {
