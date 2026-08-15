@@ -1020,6 +1020,8 @@ h1 {
     -webkit-backdrop-filter: blur(8px);
     align-items: center;
     justify-content: center;
+    padding-bottom: var(--kb-height, 0px);
+    box-sizing: border-box;
 }
 .bc-notfound-card { text-align: center; }
 .bc-notfound-body {
@@ -2776,7 +2778,11 @@ html.modal-open body {
     top: var(--vvtop, 0px);
     right: 0;
     left: 0;
-    height: var(--vvh, 100vh);
+    bottom: 0;
+    /* הרקע הכהה תמיד מכסה את כל המסך האמיתי (בלי חורים), אבל הריכוז
+       האנכי של התוכן מתחשב בגובה שהמקלדת תופסת - כך שהפופאפ עצמו
+       תמיד ממורכז בשטח שבאמת נראה, ולא נחתך/מתחבא מתחתיה */
+    padding-bottom: var(--kb-height, 0px);
     background: var(--overlay-bg);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -2785,14 +2791,17 @@ html.modal-open body {
     align-items: center;
     justify-content: center;
     overflow-y: auto;
+    box-sizing: border-box;
 }
 .modal-overlay.hidden { display: none !important; }
+/* דיאלוגים (אישור/התראה) תמיד מעל כל פופאפ אחר, כולל כשהם נפתחים מעל מודל אחר */
+#app-dialog { z-index: 10200; }
 
-/* מסך מלא (סריקת ברקוד) — עוקב אחרי הגובה הנראה בפועל, כדי שפופאפ פנימי
-   (כמו אישור מוצר עם שדה קלט) לא ייחתך מתחת למקלדת כשהיא פתוחה */
+/* מסך מלא (סריקת ברקוד) — גם הוא נמתח עד ממש לתחתית האמיתית, לא לפי גובה מחושב */
 .bc-modal {
     top: var(--vvtop, 0px) !important;
-    height: var(--vvh, 100vh) !important;
+    bottom: 0 !important;
+    height: auto !important;
 }
 
 .modal-card {

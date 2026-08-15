@@ -14,6 +14,8 @@
 // באייפון, position:fixed נשאר מחובר ל-layout viewport (כולל השטח שהמקלדת מכסה),
 // לא ל-visual viewport (מה שבאמת נראה) — בלי זה מודל "קבוע" זז/נחתך כשהמקלדת נפתחת.
 // --vvh/--vvtop עוקבים אחרי מה שבאמת נראה, ו-.kb-open מסמן שהמקלדת כנראה פתוחה.
+// --kb-height הוא גובה השטח שהמקלדת תופסת, לשימוש כ-padding-bottom בפופאפים
+// כדי שהם ימורכזו בשטח הנראה בפועל, בלי לחתוך את הרקע הכהה שמכסה הכל.
 (function() {
     if (!window.visualViewport) return;
     var vv = window.visualViewport;
@@ -22,6 +24,7 @@
         document.documentElement.style.setProperty('--vvtop', vv.offsetTop + 'px');
         var kbOpen = (window.innerHeight - vv.height) > 120;
         document.documentElement.classList.toggle('kb-open', kbOpen);
+        document.documentElement.style.setProperty('--kb-height', (kbOpen ? Math.max(0, window.innerHeight - vv.height) : 0) + 'px');
     }
     vv.addEventListener('resize', update);
     vv.addEventListener('scroll', update);
