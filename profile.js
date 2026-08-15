@@ -81,7 +81,7 @@ function closeProfile() {
 function populateProfileForm() {
     const cw = localStorage.getItem('current_weight') || CLIENT.currentWeight || '';
     document.getElementById('prof-nickname').value       = CLIENT.nickname       || '';
-    document.getElementById('prof-email').value          = CLIENT.email          || '';
+    document.getElementById('prof-email-display').textContent = (typeof SB_USER !== 'undefined' && SB_USER && SB_USER.email) || CLIENT.email || '';
     document.getElementById('prof-phone').value          = CLIENT.phone          || '';
     document.getElementById('prof-current-weight').value = cw;
     document.getElementById('prof-activity').value       = CLIENT.activityLevel  || 1.465;
@@ -170,7 +170,6 @@ function saveProfile() {
 
     const fields = {
         nickname:      document.getElementById('prof-nickname'),
-        email:         document.getElementById('prof-email'),
         phone:         document.getElementById('prof-phone'),
         goalWeight:    document.getElementById('prof-goal-weight'),
         height:        document.getElementById('prof-height'),
@@ -185,7 +184,6 @@ function saveProfile() {
 
     Object.assign(data, {
         nickname:      fields.nickname.value,
-        email:         fields.email.value,
         phone:         fields.phone.value,
         currentWeight: cw || CLIENT.currentWeight,
         goalWeight:    parseFloat(fields.goalWeight.value) || CLIENT.goalWeight,
