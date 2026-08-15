@@ -128,6 +128,13 @@ function closeCompleteMsg() {
     // מקור אמת יחיד. נקרא (בלי פרמטרים) אחרי כל הוספה/מחיקה/עריכה של פריט ביומן,
     // כדי שהסכום למעלה תמיד יהיה זהה בדיוק לרשימת הפריטים ולא יוכל להתפספס/להצטבר לא נכון
     function addFoodMacros() {
+        // אדמין שצופה בלקוח: אין ליומן המקומי במכשיר הזה שום קשר לאמת (זה יומן מקומי ריק/ישן,
+        // האמת היא בסופאבייס). לא לחשב מקומי בכלל - רק לגרום לרענון מהמקור הנכון
+        const isAdminViewingOther = typeof SB_VIEW_ID !== 'undefined' && SB_VIEW_ID && typeof SB_USER !== 'undefined' && SB_USER && SB_VIEW_ID !== SB_USER.id;
+        if (isAdminViewingOther) {
+            if (typeof renderFoodLog === 'function') renderFoodLog();
+            return;
+        }
         const entries = typeof loadFoodLogEntries === 'function' ? loadFoodLogEntries() : [];
         dailyGrams = entries.reduce((sum, e) => ({
             protein: Math.round((sum.protein + (e.protein_g || 0)) * 10) / 10,
