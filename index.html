@@ -1415,15 +1415,15 @@
   </div>
 
   <!-- שלב 4: לא נמצא -->
-  <div id="bc-notfound-step" class="bc-step bc-solid hidden">
-    <div class="bc-topbar">
-      <button class="bc-round-btn alt" onclick="closeBarcodeScanner()" aria-label="סגירה"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-    </div>
-    <div class="bc-notfound-body">
-      <div class="bc-notfound-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.3 3.9L2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/></svg></div>
-      <div class="bc-notfound-title">המוצר לא נמצא</div>
-      <div class="bc-notfound-desc">אפשר להוסיף אותו בדרך אחרת.</div>
-      <button class="scan-action-btn primary bc-add-btn" onclick="switchBarcodeToTextSearch()">מעבר לחיפוש בשם</button>
+  <div id="bc-notfound-step" class="bc-step bc-popup-overlay hidden">
+    <div class="modal-card bc-notfound-card">
+      <button class="modal-close" onclick="closeBarcodeScanner()" aria-label="סגירה"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="bc-notfound-body">
+        <div class="bc-notfound-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.3 3.9L2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/></svg></div>
+        <div class="bc-notfound-title">המוצר לא נמצא</div>
+        <div class="bc-notfound-desc">אפשר להוסיף אותו בדרך אחרת.</div>
+        <button class="scan-action-btn primary bc-add-btn" onclick="switchBarcodeToTextSearch()">מעבר לחיפוש בשם</button>
+      </div>
     </div>
   </div>
 
