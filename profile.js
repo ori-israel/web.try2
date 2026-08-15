@@ -110,6 +110,8 @@ function populateProfileForm() {
         document.getElementById('prof-goal').disabled = false;
         document.getElementById('prof-carb-ratio').disabled = false;
     }
+    // "משך ליווי" רלוונטי רק למי שיש לו ליווי בפועל, לא למנוי עצמאי בלבד
+    document.getElementById('coaching-duration-row').style.display = CLIENT.isSubscriber ? 'none' : '';
     _refreshAvatarUI(CLIENT.avatarUrl || null);
 }
 
@@ -170,6 +172,8 @@ function saveProfile() {
         nickname:      document.getElementById('prof-nickname'),
         email:         document.getElementById('prof-email'),
         phone:         document.getElementById('prof-phone'),
+        goalWeight:    document.getElementById('prof-goal-weight'),
+        height:        document.getElementById('prof-height'),
         activityLevel: document.getElementById('prof-activity'),
         allergies:     document.getElementById('prof-allergies'),
         likedFoods:    document.getElementById('prof-liked-foods'),
@@ -184,6 +188,8 @@ function saveProfile() {
         email:         fields.email.value,
         phone:         fields.phone.value,
         currentWeight: cw || CLIENT.currentWeight,
+        goalWeight:    parseFloat(fields.goalWeight.value) || CLIENT.goalWeight,
+        height:        parseFloat(fields.height.value) || CLIENT.height,
         activityLevel: parseFloat(fields.activityLevel.value),
         allergies:     fields.allergies.value,
         likedFoods:    fields.likedFoods.value,
@@ -195,13 +201,11 @@ function saveProfile() {
         Object.assign(data, {
             name:        document.getElementById('prof-name').value,
             startWeight: parseFloat(document.getElementById('prof-start-weight').value) || CLIENT.startWeight,
-            goalWeight:  parseFloat(document.getElementById('prof-goal-weight').value) || CLIENT.goalWeight,
             birthDate:             document.getElementById('prof-birth-date').value,
             startDate:             document.getElementById('prof-start-date').value,
             coachingDurationMonths: document.getElementById('prof-coaching-duration').value === '' ? null : parseInt(document.getElementById('prof-coaching-duration').value),
             subscriptionDurationMonths: document.getElementById('prof-subscription-duration').value === '' ? null : parseInt(document.getElementById('prof-subscription-duration').value),
             subscriptionType: document.getElementById('prof-subscription-type').value || null,
-            height:                parseFloat(document.getElementById('prof-height').value),
             gender:                document.getElementById('prof-gender').value,
         });
         data.subscriptionEndDate = _computeSubscriptionEndDate(data.startDate, data.subscriptionDurationMonths);

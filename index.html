@@ -1116,10 +1116,7 @@
             <input id="avatar-file-input" type="file" accept="image/jpeg,image/png,image/webp" style="display:none;" aria-label="העלאת תמונת פרופיל" onchange="handleAvatarUpload(this)">
         </div>
         <!-- Section 1: Client editable -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0;">
-            <div class="profile-section-label" style="margin:0;padding:0;">עריכה אישית</div>
-            <button id="theme-toggle-profile-btn" onclick="toggleTheme()" style="padding:7px 14px;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-primary);border:1.5px solid var(--border);white-space:nowrap;"></button>
-        </div>
+        <div class="profile-section-label">עריכה אישית</div>
         <div class="profile-group">
             <div class="profile-row">
                 <label for="prof-nickname">שם משתמש</label>
@@ -1138,6 +1135,14 @@
                 <input id="prof-current-weight" type="number" class="profile-input" placeholder="ק״ג" step="0.1">
             </div>
             <div class="profile-row">
+                <label for="prof-goal-weight">משקל יעד</label>
+                <input id="prof-goal-weight" type="number" class="profile-input" step="0.1">
+            </div>
+            <div class="profile-row">
+                <label for="prof-height">גובה (ס״מ)</label>
+                <input id="prof-height" type="number" class="profile-input">
+            </div>
+            <div class="profile-row">
                 <label for="prof-activity">אקטיביות</label>
                 <select id="prof-activity" class="profile-input profile-select">
                     <option value="1.2">לא עושה פעילות גופנית בכלל</option>
@@ -1145,6 +1150,25 @@
                     <option value="1.465">4–5 אימונים/שבוע</option>
                     <option value="1.55">6 אימונים/שבוע</option>
                     <option value="1.725">פעילות אינטנסיבית יומיומית</option>
+                </select>
+            </div>
+            <div class="profile-row">
+                <label for="prof-goal">מטרה</label>
+                <select id="prof-goal" class="profile-input profile-select coach-editable-field" disabled>
+                    <option value="bulk">מסה</option>
+                    <option value="cut">חיטוב</option>
+                    <option value="maintain">שמירה על המשקל הנוכחי</option>
+                </select>
+            </div>
+            <div class="profile-row">
+                <label for="prof-carb-ratio">יחס פחמימה / שומן</label>
+                <select id="prof-carb-ratio" class="profile-input profile-select coach-editable-field" disabled>
+                    <option value="">ברירת מחדל (לפי מטרה)</option>
+                    <option value="0.7">70 פחמימה / 30 שומן</option>
+                    <option value="0.6">60 פחמימה / 40 שומן</option>
+                    <option value="0.5">50 פחמימה / 50 שומן</option>
+                    <option value="0.4">40 פחמימה / 60 שומן</option>
+                    <option value="0.3">30 פחמימה / 70 שומן</option>
                 </select>
             </div>
             <div class="profile-row profile-row-textarea">
@@ -1158,6 +1182,14 @@
             <div class="profile-row profile-row-textarea">
                 <label for="prof-disliked-foods">מאכלים שלא ארצה לאכול</label>
                 <textarea id="prof-disliked-foods" class="profile-input profile-textarea" placeholder="מאכלים שלא טעימים לי" maxlength="200"></textarea>
+            </div>
+            <div class="profile-row">
+                <label for="theme-select">מצב תצוגה</label>
+                <select id="theme-select" class="profile-input profile-select" onchange="setTheme(this.value)">
+                    <option value="light">יום</option>
+                    <option value="dark">לילה</option>
+                    <option value="auto">אוטומטי</option>
+                </select>
             </div>
         </div>
 
@@ -1176,10 +1208,6 @@
                 <input id="prof-start-weight" type="number" class="profile-input coach-editable-field" disabled step="0.1">
             </div>
             <div class="profile-row">
-                <label for="prof-goal-weight">משקל יעד</label>
-                <input id="prof-goal-weight" type="number" class="profile-input coach-editable-field" disabled step="0.1">
-            </div>
-            <div class="profile-row">
                 <label for="prof-birth-date">תאריך לידה</label>
                 <input id="prof-birth-date" type="date" class="profile-input coach-editable-field" disabled dir="ltr">
             </div>
@@ -1187,7 +1215,7 @@
                 <label for="prof-start-date">תאריך הצטרפות</label>
                 <input id="prof-start-date" type="date" class="profile-input coach-editable-field" disabled dir="ltr">
             </div>
-            <div class="profile-row">
+            <div class="profile-row" id="coaching-duration-row">
                 <label for="prof-coaching-duration">משך ליווי (חודשים)</label>
                 <input id="prof-coaching-duration" type="number" class="profile-input coach-editable-field" disabled min="1" max="24" placeholder="לדוגמה: 3">
             </div>
@@ -1208,33 +1236,10 @@
                 <span id="prof-subscription-end-date-display" class="profile-input" style="display:flex;align-items:center;"></span>
             </div>
             <div class="profile-row">
-                <label for="prof-height">גובה (ס״מ)</label>
-                <input id="prof-height" type="number" class="profile-input coach-editable-field" disabled>
-            </div>
-            <div class="profile-row">
                 <label for="prof-gender">מין</label>
                 <select id="prof-gender" class="profile-input profile-select coach-editable-field" disabled>
                     <option value="male">גבר</option>
                     <option value="female">אישה</option>
-                </select>
-            </div>
-            <div class="profile-row">
-                <label for="prof-goal">מטרה</label>
-                <select id="prof-goal" class="profile-input profile-select coach-editable-field" disabled>
-                    <option value="bulk">מסה</option>
-                    <option value="cut">חיטוב</option>
-                    <option value="maintain">שמירה על המשקל הנוכחי</option>
-                </select>
-            </div>
-            <div class="profile-row">
-                <label for="prof-carb-ratio">יחס פחמימה / שומן</label>
-                <select id="prof-carb-ratio" class="profile-input profile-select coach-editable-field" disabled>
-                    <option value="">ברירת מחדל (לפי מטרה)</option>
-                    <option value="0.7">70 פחמימה / 30 שומן</option>
-                    <option value="0.6">60 פחמימה / 40 שומן</option>
-                    <option value="0.5">50 פחמימה / 50 שומן</option>
-                    <option value="0.4">40 פחמימה / 60 שומן</option>
-                    <option value="0.3">30 פחמימה / 70 שומן</option>
                 </select>
             </div>
         </div>

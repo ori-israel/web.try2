@@ -13,7 +13,7 @@
     tab1: [
       { sel: '#nutrition-streak-display', text: 'מספר הימים ברצף עם עמידה ביעדי התזונה <svg viewBox="0 0 24 24" width="14" height="14" fill="#f97316" stroke="#f97316" stroke-width="1" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 2.5c-1.2 3.3-5 5.7-5 9.5a5 5 0 0 0 10 0c0-1.6-.7-2.9-1.8-4 .1 1.7-.9 2.4-1.6 2 .9-2 -.2-4.2-1.6-7.5z"/></svg>' },
       { sel: '#macros-progress-group',   text: 'הקלוריות ביום, וכמות החלבון, הפחמימות והשומן בגרמים מתוך היעד' },
-      { sel: '.food-action-row .food-action-tile:nth-child(1)', text: 'להוספת אוכל: צילום תמונה וזיהוי אוטומטי ב-AI, העלאה מהגלריה, או חיפוש במאגר המזון. כדאי לנסות לבד' },
+      { sel: '.food-action-row .food-action-tile:nth-child(1)', text: 'להוספת אוכל: צילום תמונה וזיהוי אוטומטי ב-AI, סריקת ברקוד, צילום טבלת הערכים התזונתיים על גב האריזה, העלאה מהגלריה, או חיפוש במאגר המזון. כדאי לנסות לבד' },
       { sel: '.food-action-row .food-action-tile:nth-child(2)', text: 'כל האוכל שאכלת היום מרוכז כאן' },
       { sel: '.food-action-row .food-action-tile:nth-child(3)', text: 'מאכלים ומתכונים אישיים ששמרת, לשימוש חוזר מהיר בלי לחפש כל פעם מחדש' },
       { sel: '.meal-idea-card',          text: 'המאמן AI מציע ארוחה בהתאמה אישית, לפי מה שנשאר לך היום ולפי הטעם שלך' },
@@ -74,13 +74,11 @@
       { sel: '#calendly-hamburger-btn', text: 'קביעת פגישה אישית עם המאמן ישירות מהאפליקציה', coachOnly: true, pre: openMenu },
       { sel: function () { return document.querySelector('#profile-overlay .profile-group'); },
         text: 'כל הפרטים האישיים. אפשר לעדכן שם, משקל, אלרגיות ומאכלים מועדפים, שעוזרים למאמן ה-AI להתאים המלצות', pre: openProfileForTour },
-      { sel: '#theme-toggle-profile-btn', text: 'מעבר בין תצוגה כהה לבהירה לפי ההעדפה', pre: openProfileForTour },
       { sel: '#pwa-add-btn',  text: 'התקנת האפליקציה על הטלפון כמו אפליקציה רגילה', pre: openProfileForTour },
     ],
   };
 
   const TAB_NAMES = { tab1: 'תזונה', tab2: 'אימונים', tab4: 'מעקב ויעדים', tab5: 'מרכז המידע' };
-  const TAB_ORDER = ['tab1', 'tab2', 'tab4', 'tab5'];
 
   // ---------- עזרי סוג משתמש ----------
   function isSubscriber() {
@@ -292,25 +290,17 @@
     highlight.style.display = 'none';
 
     let title = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" style="vertical-align:-3px"><path d="M12 3l1.5 6L20 10.5 14 12l-2 6-2-6-6-1.5L10.5 9z"/></svg> כל הכבוד!';
-    let msg, nextTab = null;
+    let msg;
     if (ctx === 'general') {
       msg = 'סיימת את הסיור הכללי. אפשר לפתוח כל מדריך שוב מתי שרוצים מהכפתורים.';
       markGeneralSeen();
     } else if (ctx === 'ai') {
       msg = 'סיימת את הסיור של הסוכן AI';
     } else {
-      const i = TAB_ORDER.indexOf(ctx);
-      nextTab = (i >= 0 && i < TAB_ORDER.length - 1) ? TAB_ORDER[i + 1] : null;
       msg = 'סיימת את הסיור של ' + (TAB_NAMES[ctx] || '');
     }
 
-    let btns = '';
-    if (nextTab) {
-      btns = '<button class="tour-next" data-act="gonext">סיור ב' + TAB_NAMES[nextTab] + '</button>' +
-             '<button class="tour-skip" data-act="done">סיום</button>';
-    } else {
-      btns = '<button class="tour-next" data-act="done">סיום</button>';
-    }
+    const btns = '<button class="tour-next" data-act="done">סיום</button>';
     bubble.classList.add('is-hidden');
     bubble.classList.add('tour-center');
     bubble.style.display = 'block';
@@ -321,15 +311,8 @@
     requestAnimationFrame(function () {
       requestAnimationFrame(function () { bubble.classList.remove('is-hidden'); });
     });
-    const go = bubble.querySelector('[data-act="gonext"]');
     const done = bubble.querySelector('[data-act="done"]');
     if (done) done.onclick = close;
-    if (go) go.onclick = function () {
-      close();
-      const btn = document.querySelector('.tab-btn[data-tab="' + nextTab + '"]');
-      if (btn) btn.click();
-      setTimeout(function () { startTab(nextTab); }, 350);
-    };
   }
 
   function close() {
