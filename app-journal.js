@@ -1037,7 +1037,7 @@ function showWeightUpdateToast() {
     toast.innerHTML = _JOURNAL_OK + ' המשקל עודכן!';
     toast.style.cssText = `
         position: fixed;
-        top: 24px;
+        bottom: 90px;
         left: 50%;
         transform: translateX(-50%);
         background: var(--accent);

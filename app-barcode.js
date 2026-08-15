@@ -234,7 +234,7 @@ function confirmBarcodeAdd() {
     const kcal = Math.round(protein_g * 4 + carbs_g * 4 + fat_g * 9 + alcohol_g * 7);
     const toast = document.createElement('div');
     toast.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> נוסף ליומן: ${kcal} קלוריות`;
-    toast.style.cssText = 'position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:10100;box-shadow:0 4px 15px rgba(0,0,0,0.2);white-space:nowrap;';
+    toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:10100;box-shadow:0 4px 15px rgba(0,0,0,0.2);white-space:nowrap;';
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
@@ -450,7 +450,7 @@ async function confirmLabelAdd() {
     const kcal = Math.round(protein_g * 4 + carbs_g * 4 + fat_g * 9 + alcohol_g * 7);
     const toast = document.createElement('div');
     toast.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> נוסף ליומן: ${kcal} קלוריות`;
-    toast.style.cssText = 'position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:10100;box-shadow:0 4px 15px rgba(0,0,0,0.2);white-space:nowrap;';
+    toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:10100;box-shadow:0 4px 15px rgba(0,0,0,0.2);white-space:nowrap;';
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }

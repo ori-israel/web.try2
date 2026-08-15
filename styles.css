@@ -2776,7 +2776,7 @@ html.modal-open body {
     top: var(--vvtop, 0px);
     right: 0;
     left: 0;
-    bottom: 0;
+    height: var(--vvh, 100vh);
     background: var(--overlay-bg);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -2788,11 +2788,11 @@ html.modal-open body {
 }
 .modal-overlay.hidden { display: none !important; }
 
-/* מסך מלא (סריקת ברקוד) — גם הוא נמתח עד ממש לתחתית האמיתית, לא לפי גובה מחושב */
+/* מסך מלא (סריקת ברקוד) — עוקב אחרי הגובה הנראה בפועל, כדי שפופאפ פנימי
+   (כמו אישור מוצר עם שדה קלט) לא ייחתך מתחת למקלדת כשהיא פתוחה */
 .bc-modal {
     top: var(--vvtop, 0px) !important;
-    bottom: 0 !important;
-    height: auto !important;
+    height: var(--vvh, 100vh) !important;
 }
 
 .modal-card {
