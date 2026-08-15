@@ -34,7 +34,9 @@
 (function() {
     var scrollY = 0;
     function isAnyModalOpen() {
-        return !!document.querySelector('.modal-overlay:not(.hidden), #barcode-scanner-modal:not(.hidden)');
+        // app-dialog (אישור/התראה) לא כולל שדה קלט בפועל (showPrompt לא בשימוש) - לא זקוק לנעילה הכבדה
+        // שמיועדת להגנה מפני מקלדת. נעילה עליו גרמה לקפיצה ויזואלית למעלה וחזרה בכל אישור/מחיקה
+        return !!document.querySelector('.modal-overlay:not(#app-dialog):not(.hidden), #barcode-scanner-modal:not(.hidden)');
     }
     function updateBodyLock() {
         var shouldLock = isAnyModalOpen();
