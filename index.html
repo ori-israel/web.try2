@@ -1119,6 +1119,14 @@
         <div class="profile-section-label">עריכה אישית</div>
         <div class="profile-group">
             <div class="profile-row">
+                <label for="theme-select">מצב תצוגה</label>
+                <select id="theme-select" class="profile-input profile-select" onchange="setTheme(this.value)">
+                    <option value="light">יום</option>
+                    <option value="dark">לילה</option>
+                    <option value="auto">אוטומטי</option>
+                </select>
+            </div>
+            <div class="profile-row">
                 <label for="prof-nickname">שם משתמש</label>
                 <input id="prof-nickname" type="text" class="profile-input" placeholder="שם" maxlength="20">
             </div>
@@ -1182,14 +1190,6 @@
             <div class="profile-row profile-row-textarea">
                 <label for="prof-disliked-foods">מאכלים שלא ארצה לאכול</label>
                 <textarea id="prof-disliked-foods" class="profile-input profile-textarea" placeholder="מאכלים שלא טעימים לי" maxlength="200"></textarea>
-            </div>
-            <div class="profile-row">
-                <label for="theme-select">מצב תצוגה</label>
-                <select id="theme-select" class="profile-input profile-select" onchange="setTheme(this.value)">
-                    <option value="light">יום</option>
-                    <option value="dark">לילה</option>
-                    <option value="auto">אוטומטי</option>
-                </select>
             </div>
         </div>
 
