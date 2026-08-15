@@ -202,7 +202,7 @@ function renderFoodSuggestions(query) {
 function _renderFoodSuggestionMatches(matches, box) {
     if (!matches.length) { box.innerHTML = ''; window._currentFoodSuggestions = []; return; }
     box.innerHTML = matches.map((m, i) =>
-        `<div onclick="selectFoodSuggestion(${i})" data-sugg-idx="${i}" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 6px;background:#2c2c2e;border-radius:4px;cursor:pointer;font-size:13.5px;">
+        `<div onclick="selectFoodSuggestion(${i})" data-sugg-idx="${i}" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 6px;background:var(--bg-card-alt);border-radius:4px;cursor:pointer;font-size:13.5px;">
             <span style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="flex-shrink:0;display:flex;">${m.icon}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${_esc(m.label)}</span></span>
             <span style="color:#888;font-size:11.5px;flex-shrink:0;">${m.sub}</span>
         </div>`
@@ -435,7 +435,7 @@ function editItemGrams(idx, el) {
     const input = document.createElement('input');
     input.type = 'number';
     input.value = current;
-    input.style.cssText = 'width:52px;background:#333;border:1px solid #555;border-radius:4px;color:#fff;font-size:16px;padding:2px 4px;text-align:center;';
+    input.style.cssText = 'width:52px;background:var(--input-bg);border:0.5px solid var(--input-border);border-radius:4px;color:var(--text-primary);font-size:16px;padding:2px 4px;text-align:center;';
     el.replaceWith(input);
     input.focus();
     input.select();
