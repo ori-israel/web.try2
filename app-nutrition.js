@@ -113,13 +113,13 @@ function renderScanDetails() {
     const detailsBox = document.getElementById('scan-details-box');
     const itemsHtml = scannedItems.map((item, i) =>
         `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-            <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:#888;cursor:pointer;padding:0 6px;line-height:1;min-width:32px;display:inline-flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-            <span style="flex:1;text-align:right;font-size:15px;">${_esc(item.name)} — <span onclick="editItemGrams(${i}, this)" style="color:#aaa;cursor:pointer;text-decoration:underline dotted;">${Math.round(item.grams)}g</span></span>
+            <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:0 6px;line-height:1;min-width:32px;display:inline-flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+            <span style="flex:1;text-align:right;font-size:15px;">${_esc(item.name)} — <span onclick="editItemGrams(${i}, this)" style="color:var(--text-secondary);cursor:pointer;text-decoration:underline dotted;">${Math.round(item.grams)}g</span></span>
         </div>`
     ).join('');
     // כפתור "הוספת פריט" מוצג תמיד — גם כשאין עדיין פריטים (למשל אחרי מחיקת הפריט האחרון)
     detailsBox.innerHTML = itemsHtml + `<div id="add-item-row" style="margin-top:6px;">
-        <button onclick="showAddItemForm()" style="background:none;border:none;color:#888;font-size:15px;cursor:pointer;padding:8px 0;width:100%;text-align:right;">+ הוספת פריט</button>
+        <button onclick="showAddItemForm()" style="background:none;border:none;color:var(--text-secondary);font-size:15px;cursor:pointer;padding:8px 0;width:100%;text-align:right;">+ הוספת פריט</button>
     </div>`;
 }
 
@@ -204,7 +204,7 @@ function _renderFoodSuggestionMatches(matches, box) {
     box.innerHTML = matches.map((m, i) =>
         `<div onclick="selectFoodSuggestion(${i})" data-sugg-idx="${i}" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 6px;background:var(--bg-card-alt);border-radius:4px;cursor:pointer;font-size:13.5px;">
             <span style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="flex-shrink:0;display:flex;">${m.icon}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${_esc(m.label)}</span></span>
-            <span style="color:#888;font-size:11.5px;flex-shrink:0;">${m.sub}</span>
+            <span style="color:var(--text-secondary);font-size:11.5px;flex-shrink:0;">${m.sub}</span>
         </div>`
     ).join('');
     window._currentFoodSuggestions = matches;
@@ -325,7 +325,7 @@ async function confirmAddItem() {
     // מוצר שנמצא במאגר הישראלי לפי שם - נשלף לפי ברקוד (יחסית ל-100 גרם)
     if (selSource && selSource.type === 'barcode' && selSource.label === name && unit === 'גרם') {
         const row = document.getElementById('add-item-row');
-        if (row) row.innerHTML = `<span style="color:#888;font-size:12px;">מחפש מידע תזונתי...</span>`;
+        if (row) row.innerHTML = `<span style="color:var(--text-secondary);font-size:12px;">מחפש מידע תזונתי...</span>`;
         const macros = await resolveBarcodeProductMacros(selSource.ref.barcode);
         if (macros) {
             const ratio = amount / 100;
@@ -343,7 +343,7 @@ async function confirmAddItem() {
             renderScanDetails();
             return;
         }
-        if (row) row.innerHTML = `<button onclick="showAddItemForm()" style="background:none;border:none;color:#888;font-size:15px;cursor:pointer;padding:8px 0;width:100%;text-align:right;">+ הוספת פריט</button>`;
+        if (row) row.innerHTML = `<button onclick="showAddItemForm()" style="background:none;border:none;color:var(--text-secondary);font-size:15px;cursor:pointer;padding:8px 0;width:100%;text-align:right;">+ הוספת פריט</button>`;
     }
 
     const isGrams = unit === 'גרם';
@@ -365,7 +365,7 @@ async function confirmAddItem() {
 
     // Gemini + חיפוש באינטרנט — תומך בגרמים וביחידות אחרות
     const row = document.getElementById('add-item-row');
-    if (row) row.innerHTML = `<span style="color:#888;font-size:12px;">מחפש מידע תזונתי...</span>`;
+    if (row) row.innerHTML = `<span style="color:var(--text-secondary);font-size:12px;">מחפש מידע תזונתי...</span>`;
 
     try {
         const prompt = isGrams
@@ -920,7 +920,7 @@ function _flShowUndoToast() {
     const toast = document.createElement('div');
     toast.id = 'fl-undo-toast';
     toast.innerHTML = `<span>הפריט נמחק</span><button onclick="undoDeleteFoodLogEntry()">↩ בטל</button>`;
-    toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#2c2c2e;color:#fff;padding:10px 12px 10px 18px;border-radius:25px;font-size:13.5px;z-index:9999;box-shadow:0 4px 15px rgba(0,0,0,0.25);display:flex;align-items:center;gap:10px;white-space:nowrap;';
+    toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:10px 12px 10px 18px;border-radius:25px;font-size:13.5px;z-index:9999;box-shadow:0 4px 15px rgba(0,0,0,0.25);display:flex;align-items:center;gap:10px;white-space:nowrap;';
     toast.querySelector('button').style.cssText = 'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:20px;padding:5px 14px;font-size:12.5px;cursor:pointer;';
     document.body.appendChild(toast);
     _flUndoTimer = setTimeout(() => {
@@ -948,7 +948,7 @@ function _renderFoodLogNav() {
     const d = new Date(dateStr + 'T12:00:00');
     const dayNames = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
     const dateLabel = isToday ? 'היום' : `יום ${dayNames[d.getDay()]} · ${d.toLocaleDateString('he-IL',{day:'numeric',month:'numeric'})}`;
-    const btnStyle = 'background:#5b7cfa;color:#fff;border:none;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;font-family:inherit;';
+    const btnStyle = 'background:var(--accent);color:#fff;border:none;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;font-family:inherit;';
 
     // 7 ימים לבחירה
     let days = '';
