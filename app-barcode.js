@@ -250,6 +250,12 @@ function switchBarcodeToTextSearch() {
 // ===== צילום טבלת ערכים תזונתיים (גב האריזה) =====
 
 let _labelMacros = null; // { protein_g, carbs_g, fat_g, alcohol_g } ל-100 גרם
+let _labelReadCancelled = false;
+
+function cancelLabelRead() {
+    _labelReadCancelled = true;
+    document.getElementById('label-loading-modal').classList.add('hidden');
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     const input = document.getElementById('label-image-input');
@@ -293,6 +299,7 @@ function handleLabelImageFile(file) {
 
 async function readNutritionLabel(base64, mimeType) {
     const loadingModal = document.getElementById('label-loading-modal');
+    _labelReadCancelled = false;
     loadingModal.classList.remove('hidden');
 
     try {
@@ -349,6 +356,7 @@ async function readNutritionLabel(base64, mimeType) {
             alcohol_g: macros.alcohol_g || 0
         };
 
+        if (_labelReadCancelled) return;
         document.getElementById('label-name-input').value = '';
         document.getElementById('label-amount').value = '100';
         document.getElementById('label-save-myfoods').checked = false;
@@ -357,6 +365,7 @@ async function readNutritionLabel(base64, mimeType) {
         document.getElementById('label-confirm-modal').classList.remove('hidden');
     } catch (e) {
         loadingModal.classList.add('hidden');
+        if (_labelReadCancelled) return;
         if (typeof showAlert === 'function') showAlert('לא הצלחנו לקרוא את הטבלה. אפשר לנסות שוב עם תמונה ברורה יותר.');
     }
 }

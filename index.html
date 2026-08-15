@@ -1349,7 +1349,7 @@
 </div>
 
 <!-- ══ צילום תווית תזונה ════════════════════════ -->
-<div id="label-loading-modal" class="modal-overlay hidden">
+<div id="label-loading-modal" class="modal-overlay hidden" onclick="if(event.target===this)cancelLabelRead()">
   <div class="modal-card" style="text-align:center;padding:30px 20px;">
     <div id="label-loading-text" style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">קורא את טבלת הערכים...</div>
     <div class="bc-loading-bar-bg" style="margin:0 auto;"><div id="label-loading-bar" class="bc-loading-bar" style="width:55%;"></div></div>
