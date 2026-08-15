@@ -308,7 +308,9 @@ async function confirmAddItem() {
     if (selSource && selSource.type === 'custom' && selSource.label === name) {
         const macros = _customFoodMacrosForAmount(selSource.ref, amount);
         scannedItems.push({
-            name: `${name} (${amount} ${unit})`,
+            name,
+            unit_amount: amount,
+            unit,
             grams: unit === 'גרם' ? amount : null,
             protein_g: macros.protein_g,
             fat_g: macros.fat_g,
@@ -328,7 +330,9 @@ async function confirmAddItem() {
         if (macros) {
             const ratio = amount / 100;
             scannedItems.push({
-                name: `${name} (${amount} ${unit})`,
+                name,
+                unit_amount: amount,
+                unit,
                 grams: amount,
                 protein_g: Math.round(macros.protein_g * ratio * 10) / 10,
                 fat_g: Math.round(macros.fat_g * ratio * 10) / 10,
@@ -349,7 +353,9 @@ async function confirmAddItem() {
         const usdaItem = enrichItemMacros({ name, grams: amount, lookup_name: name });
         const foundInUSDA = usdaItem.protein_g > 0 || usdaItem.fat_g > 0 || usdaItem.carbs_g > 0;
         if (foundInUSDA) {
-            usdaItem.name = `${name} (${amount} ${unit})`;
+            usdaItem.name = name;
+            usdaItem.unit_amount = amount;
+            usdaItem.unit = unit;
             scannedItems.push(usdaItem);
             updateScannedTotals();
             renderScanDetails();
@@ -380,7 +386,9 @@ async function confirmAddItem() {
         if (!match) throw new Error('no json');
         const macros = JSON.parse(match[0]);
         scannedItems.push({
-            name: `${name} (${amount} ${unit})`,
+            name,
+            unit_amount: amount,
+            unit,
             grams: macros.grams || amount,
             protein_g: macros.protein_g || 0,
             fat_g: macros.fat_g || 0,
@@ -388,7 +396,7 @@ async function confirmAddItem() {
             alcohol_g: macros.alcohol_g || 0
         });
     } catch (e) {
-        scannedItems.push({ name, grams: amount, protein_g: 0, fat_g: 0, carbs_g: 0, alcohol_g: 0 });
+        scannedItems.push({ name, unit_amount: amount, unit, grams: amount, protein_g: 0, fat_g: 0, carbs_g: 0, alcohol_g: 0 });
     }
     updateScannedTotals();
     renderScanDetails();
@@ -1146,12 +1154,15 @@ function openFoodLogEdit(idx) {
     if (!entry) return;
     _editFoodLogIdx = idx;
 
-    // פרסר שם + כמות + יחידה מהשם השמור — נסה לחלץ (X יחידות) בסוף
+    // כמות + יחידה: פריטים חדשים שומרים אותן בשדות נפרדים. פריטים ישנים שנשמרו
+    // לפני התיקון עדיין מכילים אותן בתוך השם ("שם (X יחידות)") — פרסר לאחור לשם תאימות
     let name = entry.name;
-    let amount = entry.grams || 100;
-    let unit = 'גרם';
-    const match = name.match(/^(.*?)\s*\((\d+(?:\.\d+)?)\s*(גרם|יחידות|כוסות|כפות)\)$/);
-    if (match) { name = match[1].trim(); amount = parseFloat(match[2]); unit = match[3]; }
+    let amount = entry.unit_amount || entry.grams || 100;
+    let unit = entry.unit || 'גרם';
+    if (!entry.unit_amount) {
+        const match = name.match(/^(.*?)\s*\((\d+(?:\.\d+)?)\s*(גרם|יחידות|כוסות|כפות)\)$/);
+        if (match) { name = match[1].trim(); amount = parseFloat(match[2]); unit = match[3]; }
+    }
 
     document.getElementById('edit-food-name').value   = name;
     document.getElementById('edit-food-amount').value = amount;
@@ -1222,7 +1233,9 @@ async function saveFoodLogEdit() {
 
         entries[idx] = {
             ...oldEntry,
-            name:      `${name} (${amount} ${unit})`,
+            name:        name,
+            unit_amount: amount,
+            unit:        unit,
             grams:     newMacros.grams,
             protein_g: Math.round(newMacros.protein_g * 10) / 10 || null,
             carbs_g:   Math.round(newMacros.carbs_g   * 10) / 10 || null,
@@ -1287,14 +1300,16 @@ async function addScannedPortions() {
         _itemsToSave.forEach(item => {
             try {
                 newEntries.push({
-                    name:      item.name,
-                    grams:     Math.round(item.grams || 0) || null,
-                    protein_g: Math.round((item.protein_g || 0) * 10) / 10 || null,
-                    carbs_g:   Math.round((item.carbs_g   || 0) * 10) / 10 || null,
-                    fat_g:     Math.round((item.fat_g     || 0) * 10) / 10 || null,
-                    alcohol_g: Math.round((item.alcohol_g || 0) * 10) / 10 || null,
-                    id:        (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()),
-                    time:      timeStr
+                    name:        item.name,
+                    unit_amount: item.unit_amount || item.grams || null,
+                    unit:        item.unit || 'גרם',
+                    grams:       Math.round(item.grams || 0) || null,
+                    protein_g:   Math.round((item.protein_g || 0) * 10) / 10 || null,
+                    carbs_g:     Math.round((item.carbs_g   || 0) * 10) / 10 || null,
+                    fat_g:       Math.round((item.fat_g     || 0) * 10) / 10 || null,
+                    alcohol_g:   Math.round((item.alcohol_g || 0) * 10) / 10 || null,
+                    id:          (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()),
+                    time:        timeStr
                 });
             } catch (e) {
                 console.warn('פריט לא עובד לשמירה:', item.name, e);
