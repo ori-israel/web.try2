@@ -108,6 +108,32 @@ function closeCompleteMsg() {
     }
     setInterval(() => manageDailyReset(), 60 * 1000);
 
+    const _KCAL_STATUS_ICONS = {
+        under: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/></svg>',
+        in:    '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>',
+        over:  '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M18 13l-6 6-6-6"/></svg>'
+    };
+
+    // חיווי צבעוני חי: האם הקלוריות של היום עד כה בטווח היעד לפי המטרה (חיטוב/מסה/שמירה).
+    // לא קשור להערכת רצף התזונה (שרצה רק בסוף היום) — זה רק משוב ויזואלי מיידי.
+    function updateKcalStatus(kcal) {
+        const statusEl = document.getElementById('kcal-status');
+        if (!statusEl) return;
+        const targets = typeof window._getGramTargets === 'function' ? window._getGramTargets() : null;
+        if (!targets || !(targets.totalCalories > 0) || typeof _calorieRangeForGoal !== 'function') {
+            statusEl.style.display = 'none';
+            return;
+        }
+        const { min, max } = _calorieRangeForGoal(CLIENT.goal, targets.totalCalories);
+        let state, text;
+        if (kcal < min)      { state = 'under'; text = 'עוד לא הגעת לטווח'; }
+        else if (kcal <= max) { state = 'in';    text = 'בטווח היעד'; }
+        else                  { state = 'over';  text = 'חריגה מהיעד'; }
+        statusEl.className = 'daily-kcal-status status-' + state;
+        statusEl.innerHTML = _KCAL_STATUS_ICONS[state] + text;
+        statusEl.style.display = '';
+    }
+
     function updateKcalDisplay() {
         const alcoholKcal = Math.round(dailyGrams.alcohol * 7);
         const kcal = Math.round(dailyGrams.protein * 4 + dailyGrams.carbs * 4 + dailyGrams.fat * 9) + alcoholKcal;
@@ -122,6 +148,7 @@ function closeCompleteMsg() {
                 noteEl.style.display = 'none';
             }
         }
+        updateKcalStatus(kcal);
     }
 
     // מחשב מחדש את סך המאקרו היומי ישירות מרשימת הפריטים שבפועל שמורים ביומן המזון -

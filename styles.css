@@ -669,6 +669,21 @@ h1 {
     margin-top: 2px;
 }
 
+.daily-kcal-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.daily-kcal-status.status-under { background: rgba(245, 158, 11, 0.14); color: #f59e0b; }
+.daily-kcal-status.status-in    { background: rgba(34, 197, 94, 0.14);  color: #22c55e; }
+.daily-kcal-status.status-over  { background: rgba(239, 68, 68, 0.14);  color: #ef4444; }
+
 .daily-kcal-alcohol-note {
     display: inline-flex;
     align-items: center;

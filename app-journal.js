@@ -1133,8 +1133,15 @@ function _renderNutritionStreakUI(streak) {
     }
 }
 
+// טווח הקלוריות ה"מוצלח" לפי מטרה: חיטוב מ-250 מתחת ליעד עד היעד, מסה מ-250 מתחת עד 250 מעליו,
+// שמירה על המשקל ±150 סביב היעד. משמש גם להערכת הרצף וגם לחיווי הצבעוני על מסך התזונה היומי.
+function _calorieRangeForGoal(goal, target) {
+    if (goal === 'cut')      return { min: target - 250, max: target };
+    if (goal === 'maintain') return { min: target - 150, max: target + 150 };
+    return { min: target - 250, max: target + 250 }; // bulk
+}
+
 // היום נחשב מוצלח אם: חלבון הגיע לפחות ליעד (רצפה בלבד), וסך הקלוריות בטווח לפי המטרה
-// (חיטוב: מ-250 מתחת ליעד עד היעד. מסה: מ-250 מתחת ליעד עד 250 מעליו. שמירה: ±150 סביב היעד)
 function _isNutritionDaySuccessful(row, targets) {
     if (!row) return false; // לא היה תיעוד אוכל באותו יום כלל
     const protein = row.protein_g || 0;
@@ -1144,12 +1151,7 @@ function _isNutritionDaySuccessful(row, targets) {
     if (protein < targets.protein) return false;
 
     const totalCalories = protein * 4 + carbs * 4 + fat * 9 + alcohol * 7;
-    const target = targets.totalCalories;
-    let min, max;
-    if (CLIENT.goal === 'cut')           { min = target - 250; max = target; }
-    else if (CLIENT.goal === 'maintain') { min = target - 150; max = target + 150; }
-    else                                 { min = target - 250; max = target + 250; } // bulk
-
+    const { min, max } = _calorieRangeForGoal(CLIENT.goal, targets.totalCalories);
     return totalCalories >= min && totalCalories <= max;
 }
 

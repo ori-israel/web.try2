@@ -191,6 +191,8 @@ function setTheme(value) {
     const kcalTargetEl = document.getElementById('kcal-target');
     if (kcalTargetEl) kcalTargetEl.innerText = totalCalories;
     window._getGramTargets = () => ({ protein: proteinGrams, carbs: carbsGrams, fat: fatGrams, totalCalories });
+    // היעדים רק עכשיו הפכו זמינים — לרענן את חיווי הקלוריות שתלוי בהם (יכול היה לרוץ קודם בלי טווח)
+    if (typeof addFoodMacros === 'function') addFoodMacros();
 
     const goalText = CLIENT.goal === 'cut' ? 'חיטוב' : CLIENT.goal === 'maintain' ? 'שמירה על המשקל הנוכחי' : 'מסה';
     document.getElementById('header-goal-display').innerText = `${goalText} | ${totalCalories} קק"ל`;
