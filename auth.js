@@ -168,7 +168,8 @@ async function reinitApp() {
     if (typeof _applyReportExportVisibility === 'function') _applyReportExportVisibility();
     if (typeof loadProgressPhotos       === 'function') loadProgressPhotos();
     if (typeof renderFoodLog            === 'function') renderFoodLog();
-    if (typeof _syncTodayFoodLogFromServer === 'function') _syncTodayFoodLogFromServer();
+    // הושבת זמנית — נחקר חשד לבאג ביומן האוכל (פריטים לא מוצגים נכון). לא להפעיל מחדש בלי לוודא שזה לא הגורם.
+    // if (typeof _syncTodayFoodLogFromServer === 'function') _syncTodayFoodLogFromServer();
 }
 
 // ── Auth flow ────────────────────────────────────────────────
