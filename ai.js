@@ -372,7 +372,7 @@ async function buildSystemPrompt() {
 
     // חישוב קלוריות יעד
     const ageCalc = age || 25;
-    const { totalCalories: targetCalories } = calcNutritionTargets({
+    const { tdee, totalCalories: targetCalories } = calcNutritionTargets({
         weight: parseFloat(weight) || 80, height: parseFloat(height) || 170, age: ageCalc,
         gender: isMale ? 'male' : 'female', activityLevel: parseFloat(activityLevel) || 1.375, goal
     });
