@@ -87,11 +87,12 @@ function enrichItemMacros(item) {
     }
 
     // תקרה קשיחה — בלי קשר אם הערך הגיע מהמאגר או מה-AI.
-    // חלבון: אין מאכל שלם/מבושל שעובר 50% מהמשקל בחלבון (זה היה הבאג המקורי).
+    // חלבון: תקרה של 90% מהמשקל. מוצרים מרוכזים כמו אבקת חלבון מגיעים ל-80%+ ולכן מותרים,
+    // אבל ערך מעל 90% כמעט תמיד טעות התאמה/הזיה של AI ולא מאכל אמיתי.
     // שומן/פחמימה: יכולים להגיע ל-100% מהמשקל באמת (שמן = שומן טהור, סוכר = פחמימה טהורה) -
     // התקרה עליהם היא רק הגבול הפיזי (לא ניתן שמאקרו יהיה יותר ממשקל המאכל עצמו).
     if (result.grams) {
-        const proteinCap = result.grams * 0.5;
+        const proteinCap = result.grams * 0.9;
         if (result.protein_g > proteinCap) result = { ...result, protein_g: Math.round(proteinCap * 10) / 10 };
         ['carbs_g', 'fat_g'].forEach(key => {
             if (result[key] > result.grams) result = { ...result, [key]: Math.round(result.grams * 10) / 10 };
@@ -969,6 +970,7 @@ async function addFoodLogEntry(entry) {
 let _flDeletedEntry = null;
 let _flDeletedIdx   = null;
 let _flUndoTimer    = null;
+let _flDeletePromise = null; // מחזיק את מחיקת השרת האחרונה, כדי שביטול לא יריץ הוספה שתתחרה במחיקה
 
 async function deleteFoodLogEntry(idx) {
     const scrollY = window.scrollY;
@@ -980,7 +982,9 @@ async function deleteFoodLogEntry(idx) {
     saveFoodLogEntries(entries);
     if (removed) {
         if (typeof addFoodMacros === 'function') addFoodMacros();
-        if (removed.id && typeof sbDeleteFoodLog === 'function') sbDeleteFoodLog(removed.id).catch(() => {});
+        _flDeletePromise = (removed.id && typeof sbDeleteFoodLog === 'function')
+            ? sbDeleteFoodLog(removed.id).catch(() => {})
+            : null;
     }
     renderFoodLog();
     requestAnimationFrame(() => window.scrollTo(0, scrollY));
@@ -998,7 +1002,13 @@ function undoDeleteFoodLogEntry() {
     entries.splice(insertAt, 0, _flDeletedEntry);
     saveFoodLogEntries(entries);
     if (typeof addFoodMacros === 'function') addFoodMacros();
-    if (_flDeletedEntry.id && typeof sbAddFoodLog === 'function') sbAddFoodLog(_flDeletedEntry).catch(() => {});
+    // מחכים שמחיקת השרת (אם רצה) תסתיים לפני ההוספה מחדש, אחרת אם ה-DELETE יגיע אחרי ה-INSERT
+    // הוא ימחק בשרת שורה שקיימת מקומית → פער בין הזיכרון המקומי לשרת
+    const _restore = _flDeletedEntry;
+    if (_restore.id && typeof sbAddFoodLog === 'function') {
+        Promise.resolve(_flDeletePromise).finally(() => { sbAddFoodLog(_restore).catch(() => {}); });
+    }
+    _flDeletePromise = null;
     _flDeletedEntry = null;
     _flDeletedIdx   = null;
     const toast = document.getElementById('fl-undo-toast');
@@ -1113,6 +1123,8 @@ function _pdRefreshTodayTotals(dateStr, userId, totalP, totalC, totalF, totalA) 
     const fv = document.getElementById('fat-val');     if (fv) fv.innerText = Math.round(totalF*10)/10;
     const kv = document.getElementById('kcal-val');    if (kv) kv.innerText = totalKcal;
     if (typeof updateAllMacroProgress === 'function') updateAllMacroProgress();
+    // חיווי הקלוריות הצבעוני (מתחת/בטווח/חריגה) — לרענן גם בתצוגת אדמין, אחרת נשאר ישן/מוסתר
+    if (typeof updateKcalStatus === 'function') updateKcalStatus(totalKcal);
     if (typeof sbSaveNutrition === 'function') sbSaveNutrition(userId, totalP, totalC, totalF, totalA).catch(() => {});
 }
 

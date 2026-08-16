@@ -226,7 +226,10 @@ function confirmBarcodeAdd() {
             alcohol_g: alcohol_g || null,
         });
     }
-    if (typeof addFoodMacros === 'function') addFoodMacros();
+    // אדמין שצופה בלקוח: addFoodLogEntry כבר כותב לשרת וממתין ואז מרנדר. קריאה נוספת ל-addFoodMacros
+    // כאן תפעיל רינדור מקביל שמתחרה בו (קורא מהשרת לפני שהכתיבה הסתיימה) — לכן מדלגים עליה כמו בנתיב הסריקה.
+    const _adminOther = typeof SB_VIEW_ID !== 'undefined' && SB_VIEW_ID && typeof SB_USER !== 'undefined' && SB_USER && SB_VIEW_ID !== SB_USER.id;
+    if (!_adminOther && typeof addFoodMacros === 'function') addFoodMacros();
 
     closeBarcodeScanner();
     if (typeof closeFoodScanner === 'function') closeFoodScanner();

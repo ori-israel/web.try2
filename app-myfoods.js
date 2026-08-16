@@ -483,7 +483,10 @@ function confirmRecipeLog() {
         recipe_items: _rlItems
     });
 
-    if (typeof addFoodMacros === 'function') addFoodMacros();
+    // אדמין שצופה בלקוח: addFoodLogEntry כבר כותב לשרת וממתין ואז מרנדר. מדלגים על addFoodMacros
+    // כדי לא להפעיל רינדור מקביל שמתחרה בו (אותו מרוץ שתוקן בנתיב הסריקה ובהוספת ברקוד).
+    const _adminOther = typeof SB_VIEW_ID !== 'undefined' && SB_VIEW_ID && typeof SB_USER !== 'undefined' && SB_USER && SB_VIEW_ID !== SB_USER.id;
+    if (!_adminOther && typeof addFoodMacros === 'function') addFoodMacros();
 
     closeRecipeLogAdjust();
     if (typeof closeFoodScanner === 'function') closeFoodScanner();

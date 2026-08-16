@@ -879,7 +879,7 @@ h1 {
     color: var(--text-secondary);
     font-size: 12.5px;
     font-family: inherit;
-    max-width: 52px;
+    max-width: 78px;
 }
 
 .entry-pill-search {
@@ -3861,6 +3861,7 @@ legend { padding: 0; display: block; width: 100%; }
 .cs-panel {
     position: fixed;
     z-index: 10050;
+    min-width: 96px; /* דרופדאונים צרים כמו יחידות (גרם/יחידות/כוסות/כפות) — שלא ייחתכו לרוחב הכפתור */
     background: var(--bg-card);
     border: 0.5px solid var(--border);
     border-radius: var(--radius-sm);
