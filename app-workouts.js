@@ -211,7 +211,7 @@ function closeCompleteMsg() {
     function updateAllMacroProgress() {
         ['protein', 'carbs', 'fat'].forEach(updateMacroProgress);
     }
-    // חשיפה לשימוש מ-app-nutrition.js (מצב אדמין הצופה בלקוח, ב-_pdRefreshTodayTotals)
+    // חשיפה לשימוש מ-app-nutrition-journal.js (מצב אדמין הצופה בלקוח, ב-_pdRefreshTodayTotals)
     window.updateAllMacroProgress = updateAllMacroProgress;
     window.updateKcalStatus = updateKcalStatus;
 
