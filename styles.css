@@ -648,12 +648,12 @@ h1 {
     padding: 4px 0 16px;
 }
 
-/* שורה אחת: מימין הכיתוב + המספר, משמאל מחוון הטווח */
+/* שורה אחת ממורכזת: כיתוב + מספר, ולידם מחוון הטווח, בלי פיזור לקצוות */
 .daily-kcal-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+    justify-content: center;
+    gap: 14px;
 }
 
 .daily-kcal-main {
