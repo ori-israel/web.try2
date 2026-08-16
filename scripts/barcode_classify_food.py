@@ -44,7 +44,18 @@ PRICE_PER_1M_OUTPUT_TOKENS = 0.40
 MAX_COST_USD = 3.00      # עצירה קשיחה - הסקריפט לא ימשיך מעבר לזה
 MAX_REQUESTS = 1200      # גיבוי בלתי-תלוי בעלות (887 קריאות צפויות ל-133 אלף מוצרים)
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
+def _normalize_supabase_url(url):
+    # בעיצוב החדש של Supabase ה"API URL" בדשבורד כבר כולל /rest/v1 בסוף -
+    # מסירים את זה (וכל / מיותר בסוף) כדי שהוספת /rest/v1/... בקוד לא תוכפל
+    if not url:
+        return url
+    url = url.rstrip("/")
+    if url.endswith("/rest/v1"):
+        url = url[: -len("/rest/v1")]
+    return url
+
+
+SUPABASE_URL = _normalize_supabase_url(os.environ.get("SUPABASE_URL"))
 SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
