@@ -859,14 +859,21 @@ function loadFoodLogEntries() {
     try { return JSON.parse(localStorage.getItem(_foodLogKey()) || '[]'); } catch { return []; }
 }
 
-function addFoodLogEntry(entry) {
-    const entries = loadFoodLogEntries();
+async function addFoodLogEntry(entry) {
     const now = new Date();
     const newEntry = {
         ...entry,
         id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()),
         time: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
     };
+    // אדמין שצופה בלקוח: מקור האמת הוא סופאבייס — לכתוב ולחכות לפני רינדור (שקורא מהשרת)
+    const _adminOther = typeof SB_VIEW_ID !== 'undefined' && SB_VIEW_ID && typeof SB_USER !== 'undefined' && SB_USER && SB_VIEW_ID !== SB_USER.id;
+    if (_adminOther) {
+        try { if (typeof sbAddFoodLog === 'function') await sbAddFoodLog(newEntry); } catch (e) {}
+        renderFoodLog();
+        return;
+    }
+    const entries = loadFoodLogEntries();
     entries.push(newEntry);
     saveFoodLogEntries(entries);
     renderFoodLog();
@@ -1333,6 +1340,10 @@ async function addScannedPortions() {
         ? scannedItems
         : ((protein || carbs || fat || alcohol) ? [{ name: 'ארוחה', grams: null, protein_g: protein, carbs_g: carbs, fat_g: fat, alcohol_g: alcohol }] : []);
 
+    // אדמין שצופה בלקוח: מקור האמת הוא סופאבייס (לא הזיכרון המקומי של מכשיר האדמין).
+    // חייבים לחכות שהכתיבה לשרת תסתיים לפני שמרנדרים, אחרת הרינדור (שקורא מהשרת) יקבל נתון ישן וריק.
+    const _adminOther = typeof SB_VIEW_ID !== 'undefined' && SB_VIEW_ID && typeof SB_USER !== 'undefined' && SB_USER && SB_VIEW_ID !== SB_USER.id;
+
     if (_itemsToSave.length > 0) {
         const now = new Date();
         const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
@@ -1357,13 +1368,25 @@ async function addScannedPortions() {
                 _failedItemNames.push(item.name);
             }
         });
-        saveFoodLogEntries(existingEntries.concat(newEntries));
-        renderFoodLog();
-        newEntries.forEach(entry => { if (typeof sbAddFoodLog === 'function') sbAddFoodLog(entry).catch(() => {}); });
+
+        if (_adminOther) {
+            // כותבים לשרת וממתינים לסיום, ואז מרנדרים מהשרת (מקור האמת ללקוח שצופים בו)
+            for (const entry of newEntries) {
+                try { if (typeof sbAddFoodLog === 'function') await sbAddFoodLog(entry); }
+                catch (e) { _failedItemNames.push(entry.name); }
+            }
+            renderFoodLog(); // במצב אדמין: קורא מהשרת (שכבר מעודכן) ומעדכן גם את המאקרו למעלה דרך _pdRefreshTodayTotals
+        } else {
+            // משתמש רגיל: הזיכרון המקומי הוא מקור האמת — כתיבה מיידית, סנכרון לשרת ברקע
+            saveFoodLogEntries(existingEntries.concat(newEntries));
+            renderFoodLog();
+            newEntries.forEach(entry => { if (typeof sbAddFoodLog === 'function') sbAddFoodLog(entry).catch(() => {}); });
+        }
     }
 
-    // מחשב מחדש את הסכום היומי מהיומן בפועל, אחרי שכל הפריטים כבר נשמרו
-    if (typeof addFoodMacros === 'function') addFoodMacros();
+    // מחשב מחדש את הסכום היומי מהיומן המקומי (רק למשתמש רגיל — לאדמין הצופה בלקוח
+    // המאקרו כבר עודכן מהשרת בתוך renderFoodLog, וקריאה מקומית כאן רק תדרוס באפס)
+    if (!_adminOther && typeof addFoodMacros === 'function') addFoodMacros();
 
     if (btn) btn.disabled = false;
     closeFoodScanner();

@@ -232,7 +232,7 @@ async function sendAIMessage() {
                     const carbs_g   = foodData.carbs_g   || 0;
                     const fat_g     = foodData.fat_g     || 0;
                     const alcohol_g = foodData.alcohol_g || 0;
-                    addFoodLogEntry({
+                    await addFoodLogEntry({
                         name:      foodData.name,
                         grams:     Math.round(foodData.grams || 0),
                         protein_g: protein_g || null,
