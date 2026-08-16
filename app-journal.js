@@ -1122,86 +1122,89 @@ function completeWorkoutStreak(letter) {
     if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
 }
 
-function checkNutritionStreak() {
-    if (typeof window._getUserPortions !== 'function' || typeof window._getGramTargets !== 'function') return;
-    const grams   = window._getUserPortions();  // שם נשמר לתאימות, מכיל גרמים
-    const targets = window._getGramTargets();
-
-    // יעדים לא חוקיים (0/undefined, למשל לפני שהם חושבו) לא נחשבים "הושג" — מונע השלמת רצף בטעות על 0>=0
-    const targetsValid = targets.protein > 0 && targets.carbs > 0 && targets.fat > 0;
-    if (!targetsValid) return;
-
-    if (grams.protein >= targets.protein && grams.carbs >= targets.carbs && grams.fat >= targets.fat) {
-        completeNutritionStreak();
+// מרנדר את מספר הרצף לתא (עם אייקון מזוודה במצב חופשה)
+function _renderNutritionStreakUI(streak) {
+    const el = document.getElementById('nutrition-streak-count');
+    if (!el) return;
+    if (CLIENT.vacationMode) {
+        el.innerHTML = streak + ' <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>';
+    } else {
+        el.innerText = streak;
     }
 }
 
-async function completeNutritionStreak() {
-    if (CLIENT.vacationMode) return;
-    const today = localDateStr();
-    if (_streaksCache.nutrition_completed_date === today) return;
+// היום נחשב מוצלח אם: חלבון הגיע לפחות ליעד (רצפה בלבד), וסך הקלוריות בטווח לפי המטרה
+// (חיטוב: מ-250 מתחת ליעד עד היעד. מסה: מ-250 מתחת ליעד עד 250 מעליו. שמירה: ±150 סביב היעד)
+function _isNutritionDaySuccessful(row, targets) {
+    if (!row) return false; // לא היה תיעוד אוכל באותו יום כלל
+    const protein = row.protein_g || 0;
+    const carbs   = row.carbs_g   || 0;
+    const fat     = row.fat_g     || 0;
+    const alcohol = row.alcohol_g || 0;
+    if (protein < targets.protein) return false;
 
-    _streaksCache.nutrition_completed_date = today;
-    let streak = (_streaksCache.nutrition_streak || 0) + 1;
-    _streaksCache.nutrition_streak = streak;
-    document.getElementById('nutrition-streak-count').innerText = streak;
-    if (typeof syncStreaksNow === 'function') syncStreaksNow();
-    if (streak === 7 && typeof _showAchievementPopup === 'function') _showAchievementPopup('streak_7_nutrition');
-    if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
-    const uid = getActiveUserId();
-    if (uid) {
-        const grams = typeof window._getUserPortions === 'function' ? window._getUserPortions() : { protein: 0, carbs: 0, fat: 0 };
-        try { await sbSaveNutrition(uid, grams.protein, grams.carbs, grams.fat); } catch (_) {}
-        if (typeof _trackingWidgetCache !== 'undefined') {
-            delete _trackingWidgetCache['weekly_' + uid];
-            if (typeof renderWeeklyScore === 'function') renderWeeklyScore(uid);
-        }
-    }
-    showNutritionComplete();
+    const totalCalories = protein * 4 + carbs * 4 + fat * 9 + alcohol * 7;
+    const target = targets.totalCalories;
+    let min, max;
+    if (CLIENT.goal === 'cut')           { min = target - 250; max = target; }
+    else if (CLIENT.goal === 'maintain') { min = target - 150; max = target + 150; }
+    else                                 { min = target - 250; max = target + 250; } // bulk
+
+    return totalCalories >= min && totalCalories <= max;
 }
 
-function showNutritionComplete() {
-    const msg = document.getElementById('nutrition-complete-msg');
-    if (!msg) return;
-    msg.style.cssText = "display:flex; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9999; align-items:center; justify-content:center;";
-    msg.onclick = (e) => { if (e.target === msg) closeNutritionComplete(); };
+function _addDaysToDateStr(dateStr, n) {
+    const d = new Date(dateStr + 'T00:00:00');
+    d.setDate(d.getDate() + n);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function closeNutritionComplete() {
-    const msg = document.getElementById('nutrition-complete-msg');
-    if (msg) msg.style.display = 'none';
-}
-
+// מציג מיד את הרצף השמור, ואז מריץ הערכה של הימים האחרונים שעדיין לא הוערכו (מול הימים שכבר הסתיימו)
 function updateNutritionStreak() {
-    const today = new Date();
-    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    _renderNutritionStreakUI(_streaksCache.nutrition_streak || 0);
+    if (!CLIENT.vacationMode) _evaluateNutritionStreak();
+}
+
+async function _evaluateNutritionStreak() {
+    const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+    if (!uid) return;
+    if (typeof window._getGramTargets !== 'function') return;
+    const targets = window._getGramTargets();
+    if (!(targets.protein > 0 && targets.totalCalories > 0)) return; // יעדים לא חושבו עדיין
+
+    const today = localDateStr();
+    const lastEvaluated = _streaksCache.nutrition_completed_date;
+
+    // רשימת התאריכים שהסתיימו ועדיין לא הוערכו (מהיום שאחרי lastEvaluated ועד אתמול)
+    let cursor = lastEvaluated ? _addDaysToDateStr(lastEvaluated, 1) : _addDaysToDateStr(today, -1);
+    const datesToEvaluate = [];
+    while (cursor < today) {
+        datesToEvaluate.push(cursor);
+        cursor = _addDaysToDateStr(cursor, 1);
+    }
+    if (datesToEvaluate.length === 0) return;
+    // הגנה מפני פער ענק (לקוח חדש/לא נכנס הרבה זמן) — מספיק להעריך עד 30 יום אחורה
+    const limited = datesToEvaluate.slice(-30);
 
     let streak = _streaksCache.nutrition_streak || 0;
-    const lastCompleted = _streaksCache.nutrition_completed_date;
-
-    if (CLIENT.vacationMode) {
-        const el = document.getElementById('nutrition-streak-count');
-        if (el) el.innerHTML = streak + ' <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>';
-        return;
+    let reached7 = false;
+    for (const dateStr of limited) {
+        const row = typeof sbFetchNutritionByDate === 'function' ? await sbFetchNutritionByDate(uid, dateStr).catch(() => null) : null;
+        if (_isNutritionDaySuccessful(row, targets)) {
+            streak++;
+            if (streak === 7) reached7 = true;
+        } else {
+            streak = 0;
+        }
     }
 
-    if (!lastCompleted) {
-        document.getElementById('nutrition-streak-count').innerText = streak;
-        return;
-    }
+    _streaksCache.nutrition_streak = streak;
+    _streaksCache.nutrition_completed_date = limited[limited.length - 1];
+    if (typeof syncStreaksNow === 'function') syncStreaksNow();
+    if (reached7 && typeof _showAchievementPopup === 'function') _showAchievementPopup('streak_7_nutrition');
+    if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
 
-    const lastDate = new Date(lastCompleted);
-    const lastMidnight = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
-    const daysDiff = Math.floor((todayMidnight - lastMidnight) / (1000 * 60 * 60 * 24));
-
-    // עבר יותר מיום אחד מאז שהיעד הושג לאחרונה (כלומר פוספס יום שלם לפחות) — הרצף נשבר, לאפס
-    if (daysDiff > 1 && streak !== 0) {
-        streak = 0;
-        _streaksCache.nutrition_streak = 0;
-        if (typeof syncStreaksNow === 'function') syncStreaksNow();
-    }
-
-    document.getElementById('nutrition-streak-count').innerText = streak;
+    _renderNutritionStreakUI(streak);
 }
 
 function openWeightChartModal() {

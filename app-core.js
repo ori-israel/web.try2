@@ -40,7 +40,7 @@
     var scrollY = 0;
     var EXTRA_MODAL_IDS = [
         'weight-chart-modal', 'profile-overlay', 'new-client-modal', 'workout-editor-modal',
-        'calendly-modal', 'achievement-popup', 'workout-complete-msg', 'nutrition-complete-msg',
+        'calendly-modal', 'achievement-popup', 'workout-complete-msg',
         'pwa-install-popup', 'renewal-reminder-popup', 'pwa-ios-popup', 'birthday-modal',
         'weekly-survey-banner', 'ai-chat-overlay', 'survey-overlay', 'calc-overlay'
     ];

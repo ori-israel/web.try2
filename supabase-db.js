@@ -249,6 +249,18 @@ async function sbFetchTodayNutrition(userId) {
     return data;
 }
 
+// שולף את שורת התזונה של תאריך ספציפי (ליום שהסתיים כבר) — לצורך הערכת רצף התזונה
+async function sbFetchNutritionByDate(userId, dateStr) {
+    const { data, error } = await db
+        .from('daily_nutrition')
+        .select('protein_g, carbs_g, fat_g, alcohol_g')
+        .eq('user_id', userId)
+        .eq('date', dateStr)
+        .maybeSingle();
+    if (error) { console.warn('sbFetchNutritionByDate:', error.message); return null; }
+    return data;
+}
+
 async function sbSaveNutrition(userId, protein, carbs, fat, alcohol) {
     const today = _localDate();
     const { error } = await db.from('daily_nutrition').upsert(

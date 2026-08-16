@@ -148,7 +148,6 @@ function closeCompleteMsg() {
         localStorage.setItem(_portionsKey(), JSON.stringify(dailyGrams));
         updateAllMacroProgress();
         updateKcalDisplay();
-        checkNutritionStreak();
         const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
         if (uid) {
             if (typeof sbQueueNutritionSync === 'function') {
