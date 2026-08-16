@@ -1292,6 +1292,7 @@ function renderFoodLog() {
 // ── עריכת פריט ביומן ────────────────────────────────────────────────────────
 
 let _editFoodLogIdx = null;
+let _editFoodLogOriginal = null; // שם/כמות/יחידה/מאקרו בפתיחת העריכה — לזיהוי "רק כמות השתנתה" (ר' saveFoodLogEdit)
 
 function openFoodLogEdit(idx) {
     const entries = loadFoodLogEntries();
@@ -1308,6 +1309,15 @@ function openFoodLogEdit(idx) {
         const match = name.match(/^(.*?)\s*\((\d+(?:\.\d+)?)\s*(גרם|יחידות|כוסות|כפות)\)$/);
         if (match) { name = match[1].trim(); amount = parseFloat(match[2]); unit = match[3]; }
     }
+
+    _editFoodLogOriginal = {
+        name, amount, unit,
+        grams:     entry.grams     || null,
+        protein_g: entry.protein_g || 0,
+        carbs_g:   entry.carbs_g   || 0,
+        fat_g:     entry.fat_g     || 0,
+        alcohol_g: entry.alcohol_g || 0
+    };
 
     document.getElementById('edit-food-name').value   = name;
     document.getElementById('edit-food-amount').value = amount;
@@ -1347,8 +1357,22 @@ async function saveFoodLogEdit() {
         const isGrams = unit === 'גרם';
         let newMacros = null;
 
+        // רק הכמות השתנתה (שם ויחידה זהים) — מכפילים את הערכים המקוריים ביחס, בלי לחפש מחדש.
+        // כך לא דורסים ערך מדויק שהגיע במקור מזיהוי תמונה/הזנה ידנית בערך כללי ממאגר/AI
+        const orig = _editFoodLogOriginal;
+        if (orig && orig.name === name && orig.unit === unit && orig.amount > 0) {
+            const ratio = amount / orig.amount;
+            newMacros = {
+                grams:     isGrams ? amount : (orig.grams ? Math.round(orig.grams * ratio) : null),
+                protein_g: Math.round(orig.protein_g * ratio * 10) / 10,
+                carbs_g:   Math.round(orig.carbs_g   * ratio * 10) / 10,
+                fat_g:     Math.round(orig.fat_g     * ratio * 10) / 10,
+                alcohol_g: Math.round(orig.alcohol_g * ratio * 10) / 10
+            };
+        }
+
         // בדיקת USDA לפני Gemini — חינם ומדויק
-        if (isGrams) {
+        if (!newMacros && isGrams) {
             const usdaItem = enrichItemMacros({ name, grams: amount, lookup_name: name });
             if (usdaItem.protein_g > 0 || usdaItem.fat_g > 0 || usdaItem.carbs_g > 0) {
                 newMacros = { grams: amount, protein_g: usdaItem.protein_g, carbs_g: usdaItem.carbs_g, fat_g: usdaItem.fat_g, alcohol_g: usdaItem.alcohol_g || 0 };
