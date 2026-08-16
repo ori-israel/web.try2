@@ -147,6 +147,7 @@ function showAddItemForm() {
     document.getElementById('add-item-amount').addEventListener('keydown', e => { if (e.key === 'Enter') confirmAddItem(); });
     document.getElementById('add-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') { document.getElementById('add-item-suggestions').innerHTML = ''; document.getElementById('add-item-amount').focus(); } });
     document.getElementById('add-item-name').addEventListener('input', function() { renderFoodSuggestions(this.value); });
+    if (typeof renderQuickPicks === 'function') renderQuickPicks();
 }
 
 // אייקונים לפי מקור התוצאה בחיפוש המאוחד (מאגר האפליקציה / מאכל אישי / מתכון)
@@ -160,7 +161,7 @@ function renderFoodSuggestions(query) {
     if (!box) return;
     const q = (query || '').trim();
     window._selectedFoodSource = null; // מתאפס בכל הקלדה - נקבע מחדש רק בבחירה מהרשימה
-    if (q.length < 2) { box.innerHTML = ''; return; }
+    if (q.length < 2) { if (typeof renderQuickPicks === 'function') renderQuickPicks(); else box.innerHTML = ''; return; }
     const qLow = q.toLowerCase();
 
     const recipeMatches = (typeof _myRecipes !== 'undefined' ? _myRecipes : [])
@@ -229,7 +230,7 @@ function selectFoodSuggestion(i) {
     if (match.type === 'custom') {
         window._selectedFoodSource = match;
         if (unitEl) unitEl.value = match.ref.unit;
-        if (amountEl) amountEl.value = match.ref.unit_amount;
+        if (amountEl) amountEl.value = match._displayAmount || match.ref.unit_amount;
     } else if (match.type === 'barcode') {
         window._selectedFoodSource = match;
         if (unitEl) unitEl.value = 'גרם';
@@ -477,6 +478,86 @@ function renderScanGramsSummary() {
         `</div>`;
 }
 
+// ── מאכלים מוצעים בפתיחת החיפוש (לפני הקלדה): מיקס של מאכלים ששמרת + מאכלים שאתה אוכל הרבה ─────
+
+const _SUGG_ICON_FREQUENT = '<svg viewBox="0 0 24 24" width="14" height="14" fill="#f59e0b" stroke="#f59e0b" stroke-width="1" stroke-linejoin="round"><path d="M12 2.5l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9-6.3 3.9 1.7-7L2 9.7l7.1-.6z"/></svg>';
+
+let _quickPickFoodMatches = null; // מטמון לתדירות אכילה (14 יום) — נשלף פעם אחת לפתיחה
+let _quickPickLoadedForUid = null;
+
+// מקבץ שורות יומן מ-14 הימים האחרונים לפי שם מדויק (אחרי ניקוי רווחים), ובונה
+// "מאכל" מוצע לכל מאכל שנאכל לפחות פעמיים: הכמות שחוזרת הכי הרבה (שכיח), או ממוצע אם כל הכמויות שונות
+function _buildFrequentFoodMatches(rows) {
+    const groups = {};
+    (rows || []).forEach(r => {
+        const name = (r.food || '').trim();
+        if (!name) return;
+        (groups[name] = groups[name] || []).push(r);
+    });
+    return Object.entries(groups)
+        .filter(([, entries]) => entries.length >= 2)
+        .map(([name, entries]) => {
+            entries.sort((a, b) => `${a.date}${a.time || ''}`.localeCompare(`${b.date}${b.time || ''}`));
+            const latest = entries[entries.length - 1];
+            const gramsCounts = {};
+            entries.forEach(e => { const g = Math.round(e.grams || 0); gramsCounts[g] = (gramsCounts[g] || 0) + 1; });
+            const [modeGrams, modeCount] = Object.entries(gramsCounts).sort((a, b) => b[1] - a[1])[0];
+            const typicalAmount = modeCount > 1
+                ? parseInt(modeGrams)
+                : Math.round(entries.reduce((s, e) => s + (e.grams || 0), 0) / entries.length);
+            return {
+                type: 'custom',
+                ref: {
+                    unit_amount: latest.grams || typicalAmount || 100,
+                    unit: 'גרם',
+                    protein_g: latest.protein_g || 0,
+                    carbs_g:   latest.carbs_g   || 0,
+                    fat_g:     latest.fat_g     || 0,
+                    alcohol_g: latest.alcohol_g || 0
+                },
+                label: name,
+                sub: `נאכל ${entries.length} פעמים לאחרונה`,
+                icon: _SUGG_ICON_FREQUENT,
+                _displayAmount: typicalAmount || latest.grams || 100,
+                _count: entries.length
+            };
+        })
+        .sort((a, b) => b._count - a._count);
+}
+
+async function _loadQuickPickFoods() {
+    const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+    if (!uid || typeof sbFetchFoodLogRange !== 'function') return;
+    const since = new Date(); since.setDate(since.getDate() - 14);
+    const sinceStr = `${since.getFullYear()}-${String(since.getMonth() + 1).padStart(2, '0')}-${String(since.getDate()).padStart(2, '0')}`;
+    try {
+        const rows = await sbFetchFoodLogRange(uid, sinceStr);
+        _quickPickFoodMatches = _buildFrequentFoodMatches(rows);
+        _quickPickLoadedForUid = uid;
+    } catch (_) { _quickPickFoodMatches = []; }
+    renderQuickPicks();
+}
+
+// מציג עד 8 מאכלים כשהחיפוש עדיין ריק: קודם עד 3 מהמאכלים האישיים ששמרת, ואז מהנפוצים בהיסטוריה.
+// נקרא גם באופן א-סינכרוני אחרי טעינת נתונים - לכן בודק בעצמו שהחיפוש עדיין ריק לפני שהוא דורס תוצאות
+function renderQuickPicks() {
+    const box = document.getElementById('add-item-suggestions');
+    if (!box) return;
+    const nameEl = document.getElementById('add-item-name');
+    if (nameEl && nameEl.value.trim()) return; // המשתמש כבר מקליד חיפוש - לא לדרוס
+    const customPicks = (typeof _myFoods !== 'undefined' ? _myFoods : []).slice(0, 3).map(f => {
+        const kcal = Math.round((f.protein_g || 0) * 4 + (f.carbs_g || 0) * 4 + (f.fat_g || 0) * 9 + (f.alcohol_g || 0) * 7);
+        return { type: 'custom', ref: f, label: f.name, sub: `${kcal} קל' ל-${f.unit_amount} ${f.unit}`, icon: _SUGG_ICON_CUSTOM };
+    });
+    const usedNames = new Set(customPicks.map(m => m.label));
+    const frequentPicks = (_quickPickFoodMatches || [])
+        .filter(m => !usedNames.has(m.label))
+        .slice(0, 8 - customPicks.length);
+    const matches = [...customPicks, ...frequentPicks];
+    if (!matches.length) { box.innerHTML = ''; window._currentFoodSuggestions = []; return; }
+    _renderFoodSuggestionMatches(matches, box);
+}
+
 function openFoodScanner() {
     if (typeof USDA_TABLE === 'undefined' && !window._usdaLoading) {
         window._usdaLoading = true;
@@ -484,7 +565,11 @@ function openFoodScanner() {
         s.src = '/usda.js';
         document.head.appendChild(s);
     }
-    if (typeof _loadMyFoodsData === 'function' && !_myFoodsLoaded) _loadMyFoodsData();
+    if (typeof _loadMyFoodsData === 'function' && !_myFoodsLoaded) {
+        _loadMyFoodsData().then(() => { if (typeof renderQuickPicks === 'function') renderQuickPicks(); });
+    }
+    const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+    if (uid && uid !== _quickPickLoadedForUid) _loadQuickPickFoods();
     const modal = document.getElementById('food-scanner-modal');
     modal.style.display = '';
     modal.classList.remove('hidden');
