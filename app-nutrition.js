@@ -1086,6 +1086,47 @@ function toggleFoodLogRecipeDetails(id) {
     if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
+// מסנכרן את יומן היום מול סופאבייס בכניסה לאפליקציה — מקור האמת המקומי (localStorage)
+// יכול להיות ריק/ישן אם המשתמש עבר מכשיר, ואז הסכום היומי (ורצף התזונה שמסתמך עליו) שגוי.
+// מיזוג לפי id ולא דריסה: פריטים מקומיים שעוד לא הגיעו לשרת (למשל נוספו במצב לא מקוון) לא נמחקים.
+async function _syncTodayFoodLogFromServer() {
+    const isAdminViewingOther = typeof SB_VIEW_ID !== 'undefined' && SB_VIEW_ID && typeof SB_USER !== 'undefined' && SB_USER && SB_VIEW_ID !== SB_USER.id;
+    if (isAdminViewingOther) return; // ליומן של לקוח אחר כבר יש נתיב תצוגה נפרד ישירות מהשרת
+    const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+    if (!uid || typeof sbFetchFoodLogRange !== 'function') return;
+
+    const today = typeof localDateStr === 'function' ? localDateStr() : new Date().toISOString().slice(0, 10);
+    let serverRows;
+    try { serverRows = await sbFetchFoodLogRange(uid, today); } catch (_) { return; }
+    if (!serverRows) return;
+
+    const localEntries = loadFoodLogEntries();
+    const localIds = new Set(localEntries.map(e => e.id));
+    const merged = localEntries.slice();
+    serverRows.forEach(row => {
+        if (row.date !== today || localIds.has(row.id)) return;
+        merged.push({
+            id: row.id,
+            name: row.food,
+            unit_amount: row.grams,
+            unit: 'גרם',
+            grams: row.grams,
+            protein_g: row.protein_g,
+            carbs_g: row.carbs_g,
+            fat_g: row.fat_g,
+            alcohol_g: row.alcohol_g,
+            time: row.time,
+            recipe_items: row.recipe_items
+        });
+    });
+    if (merged.length === localEntries.length) return; // אין חדש מהשרת, אין צורך לרענן
+
+    merged.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+    saveFoodLogEntries(merged);
+    if (typeof addFoodMacros === 'function') addFoodMacros();
+    renderFoodLog();
+}
+
 function renderFoodLog() {
     const el = document.getElementById('food-log-list');
     if (!el) return;

@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const { calcBMR, calcTDEE } = require('../bmr.js');
+const { calcNutritionTargets } = require('../bmr.js');
 
 const WEEKS_BACK = 8; // כמה שבועות שהסתיימו לבדוק ולהשלים בכל ריצה
 
@@ -28,17 +28,10 @@ async function computeScore(supabase, profile, weekStart, weekEnd) {
     const activity = profile.activity_level || 1.4;
     const goal     = profile.goal || 'maintain';
     const pRatio   = profile.protein_ratio || 2.0;
-    const bmr = calcBMR(weight, height, age, gender);
-    const tdee         = calcTDEE(bmr, activity);
-    const totalCal     = goal === 'cut' ? tdee - 250 : goal === 'maintain' ? tdee : tdee + 250;
-    const proteinGrams = weight * pRatio;
-    const remaining    = totalCal - proteinGrams * 4;
-    const carbRatio    = (profile.carb_ratio != null) ? profile.carb_ratio : (goal === 'cut' ? 0.7 : goal === 'maintain' ? 0.65 : 0.6);
-    const carbCals     = remaining * carbRatio;
-    const fatCals      = remaining * (1 - carbRatio);
-    const tgProtein    = Math.round(proteinGrams);
-    const tgCarbs      = Math.round(carbCals / 4);
-    const tgFat        = Math.round(fatCals / 9);
+    const { proteinGrams: tgProtein, carbsGrams: tgCarbs, fatGrams: tgFat } = calcNutritionTargets({
+        weight, height, age, gender, activityLevel: activity, goal,
+        proteinRatio: pRatio, carbRatio: profile.carb_ratio
+    });
 
     const { data: nutritionData } = await supabase
         .from('daily_nutrition')

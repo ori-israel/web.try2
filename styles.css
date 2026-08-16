@@ -2494,30 +2494,6 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
 input[type="checkbox"] { accent-color: var(--accent); }
 input[type="radio"] { accent-color: var(--accent); }
 
-/* ============================================
-   Calc overlay fixes
-   ============================================ */
-#calc-overlay .card {
-    background: var(--bg-card) !important;
-    color: var(--text-primary) !important;
-}
-
-#calc-overlay .card h2 { color: var(--text-primary) !important; }
-#calc-overlay .card label { color: var(--text-primary); }
-#calc-overlay .card input[type="number"] {
-    background: var(--input-bg);
-    color: var(--text-primary);
-    border-color: var(--input-border);
-}
-
-#calc-result {
-    background: var(--bg-card-alt) !important;
-    border-color: var(--border) !important;
-    color: var(--text-primary) !important;
-}
-
-#calc-result p { color: var(--text-primary) !important; }
-
 .weight-display > div[style*="color"] { color: var(--accent) !important; }
 
 /* ============================================

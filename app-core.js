@@ -42,7 +42,7 @@
         'weight-chart-modal', 'profile-overlay', 'new-client-modal', 'workout-editor-modal',
         'calendly-modal', 'achievement-popup', 'workout-complete-msg',
         'pwa-install-popup', 'renewal-reminder-popup', 'pwa-ios-popup', 'birthday-modal',
-        'weekly-survey-banner', 'ai-chat-overlay', 'survey-overlay', 'calc-overlay'
+        'weekly-survey-banner', 'ai-chat-overlay', 'survey-overlay'
     ];
     var dynamicOverlayCount = 0;
     window._dynamicOverlayOpen = function () { dynamicOverlayCount++; updateBodyLock(); };
@@ -174,21 +174,11 @@ function setTheme(value) {
     function calcPortionTargets() {
     const weight = parseFloat(sessionStorage.getItem('current_weight')) || CLIENT.currentWeight;
     const ageCalc = Math.floor((new Date() - new Date(CLIENT.birthDate)) / (1000 * 60 * 60 * 24 * 365.25));
-    const bmr = calcBMR(weight, CLIENT.height, ageCalc, CLIENT.gender);
-    const tdee = calcTDEE(bmr, CLIENT.activityLevel);
-    const totalCalories = CLIENT.goal === 'cut' ? tdee - 250 : CLIENT.goal === 'maintain' ? tdee : tdee + 250;
-    const proteinGrams = weight * CLIENT.proteinRatio;
-    const proteinCals = proteinGrams * 4;
-    const remainingCals = totalCalories - proteinCals;
-    const carbRatio = (CLIENT.carbRatio != null) ? CLIENT.carbRatio : (CLIENT.goal === 'cut' ? 0.7 : CLIENT.goal === 'maintain' ? 0.65 : 0.6);
-    const carbCals = remainingCals * carbRatio;
-    const fatCals = remainingCals * (1 - carbRatio);
-    return {
-        totalCalories,
-        proteinGrams: Math.round(proteinGrams),
-        carbsGrams:   Math.round(carbCals / 4),
-        fatGrams:     Math.round(fatCals / 9),
-    };
+    return calcNutritionTargets({
+        weight, height: CLIENT.height, age: ageCalc, gender: CLIENT.gender,
+        activityLevel: CLIENT.activityLevel, goal: CLIENT.goal,
+        proteinRatio: CLIENT.proteinRatio, carbRatio: CLIENT.carbRatio
+    });
 }
 
     function generatePortionGoals() {

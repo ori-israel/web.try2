@@ -304,51 +304,6 @@ function closeCompleteMsg() {
         });
     });
 
-    // פונקציות לפתיחה וסגירה של המחשבון
-    function openCalc() {
-        document.getElementById('calc-overlay').style.display = 'block';
-    }
-    function closeCalc() {
-        document.getElementById('calc-overlay').style.display = 'none';
-    }
-
-    async function calculateStats() {
-    const gender = document.querySelector('input[name="gender"]:checked').value;
-    const age = parseFloat(document.getElementById('calc-age').value);
-    const height = parseFloat(document.getElementById('calc-height').value);
-    const weight = parseFloat(document.getElementById('calc-weight').value);
-    const activityMultiplier = parseFloat(document.querySelector('input[name="activity"]:checked').value);
-
-    if (!age || !height || !weight) {
-        await showAlert("נא למלא את כל הנתונים");
-        return;
-    }
-
-    // 1. חישוב BMI
-    const bmi = weight / ((height / 100) ** 2);
-    
-    // 2. חישוב חלבון (על פי הלוגיקה שלך)
-    let weightForProtein = bmi > 25 ? 24.9 * ((height / 100) ** 2) : weight;
-    const proteinMin = (weightForProtein * 1.8).toFixed(0);
-    const proteinMax = (weightForProtein * 2.2).toFixed(0);
-
-    // 3. חישוב BMR - נוסחת Mifflin-St Jeor
-    const bmr = calcBMR(weight, height, age, gender);
-
-    // 4. חישוב תחזוקה (TDEE) - כאן משתמשים במקדם המדויק (למשל 1.465)
-    const maintenance = calcTDEE(bmr, activityMultiplier);
-
-    // 5. הצגת תוצאות
-    const resultDiv = document.getElementById('calc-result');
-    resultDiv.style.display = 'block';
-    
-    document.getElementById('res-bmi').innerHTML = `<strong>BMI:</strong> ${bmi.toFixed(1)}`;
-    document.getElementById('res-protein').innerHTML = `<strong>טווח חלבון מומלץ:</strong> ${proteinMin} - ${proteinMax} גרם`;
-    document.getElementById('res-maintenance').innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.6 1 1.3 1 2.5h6c0-1.2.3-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg> <strong>קלוריות לתחזוקה:</strong> ${maintenance} קק"ל`;
-    document.getElementById('res-cut').innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 6l7 10 3-4 6 7"/><circle cx="20" cy="19" r="1" fill="currentColor" stroke="none"/></svg> <strong>ירידה במשקל (חיטוב):</strong> ${maintenance - 250} קק"ל`;
-    document.getElementById('res-bulk').innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg> <strong>עלייה במשקל (מסה):</strong> ${maintenance + 250} קק"ל`;
-}
-
 function buildWorkoutAccordions(targets = {}) {
     if (window.innerWidth > 600) return;
     // remove stale accordions so we can rebuild with fresh targets

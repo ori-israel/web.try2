@@ -168,6 +168,7 @@ async function reinitApp() {
     if (typeof _applyReportExportVisibility === 'function') _applyReportExportVisibility();
     if (typeof loadProgressPhotos       === 'function') loadProgressPhotos();
     if (typeof renderFoodLog            === 'function') renderFoodLog();
+    if (typeof _syncTodayFoodLogFromServer === 'function') _syncTodayFoodLogFromServer();
 }
 
 // ── Auth flow ────────────────────────────────────────────────
