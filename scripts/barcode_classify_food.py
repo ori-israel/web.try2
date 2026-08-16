@@ -14,6 +14,14 @@ Actions - עבודה חד-פעמית, מריצים ידנית.
 
 עמיד לניתוק: אם רץ שוב, מדלג על ברקודים שכבר סווגו ב-CSV הקיים וממשיך מאיפה שהפסיק.
 
+בלם עלות קשיח: הסקריפט סופר עלות אמיתית (לא הערכה) מתוך usageMetadata שגוגל
+מחזיר בכל תשובה, לפי מחיר רשמי (gemini-2.5-flash-lite: $0.10/מיליון טוקן קלט,
+$0.40/מיליון טוקן פלט - https://ai.google.dev/gemini-api/docs/pricing). אם העלות
+המצטברת עוברת את MAX_COST_USD - הסקריפט עוצר מיד, לפני הקריאה הבאה, ולא ממשיך.
+יש גם תקרת מספר קריאות (MAX_REQUESTS) כגיבוי בלתי-תלוי, למקרה שה-usageMetadata
+עצמו חסר/פגום ומעקב העלות לא מתעדכן. עבודה על 133 אלף מוצרים אמורה לעלות
+כחצי דולר; ברירת המחדל $3 נותנת מרווח ביטחון בלי לאפשר חריגה משמעותית.
+
 דורש משתני סביבה: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GEMINI_API_KEY
 (שלושתם כבר קיימים ב-Vercel של הפרויקט - להעתיק לטרמינל לפני ההרצה)
 """
@@ -29,6 +37,12 @@ import requests
 
 BATCH_SIZE = 150
 OUT_CSV = "barcode_ai_classification.csv"
+
+# מחיר רשמי ל-gemini-2.5-flash-lite (ר' https://ai.google.dev/gemini-api/docs/pricing)
+PRICE_PER_1M_INPUT_TOKENS = 0.10
+PRICE_PER_1M_OUTPUT_TOKENS = 0.40
+MAX_COST_USD = 3.00      # עצירה קשיחה - הסקריפט לא ימשיך מעבר לזה
+MAX_REQUESTS = 1200      # גיבוי בלתי-תלוי בעלות (887 קריאות צפויות ל-133 אלף מוצרים)
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
@@ -92,6 +106,8 @@ def fetch_all_products():
 
 
 def gemini_classify(names):
+    """מחזיר (text, input_tokens, output_tokens). input_tokens/output_tokens הם 0 אם
+    usageMetadata לא הוחזר מסיבה כלשהי - הקורא צריך להתייחס לזה כמידע חסר, לא כ-0 אמיתי."""
     numbered = "\n".join(f"{i + 1}. {n}" for i, n in enumerate(names))
     prompt = PROMPT_HEADER + numbered
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={GEMINI_API_KEY}"
@@ -107,10 +123,14 @@ def gemini_classify(names):
                 continue
             resp.raise_for_status()
             data = resp.json()
-            return data["candidates"][0]["content"]["parts"][0]["text"]
+            usage = data.get("usageMetadata", {})
+            in_tok = usage.get("promptTokenCount", 0)
+            out_tok = usage.get("candidatesTokenCount", 0)
+            return data["candidates"][0]["content"]["parts"][0]["text"], in_tok, out_tok
         except Exception as e:
             print(f"    שגיאה בקריאה ל-Gemini (ניסיון {attempt + 1}): {e}")
             time.sleep(2 ** attempt)
+    return None, 0, 0
     return None
 
 
@@ -152,10 +172,30 @@ def run_classify():
     for label, _ in already.values():
         counts[label] = counts.get(label, 0) + 1
 
+    total_batches = (len(todo) + BATCH_SIZE - 1) // BATCH_SIZE
+    print(f"צפויות כ-{total_batches} קריאות ל-Gemini | תקרת עלות: ${MAX_COST_USD:.2f} | תקרת קריאות: {MAX_REQUESTS}\n")
+
+    cumulative_cost = 0.0
+    requests_made = 0
+
     for i in range(0, len(todo), BATCH_SIZE):
+        # בלם ביטחון - נבדק *לפני* כל קריאה, לא אחריה, כדי שלא תיעשה עוד קריאה מעבר לתקרה
+        if cumulative_cost >= MAX_COST_USD:
+            print(f"\n⛔ עצירה: העלות המצטברת (${cumulative_cost:.4f}) הגיעה לתקרה (${MAX_COST_USD:.2f}).")
+            print(f"   {i}/{len(todo)} סווגו עד כה. הרץ שוב את הסקריפט כדי להמשיך מאיפה שהפסיק.")
+            break
+        if requests_made >= MAX_REQUESTS:
+            print(f"\n⛔ עצירה: הגיע לתקרת {MAX_REQUESTS} קריאות (גיבוי בלתי-תלוי בעלות).")
+            print(f"   {i}/{len(todo)} סווגו עד כה. הרץ שוב את הסקריפט כדי להמשיך מאיפה שהפסיק.")
+            break
+
         batch = todo[i:i + BATCH_SIZE]
         names = [b["name"] for b in batch]
-        text = gemini_classify(names)
+        text, in_tok, out_tok = gemini_classify(names)
+        requests_made += 1
+        batch_cost = (in_tok / 1_000_000) * PRICE_PER_1M_INPUT_TOKENS + (out_tok / 1_000_000) * PRICE_PER_1M_OUTPUT_TOKENS
+        cumulative_cost += batch_cost
+
         parsed = parse_classification(text, len(batch))
         rows = []
         if parsed is None:
@@ -169,12 +209,13 @@ def run_classify():
                 rows.append([b["barcode"], b["name"], label])
                 counts[label] += 1
         append_results(rows)
-        print(f"  {i + len(batch)}/{len(todo)} סווגו | F={counts['F']} N={counts['N']} U={counts['U']}")
+        print(f"  {i + len(batch)}/{len(todo)} סווגו | F={counts['F']} N={counts['N']} U={counts['U']} | עלות מצטברת: ${cumulative_cost:.4f}")
 
     print("\nסיכום סופי:")
     print(f"  מזון (F): {counts['F']}")
     print(f"  לא מזון (N): {counts['N']}")
     print(f"  לא בטוח (U) - לבדיקה ידנית שלך: {counts['U']}")
+    print(f"  עלות בפועל בריצה הזו: ${cumulative_cost:.4f} ({requests_made} קריאות)")
     print(f"\nהתוצאה המלאה ב-{OUT_CSV}")
     print("לרשימת ה'לא בטוח' לבדיקה שלך, סנן את השורות עם label=U בקובץ.")
     print(f"כשתאשר - הרץ שוב עם --delete כדי למחוק בפועל את מה שסומן N.")
