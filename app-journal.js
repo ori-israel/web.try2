@@ -981,6 +981,7 @@ async function initWorkoutsFromClient() {
     selector.innerHTML = '';
 
     const dayNames = ['יום ראשון', 'יום שני', 'יום שלישי', 'יום רביעי', 'יום חמישי', 'יום שישי', 'יום שבת'];
+    const dayLetters = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
     let firstLetter = null;
 
     const uid = getActiveUserId();
@@ -989,6 +990,7 @@ async function initWorkoutsFromClient() {
     }
     const targets = _exerciseTargets;
 
+    const dayToLetter = {};
     letters.forEach(letter => {
         const workout = CLIENT['workout' + letter];
         const hasCardio = !!CLIENT.cardioPlan?.[letter]?.description;
@@ -999,12 +1001,7 @@ async function initWorkoutsFromClient() {
         if (!days || !days.length) return;
 
         if (!firstLetter) firstLetter = letter;
-
-        const btn = document.createElement('button');
-        btn.className = 'workout-nav-btn';
-        btn.innerText = days.map(d => dayNames[d]).join(' + ');
-        btn.setAttribute('onclick', `showWorkout('${letter}')`);
-        selector.appendChild(btn);
+        days.forEach(d => { dayToLetter[d] = letter; });
 
         _renderWorkoutTbody(letter, workout, targets);
 
@@ -1012,18 +1009,18 @@ async function initWorkoutsFromClient() {
         if (container) container.style.display = 'none';
     });
 
-    const totalShown = selector.querySelectorAll('.workout-nav-btn').length;
-    if (totalShown >= 6) {
-        selector.classList.add('multi-row');
-        const perRow = Math.ceil(totalShown / 2);
-        const pct = (100 / perRow).toFixed(2);
-        selector.querySelectorAll('.workout-nav-btn').forEach(btn => {
-            btn.style.flex = `1 1 calc(${pct}% - 6px)`;
-            btn.style.maxWidth = `calc(${pct}% - 6px)`;
-        });
-    } else {
-        selector.classList.remove('multi-row');
-    }
+    // בורר ימים: עיגול אחד לכל יום בשבוע שיש בו אימון, בסדר לוח השנה (א׳ עד ש׳) — בלי גלילה, שורה אחת תמיד
+    [0, 1, 2, 3, 4, 5, 6].forEach(d => {
+        const letter = dayToLetter[d];
+        if (!letter) return;
+        const btn = document.createElement('button');
+        btn.className = 'workout-nav-btn';
+        btn.textContent = dayLetters[d];
+        btn.title = dayNames[d];
+        btn.setAttribute('aria-label', dayNames[d]);
+        btn.setAttribute('onclick', `showWorkout('${letter}')`);
+        selector.appendChild(btn);
+    });
 
     const todayDay = new Date().getDay();
     const todayLetter = Object.entries(CLIENT.workoutDays || {}).find(([, days]) => days.includes(todayDay))?.[0];

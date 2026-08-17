@@ -1870,15 +1870,6 @@ mark {
 /* ============================================
    Workout Header Card
    ============================================ */
-.workout-selector-card {
-    background: var(--bg-card);
-    border-radius: var(--radius-lg);
-    padding: 18px;
-    margin-bottom: 14px;
-    box-shadow: var(--shadow);
-    border: 0.5px solid var(--border);
-}
-
 .workout-header-top {
     display: flex;
     align-items: center;
@@ -1900,6 +1891,17 @@ mark {
     letter-spacing: -0.4px;
 }
 
+.workout-streak-sub {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+}
+.workout-streak-sub .streak-fire { font-size: 12px; display: flex; }
+.workout-streak-sub .streak-label { font-size: 12.5px; }
+.workout-streak-sub .streak-number { font-size: 13px; }
+.workout-streak-sub .streak-unit { font-size: 12.5px; }
+
 .workout-reset-btn {
     padding: 6px 14px;
     border-radius: 16px;
@@ -1919,24 +1921,6 @@ mark {
 .workout-reset-btn:active { transform: scale(0.9); }
 .workout-reset-btn:hover { color: var(--accent); border-color: rgba(59, 130, 246, 0.3); }
 
-.workout-streak-row {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 14px;
-}
-
-.workout-streak-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--streak-bg) !important;
-    border: 1px solid rgba(59, 130, 246, 0.3) !important;
-    border-radius: 14px;
-    padding: 7px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--accent) !important;
-}
 .streak-fire { font-size: 17px; }
 .streak-label { color: var(--text-secondary); font-weight: 500; }
 .streak-number { font-size: 19px; font-weight: 800; color: var(--accent); letter-spacing: -0.4px; }
@@ -1949,16 +1933,7 @@ mark {
     display: flex;
     justify-content: center;
     gap: 6px;
-    padding: 4px;
-    background: var(--bg-card-alt);
-    border-radius: var(--radius);
-}
-.workout-selector.multi-row {
-    flex-wrap: wrap;
-}
-.workout-selector.multi-row .workout-nav-btn {
-    flex: 1 1 calc(50% - 6px);
-    max-width: calc(50% - 6px);
+    margin-bottom: 14px;
 }
 
 .workout-container {
@@ -1971,18 +1946,23 @@ mark {
 }
 
 .workout-nav-btn {
-    flex: 1;
-    padding: 9px 6px;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 42px;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
     border: none;
-    background: transparent;
+    background: var(--bg-card);
     color: var(--text-secondary);
-    border-radius: 12px;
+    border-radius: 50%;
     font-weight: 600;
     font-size: 13px;
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: inherit;
-    letter-spacing: -0.1px;
 }
 
 .workout-nav-btn.active {
