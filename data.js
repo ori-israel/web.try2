@@ -155,6 +155,20 @@
         "מתח": "גב"
     };
 
+    // סוגי אירובי (self-serve, ר' cardioSchedule ב-app-workouts.js) — רשימה סגורה, אושרה עם המשתמש
+    const CARDIO_TYPES = {
+        treadmill: { label: "הליכון",    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="15" width="18" height="4" rx="1.5"/><path d="M6 15v-2.5A2.5 2.5 0 0 1 8.5 10H16a3 3 0 0 1 3 3v2"/><circle cx="9" cy="8" r="1.5"/></svg>' },
+        bike:      { label: "אופניים",   icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="17" r="3.3"/><circle cx="18" cy="17" r="3.3"/><path d="M6 17l3-8h4l4 8"/><path d="M10 9V6"/><path d="M9 6h2.5"/></svg>' },
+        jumprope:  { label: "חבל קפיצה", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6c3 0 3 12 8 12s5-12 8-12"/><circle cx="4" cy="6" r="1.4"/><circle cx="20" cy="6" r="1.4"/></svg>' },
+        run:       { label: "ריצה",      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="5" r="1.6"/><path d="M9 20l2.5-5 2-2-1.5-5-4 1.5"/><path d="M11.5 15l3.5 1 3-4.5"/><path d="M8 11l-3 2"/></svg>' },
+        row:       { label: "חתירה",     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h18"/><rect x="5" y="15" width="4" height="2" rx="0.5"/><path d="M9 16l6-4"/><circle cx="16" cy="11" r="1.6"/></svg>' },
+        walk:      { label: "הליכה",     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.5" r="1.6"/><path d="M12 6.5v5"/><path d="M12 11.5l-3 5.5"/><path d="M12 11.5l3.5 4"/><path d="M12 8l-3 2"/><path d="M12 8l3 1.5"/></svg>' },
+        elliptical:{ label: "אליפטיקל",  icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="10" cy="16" rx="7" ry="2.3"/><path d="M6 15L11 6"/><path d="M14 15L11 6"/><circle cx="11" cy="6" r="1.3"/></svg>' },
+        swim:      { label: "שחייה",     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="9" r="1.5"/><path d="M5 10.5c1.5 0 2 2 4.5 2s3.5-3 6-2"/><path d="M2 17c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0" stroke-width="1.4"/></svg>' },
+        stairs:    { label: "מדרגות",    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h3v-3h3v-3h3v-3h3v-3h3"/></svg>' },
+        other:     { label: "אחר",       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="18" cy="12" r="1.4"/></svg>' },
+    };
+
     // תבניות אימון מוכנות מראש (9 תבניות + custom נספר בנפרד ב-UI).
     // כל תבנית: { id, name, workoutsPerWeek, workoutA/B/C/..., workoutDays: {A:[0-6],...}, cardioPlan: {A:{description,duration},...} }
     const workoutTemplates = [

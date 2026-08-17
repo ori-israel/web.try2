@@ -803,6 +803,8 @@ async function loadUserIntoApp(userId) {
         CLIENT.workoutSource = profile.workout_source || 'admin';
         CLIENT.exerciseNotes = profile.exercise_notes || {};
         CLIENT.cardioPlan    = profile.cardio_plan    || {};
+        CLIENT.cardioSchedule          = profile.cardio_schedule || {};
+        CLIENT.cardioWeeklyGoalMinutes = profile.cardio_weekly_goal_minutes ?? 150;
         if (profile.portion_values) {
             portionValues.protein = profile.portion_values.protein ?? portionValues.protein;
             portionValues.carbs   = profile.portion_values.carbs   ?? portionValues.carbs;
@@ -992,6 +994,47 @@ async function syncWorkoutPlanNow() {
             workout_source:    CLIENT.workoutSource || 'admin',
         });
     } catch (e) { console.warn('[SB] workout plan sync:', e.message); }
+}
+
+async function syncCardioScheduleNow() {
+    const uid = getActiveUserId();
+    if (!uid) return;
+    try {
+        await sbUpsertProfile(uid, {
+            cardio_schedule:            CLIENT.cardioSchedule || {},
+            cardio_weekly_goal_minutes: CLIENT.cardioWeeklyGoalMinutes ?? 150,
+        });
+    } catch (e) { console.warn('[SB] cardio schedule sync:', e.message); }
+}
+
+async function logCardioDone(cardioType, minutes) {
+    const uid = getActiveUserId();
+    if (!uid) return;
+    try {
+        await db.from('cardio_log').upsert(
+            { user_id: uid, date: localDateStr(), cardio_type: cardioType, minutes },
+            { onConflict: 'user_id,date' }
+        );
+    } catch (e) { console.warn('[SB] cardio log:', e.message); }
+}
+
+async function getWeeklyCardioMinutes(uid) {
+    if (!uid) return 0;
+    const today = new Date();
+    const sun = new Date(today);
+    sun.setDate(today.getDate() - today.getDay());
+    const sat = new Date(sun);
+    sat.setDate(sun.getDate() + 6);
+    const fmt = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    try {
+        const { data, error } = await db.from('cardio_log')
+            .select('minutes')
+            .eq('user_id', uid)
+            .gte('date', fmt(sun))
+            .lte('date', fmt(sat));
+        if (error || !data) return 0;
+        return data.reduce((sum, r) => sum + (r.minutes || 0), 0);
+    } catch (e) { console.warn('[SB] weekly cardio minutes:', e.message); return 0; }
 }
 
 async function syncThemeNow(theme) {

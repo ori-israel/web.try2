@@ -3285,9 +3285,77 @@ select.login-input:focus {
 .we-cardio-duration { width: 64px; text-align: center; }
 .we-cardio-unit { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
 
-.workout-cardio-item .workout-accord-header { cursor: pointer; }
-.workout-cardio-item { border-top: 1px solid var(--border); margin-top: 4px; opacity: 0.85; }
-.workout-cardio-item.open .workout-accord-body { display: block !important; }
+/* ============================================
+   אירובי self-serve (טאב אימונים, לקוח)
+   ============================================ */
+.cardio-settings-card, .cardio-progress-card, .cardio-exec-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    border: 0.5px solid var(--border);
+    padding: 16px;
+    margin-bottom: 14px;
+}
+.cardio-settings-head {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 700; font-size: 15px; margin-bottom: 14px; color: var(--accent);
+}
+.cardio-day-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 14px; }
+.cardio-day-chip {
+    padding: 9px 0; font-size: 13px; font-weight: 600; font-family: inherit;
+    border-radius: 10px; border: 0.5px solid var(--border); background: var(--bg-card-alt);
+    color: var(--text-secondary); cursor: pointer; text-align: center;
+    transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cardio-day-chip.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 800; }
+.cardio-day-chip:active { transform: scale(0.96); }
+.cardio-day-detail {
+    display: flex; gap: 8px; align-items: center; padding: 10px;
+    background: var(--bg-card-alt); border-radius: 12px; margin-bottom: 8px;
+}
+.cardio-day-detail-label { font-size: 13px; font-weight: 700; color: var(--text-primary); width: 22px; flex-shrink: 0; text-align: center; }
+.cardio-type-select {
+    flex: 1; min-width: 0; font-family: inherit; font-size: 13px; color: var(--text-primary);
+    background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 9px;
+    padding: 8px 10px; direction: rtl;
+}
+.cardio-min-input {
+    width: 52px; font-family: inherit; font-size: 13px; color: var(--text-primary); text-align: center;
+    background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 9px; padding: 8px 4px;
+}
+.cardio-min-unit { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+.cardio-goal-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.cardio-goal-label { font-size: 13px; color: var(--text-secondary); flex: 1; }
+.cardio-goal-input {
+    width: 64px; font-family: inherit; font-size: 13px; color: var(--text-primary); text-align: center;
+    background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 9px; padding: 8px 4px;
+}
+.cardio-save-btn {
+    width: 100%; margin-top: 14px; padding: 12px; border: none; border-radius: 12px;
+    background: var(--gradient-btn); color: #fff; font-weight: 700; font-size: 14px;
+    font-family: inherit; cursor: pointer; transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cardio-save-btn:active { transform: scale(0.98); }
+
+.cardio-progress-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.cardio-progress-label { font-size: 13px; color: var(--text-secondary); }
+.cardio-progress-count { font-size: 14px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+.cardio-progress-track { height: 8px; border-radius: 99px; background: var(--progress-bg); overflow: hidden; }
+.cardio-progress-fill { height: 100%; background: var(--gradient-btn); border-radius: 99px; transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+
+.cardio-exec-row { display: flex; align-items: center; gap: 12px; }
+.cardio-exec-check {
+    width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--accent); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; color: transparent;
+    background: transparent; padding: 0; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cardio-exec-check.checked { background: var(--gradient-btn); color: #fff; border-color: transparent; }
+.cardio-exec-check:active { transform: scale(0.92); }
+.cardio-exec-body { flex: 1; min-width: 0; }
+.cardio-exec-title { font-weight: 700; font-size: 14px; margin-bottom: 2px; color: var(--text-primary); }
+.cardio-exec-sub { font-size: 12.5px; color: var(--text-secondary); }
+.cardio-exec-icon { color: var(--accent); flex-shrink: 0; }
+.cardio-exec-icon svg { display: block; }
 
 .we-footer { margin-top: 16px; border-top: 0.5px solid var(--border); padding-top: 16px; }
 .we-save-btn {

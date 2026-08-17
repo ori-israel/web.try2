@@ -1029,6 +1029,7 @@ async function initWorkoutsFromClient() {
     initWorkoutTableWeights(targets);
     refreshWorkoutReorderToggle();
     buildWorkoutAccordions(targets);
+    if (typeof renderCardioSection === 'function') renderCardioSection();
 }
 
 function showWeightUpdateToast() {
