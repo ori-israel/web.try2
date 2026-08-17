@@ -812,10 +812,13 @@ function initWorkoutTableWeights(targets = {}) {
     });
 }
 
-function resetWorkout() {
+async function resetWorkout() {
     const activeBtn = document.querySelector('.workout-nav-btn.active');
     const activeLetter = activeBtn?.getAttribute('onclick')?.match(/'([A-G])'/)?.[1];
     if (!activeLetter) return;
+
+    const confirmed = await showConfirmDanger('לאפס את כל הסימונים שסימנת באימון הזה היום?');
+    if (!confirmed) return;
 
     const progress = _ensureWorkoutCache().exercises;
     Object.keys(progress).forEach(key => { if (key.startsWith(activeLetter + '_')) delete progress[key]; });
@@ -973,7 +976,6 @@ function moveWorkoutExercise(letter, index, direction) {
 }
 
 async function initWorkoutsFromClient() {
-    console.log('[init] function called, uid:', getActiveUserId());
     const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
     const selector = document.getElementById('workout-selector');
     selector.innerHTML = '';
