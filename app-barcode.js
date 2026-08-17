@@ -86,7 +86,7 @@ function _bcSetLoadingText(text) {
 async function onBarcodeDetected(barcode) {
     if (_bcControls) { try { _bcControls.stop(); } catch (_) {} _bcControls = null; }
     _bcShowStep('bc-loading-step');
-    _bcSetLoadingText('מזהה את המוצר...');
+    _bcSetLoadingText('מזהים את המוצר...');
 
     try {
         const row = await sbLookupBarcode(barcode);
@@ -96,7 +96,7 @@ async function onBarcodeDetected(barcode) {
         if (row.protein_g != null) {
             macros = { protein_g: row.protein_g, carbs_g: row.carbs_g, fat_g: row.fat_g, alcohol_g: row.alcohol_g };
         } else {
-            _bcSetLoadingText('מחפש ערכים תזונתיים...');
+            _bcSetLoadingText('מחפשים ערכים תזונתיים...');
             macros = await _bcFetchFromOpenFoodFacts(barcode);
             if (!macros) {
                 _bcSetLoadingText('כמעט סיימנו...');

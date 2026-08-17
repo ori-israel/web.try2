@@ -116,7 +116,7 @@ function renderScanDetails() {
     const itemsHtml = scannedItems.map((item, i) =>
         `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
             <button onclick="deleteScannedItem(${i})" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:0 6px;line-height:1;min-width:32px;display:inline-flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-            <span style="flex:1;text-align:right;font-size:15px;">${_esc(item.name)} — <span onclick="editItemGrams(${i}, this)" style="color:var(--text-secondary);cursor:pointer;text-decoration:underline dotted;">${Math.round(item.grams)}g</span></span>
+            <span style="flex:1;text-align:right;font-size:15px;">${_esc(item.name)} · <span onclick="editItemGrams(${i}, this)" style="color:var(--text-secondary);cursor:pointer;text-decoration:underline dotted;">${Math.round(item.grams)}g</span></span>
         </div>`
     ).join('');
     // כפתור "הוספת פריט" מוצג תמיד — גם כשאין עדיין פריטים (למשל אחרי מחיקת הפריט האחרון)
@@ -328,7 +328,7 @@ async function confirmAddItem() {
     // מוצר שנמצא במאגר הישראלי לפי שם - נשלף לפי ברקוד (יחסית ל-100 גרם)
     if (selSource && selSource.type === 'barcode' && selSource.label === name && unit === 'גרם') {
         const row = document.getElementById('add-item-row');
-        if (row) row.innerHTML = `<span style="color:var(--text-secondary);font-size:12px;">מחפש מידע תזונתי...</span>`;
+        if (row) row.innerHTML = `<span style="color:var(--text-secondary);font-size:12px;">מחפשים מידע תזונתי...</span>`;
         const macros = await resolveBarcodeProductMacros(selSource.ref.barcode);
         if (macros) {
             const ratio = amount / 100;
@@ -368,7 +368,7 @@ async function confirmAddItem() {
 
     // Gemini + חיפוש באינטרנט — תומך בגרמים וביחידות אחרות
     const row = document.getElementById('add-item-row');
-    if (row) row.innerHTML = `<span style="color:var(--text-secondary);font-size:12px;">מחפש מידע תזונתי...</span>`;
+    if (row) row.innerHTML = `<span style="color:var(--text-secondary);font-size:12px;">מחפשים מידע תזונתי...</span>`;
 
     try {
         const prompt = isGrams
@@ -684,7 +684,7 @@ async function compressImage(base64, mimeType) {
     });
 }
 
-const SCAN_LOADING_MESSAGES = ['בודק את המרכיבים...', 'מזהה גדלי מנות...', 'מחשב ערכים תזונתיים...'];
+const SCAN_LOADING_MESSAGES = ['בודקים את המרכיבים...', 'מזהים גדלי מנות...', 'מחשבים ערכים תזונתיים...'];
 let _scanLoadingInterval = null;
 
 function startScanLoadingAnimation() {

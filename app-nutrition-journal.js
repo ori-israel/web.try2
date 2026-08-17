@@ -238,7 +238,7 @@ async function _renderFoodLogPastDay(dateStr) {
     _renderFoodLogNav();
     const el = document.getElementById('food-log-list');
     if (!el) return;
-    el.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:12px 0;font-size:13px;">טוען...</div>';
+    el.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:12px 0;font-size:13px;">טוענים...</div>';
     try {
         const userId = getActiveUserId();
         const rows = await sbFetchFoodLogRange(userId, dateStr);
@@ -261,7 +261,7 @@ async function _renderFoodLogPastDay(dateStr) {
                     <div class="fl-card-name">${_esc(r.food)}${hasRecipe ? ' <span style="color:var(--text-muted);font-size:11px;">(פרטים ›)</span>' : ''}</div>
                     <div class="fl-card-macros">${r.grams?`<span class="g">${r.grams}g</span>`:''}${r.protein_g?`<span class="fl-m-p">${r.protein_g}g חלבון</span>`:''}${r.carbs_g?`<span class="fl-m-c">${r.carbs_g}g פחמימה</span>`:''}${r.fat_g?`<span class="fl-m-f">${r.fat_g}g שומן</span>`:''}${r.alcohol_g?`<span class="fl-m-a">${r.alcohol_g}g אלכוהול</span>`:''}
                     </div>
-                    ${hasRecipe ? `<div id="${detId}" style="display:none;margin-top:6px;font-size:11.5px;color:var(--text-secondary);">${r.recipe_items.map(ing => `${_esc(ing.name)} — ${ing.amount} ${_esc(ing.unit)}`).join('<br>')}</div>` : ''}
+                    ${hasRecipe ? `<div id="${detId}" style="display:none;margin-top:6px;font-size:11.5px;color:var(--text-secondary);">${r.recipe_items.map(ing => `${_esc(ing.name)} · ${ing.amount} ${_esc(ing.unit)}`).join('<br>')}</div>` : ''}
                 </div>
                 <div class="fl-card-actions">
                     <button onclick="deletePastDayFoodLogEntry('${r.id}', '${dateStr}')" title="מחיקה"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -375,7 +375,7 @@ function renderFoodLog() {
                     <div class="fl-card-name">${_esc(e.name)}${hasRecipe ? ' <span style="color:var(--text-muted);font-size:11px;">(פרטים ›)</span>' : ''}</div>
                     <div class="fl-card-macros">${e.grams ? `<span class="g">${e.grams}g</span>` : ''}${e.protein_g ? `<span class="fl-m-p">${e.protein_g}g חלבון</span>` : ''}${e.carbs_g ? `<span class="fl-m-c">${e.carbs_g}g פחמימה</span>` : ''}${e.fat_g ? `<span class="fl-m-f">${e.fat_g}g שומן</span>` : ''}${e.alcohol_g ? `<span class="fl-m-a">${e.alcohol_g}g אלכוהול</span>` : ''}
                     </div>
-                    ${hasRecipe ? `<div id="fld-${e._idx}" style="display:none;margin-top:6px;font-size:11.5px;color:var(--text-secondary);">${e.recipe_items.map(ing => `${_esc(ing.name)} — ${ing.amount} ${_esc(ing.unit)}`).join('<br>')}</div>` : ''}
+                    ${hasRecipe ? `<div id="fld-${e._idx}" style="display:none;margin-top:6px;font-size:11.5px;color:var(--text-secondary);">${e.recipe_items.map(ing => `${_esc(ing.name)} · ${ing.amount} ${_esc(ing.unit)}`).join('<br>')}</div>` : ''}
                 </div>
                 <div class="fl-card-actions">
                     <button class="edit" onclick="openFoodLogEdit(${e._idx})" title="עריכה"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
