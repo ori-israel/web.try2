@@ -360,12 +360,11 @@ function buildWorkoutAccordions(targets = {}) {
             const exId = checkbox?.getAttribute('data-id') || '';
 
             const t = targets[name];
-            let weightHtml, repsDisplay;
+            let weightHtml, repsDisplay, hintHtml = '';
             if (t) {
-                weightHtml = t.suggest_increase
-                    ? `${t.target_weight} <span style="color:#22c55e;font-size:0.9em;">↑</span><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">מומלץ להוסיף קצת משקל</div>`
-                    : String(t.target_weight);
+                weightHtml = t.suggest_increase ? `${t.target_weight} <span style="color:#22c55e;font-size:0.9em;">↑</span>` : String(t.target_weight);
                 repsDisplay = String(t.target_reps);
+                if (t.suggest_increase) hintHtml = `<div class="accord-hint">מומלץ להוסיף קצת משקל, עשה כמה חזרות שאפשר</div>`;
             } else {
                 const savedWeights = _ensureWorkoutCache().exercise_weights || {};
                 weightHtml = savedWeights[exId] || '—';
@@ -385,29 +384,30 @@ function buildWorkoutAccordions(targets = {}) {
                     <span class="accord-check-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
                     <span class="accord-toggle">▾</span>
                 </div>
-                <div class="workout-accord-body">
-                    <div class="workout-accord-details">
-                        <div class="accord-detail">
-                            <span class="accord-detail-label">סטים חימום</span>
-                            <span class="accord-detail-value">${warmup}</span>
-                        </div>
-                        <div class="accord-detail">
-                            <span class="accord-detail-label">סטים עבודה</span>
-                            <span class="accord-detail-value">${work}</span>
-                        </div>
-                        <div class="accord-detail weight-detail" data-ex-id="${exId}">
-                            <span class="accord-detail-label">משקל</span>
-                            <span class="accord-detail-value accord-weight-val">${weightHtml}</span>
-                        </div>
-                        <div class="accord-detail">
-                            <span class="accord-detail-label">חזרות</span>
-                            <span class="accord-detail-value">${repsDisplay}</span>
-                        </div>
+                <div class="workout-accord-details">
+                    <div class="accord-detail">
+                        <span class="accord-detail-label">סטים לחימום</span>
+                        <span class="accord-detail-value">${warmup}</span>
                     </div>
+                    <div class="accord-detail">
+                        <span class="accord-detail-label">סטים לעבודה</span>
+                        <span class="accord-detail-value">${work}</span>
+                    </div>
+                    <div class="accord-detail weight-detail" data-ex-id="${exId}">
+                        <span class="accord-detail-label">משקל</span>
+                        <span class="accord-detail-value accord-weight-val">${weightHtml}</span>
+                    </div>
+                    <div class="accord-detail">
+                        <span class="accord-detail-label">חזרות</span>
+                        <span class="accord-detail-value">${repsDisplay}</span>
+                    </div>
+                </div>
+                ${hintHtml}
+                <div class="workout-accord-body">
                     <div class="accord-note-wrap">
                         <input type="text" class="accord-note-input" maxlength="100" placeholder="הערות לאימון..." data-ex-name="${name.replace(/"/g, '&quot;')}" value="${exNote.replace(/"/g, '&quot;')}">
                     </div>
-                    ${bankUrl ? `<div class="accord-video-link"><button class="accord-video-btn" data-video-url="${encodeURIComponent(bankUrl)}">▶ צפה בסרטון</button></div>` : ''}
+                    ${bankUrl ? `<div class="accord-video-link"><button class="accord-video-btn" data-video-url="${encodeURIComponent(bankUrl)}">▶ צפייה בסרטון</button></div>` : ''}
                 </div>
             `;
             const videoBtn = item.querySelector('.accord-video-btn');
