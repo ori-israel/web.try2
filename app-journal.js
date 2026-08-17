@@ -880,7 +880,7 @@ function _renderWorkoutTbody(letter, workout, targets) {
             : '';
         const repsDisplay = t ? String(t.target_reps) : ex.reps;
         const subtext = t?.suggest_increase
-            ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">הוסף קצת משקל</div>`
+            ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">מומלץ להוסיף קצת משקל</div>`
             : '';
         const orderCell = canReorder
             ? `<div class="workout-order-btns">
