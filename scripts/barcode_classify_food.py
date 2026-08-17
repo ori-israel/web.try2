@@ -232,25 +232,12 @@ def run_classify():
     print(f"כשתאשר - הרץ שוב עם --delete כדי למחוק בפועל את מה שסומן N.")
 
 
-def run_delete():
-    if not (SUPABASE_URL and SERVICE_KEY):
-        print("חסר משתנה סביבה (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)")
-        sys.exit(1)
-    if not os.path.exists(OUT_CSV):
-        print(f"לא נמצא {OUT_CSV} - צריך להריץ קודם בלי --delete")
-        sys.exit(1)
-
-    to_delete = []
-    with open(OUT_CSV, newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            if row["label"] == "N":
-                to_delete.append(row["barcode"])
-
+def _delete_barcodes(to_delete):
+    """מוחק רשימת ברקודים מסופאבייס, בבאצ'ים. משותף בין --delete ל---delete-except-food."""
     if not to_delete:
-        print("אין רשומות מסומנות N למחיקה")
+        print("אין מה למחוק")
         return
-
-    print(f"מוחק {len(to_delete)} מוצרים שסווגו כלא-מזון...")
+    print(f"מוחק {len(to_delete)} מוצרים...")
     batch = 200
     deleted = 0
     for i in range(0, len(to_delete), batch):
@@ -271,16 +258,61 @@ def run_delete():
         else:
             deleted += len(chunk)
             print(f"  נמחקו {deleted}/{len(to_delete)}")
-
     print(f"\nהסתיים. נמחקו {deleted} מוצרים.")
+
+
+def run_delete():
+    if not (SUPABASE_URL and SERVICE_KEY):
+        print("חסר משתנה סביבה (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)")
+        sys.exit(1)
+    if not os.path.exists(OUT_CSV):
+        print(f"לא נמצא {OUT_CSV} - צריך להריץ קודם בלי --delete")
+        sys.exit(1)
+
+    to_delete = []
+    with open(OUT_CSV, newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            if (row.get("label") or "").strip().upper() == "N":
+                to_delete.append(row["barcode"])
+
+    _delete_barcodes(to_delete)
+
+
+def run_delete_except_food(review_file):
+    """למחיקת קובץ ה'לא בטוח' אחרי בדיקה ידנית: מוחק הכל חוץ משורות שסומנו F.
+    כלומר ברירת המחדל בקובץ הזה הפוכה מ---delete הרגיל - כל מה שלא F נמחק
+    (כולל U שלא שונה), כי ברוב המקרים רוב הרשימה הזו באמת לא מזון."""
+    if not (SUPABASE_URL and SERVICE_KEY):
+        print("חסר משתנה סביבה (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)")
+        sys.exit(1)
+    if not os.path.exists(review_file):
+        print(f"לא נמצא הקובץ {review_file}")
+        sys.exit(1)
+
+    to_delete = []
+    kept = 0
+    with open(review_file, newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            label = (row.get("label") or "").strip().upper()
+            if label == "F":
+                kept += 1
+            else:
+                to_delete.append(row["barcode"])
+
+    print(f"מתוך הקובץ: {kept} סומנו F (יישארו), {len(to_delete)} יימחקו (כולל כל מה שנשאר U)")
+    _delete_barcodes(to_delete)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--delete", action="store_true", help="למחוק בפועל את מה שסומן N (אחרי בדיקה)")
+    parser.add_argument("--delete", action="store_true", help="למחוק בפועל את מה שסומן N ב-CSV הראשי (אחרי בדיקה)")
+    parser.add_argument("--delete-except-food", metavar="FILE",
+                         help="מוחק הכל בקובץ הנתון חוץ משורות שסומנו F (למשל uncertain_review.csv אחרי בדיקה ידנית)")
     args = parser.parse_args()
 
-    if args.delete:
+    if args.delete_except_food:
+        run_delete_except_food(args.delete_except_food)
+    elif args.delete:
         run_delete()
     else:
         run_classify()
