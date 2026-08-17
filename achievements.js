@@ -7,9 +7,9 @@ const _ACH_ICON_UTENSILS = '<svg viewBox="0 0 24 24" width="17" height="17" fill
 const _ACH_ICON_TROPHY   = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M8 4h8v4a4 4 0 0 1-8 0V4z"/><path d="M8 5H5a3 3 0 0 0 3 5"/><path d="M16 5h3a3 3 0 0 1-3 5"/><path d="M10 13v3"/><path d="M14 13v3"/><path d="M7 20h10"/><path d="M9 20c0-2 .5-3 3-3s3 1 3 3"/></svg>';
 
 const ACHIEVEMENTS = {
-    first_workout:       { title: _ACH_ICON_BARBELL + ' האימון הראשון!',        desc: 'ברוך הבא — סיימת את האימון הראשון שלך!' },
+    first_workout:       { title: _ACH_ICON_BARBELL + ' האימון הראשון!',        desc: 'ברוך הבא, סיימת את האימון הראשון שלך!' },
     '10_workouts':       { title: _ACH_ICON_FLAME   + ' 10 אימונים!',            desc: 'הגעת ל-10 אימונים. אתה בדרך הנכונה.' },
-    '50_workouts':       { title: _ACH_ICON_DIAMOND + ' 50 אימונים!',            desc: 'מדהים — 50 אימונים מאחוריך. אתה מכונה.' },
+    '50_workouts':       { title: _ACH_ICON_DIAMOND + ' 50 אימונים!',            desc: 'מדהים, 50 אימונים מאחוריך. אתה מכונה.' },
     weight_goal:         { title: _ACH_ICON_SCALE   + ' יעד המשקל הושג!',        desc: 'הגעת ליעד שהצבת לעצמך. כל הכבוד!' },
     '3_weeks_80':        { title: _ACH_ICON_TREND   + ' שלושה שבועות מעל 80!',   desc: '3 שבועות רצופים עם ציון 80 ומעלה. קבוע!' },
     streak_7_workout:    { title: _ACH_ICON_BARBELL + ' רצף שבועי באימונים!',    desc: '7 ימים רצופים של אימונים. ביצוע מושלם.' },

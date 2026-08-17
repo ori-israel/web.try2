@@ -335,7 +335,7 @@ function _coachAvatar(client) {
 function _fromMeDot(client) {
     const on    = !!client.from_me;
     const color = on ? '#3b82f6' : '#ef4444';
-    const title = on ? 'הגיע ממני (כחול) — לחצו לשינוי' : 'לא הגיע ממני (אדום) — לחצו לשינוי';
+    const title = on ? 'הגיע ממני (כחול), לחצו לשינוי' : 'לא הגיע ממני (אדום), לחצו לשינוי';
     return `<button class="from-me-dot" data-client-id="${client.id}" data-from-me="${on ? '1' : '0'}" title="${title}" aria-label="${title}" style="background:${color}"></button>`;
 }
 
@@ -345,7 +345,7 @@ async function _toggleFromMe(btn) {
     // עדכון מיידי בתצוגה
     btn.dataset.fromMe = next ? '1' : '0';
     btn.style.background = next ? '#3b82f6' : '#ef4444';
-    btn.title = next ? 'הגיע ממני (כחול) — לחצו לשינוי' : 'לא הגיע ממני (אדום) — לחצו לשינוי';
+    btn.title = next ? 'הגיע ממני (כחול), לחצו לשינוי' : 'לא הגיע ממני (אדום), לחצו לשינוי';
     const c = (_coachClients || []).find(x => x.id === id);
     if (c) c.from_me = next;
     try {
@@ -741,7 +741,7 @@ async function submitNewClient() {
 
 async function _authedPost(path, body) {
     const session = await sbGetSession();
-    if (!session) throw new Error('פג תוקף החיבור — יש לרענן את הדף');
+    if (!session) throw new Error('פג תוקף החיבור, יש לרענן את הדף');
     const resp = await fetch(path, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },

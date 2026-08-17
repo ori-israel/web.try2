@@ -307,7 +307,7 @@ window.addEventListener('online', () => {
         clearTimeout(window._onlineToastTimer);
         window._onlineToastTimer = setTimeout(() => {
             toast.style.display = 'none';
-            toast.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 9v4"/><path d="M10.3 3.9L2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/></svg> בעיית תקשורת — מנסה שוב';
+            toast.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 9v4"/><path d="M10.3 3.9L2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/></svg> בעיית תקשורת, מנסה שוב';
             toast.style.background = '#e55';
         }, 3000);
     }
@@ -750,7 +750,7 @@ async function uploadProgressPhoto(input) {
         return;
     }
     if (file.size > 10 * 1024 * 1024) {
-        _showProgressPhotoToast('התמונה גדולה מדי — מקסימום 10MB', false);
+        _showProgressPhotoToast('התמונה גדולה מדי, מקסימום 10MB', false);
         return;
     }
 

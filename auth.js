@@ -285,14 +285,14 @@ async function sendMagicLink() {
     if (error) {
         const msg = error.message?.toLowerCase() || '';
         errorEl.textContent = msg.includes('rate limit')
-            ? 'נשלחו יותר מדי קישורים — יש להמתין כמה דקות'
+            ? 'נשלחו יותר מדי קישורים, יש להמתין כמה דקות'
             : msg.includes('signups not allowed') || msg.includes('user not found')
             ? 'המייל לא רשום במערכת'
             : msg.includes('invalid email')
             ? 'כתובת מייל לא תקינה'
             : msg.includes('email not confirmed')
             ? 'יש לאשר את המייל תחילה'
-            : 'שגיאה — יש לנסות שוב';
+            : 'שגיאה, יש לנסות שוב';
     } else {
         errorEl.style.color = '#4ade80';
         errorEl.textContent = 'קישור נשלח! יש לבדוק את המייל';
@@ -381,7 +381,7 @@ async function doSignup() {
             : msg.includes('signups not allowed') ? 'ההרשמה אינה זמינה כרגע'
             : msg.includes('invalid email') ? 'כתובת מייל לא תקינה'
             : msg.includes('password') ? 'הסיסמה חלשה מדי (לפחות 6 תווים)'
-            : (msg.includes('rate limit') || msg.includes('rate_limit') || msg.includes('too many')) ? 'יותר מדי ניסיונות — יש להמתין כשעה ולנסות שוב'
+            : (msg.includes('rate limit') || msg.includes('rate_limit') || msg.includes('too many')) ? 'יותר מדי ניסיונות, יש להמתין כשעה ולנסות שוב'
             : ('שגיאה: ' + (error.message || 'יש לנסות שוב'));
         btn.disabled    = false;
         btn.textContent = 'יצירת חשבון';
