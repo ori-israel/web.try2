@@ -7,13 +7,28 @@
 
 שימוש בספריית il-supermarket-scraper להורדת הקבצים הגולמיים (XML/GZ),
 ואז פרסור עצמי לפי הסכמה הממשלתית הידועה (ItemCode/ItemName).
+
+סינון לא-מזון בשתי שכבות:
+1. NONFOOD_KEYWORDS (זול, מיידי) - מסנן לפני שבכלל בודקים מול סופאבייס.
+2. AI (Gemini, gemini-2.5-flash-lite) - רק על ברקודים *חדשים* (לא קיימים
+   עדיין ב-barcode_products) שעברו את שכבה 1. מוצרים שכבר במאגר לא
+   עוברים סיווג AI מחדש כל שבוע - הם כבר אושרו (ר' scripts/barcode_classify_food.py
+   שניקה את המאגר הקיים). ככה עלות ה-AI השבועית היא רק על החדשים בפועל
+   (בדרך כלל עשרות-מאות), לא על כל הקטלוג - שיהיה יקר לחינם.
+   מוצר חדש שה-AI לא בטוח לגביו (U) לא נכנס למאגר - מדלגים בשקט. אין בזה
+   אובדן: אם זה בכל זאת מזון, הוא יתפוס שוב בשבוע הבא (הוא עדיין "חדש",
+   כי לא נכנס למאגר) ויכול להיתפס נכון בסיווג הבא, או להתברר ידנית מאוחר יותר.
+   דורש GEMINI_API_KEY כ-secret ב-GitHub Actions. אם חסר - הסקריפט מדלג על
+   הוספת מוצרים חדשים לגמרי (רק מרענן שמות של קיימים), לא נכשל ולא מוסיף בלי בדיקה.
 """
 
 import glob
 import gzip
+import json
 import os
 import re
 import sys
+import time
 import xml.etree.ElementTree as ET
 
 import requests
@@ -21,6 +36,32 @@ from il_supermarket_scarper import ScarpingTask, ScraperFactory
 from il_supermarket_scarper.utils.file_types import FileTypesFilters
 
 DUMP_FOLDER = "barcode_dump"
+
+# מחיר רשמי ל-gemini-2.5-flash-lite (ר' https://ai.google.dev/gemini-api/docs/pricing).
+# בלם ביטחון קשיח כמו ב-barcode_classify_food.py, מותאם לנפח שבועי קטן בהרבה -
+# אם חוצה, פשוט מפסיק לסווג חדשים בריצה הזו (הם יתפסו שוב בשבוע הבא, לא אובדן).
+PRICE_PER_1M_INPUT_TOKENS = 0.10
+PRICE_PER_1M_OUTPUT_TOKENS = 0.40
+MAX_COST_USD = 1.00
+MAX_REQUESTS = 100
+CLASSIFY_BATCH_SIZE = 150
+
+CLASSIFY_PROMPT_HEADER = """אתה מסווג שמות מוצרים ממאגר קמעונאי ישראלי למזון/משקה מול לא-מזון.
+
+כלל: "מזון" (F) = כל דבר שבן אדם אוכל או שותה, בלי קשר לקלוריות
+(למשל קולה זירו, סוכריה ללא סוכר - כן מזון). כלול כמזון גם:
+תבלינים, מלח, סוכר, תוספי תזונה/ויטמינים, קפה, תה, כל סוג משקה כולל אלכוהול.
+
+"לא מזון" (N): מסטיק, קרח (שקיות קרח/קוביות קרח), וכל מוצר ניקיון/טיפוח/בית/
+חיות/טבק/משרד/תינוקות-לא-מזון (חיתולים, פודרה, מגבונים וכו').
+
+אם אתה לא בטוח בוודאות גבוהה - סמן U (לא F ולא N). עדיף U מדי מדי מ-F/N שגוי.
+
+עבור כל שורה ממוספרת למטה, החזר בדיוק שורה אחת בפורמט "מספר:אות"
+(לדוגמה "1:F"), באותו סדר בדיוק, בלי שום טקסט נוסף, בלי הסברים, בלי כותרת.
+
+המוצרים:
+"""
 
 # מוצרים שאינם מזון (ניקיון, טיפוח, כלי בית חד-פעמי, מוצרי חיות, טבק, משרד) —
 # לא נכנסים ל-barcode_products מלכתחילה. אלכוהול לשתייה לא ברשימה, הוא מזון באפליקציה.
@@ -166,6 +207,8 @@ def parse_barcode_names():
 
 
 def upsert_to_supabase(products):
+    if not products:
+        return
     url = os.environ["SUPABASE_URL"]
     key = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
     endpoint = f"{url}/rest/v1/barcode_products"
@@ -187,11 +230,131 @@ def upsert_to_supabase(products):
             print(f"  נשמר באצ' {i}-{i+len(batch)}")
 
 
+def fetch_existing_barcodes():
+    """מושך רק את עמודת הברקוד (לא השם) של כל מה שכבר במאגר - לזיהוי מה חדש."""
+    url = os.environ["SUPABASE_URL"]
+    key = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
+    existing = set()
+    page_size = 1000
+    offset = 0
+    while True:
+        resp = requests.get(
+            f"{url}/rest/v1/barcode_products",
+            headers={"apikey": key, "Authorization": f"Bearer {key}"},
+            params={"select": "barcode", "limit": page_size, "offset": offset},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        page = resp.json()
+        if not page:
+            break
+        existing.update(row["barcode"] for row in page)
+        offset += page_size
+    return existing
+
+
+def _gemini_classify_batch(names, api_key):
+    """מחזיר (text, input_tokens, output_tokens) לבאצ' אחד. None אם נכשל אחרי 3 ניסיונות."""
+    numbered = "\n".join(f"{i + 1}. {n}" for i, n in enumerate(names))
+    prompt = CLASSIFY_PROMPT_HEADER + numbered
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
+    body = {
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+        "generation_config": {"temperature": 0},
+    }
+    for attempt in range(3):
+        try:
+            resp = requests.post(url, json=body, timeout=60)
+            if resp.status_code == 429:
+                time.sleep(5 * (attempt + 1))
+                continue
+            resp.raise_for_status()
+            data = resp.json()
+            usage = data.get("usageMetadata", {})
+            text = data["candidates"][0]["content"]["parts"][0]["text"]
+            return text, usage.get("promptTokenCount", 0), usage.get("candidatesTokenCount", 0)
+        except Exception as e:
+            print(f"    שגיאה בקריאה ל-Gemini (ניסיון {attempt + 1}): {e}")
+            time.sleep(2 ** attempt)
+    return None, 0, 0
+
+
+def _parse_classify_response(text, expected_count):
+    result = {}
+    for line in (text or "").strip().splitlines():
+        line = line.strip()
+        if not line or ":" not in line:
+            continue
+        idx_str, label = line.split(":", 1)
+        try:
+            idx = int(idx_str.strip())
+        except ValueError:
+            continue
+        label = label.strip().upper()[:1]
+        if label in ("F", "N", "U"):
+            result[idx] = label
+    if len(result) != expected_count:
+        return None  # תגובה לא תואמת בכמות - כל הבאצ' יטופל כ-U (לא ייכנס) ליתר בטחון
+    return result
+
+
+def classify_new_items(new_items):
+    """מסווג ברקודים חדשים (לא קיימים עדיין ב-Supabase) דרך Gemini. מחזיר dict
+    barcode->name רק למה שסווג F בבירור. עוצר אם עובר את תקרת העלות/הקריאות -
+    השאר נשארים "חדשים" ויתפסו שוב בריצה הבאה, בלי אובדן."""
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        print("אין GEMINI_API_KEY - מדלג על הוספת מוצרים חדשים בריצה הזו (רק מרענן קיימים)")
+        return {}
+    if not new_items:
+        return {}
+
+    items = list(new_items.items())
+    print(f"מסווג {len(items)} ברקודים חדשים דרך Gemini...")
+
+    accepted = {}
+    cumulative_cost = 0.0
+    requests_made = 0
+    for i in range(0, len(items), CLASSIFY_BATCH_SIZE):
+        if cumulative_cost >= MAX_COST_USD:
+            print(f"  עצירה: העלות המצטברת (${cumulative_cost:.4f}) הגיעה לתקרה (${MAX_COST_USD:.2f})")
+            break
+        if requests_made >= MAX_REQUESTS:
+            print(f"  עצירה: הגיע לתקרת {MAX_REQUESTS} קריאות")
+            break
+
+        batch = items[i:i + CLASSIFY_BATCH_SIZE]
+        names = [n for _, n in batch]
+        text, in_tok, out_tok = _gemini_classify_batch(names, api_key)
+        requests_made += 1
+        cumulative_cost += (in_tok / 1_000_000) * PRICE_PER_1M_INPUT_TOKENS + (out_tok / 1_000_000) * PRICE_PER_1M_OUTPUT_TOKENS
+
+        parsed = _parse_classify_response(text, len(batch))
+        if parsed is not None:
+            for idx, (barcode, name) in enumerate(batch, start=1):
+                if parsed.get(idx) == "F":
+                    accepted[barcode] = name
+
+    print(f"  {len(accepted)}/{len(items)} סווגו כמזון בבירור ויתווספו | עלות: ${cumulative_cost:.4f} ({requests_made} קריאות)")
+    return accepted
+
+
 if __name__ == "__main__":
     download_price_files()
-    products = parse_barcode_names()
-    if not products:
+    scraped = parse_barcode_names()
+    if not scraped:
         print("לא נמצאו מוצרים — לא מעדכן את Supabase")
         sys.exit(1)
-    upsert_to_supabase(products)
+
+    existing_barcodes = fetch_existing_barcodes()
+    print(f"{len(existing_barcodes)} ברקודים כבר קיימים במאגר")
+
+    existing_items = {b: n for b, n in scraped.items() if b in existing_barcodes}
+    new_items = {b: n for b, n in scraped.items() if b not in existing_barcodes}
+    print(f"{len(existing_items)} מהסריקה כבר קיימים (מרענן שם בלבד), {len(new_items)} חדשים (עוברים סיווג AI)")
+
+    upsert_to_supabase(existing_items)
+    food_new_items = classify_new_items(new_items)
+    upsert_to_supabase(food_new_items)
+
     print("הסתיים בהצלחה")
