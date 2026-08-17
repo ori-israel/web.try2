@@ -11,7 +11,7 @@
   // sel = string ל-querySelector או פונקציה שמחזירה אלמנט
   const STEPS = {
     tab1: [
-      { center: true, text: 'בטאב הזה נעקוב יחד אחרי מה שאכלת היום מול היעד היומי' },
+      { center: true, text: 'זה אזור התזונה, כאן נעקוב יחד אחרי כל מה שאכלת מול היעדים שנציב' },
       { sel: '#nutrition-streak-display', text: 'מספר הימים ברצף עם עמידה ביעדי התזונה <svg viewBox="0 0 24 24" width="14" height="14" fill="#f97316" stroke="#f97316" stroke-width="1" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 2.5c-1.2 3.3-5 5.7-5 9.5a5 5 0 0 0 10 0c0-1.6-.7-2.9-1.8-4 .1 1.7-.9 2.4-1.6 2 .9-2 -.2-4.2-1.6-7.5z"/></svg>' },
       { sel: '#macros-progress-group',   text: 'הקלוריות ביום, וכמות החלבון, הפחמימות והשומן בגרמים מתוך היעד' },
       { sel: '.food-action-row .food-action-tile:nth-child(1)', text: 'להוספת אוכל: צילום תמונה וזיהוי אוטומטי ב-AI, סריקת ברקוד, צילום טבלת הערכים התזונתיים על גב האריזה, העלאה מהגלריה, או חיפוש במאגר המזון. כדאי לנסות לבד' },
@@ -20,7 +20,7 @@
       { sel: '.meal-idea-card',          text: 'המאמן AI מציע ארוחה בהתאמה אישית, לפי מה שנשאר לך היום ולפי הטעם שלך' },
     ],
     tab2: [
-      { center: true, text: 'בטאב הזה נעקוב יחד אחרי תוכנית האימונים השבועית שלך, תרגיל אחרי תרגיל' },
+      { center: true, text: 'זה אזור האימונים, כאן נעקוב יחד אחרי תוכנית האימונים השבועית שלך, תרגיל אחרי תרגיל' },
       { sel: '#workout-streak-display', text: 'מספר השבועות ברצף שבהם עמדת ביעד האימונים השבועי <svg viewBox="0 0 24 24" width="14" height="14" fill="#f97316" stroke="#f97316" stroke-width="1" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 2.5c-1.2 3.3-5 5.7-5 9.5a5 5 0 0 0 10 0c0-1.6-.7-2.9-1.8-4 .1 1.7-.9 2.4-1.6 2 .9-2 -.2-4.2-1.6-7.5z"/></svg>' },
       { sel: '#workout-selector',       text: 'בחירת האימון להיום: ראשון, שני, שלישי וכן הלאה לפי התוכנית' },
       { sel: function () {
@@ -34,7 +34,7 @@
       { sel: '#workout-reorder-btn', text: 'סידור מחדש של התרגילים: מפעילים ומזיזים תרגיל למעלה או למטה בסדר עם החצים' },
     ],
     tab4: [
-      { center: true, text: 'בטאב הזה נעקוב יחד אחרי ההתקדמות שלך לאורך זמן: משקל, תמונות וציון שבועי' },
+      { center: true, text: 'זה אזור מעקב ויעדים, כאן נעקוב יחד אחרי ההתקדמות שלך לאורך זמן: משקל, תמונות וציון שבועי' },
       { sel: function () {
           return document.getElementById('weekly-score-container')
               || document.getElementById('score-history-container')
@@ -48,7 +48,7 @@
       { sel: '#open-survey-btn',      text: 'שאלון שבועי קצר למילוי כדי לעקוב אחרי ההרגשה וההתקדמות', coachOnly: true },
     ],
     tab5: [
-      { center: true, text: 'כאן נמצא יחד את כל התשובות: מאגר ידע על תזונה ואימונים, ושאלות נפוצות' },
+      { center: true, text: 'זה מרכז המידע, כאן נמצא יחד את כל התשובות: מאגר ידע על תזונה ואימונים, ושאלות נפוצות' },
       { sel: '#infoSearch',                text: 'חיפוש מהיר של כל מושג בתחום, למשל חלבון, כשל שרירי או קלוריות' },
       { sel: '#info-chapters',             text: 'מאגר מסודר לפי נושאים. לחיצה על פרק פותחת אותו, ולחיצה על מושג מציגה הסבר פשוט' },
       { sel: '#faq-categories-container',  text: 'תשובות לשאלות שחוזרות הרבה, מסודרות לפי קטגוריות' },
