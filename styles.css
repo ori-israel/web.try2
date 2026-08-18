@@ -3327,6 +3327,29 @@ select.login-input:focus {
 .cardio-exec-sub { font-size: 12.5px; color: var(--text-secondary); }
 .cardio-exec-icon { color: var(--accent); flex-shrink: 0; }
 
+.cardio-hero-card {
+    display: flex; align-items: center; gap: 14px;
+    background: linear-gradient(160deg, var(--accent-light), var(--bg-card-alt));
+    border: 1px solid var(--accent); border-radius: 18px; padding: 16px; margin-bottom: 14px;
+}
+.cardio-hero-card.readonly { opacity: 0.7; border-style: dashed; }
+.cardio-hero-icon {
+    width: 44px; height: 44px; border-radius: 12px; background: var(--gradient-btn); color: #fff;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.cardio-hero-body { flex: 1; min-width: 0; }
+.cardio-hero-eyebrow { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 2px; }
+.cardio-hero-title { font-size: 16px; font-weight: 800; margin-bottom: 2px; color: var(--text-primary); }
+.cardio-hero-sub { font-size: 12.5px; color: var(--text-secondary); }
+.cardio-hero-check {
+    width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--accent); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; color: transparent;
+    background: transparent; padding: 0; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cardio-hero-check.checked { background: var(--gradient-btn); color: #fff; border-color: transparent; }
+.cardio-hero-check:active { transform: scale(0.92); }
+.cardio-hero-check:disabled { border-color: var(--border); cursor: default; }
+
 .workout-empty-day-msg {
     text-align: center; font-size: 13.5px; color: var(--text-secondary);
     background: var(--bg-card); border: 0.5px solid var(--border); border-radius: var(--radius-lg);

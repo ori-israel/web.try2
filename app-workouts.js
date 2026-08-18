@@ -60,16 +60,59 @@ function renderCardioSection() {
     if (!container) return;
     container.innerHTML = '';
 
-    const goal = CLIENT.cardioWeeklyGoalMinutes ?? 150;
-    if (goal > 0) container.appendChild(_buildCardioProgressCard(goal));
-
     const day = window._selectedWorkoutDay ?? new Date().getDay();
     const letter = _cweLetterForDay(day);
     const scheduled = CLIENT.cardioSchedule?.[day];
+
+    // יום בלי אימון כוח: האירובי הוא כל מה שיש להיום, אז הוא מקבל כרטיס "הירו" בראש המסך
     if (scheduled && !letter) {
         const isToday = day === new Date().getDay();
-        container.appendChild(_buildCardioExecCard(scheduled, isToday));
+        container.appendChild(_buildCardioHeroCard(scheduled, isToday));
     }
+
+    const goal = CLIENT.cardioWeeklyGoalMinutes ?? 150;
+    if (goal > 0) container.appendChild(_buildCardioProgressCard(goal));
+}
+
+function _wireCardioDoneToggle(btn, entry, dateStr) {
+    btn.addEventListener('click', async () => {
+        const nowDone = !btn.classList.contains('checked');
+        btn.classList.toggle('checked', nowDone);
+        if (nowDone) {
+            localStorage.setItem(_cardioDoneKey(dateStr), '1');
+            if (typeof logCardioDone === 'function') await logCardioDone(entry.type, entry.minutes);
+        } else {
+            localStorage.removeItem(_cardioDoneKey(dateStr));
+        }
+        _refreshCardioProgress();
+    });
+}
+
+// כרטיס בולט בראש המסך ליום שבו האירובי הוא כל מה שיש (אין אימון כוח) — כדי שלא יתפספס
+function _buildCardioHeroCard(entry, interactive = true) {
+    const dateStr = localDateStr();
+    const isDone = interactive && !!localStorage.getItem(_cardioDoneKey(dateStr));
+    const typeInfo = (typeof CARDIO_TYPES !== 'undefined' && CARDIO_TYPES[entry.type]) || { label: 'אירובי', icon: '' };
+
+    const card = document.createElement('div');
+    card.className = 'cardio-hero-card' + (interactive ? '' : ' readonly');
+    card.innerHTML = `
+        <div class="cardio-hero-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-4 3 8 2-5.5 1.5 3h5.5"/></svg>
+        </div>
+        <div class="cardio-hero-body">
+            <div class="cardio-hero-eyebrow">${interactive ? 'האימון שלך היום' : 'מתוכנן ליום זה'}</div>
+            <div class="cardio-hero-title">${typeInfo.label} · ${entry.minutes} דק׳</div>
+            ${interactive ? '<div class="cardio-hero-sub">זה כל מה שיש להיום, בואו נסמן</div>' : ''}
+        </div>
+        <button type="button" class="cardio-hero-check${isDone ? ' checked' : ''}" aria-label="סמן אירובי כבוצע" ${interactive ? '' : 'disabled'}>
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+        </button>
+    `;
+    if (interactive) {
+        _wireCardioDoneToggle(card.querySelector('.cardio-hero-check'), entry, dateStr);
+    }
+    return card;
 }
 
 // interactive=false מציג את הכרטיס לצפייה בלבד (יום שאינו היום האמיתי) — אי אפשר לסמן ביצוע
@@ -94,18 +137,7 @@ function _buildCardioExecCard(entry, interactive = true) {
         </div>
     `;
     if (interactive) {
-        const btn = card.querySelector('.cardio-exec-check');
-        btn.addEventListener('click', async () => {
-            const nowDone = !btn.classList.contains('checked');
-            btn.classList.toggle('checked', nowDone);
-            if (nowDone) {
-                localStorage.setItem(_cardioDoneKey(dateStr), '1');
-                if (typeof logCardioDone === 'function') await logCardioDone(entry.type, entry.minutes);
-            } else {
-                localStorage.removeItem(_cardioDoneKey(dateStr));
-            }
-            _refreshCardioProgress();
-        });
+        _wireCardioDoneToggle(card.querySelector('.cardio-exec-check'), entry, dateStr);
     }
     return card;
 }
