@@ -771,13 +771,16 @@ function openTemplateDetail(index) {
 
     body.innerHTML = `
         <div class="cwe-detail">
-            <div class="cwe-detail-title-row">
-                <span class="cwe-detail-title">${tpl.split || tpl.name}</span>
-                <span class="cwe-row-tag ${levelClass}">${level}</span>
+            <div class="cwe-detail-header">
+                <div class="cwe-detail-title-row">
+                    <span class="cwe-detail-title">${tpl.split || tpl.name}</span>
+                    <span class="cwe-row-tag ${levelClass}">${level}</span>
+                </div>
+                <div class="cwe-detail-sub">${tpl.workoutsPerWeek} ימים בשבוע</div>
+                <div class="cwe-day-tabs">${tabs}</div>
             </div>
-            <div class="cwe-detail-sub">${tpl.workoutsPerWeek} ימים בשבוע</div>
-            <div class="cwe-day-tabs">${tabs}</div>
             ${panels}
+            <div class="cwe-section-divider"><span>אירובי</span></div>
             ${_cweCardioSectionHtml(_cweTemplateCardio)}
             <div class="cwe-detail-actions">
                 <button class="cwe-choose-btn" onclick="selectWorkoutTemplate(${index})">בחירת התוכנית</button>

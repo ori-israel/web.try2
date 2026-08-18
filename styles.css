@@ -4101,13 +4101,18 @@ legend { padding: 0; display: block; width: 100%; }
 }
 
 /* ── מסך פירוט תוכנית ── */
+.cwe-detail-header {
+    background: var(--bg-card-alt);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
 .cwe-detail-title-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 4px; }
 .cwe-detail-title { font-size: 16px; font-weight: 700; }
-.cwe-detail-sub { text-align: center; font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; }
+.cwe-detail-sub { text-align: center; font-size: 12px; color: var(--text-secondary); margin-bottom: 14px; }
 .cwe-day-tabs {
     display: flex;
     gap: 6px;
-    margin-bottom: 12px;
     flex-wrap: wrap;
 }
 .cwe-day-tab {
@@ -4124,7 +4129,7 @@ legend { padding: 0; display: block; width: 100%; }
     transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .cwe-day-tab.active {
-    background: var(--bg-card-alt);
+    background: var(--bg-card);
     border-color: var(--border);
     color: var(--text-primary);
     font-weight: 600;
@@ -4132,19 +4137,20 @@ legend { padding: 0; display: block; width: 100%; }
 .cwe-day-panel {
     display: flex;
     flex-direction: column;
-    gap: 6px;
 }
 .cwe-ex-card {
     display: flex;
     align-items: center;
     gap: 10px;
     background: var(--bg-card-alt);
-    border-radius: 12px;
-    padding: 11px 10px;
+    border-radius: 14px;
+    padding: 12px 10px;
     position: relative;
     overflow: hidden;
+    margin-bottom: 10px;
 }
-.cwe-ex-card::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; }
+.cwe-ex-card:last-child { margin-bottom: 0; }
+.cwe-ex-card::before { content: ''; position: absolute; right: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; }
 .cwe-ex-card.beginner::before { background: var(--level-green); }
 .cwe-ex-card.advanced::before { background: var(--level-orange); }
 .cwe-ex-num {
@@ -4160,6 +4166,13 @@ legend { padding: 0; display: block; width: 100%; }
     font-size: 10.5px; font-weight: 600; color: var(--text-secondary); background: var(--bg-card);
     padding: 2px 7px; border-radius: 99px;
 }
+.cwe-section-divider {
+    display: flex; align-items: center; gap: 10px; margin: 18px 0 12px;
+}
+.cwe-section-divider::before, .cwe-section-divider::after {
+    content: ''; flex: 1; height: 0.5px; background: var(--border);
+}
+.cwe-section-divider span { font-size: 11px; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
 .cwe-detail-actions {
     display: flex;
     gap: 8px;
