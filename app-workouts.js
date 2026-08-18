@@ -636,7 +636,7 @@ function _cweCardioSectionHtml(cardio) {
                 <span class="cwe-cardio-title">הוספת אירובי לתוכנית</span>
                 <span class="cwe-cardio-optional">אופציונלי</span>
             </div>
-            <div class="cwe-cardio-sub">בוחרים ימים נוספים לאירובי, בלי קשר לימי הכוח</div>
+            <div class="cwe-cardio-sub">אירובי הוא אופציונלי לגמרי, אפשר לבחור כל יום בלי קשר לימי הכוח</div>
             <div class="cwe-cb-day-row">${dayChips}</div>
             <div class="cwe-cardio-details">${_cweCardioDetailsHtml(cardio)}</div>
             <div class="cwe-cardio-total"><span class="count">${_cweCardioTotalMinutes(cardio)}</span><span class="lbl">דקות אירובי בשבוע</span></div>
