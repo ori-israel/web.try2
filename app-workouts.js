@@ -701,22 +701,25 @@ function _renderWorkoutGallery() {
     const customLocked = !_hasCustomBuilderAccess();
     html += `
         <button class="cwe-row${customLocked ? ' cwe-locked' : ''}" ${customLocked ? 'disabled' : 'onclick="openCustomBuilder()"'}>
+            <span class="cwe-row-stripe custom"></span>
             <span class="cwe-row-text">
-                <span class="cwe-row-name">התאמה אישית</span>
+                <span class="cwe-row-name">התאמה אישית<span class="cwe-row-tag custom">משלכם</span></span>
                 <span class="cwe-row-split">${customLocked ? 'בונים תוכנית משלכם · פרימיום, בקרוב' : 'בונים תוכנית משלכם'}</span>
             </span>
             <span class="cwe-row-meta">${customLocked ? `<span class="cwe-lock">${_CWE_LOCK_ICON}</span>` : chevron}</span>
         </button>`;
     workoutTemplates.forEach((tpl, i) => {
         const locked = i >= unlockedCount;
+        const level = (tpl.name || '').split(' · ')[0];
+        const levelClass = level === 'מתחילים' ? 'beginner' : 'advanced';
         html += `
             <button class="cwe-row${locked ? ' cwe-locked' : ''}" ${locked ? 'disabled' : `onclick="openTemplateDetail(${i})"`}>
+                <span class="cwe-row-stripe ${levelClass}"></span>
                 <span class="cwe-row-text">
-                    <span class="cwe-row-name">${tpl.name}</span>
-                    <span class="cwe-row-split">${tpl.split || ''}</span>
+                    <span class="cwe-row-name">${tpl.split || tpl.name}<span class="cwe-row-tag ${levelClass}">${level}</span></span>
                 </span>
                 <span class="cwe-row-meta">
-                    ${locked ? `<span class="cwe-lock">${_CWE_LOCK_ICON}</span>` : chevron}
+                    ${locked ? `<span class="cwe-lock">${_CWE_LOCK_ICON}</span>` : `<span class="cwe-row-day-badge">${tpl.workoutsPerWeek} ימים</span>${chevron}`}
                 </span>
             </button>`;
     });
