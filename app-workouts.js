@@ -506,8 +506,8 @@ function buildWorkoutAccordions(targets = {}) {
             const work = cells[3]?.textContent.trim();
             const bankUrl = exerciseBank[name];
             const item = document.createElement('div');
-            item.className = 'workout-accord-item';
             const isChecked = checkbox?.checked;
+            item.className = 'workout-accord-item' + (isChecked ? ' checked' : '');
             const exId = checkbox?.getAttribute('data-id') || '';
 
             const t = targets[name];
@@ -526,13 +526,13 @@ function buildWorkoutAccordions(targets = {}) {
 
             item.innerHTML = `
                 <div class="workout-accord-header ${isChecked ? 'checked' : ''}">
-                    <input type="checkbox" class="accord-checkbox" ${isChecked ? 'checked' : ''} ${_isViewingToday ? '' : 'disabled'}>
+                    <span class="accord-num">${isChecked ? '✓' : i + 1}</span>
                     <span class="accord-name">${name}</span>
                     ${canReorder ? `<div class="accord-order-btns">
                         <button class="accord-order-btn" ${i === 0 ? 'disabled' : ''} onclick="event.stopPropagation(); moveWorkoutExercise('${letter}', ${i}, -1)" aria-label="הזז למעלה">${_CWE_UP_ICON}</button>
                         <button class="accord-order-btn" ${i === rows.length - 1 ? 'disabled' : ''} onclick="event.stopPropagation(); moveWorkoutExercise('${letter}', ${i}, 1)" aria-label="הזז למטה">${_CWE_DOWN_ICON}</button>
                     </div>` : ''}
-                    <span class="accord-check-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+                    <input type="checkbox" class="accord-checkbox" ${isChecked ? 'checked' : ''} ${_isViewingToday ? '' : 'disabled'}>
                     <span class="accord-toggle">▾</span>
                 </div>
                 <div class="workout-accord-body">
@@ -567,6 +567,7 @@ function buildWorkoutAccordions(targets = {}) {
             }
             const accordCheckbox = item.querySelector('.accord-checkbox');
             const header = item.querySelector('.workout-accord-header');
+            const numBadge = item.querySelector('.accord-num');
             accordCheckbox.addEventListener('change', () => {
                 const id = checkbox.getAttribute('data-id');
                 const freshCb = document.querySelector(`.workout-checkbox[data-id="${id}"]`);
@@ -574,6 +575,8 @@ function buildWorkoutAccordions(targets = {}) {
                 _ensureWorkoutCache().exercises[id] = accordCheckbox.checked;
                 if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
                 header.classList.toggle('checked', accordCheckbox.checked);
+                item.classList.toggle('checked', accordCheckbox.checked);
+                if (numBadge) numBadge.textContent = accordCheckbox.checked ? '✓' : (i + 1);
                 checkWorkoutCompletion(freshCb || checkbox);
             });
             header.addEventListener('click', (e) => {
