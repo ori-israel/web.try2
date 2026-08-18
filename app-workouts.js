@@ -32,7 +32,6 @@ function renderCardioSection() {
     const container = document.getElementById('cardio-section');
     if (!container) return;
     container.innerHTML = '';
-    container.appendChild(_buildCardioSettingsCard());
 
     const goal = CLIENT.cardioWeeklyGoalMinutes ?? 150;
     if (goal > 0) container.appendChild(_buildCardioProgressCard(goal));
@@ -104,85 +103,6 @@ async function _refreshCardioProgress() {
     countEl.textContent = `${done} / ${goal}`;
     const pct = goal > 0 ? Math.min(100, Math.round((done / goal) * 100)) : 0;
     fillEl.style.width = pct + '%';
-}
-
-function _buildCardioSettingsCard() {
-    const dayLetters = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
-    const schedule = CLIENT.cardioSchedule || {};
-    const typeOptionsHtml = Object.entries(CARDIO_TYPES).map(([key, t]) => `<option value="${key}">${t.label}</option>`).join('');
-
-    const _dayDetailHtml = (d) => `
-        <div class="cardio-day-detail" data-day="${d}">
-            <span class="cardio-day-detail-label">${dayLetters[d]}׳</span>
-            <select class="cardio-type-select" data-day="${d}">${typeOptionsHtml}</select>
-            <input class="cardio-min-input" type="number" min="1" max="300" data-day="${d}" value="${schedule[d]?.minutes || 30}">
-            <span class="cardio-min-unit">דק׳</span>
-        </div>`;
-
-    const _renderDetails = (sched) => [0, 1, 2, 3, 4, 5, 6]
-        .filter(d => sched[d])
-        .map(d => _dayDetailHtml(d))
-        .join('');
-
-    const card = document.createElement('div');
-    card.className = 'card cardio-settings-card';
-    card.innerHTML = `
-        <div class="cardio-settings-head">
-            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-4 3 8 2-5.5 1.5 3h5.5"/></svg>
-            אירובי שלי
-        </div>
-        <div class="cardio-day-row">
-            ${[0, 1, 2, 3, 4, 5, 6].map(d => `<button type="button" class="cardio-day-chip${schedule[d] ? ' active' : ''}" data-day="${d}">${dayLetters[d]}</button>`).join('')}
-        </div>
-        <div class="cardio-day-details">${_renderDetails(schedule)}</div>
-        <div class="cardio-goal-row">
-            <span class="cardio-goal-label">יעד שבועי</span>
-            <input class="cardio-goal-input" type="number" min="0" max="1000" value="${CLIENT.cardioWeeklyGoalMinutes ?? 150}">
-            <span class="cardio-min-unit">דק׳</span>
-        </div>
-        <button type="button" class="cardio-save-btn">שמירה</button>
-    `;
-
-    const _setSelectedTypes = (sched) => {
-        Object.entries(sched).forEach(([d, entry]) => {
-            const sel = card.querySelector(`.cardio-type-select[data-day="${d}"]`);
-            if (sel && entry?.type) sel.value = entry.type;
-        });
-    };
-    _setSelectedTypes(schedule);
-
-    card.querySelectorAll('.cardio-day-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            const d = chip.dataset.day;
-            const isActive = chip.classList.toggle('active');
-            if (!CLIENT.cardioSchedule) CLIENT.cardioSchedule = {};
-            if (isActive) {
-                CLIENT.cardioSchedule[d] = CLIENT.cardioSchedule[d] || { type: 'other', minutes: 30 };
-            } else {
-                delete CLIENT.cardioSchedule[d];
-            }
-            const detailsContainer = card.querySelector('.cardio-day-details');
-            detailsContainer.innerHTML = _renderDetails(CLIENT.cardioSchedule);
-            _setSelectedTypes(CLIENT.cardioSchedule);
-        });
-    });
-
-    card.querySelector('.cardio-save-btn').addEventListener('click', async () => {
-        const newSchedule = {};
-        card.querySelectorAll('.cardio-day-detail').forEach(row => {
-            const d = row.dataset.day;
-            const type = row.querySelector('.cardio-type-select').value;
-            const minutes = parseInt(row.querySelector('.cardio-min-input').value) || 30;
-            newSchedule[d] = { type, minutes };
-        });
-        CLIENT.cardioSchedule = newSchedule;
-        CLIENT.cardioWeeklyGoalMinutes = parseInt(card.querySelector('.cardio-goal-input').value) || 0;
-        if (typeof syncCardioScheduleNow === 'function') await syncCardioScheduleNow();
-        renderCardioSection();
-        if (typeof buildWorkoutAccordions === 'function') buildWorkoutAccordions(_exerciseTargets || {});
-    });
-
-    return card;
 }
 
     // פונקציה לניהול הצ'קליסט של האימונים
@@ -678,6 +598,81 @@ function _hasCustomBuilderAccess() {
 }
 
 const _CWE_DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+const _CWE_DAY_LETTERS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+
+// ===== אירובי כתוספת לתוכנית (בתוך עורך תוכנית האימונים) =====
+// _cweActiveCardioState מצביע על אובייקט ה-schedule הזמני של המסך הפתוח כרגע
+// (התאמה אישית / פירוט תבנית), נשמר ל-CLIENT רק בלחיצת שמירה/בחירת התוכנית.
+let _cweActiveCardioState = null;
+
+function _cweCardioTotalMinutes(cardio) {
+    return Object.values(cardio || {}).reduce((sum, e) => sum + (e?.minutes || 0), 0);
+}
+
+function _cweCardioTypeOptionsHtml(selected) {
+    return Object.entries(CARDIO_TYPES).map(([key, t]) =>
+        `<option value="${key}"${key === selected ? ' selected' : ''}>${t.label}</option>`
+    ).join('');
+}
+
+function _cweCardioDetailsHtml(cardio) {
+    return [0, 1, 2, 3, 4, 5, 6].filter(d => cardio[d]).map(d => `
+        <div class="cwe-cardio-detail" data-day="${d}">
+            <span class="cwe-cardio-detail-label">${_CWE_DAY_LETTERS[d]}׳</span>
+            <select class="cwe-cardio-type-select" onchange="_cweCardioFieldChanged(this)">${_cweCardioTypeOptionsHtml(cardio[d].type)}</select>
+            <input class="cwe-cardio-min-input" type="number" min="1" max="300" value="${cardio[d].minutes}" oninput="_cweCardioFieldChanged(this)">
+            <span class="cwe-cardio-min-unit">דק׳</span>
+        </div>`).join('');
+}
+
+function _cweCardioSectionHtml(cardio) {
+    const dayChips = [0, 1, 2, 3, 4, 5, 6].map(d => `
+        <div class="cwe-cb-day-chip${cardio[d] ? ' active' : ''}" onclick="_cweToggleCardioDay(${d}, this)">${_CWE_DAY_NAMES[d]}</div>
+    `).join('');
+    return `
+        <div class="cwe-cardio-section">
+            <div class="cwe-cardio-head">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-4 3 8 2-5.5 1.5 3h5.5"/></svg>
+                <span class="cwe-cardio-title">הוספת אירובי לתוכנית</span>
+                <span class="cwe-cardio-optional">אופציונלי</span>
+            </div>
+            <div class="cwe-cardio-sub">בוחרים ימים נוספים לאירובי, בלי קשר לימי הכוח</div>
+            <div class="cwe-cb-day-row">${dayChips}</div>
+            <div class="cwe-cardio-details">${_cweCardioDetailsHtml(cardio)}</div>
+            <div class="cwe-cardio-total"><span class="count">${_cweCardioTotalMinutes(cardio)}</span><span class="lbl">דקות אירובי בשבוע</span></div>
+        </div>`;
+}
+
+function _cweUpdateCardioTotal(section) {
+    const countEl = section?.querySelector('.cwe-cardio-total .count');
+    if (countEl) countEl.textContent = _cweCardioTotalMinutes(_cweActiveCardioState);
+}
+
+function _cweToggleCardioDay(d, btn) {
+    if (!_cweActiveCardioState) return;
+    const isActive = btn.classList.toggle('active');
+    if (isActive) {
+        _cweActiveCardioState[d] = _cweActiveCardioState[d] || { type: 'other', minutes: 30 };
+    } else {
+        delete _cweActiveCardioState[d];
+    }
+    const section = btn.closest('.cwe-cardio-section');
+    if (!section) return;
+    const detailsEl = section.querySelector('.cwe-cardio-details');
+    if (detailsEl) detailsEl.innerHTML = _cweCardioDetailsHtml(_cweActiveCardioState);
+    _cweUpdateCardioTotal(section);
+}
+
+function _cweCardioFieldChanged(el) {
+    if (!_cweActiveCardioState) return;
+    const row = el.closest('.cwe-cardio-detail');
+    if (!row) return;
+    const d = row.dataset.day;
+    const type = row.querySelector('.cwe-cardio-type-select').value;
+    const minutes = parseInt(row.querySelector('.cwe-cardio-min-input').value) || 0;
+    _cweActiveCardioState[d] = { type, minutes };
+    _cweUpdateCardioTotal(row.closest('.cwe-cardio-section'));
+}
 
 function openClientWorkoutEditor() {
     _renderWorkoutGallery();
@@ -756,10 +751,14 @@ function openTemplateDetail(index) {
             </div>`;
     }).join('');
 
+    _cweTemplateCardio = {};
+    _cweActiveCardioState = _cweTemplateCardio;
+
     body.innerHTML = `
         <div class="cwe-detail">
             <div class="cwe-day-tabs">${tabs}</div>
             ${panels}
+            ${_cweCardioSectionHtml(_cweTemplateCardio)}
             <div class="cwe-detail-actions">
                 <button class="cwe-choose-btn" onclick="selectWorkoutTemplate(${index})">בחירת התוכנית</button>
                 <button class="cwe-back-btn" onclick="_renderWorkoutGallery()">חזרה</button>
@@ -791,8 +790,11 @@ async function selectWorkoutTemplate(index) {
     });
     CLIENT.workoutDays = tpl.workoutDays ? JSON.parse(JSON.stringify(tpl.workoutDays)) : {};
     CLIENT.cardioPlan  = tpl.cardioPlan  ? JSON.parse(JSON.stringify(tpl.cardioPlan))  : {};
+    CLIENT.cardioSchedule = { ..._cweTemplateCardio };
+    CLIENT.cardioWeeklyGoalMinutes = _cweCardioTotalMinutes(_cweTemplateCardio);
 
     await syncWorkoutPlanNow();
+    if (typeof syncCardioScheduleNow === 'function') await syncCardioScheduleNow();
     await initWorkoutsFromClient();
     initWorkoutsChecklist();
     initVideos();
@@ -808,9 +810,10 @@ const _CWE_DOWN_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="no
 
 let _cweCustomState  = null;
 let _cweActiveWorkoutIdx = null;
+let _cweTemplateCardio = {};
 
 function openCustomBuilder() {
-    _cweCustomState = { workouts: [] };
+    _cweCustomState = { workouts: [], cardio: {} };
     _renderCustomBuilder();
 }
 
@@ -922,6 +925,8 @@ function _renderCustomBuilder() {
     _setCweTitle('התאמה אישית');
     const body = document.getElementById('cwe-gallery-body');
     if (!body) return;
+    if (!_cweCustomState.cardio) _cweCustomState.cardio = {};
+    _cweActiveCardioState = _cweCustomState.cardio;
 
     const workoutsHtml = _cweCustomState.workouts.map((w, wi) => {
         const dayChips = [0, 1, 2, 3, 4, 5, 6].map(d => `
@@ -971,6 +976,7 @@ function _renderCustomBuilder() {
         <div class="cwe-cb">
             ${workoutsHtml}
             ${_cweCustomState.workouts.length < 7 ? '<button class="cwe-cb-add-workout-btn" onclick="addCustomWorkout()">+ הוספת אימון</button>' : ''}
+            ${_cweCardioSectionHtml(_cweCustomState.cardio)}
             <div class="cwe-detail-actions">
                 <button class="cwe-choose-btn" onclick="saveCustomWorkout()">שמירת התוכנית</button>
                 <button class="cwe-back-btn" onclick="_renderWorkoutGallery()">חזרה</button>
@@ -1014,8 +1020,11 @@ async function saveCustomWorkout() {
         CLIENT['workout' + w.letter] = w.exercises.map(ex => ({ ...ex }));
         CLIENT.workoutDays[w.letter] = [...w.days];
     });
+    CLIENT.cardioSchedule = { ..._cweCustomState.cardio };
+    CLIENT.cardioWeeklyGoalMinutes = _cweCardioTotalMinutes(_cweCustomState.cardio);
 
     await syncWorkoutPlanNow();
+    if (typeof syncCardioScheduleNow === 'function') await syncCardioScheduleNow();
     await initWorkoutsFromClient();
     initWorkoutsChecklist();
     initVideos();

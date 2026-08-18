@@ -3288,7 +3288,7 @@ select.login-input:focus {
 /* ============================================
    אירובי self-serve (טאב אימונים, לקוח)
    ============================================ */
-.cardio-settings-card, .cardio-progress-card, .cardio-exec-card {
+.cardio-progress-card, .cardio-exec-card {
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow);
@@ -3296,46 +3296,6 @@ select.login-input:focus {
     padding: 16px;
     margin-bottom: 14px;
 }
-.cardio-settings-head {
-    display: flex; align-items: center; gap: 8px;
-    font-weight: 700; font-size: 15px; margin-bottom: 14px; color: var(--accent);
-}
-.cardio-day-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 14px; }
-.cardio-day-chip {
-    padding: 9px 0; font-size: 13px; font-weight: 600; font-family: inherit;
-    border-radius: 10px; border: 0.5px solid var(--border); background: var(--bg-card-alt);
-    color: var(--text-secondary); cursor: pointer; text-align: center;
-    transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.cardio-day-chip.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 800; }
-.cardio-day-chip:active { transform: scale(0.96); }
-.cardio-day-detail {
-    display: flex; gap: 8px; align-items: center; padding: 10px;
-    background: var(--bg-card-alt); border-radius: 12px; margin-bottom: 8px;
-}
-.cardio-day-detail-label { font-size: 13px; font-weight: 700; color: var(--text-primary); width: 22px; flex-shrink: 0; text-align: center; }
-.cardio-type-select {
-    flex: 1; min-width: 0; font-family: inherit; font-size: 13px; color: var(--text-primary);
-    background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 9px;
-    padding: 8px 10px; direction: rtl;
-}
-.cardio-min-input {
-    width: 52px; font-family: inherit; font-size: 13px; color: var(--text-primary); text-align: center;
-    background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 9px; padding: 8px 4px;
-}
-.cardio-min-unit { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
-.cardio-goal-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
-.cardio-goal-label { font-size: 13px; color: var(--text-secondary); flex: 1; }
-.cardio-goal-input {
-    width: 64px; font-family: inherit; font-size: 13px; color: var(--text-primary); text-align: center;
-    background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 9px; padding: 8px 4px;
-}
-.cardio-save-btn {
-    width: 100%; margin-top: 14px; padding: 12px; border: none; border-radius: 12px;
-    background: var(--gradient-btn); color: #fff; font-weight: 700; font-size: 14px;
-    font-family: inherit; cursor: pointer; transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.cardio-save-btn:active { transform: scale(0.98); }
 
 .cardio-progress-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
 .cardio-progress-label { font-size: 13px; color: var(--text-secondary); }
@@ -4338,6 +4298,44 @@ legend { padding: 0; display: block; width: 100%; }
     cursor: pointer;
     margin-bottom: 12px;
 }
+
+/* ── אירובי כתוספת לתוכנית (בתוך התאמה אישית ובתוך פירוט תבנית) ── */
+.cwe-cardio-section {
+    background: var(--bg-card-alt);
+    border: 0.5px dashed var(--border-strong);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+}
+.cwe-cardio-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.cwe-cardio-head svg { color: var(--accent); flex-shrink: 0; }
+.cwe-cardio-title { font-size: 14px; font-weight: 700; flex: 1; }
+.cwe-cardio-optional {
+    font-size: 10.5px; font-weight: 700; color: var(--text-muted);
+    background: var(--bg-card); padding: 2px 7px; border-radius: 99px;
+}
+.cwe-cardio-sub { font-size: 11.5px; color: var(--text-secondary); margin-bottom: 12px; }
+.cwe-cardio-detail {
+    display: flex; gap: 6px; align-items: center; padding: 9px 10px;
+    background: var(--bg-card); border-radius: 10px; margin-bottom: 7px;
+}
+.cwe-cardio-detail .cwe-cardio-detail-label { font-size: 12px; font-weight: 700; width: 18px; text-align: center; flex-shrink: 0; }
+.cwe-cardio-type-select {
+    flex: 1; min-width: 0; font-family: inherit; font-size: 12px; color: var(--text-primary);
+    background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px;
+    padding: 6px 8px; direction: rtl;
+}
+.cwe-cardio-min-input {
+    width: 42px; font-family: inherit; font-size: 12px; color: var(--text-primary); text-align: center;
+    background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; padding: 6px 2px;
+}
+.cwe-cardio-min-unit { font-size: 10px; color: var(--text-muted); }
+.cwe-cardio-total {
+    display: flex; align-items: center; gap: 6px; margin-top: 10px;
+    padding-top: 10px; border-top: 0.5px solid var(--border);
+}
+.cwe-cardio-total .count { font-size: 13.5px; font-weight: 800; color: var(--accent); }
+.cwe-cardio-total .lbl { font-size: 12px; color: var(--text-secondary); }
 .cwe-cat-list {
     display: flex;
     flex-direction: column;
