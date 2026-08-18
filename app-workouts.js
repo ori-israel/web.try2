@@ -88,7 +88,7 @@ function _buildCardioExecCard(entry, interactive = true) {
             </button>
             <div class="cardio-exec-body">
                 <div class="cardio-exec-title">${typeInfo.label} · ${entry.minutes} דק׳</div>
-                <div class="cardio-exec-sub">${interactive ? 'מתוזמן להיום' : 'מתוזמן ליום זה · אפשר לסמן ביצוע רק ביום האמיתי'}</div>
+                <div class="cardio-exec-sub">${interactive ? 'מתוזמן להיום' : 'מתוזמן ליום זה'}</div>
             </div>
             <span class="cardio-exec-icon">${typeInfo.icon}</span>
         </div>
@@ -494,7 +494,7 @@ function buildWorkoutAccordions(targets = {}) {
 
             item.innerHTML = `
                 <div class="workout-accord-header ${isChecked ? 'checked' : ''}">
-                    <input type="checkbox" class="accord-checkbox" ${isChecked ? 'checked' : ''}>
+                    <input type="checkbox" class="accord-checkbox" ${isChecked ? 'checked' : ''} ${_isViewingToday ? '' : 'disabled'}>
                     <span class="accord-name">${name}</span>
                     ${canReorder ? `<div class="accord-order-btns">
                         <button class="accord-order-btn" ${i === 0 ? 'disabled' : ''} onclick="event.stopPropagation(); moveWorkoutExercise('${letter}', ${i}, -1)" aria-label="הזז למעלה">${_CWE_UP_ICON}</button>

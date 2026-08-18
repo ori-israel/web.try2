@@ -2297,6 +2297,11 @@ mark {
         cursor: pointer;
         flex-shrink: 0;
     }
+    .workout-accord-header .accord-checkbox:disabled {
+        accent-color: var(--text-muted);
+        cursor: default;
+        opacity: 0.6;
+    }
 
     .workout-accord-header .accord-name {
         flex: 1;
