@@ -3315,10 +3315,18 @@ select.login-input:focus {
 }
 .cardio-exec-check.checked { background: var(--gradient-btn); color: #fff; border-color: transparent; }
 .cardio-exec-check:active { transform: scale(0.92); }
+.cardio-exec-check:disabled { border-color: var(--border); cursor: default; }
+.cardio-exec-card.readonly { opacity: 0.65; }
 .cardio-exec-body { flex: 1; min-width: 0; }
 .cardio-exec-title { font-weight: 700; font-size: 14px; margin-bottom: 2px; color: var(--text-primary); }
 .cardio-exec-sub { font-size: 12.5px; color: var(--text-secondary); }
 .cardio-exec-icon { color: var(--accent); flex-shrink: 0; }
+
+.workout-empty-day-msg {
+    text-align: center; font-size: 13.5px; color: var(--text-secondary);
+    background: var(--bg-card); border: 0.5px solid var(--border); border-radius: var(--radius-lg);
+    padding: 18px; margin-bottom: 14px;
+}
 .cardio-exec-icon svg { display: block; }
 
 .we-footer { margin-top: 16px; border-top: 0.5px solid var(--border); padding-top: 16px; }

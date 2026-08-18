@@ -982,7 +982,6 @@ async function initWorkoutsFromClient() {
 
     const dayNames = ['יום ראשון', 'יום שני', 'יום שלישי', 'יום רביעי', 'יום חמישי', 'יום שישי', 'יום שבת'];
     const dayLetters = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
-    let firstLetter = null;
 
     const uid = getActiveUserId();
     if (uid) {
@@ -1000,7 +999,6 @@ async function initWorkoutsFromClient() {
         const days = CLIENT.workoutDays?.[letter];
         if (!days || !days.length) return;
 
-        if (!firstLetter) firstLetter = letter;
         days.forEach(d => { dayToLetter[d] = letter; });
 
         _renderWorkoutTbody(letter, workout, targets);
@@ -1009,27 +1007,24 @@ async function initWorkoutsFromClient() {
         if (container) container.style.display = 'none';
     });
 
-    // בורר ימים: עיגול אחד לכל יום בשבוע שיש בו אימון, בסדר לוח השנה (א׳ עד ש׳) — בלי גלילה, שורה אחת תמיד
+    // בורר ימים: עיגול אחד לכל יום בשבוע שיש בו אימון כוח ו/או אירובי, בסדר לוח השנה (א׳ עד ש׳) — בלי גלילה, שורה אחת תמיד
     [0, 1, 2, 3, 4, 5, 6].forEach(d => {
-        const letter = dayToLetter[d];
-        if (!letter) return;
+        const hasLetter = !!dayToLetter[d];
+        const hasCardio = !!CLIENT.cardioSchedule?.[d];
+        if (!hasLetter && !hasCardio) return;
         const btn = document.createElement('button');
         btn.className = 'workout-nav-btn';
         btn.textContent = dayLetters[d];
         btn.title = dayNames[d];
+        btn.dataset.day = d;
         btn.setAttribute('aria-label', dayNames[d]);
-        btn.setAttribute('onclick', `showWorkout('${letter}')`);
+        btn.setAttribute('onclick', `showWorkoutDay(${d})`);
         selector.appendChild(btn);
     });
 
-    const todayDay = new Date().getDay();
-    const todayLetter = Object.entries(CLIENT.workoutDays || {}).find(([, days]) => days.includes(todayDay))?.[0];
-    showWorkout(todayLetter || firstLetter);
     initWorkoutsChecklist();
-    initWorkoutTableWeights(targets);
     refreshWorkoutReorderToggle();
-    buildWorkoutAccordions(targets);
-    if (typeof renderCardioSection === 'function') renderCardioSection();
+    showWorkoutDay(new Date().getDay());
 }
 
 function showWeightUpdateToast() {

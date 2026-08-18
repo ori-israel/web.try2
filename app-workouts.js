@@ -17,6 +17,33 @@ function showWorkout(workoutId) {
     initWorkoutTableWeights(_exerciseTargets);
 }
 
+function _cweLetterForDay(day) {
+    return Object.entries(CLIENT.workoutDays || {}).find(([, days]) => days.includes(day))?.[0] || null;
+}
+
+// בורר הימים עובד לפי יום בשבוע (לא לפי אות אימון), כדי שימי אירובי-בלבד יהיו נגישים גם הם
+function showWorkoutDay(day) {
+    window._selectedWorkoutDay = day;
+    const letter = _cweLetterForDay(day);
+
+    document.querySelectorAll('.workout-container').forEach(c => { c.style.display = 'none'; });
+    if (letter) {
+        const container = document.getElementById('workout-' + letter);
+        if (container) container.style.display = 'block';
+    }
+    document.querySelectorAll('.workout-nav-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.day, 10) === day);
+    });
+    initWorkoutTableWeights(_exerciseTargets);
+
+    const emptyMsg = document.getElementById('workout-empty-day-msg');
+    const hasCardio = !!CLIENT.cardioSchedule?.[day];
+    if (emptyMsg) emptyMsg.style.display = (!letter && !hasCardio) ? 'block' : 'none';
+
+    if (typeof renderCardioSection === 'function') renderCardioSection();
+    if (typeof buildWorkoutAccordions === 'function') buildWorkoutAccordions(_exerciseTargets || {});
+}
+
 function _ensureWorkoutCache() {
     if (!window._workoutDataCache) window._workoutDataCache = { exercises: {}, tasks: [], exercise_weights: {} };
     return window._workoutDataCache;
@@ -36,45 +63,50 @@ function renderCardioSection() {
     const goal = CLIENT.cardioWeeklyGoalMinutes ?? 150;
     if (goal > 0) container.appendChild(_buildCardioProgressCard(goal));
 
-    const todayDow = new Date().getDay();
-    const todayLetter = Object.entries(CLIENT.workoutDays || {}).find(([, days]) => days.includes(todayDow))?.[0];
-    const scheduledToday = CLIENT.cardioSchedule?.[todayDow];
-    if (scheduledToday && !todayLetter) {
-        container.appendChild(_buildCardioExecCard(scheduledToday));
+    const day = window._selectedWorkoutDay ?? new Date().getDay();
+    const letter = _cweLetterForDay(day);
+    const scheduled = CLIENT.cardioSchedule?.[day];
+    if (scheduled && !letter) {
+        const isToday = day === new Date().getDay();
+        container.appendChild(_buildCardioExecCard(scheduled, isToday));
     }
 }
 
-function _buildCardioExecCard(entry) {
+// interactive=false מציג את הכרטיס לצפייה בלבד (יום שאינו היום האמיתי) — אי אפשר לסמן ביצוע
+// ליום שלא באמת קורה עכשיו, בדיוק כמו שאי אפשר לסמן תרגיל כוח מיום אחר
+function _buildCardioExecCard(entry, interactive = true) {
     const dateStr = localDateStr();
-    const isDone = !!localStorage.getItem(_cardioDoneKey(dateStr));
+    const isDone = interactive && !!localStorage.getItem(_cardioDoneKey(dateStr));
     const typeInfo = (typeof CARDIO_TYPES !== 'undefined' && CARDIO_TYPES[entry.type]) || { label: 'אירובי', icon: '' };
 
     const card = document.createElement('div');
-    card.className = 'card cardio-exec-card';
+    card.className = 'card cardio-exec-card' + (interactive ? '' : ' readonly');
     card.innerHTML = `
         <div class="cardio-exec-row">
-            <button type="button" class="cardio-exec-check${isDone ? ' checked' : ''}" aria-label="סמן אירובי כבוצע">
+            <button type="button" class="cardio-exec-check${isDone ? ' checked' : ''}" aria-label="סמן אירובי כבוצע" ${interactive ? '' : 'disabled'}>
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
             </button>
             <div class="cardio-exec-body">
                 <div class="cardio-exec-title">${typeInfo.label} · ${entry.minutes} דק׳</div>
-                <div class="cardio-exec-sub">מתוזמן להיום</div>
+                <div class="cardio-exec-sub">${interactive ? 'מתוזמן להיום' : 'מתוזמן ליום זה · אפשר לסמן ביצוע רק ביום האמיתי'}</div>
             </div>
             <span class="cardio-exec-icon">${typeInfo.icon}</span>
         </div>
     `;
-    const btn = card.querySelector('.cardio-exec-check');
-    btn.addEventListener('click', async () => {
-        const nowDone = !btn.classList.contains('checked');
-        btn.classList.toggle('checked', nowDone);
-        if (nowDone) {
-            localStorage.setItem(_cardioDoneKey(dateStr), '1');
-            if (typeof logCardioDone === 'function') await logCardioDone(entry.type, entry.minutes);
-        } else {
-            localStorage.removeItem(_cardioDoneKey(dateStr));
-        }
-        _refreshCardioProgress();
-    });
+    if (interactive) {
+        const btn = card.querySelector('.cardio-exec-check');
+        btn.addEventListener('click', async () => {
+            const nowDone = !btn.classList.contains('checked');
+            btn.classList.toggle('checked', nowDone);
+            if (nowDone) {
+                localStorage.setItem(_cardioDoneKey(dateStr), '1');
+                if (typeof logCardioDone === 'function') await logCardioDone(entry.type, entry.minutes);
+            } else {
+                localStorage.removeItem(_cardioDoneKey(dateStr));
+            }
+            _refreshCardioProgress();
+        });
+    }
     return card;
 }
 
@@ -421,9 +453,10 @@ function buildWorkoutAccordions(targets = {}) {
     if (window.innerWidth > 600) return;
     // remove stale accordions so we can rebuild with fresh targets
     document.querySelectorAll('.workout-accordion').forEach(a => a.remove());
-    const _todayDow = new Date().getDay();
-    const _todayCardioLetter = Object.entries(CLIENT.workoutDays || {}).find(([, days]) => days.includes(_todayDow))?.[0];
-    const _cardioTodayEntry = CLIENT.cardioSchedule?.[_todayDow] || null;
+    const _viewDow = window._selectedWorkoutDay ?? new Date().getDay();
+    const _isViewingToday = _viewDow === new Date().getDay();
+    const _todayCardioLetter = _cweLetterForDay(_viewDow);
+    const _cardioTodayEntry = CLIENT.cardioSchedule?.[_viewDow] || null;
     const canReorder = (typeof _canReorderWorkout === 'function' ? _canReorderWorkout() : (CLIENT.workoutSource && CLIENT.workoutSource !== 'admin')) && (typeof _workoutReorderMode !== 'undefined' ? _workoutReorderMode : true);
     document.querySelectorAll('.workout-table').forEach(table => {
         const wrapper = table.closest('.table-wrapper');
@@ -544,7 +577,7 @@ function buildWorkoutAccordions(targets = {}) {
 
         // אירובי self-serve: מוצג בסוף רשימת התרגילים רק אם היום מתוזמן וזו אות האימון של היום
         if (letter && letter === _todayCardioLetter && _cardioTodayEntry && typeof _buildCardioExecCard === 'function') {
-            accordion.appendChild(_buildCardioExecCard(_cardioTodayEntry));
+            accordion.appendChild(_buildCardioExecCard(_cardioTodayEntry, _isViewingToday));
         }
 
         wrapper.appendChild(accordion);
