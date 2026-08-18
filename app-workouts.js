@@ -688,6 +688,11 @@ function _setCweTitle(text) {
     if (t) t.textContent = text;
 }
 
+function _cweTemplateLevel(tpl) {
+    const level = (tpl.name || '').split(' · ')[0];
+    return { level, levelClass: level === 'מתחילים' ? 'beginner' : 'advanced' };
+}
+
 function _renderWorkoutGallery() {
     _setCweTitle('בחירת תוכנית אימונים');
     const body = document.getElementById('cwe-gallery-body');
@@ -710,8 +715,7 @@ function _renderWorkoutGallery() {
         </button>`;
     workoutTemplates.forEach((tpl, i) => {
         const locked = i >= unlockedCount;
-        const level = (tpl.name || '').split(' · ')[0];
-        const levelClass = level === 'מתחילים' ? 'beginner' : 'advanced';
+        const { level, levelClass } = _cweTemplateLevel(tpl);
         html += `
             <button class="cwe-row${locked ? ' cwe-locked' : ''}" ${locked ? 'disabled' : `onclick="openTemplateDetail(${i})"`}>
                 <span class="cwe-row-stripe ${levelClass}"></span>
@@ -730,10 +734,11 @@ function _renderWorkoutGallery() {
 function openTemplateDetail(index) {
     const tpl = workoutTemplates[index];
     if (!tpl) return;
-    _setCweTitle(tpl.name + (tpl.split ? ' · ' + tpl.split : ''));
+    _setCweTitle('פירוט תוכנית');
     const body = document.getElementById('cwe-gallery-body');
     if (!body) return;
 
+    const { level, levelClass } = _cweTemplateLevel(tpl);
     const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'].filter(L => (tpl['workout' + L] || []).length);
 
     const tabs = letters.map((L, di) => {
@@ -743,10 +748,17 @@ function openTemplateDetail(index) {
     }).join('');
 
     const panels = letters.map((L, di) => {
-        const cards = (tpl['workout' + L] || []).map(ex => `
-            <div class="cwe-ex-card">
-                <div class="cwe-ex-name">${ex.name}</div>
-                <div class="cwe-ex-meta">חימום ${ex.warmupSets ?? 0} · עבודה ${ex.workSets ?? 0} · חזרות ${ex.reps || ''}</div>
+        const cards = (tpl['workout' + L] || []).map((ex, ei) => `
+            <div class="cwe-ex-card ${levelClass}">
+                <span class="cwe-ex-num">${ei + 1}</span>
+                <div class="cwe-ex-body">
+                    <div class="cwe-ex-name">${ex.name}</div>
+                    <div class="cwe-ex-pills">
+                        <span class="cwe-ex-pill">חימום ${ex.warmupSets ?? 0}</span>
+                        <span class="cwe-ex-pill">עבודה ${ex.workSets ?? 0}</span>
+                        <span class="cwe-ex-pill">${ex.reps || ''} חזרות</span>
+                    </div>
+                </div>
             </div>`).join('');
         return `
             <div class="cwe-day-panel" data-day="${L}" style="display:${di === 0 ? 'block' : 'none'};">
@@ -759,6 +771,11 @@ function openTemplateDetail(index) {
 
     body.innerHTML = `
         <div class="cwe-detail">
+            <div class="cwe-detail-title-row">
+                <span class="cwe-detail-title">${tpl.split || tpl.name}</span>
+                <span class="cwe-row-tag ${levelClass}">${level}</span>
+            </div>
+            <div class="cwe-detail-sub">${tpl.workoutsPerWeek} ימים בשבוע</div>
             <div class="cwe-day-tabs">${tabs}</div>
             ${panels}
             ${_cweCardioSectionHtml(_cweTemplateCardio)}

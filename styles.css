@@ -4101,6 +4101,9 @@ legend { padding: 0; display: block; width: 100%; }
 }
 
 /* ── מסך פירוט תוכנית ── */
+.cwe-detail-title-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 4px; }
+.cwe-detail-title { font-size: 16px; font-weight: 700; }
+.cwe-detail-sub { text-align: center; font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; }
 .cwe-day-tabs {
     display: flex;
     gap: 6px;
@@ -4132,13 +4135,31 @@ legend { padding: 0; display: block; width: 100%; }
     gap: 6px;
 }
 .cwe-ex-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     background: var(--bg-card-alt);
-    border: 0.5px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
+    border-radius: 12px;
+    padding: 11px 10px;
+    position: relative;
+    overflow: hidden;
 }
-.cwe-ex-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-.cwe-ex-meta { font-size: 11px; color: var(--text-secondary); }
+.cwe-ex-card::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; }
+.cwe-ex-card.beginner::before { background: var(--level-green); }
+.cwe-ex-card.advanced::before { background: var(--level-orange); }
+.cwe-ex-num {
+    width: 24px; height: 24px; border-radius: 7px; background: var(--bg-card);
+    font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.cwe-ex-card.beginner .cwe-ex-num { color: var(--level-green); }
+.cwe-ex-card.advanced .cwe-ex-num { color: var(--level-orange); }
+.cwe-ex-body { flex: 1; min-width: 0; }
+.cwe-ex-name { font-size: 13.5px; font-weight: 700; margin-bottom: 5px; }
+.cwe-ex-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+.cwe-ex-pill {
+    font-size: 10.5px; font-weight: 600; color: var(--text-secondary); background: var(--bg-card);
+    padding: 2px 7px; border-radius: 99px;
+}
 .cwe-detail-actions {
     display: flex;
     gap: 8px;
