@@ -515,7 +515,7 @@ function buildWorkoutAccordions(targets = {}) {
             if (t) {
                 weightHtml = t.suggest_increase ? `${t.target_weight} <span style="color:#22c55e;font-size:0.9em;">↑</span>` : String(t.target_weight);
                 repsDisplay = String(t.target_reps);
-                if (t.suggest_increase) hintHtml = `<span class="accord-hint-badge">מומלץ להוסיף קצת משקל</span>`;
+                if (t.suggest_increase) hintHtml = `<span class="accord-hint-badge">נסו לעלות למשקל הבא שיש לכם</span>`;
             } else {
                 const savedWeights = _ensureWorkoutCache().exercise_weights || {};
                 weightHtml = savedWeights[exId] || '—';
