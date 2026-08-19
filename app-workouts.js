@@ -966,18 +966,16 @@ function _renderCategoryChips() {
     const rows = _CWE_CATEGORIES.map(cat => {
         const count = Object.keys(exerciseBank).filter(n => exerciseCategories[n] === cat).length;
         return `
-        <button class="cwe-cat-row" onclick="selectExerciseCategory('${cat}')">
-            <span class="cwe-cat-row-name">${cat}</span>
-            <span class="cwe-cat-row-right">
-                <span class="cwe-cat-row-count">${count} תרגילים</span>
-                <span class="cwe-cat-row-arrow">‹</span>
-            </span>
+        <button class="cwe-catpick-row" onclick="selectExerciseCategory('${cat}')">
+            <span class="cwe-catpick-name">${cat}</span>
+            <span class="cwe-catpick-pill">${count} תרגילים</span>
         </button>`;
     }).join('');
     body.innerHTML = `
         <div class="cwe-cb-picker">
-            <div class="cwe-cat-list">${rows}</div>
-            <button class="cwe-back-btn cwe-cb-picker-back" onclick="backToCustomBuilder()">חזרה לתוכנית</button>
+            <p class="cwe-catpick-sub">לחצו על קבוצה כדי לבחור תרגיל להוספה לתוכנית</p>
+            <div class="cwe-catpick-list">${rows}</div>
+            <button class="cwe-catpick-btn" onclick="backToCustomBuilder()">חזרה לתוכנית</button>
         </div>`;
 }
 
