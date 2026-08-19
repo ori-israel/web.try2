@@ -813,8 +813,8 @@ function initWorkoutTableWeights(targets = {}) {
 }
 
 async function resetWorkout() {
-    const activeBtn = document.querySelector('.workout-nav-btn.active');
-    const activeLetter = activeBtn?.getAttribute('onclick')?.match(/'([A-G])'/)?.[1];
+    const day = window._selectedWorkoutDay ?? new Date().getDay();
+    const activeLetter = _cweLetterForDay(day);
     if (!activeLetter) return;
 
     const confirmed = await showConfirmDanger('לאפס את כל הסימונים שסימנת באימון הזה היום?');
