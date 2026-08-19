@@ -4411,14 +4411,14 @@ legend { padding: 0; display: block; width: 100%; }
 .cwe-cb-add-ex-btn:disabled { opacity: 0.4; cursor: default; }
 .cwe-cb-add-workout-btn {
     width: 100%;
-    padding: 12px;
-    font-size: 14px;
-    font-weight: 600;
+    padding: 13px;
+    font-size: 14.5px;
+    font-weight: 700;
     font-family: inherit;
-    border: 0.5px solid var(--border-strong);
-    border-radius: 10px;
-    background: none;
-    color: var(--text-primary);
+    border: none;
+    border-radius: 11px;
+    background: var(--gradient-btn);
+    color: #fff;
     cursor: pointer;
     margin-bottom: 12px;
 }
