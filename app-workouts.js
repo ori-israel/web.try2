@@ -1049,12 +1049,12 @@ function _renderCustomBuilder() {
                 </div>
                 <div class="cwe-cb-ex-fields">
                     <div class="cwe-cb-field">
-                        <span class="cwe-cb-field-label">חימום</span>
-                        <input class="cwe-cb-input" type="number" min="0" max="9" value="${ex.warmupSets}" data-field="warmupSets" aria-label="סטים חימום">
+                        <span class="cwe-cb-field-label">סטים לחימום</span>
+                        <input class="cwe-cb-input" type="number" min="0" max="9" value="${ex.warmupSets}" data-field="warmupSets" aria-label="סטים לחימום">
                     </div>
                     <div class="cwe-cb-field">
-                        <span class="cwe-cb-field-label">עבודה</span>
-                        <input class="cwe-cb-input" type="number" min="0" max="9" value="${ex.workSets}" data-field="workSets" aria-label="סטים עבודה">
+                        <span class="cwe-cb-field-label">סטים לעבודה</span>
+                        <input class="cwe-cb-input" type="number" min="0" max="9" value="${ex.workSets}" data-field="workSets" aria-label="סטים לעבודה">
                     </div>
                     <div class="cwe-cb-field">
                         <span class="cwe-cb-field-label">חזרות</span>
