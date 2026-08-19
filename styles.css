@@ -1976,6 +1976,7 @@ mark {
 }
 
 .workout-nav-btn:active { transform: scale(0.95); }
+.workout-nav-btn:disabled { opacity: 0.35; cursor: default; }
 
 /* ============================================
    Overlay (Survey, Calculator, AI Chat)
@@ -3640,79 +3641,126 @@ select.login-input:focus {
 .qmodal-q strong { font-size: 12px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
 .qmodal-q p { margin: 4px 0 0; font-size: 14px; line-height: 1.5; color: var(--text-primary); }
 
-/* ── journal exercise cards (accordion) ── */
+/* ── journal: ניווט תאריך ── */
+.journal-datebar { position: relative; display: flex; justify-content: center; margin-bottom: 14px; }
+.journal-date-capsule { display: flex; align-items: stretch; background: var(--bg-card-alt); border: 0.5px solid var(--border); border-radius: 99px; overflow: hidden; }
+.journal-date-capsule button { background: none; border: none; color: var(--accent); font-size: 15px; font-weight: 800; padding: 7px 14px; font-family: inherit; cursor: pointer; }
+.journal-date-capsule button:disabled { opacity: 0.35; cursor: default; }
+.journal-date-capsule .journal-date-mid { color: var(--text-primary); font-size: 13px; font-weight: 700; padding: 7px 10px; }
+.journal-today-btn {
+    background: var(--accent-light);
+    color: var(--accent);
+    border: none;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 6px 12px;
+    border-radius: 99px;
+    margin-right: 8px;
+    cursor: pointer;
+    font-family: inherit;
+}
+.journal-workout-label { font-size: 13px; font-weight: 700; color: var(--text-secondary); text-align: center; margin-bottom: 2px; }
+.journal-hint { font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 14px; }
+
+/* ── journal exercise cards (accordion, בסגנון "הירו") ── */
 .journal-ex-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-right: 3px solid var(--accent);
-    border-radius: 12px;
-    margin-bottom: 8px;
+    background: linear-gradient(160deg, var(--accent-light), var(--bg-card-alt));
+    border: 1px solid var(--accent);
+    border-radius: 15px;
+    margin-bottom: 9px;
     overflow: hidden;
     direction: rtl;
 }
-.journal-ex-card.journal-ex-saved { border-right-color: #4ade80; }
+.journal-ex-card.journal-ex-saved { background: linear-gradient(160deg, var(--level-green-light), var(--bg-card-alt)); border-color: var(--level-green); }
 .journal-ex-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 8px;
     padding: 12px 14px;
     cursor: pointer;
     user-select: none;
 }
-.journal-ex-name {
-    font-weight: bold;
-    font-size: 15px;
-    color: var(--text-primary);
-}
-.journal-chart-btn {
-    background: transparent;
-    border: 1px solid rgba(128,128,128,0.4);
-    border-radius: 6px;
-    padding: 2px 6px;
-    font-size: 14px;
-    cursor: pointer;
-    opacity: 0.7;
-    line-height: 1;
+.journal-ex-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    background: var(--gradient-btn);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
 }
-.journal-chart-btn:hover { opacity: 1; }
+.journal-ex-card.journal-ex-saved .journal-ex-num { background: var(--level-green); }
+.journal-ex-name {
+    flex: 1;
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--text-primary);
+}
+.journal-hist-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--accent-light);
+    border: 0.5px solid rgba(59, 130, 246, 0.4);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 800;
+    padding: 5px 10px;
+    border-radius: 99px;
+    flex-shrink: 0;
+    cursor: pointer;
+    font-family: inherit;
+}
 .journal-last-entry {
-    font-size: 13px;
-    color: var(--text-secondary);
-    padding: 0 14px 10px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--accent);
+    padding: 0 14px 8px;
     direction: rtl;
 }
+.journal-last-entry.journal-last-empty { color: var(--text-muted); font-weight: 500; }
 .journal-ex-body {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.28s cubic-bezier(0.16,1,0.3,1);
 }
-.journal-ex-card.open .journal-ex-body { max-height: 200px; }
+.journal-ex-card.open .journal-ex-body { max-height: 90px; }
 .journal-ex-inputs {
     display: flex;
-    gap: 16px;
-    align-items: center;
-    flex-wrap: wrap;
-    padding: 4px 14px 12px;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 6px 14px 12px;
 }
-.journal-ex-label {
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+.journal-ex-field { flex: 1; min-width: 0; }
+.journal-ex-field-label { display: block; font-size: 10px; color: var(--text-muted); margin-bottom: 4px; }
+.journal-ex-input {
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 8px;
+    border-radius: 8px;
+    border: 0.5px solid var(--border);
+    background: rgba(0, 0, 0, 0.2);
     color: var(--text-primary);
+    font-family: inherit;
 }
 .journal-save-btn {
-    display: block;
-    margin: 0 14px 12px auto;
-    padding: 8px 20px;
+    padding: 8px 16px;
+    font-size: 12.5px;
+    font-weight: 700;
     border: none;
     border-radius: 8px;
-    background: var(--accent);
+    background: var(--gradient-btn);
     color: #fff;
-    font-size: 14px;
-    font-weight: bold;
+    flex-shrink: 0;
     cursor: pointer;
+    font-family: inherit;
 }
 
 /* ── vacation banner (client view) ── */

@@ -325,13 +325,6 @@ function getExercisesForLetter(letter) {
     return CLIENT['workout' + letter] || [];
 }
 
-function journalFormatDate(dateStr) {
-    const d = new Date(dateStr + 'T12:00:00');
-    const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
-    const months = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
-    return `יום ${dayNames[d.getDay()]}, ${d.getDate()} ב${months[d.getMonth()]} ${d.getFullYear()}`;
-}
-
 function journalFormatShortDate(dateStr) {
     const [y, m, day] = dateStr.split('-');
     return `${day}/${m}/${y}`;
@@ -348,17 +341,31 @@ async function renderJournalForDate(dateStr) {
     const atMin = dateStr <= startDate;
     const atMax = dateStr >= maxDate;
 
-    const navBtnStyle = 'background:#5b7cfa;color:#ffffff;border:none;border-radius:20px;padding:8px 14px;font-size:13px;font-weight:bold;cursor:pointer;';
+    const dayLetters = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+    const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+    const selDate = new Date(dateStr + 'T12:00:00');
+    const sunday = new Date(selDate);
+    sunday.setDate(selDate.getDate() - selDate.getDay());
+    const weekDays = [0, 1, 2, 3, 4, 5, 6].map(i => {
+        const d = new Date(sunday);
+        d.setDate(sunday.getDate() + i);
+        const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        return { ds, letter: dayLetters[i], disabled: ds < startDate || ds > maxDate };
+    });
+    const weekRow = weekDays.map(w => `
+        <button class="workout-nav-btn${w.ds === dateStr ? ' active' : ''}" ${w.disabled ? 'disabled' : ''} onclick="journalSelectDate('${w.ds}')">${w.letter}</button>
+    `).join('');
 
     let html = `
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
-            <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMin ? '.35' : '1'}">יום קודם</button>
-            <div style="text-align:center;flex:1;position:relative;">
-                <button onclick="toggleJournalCal()" style="font-size:15px;font-weight:bold;color:var(--text-primary);background:transparent;border:none;border-bottom:2px solid #5b7cfa;cursor:pointer;padding:4px 8px;">${journalFormatDate(dateStr)}</button>
-                <div id="journal-calendar" style="display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);z-index:1000;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:12px;min-width:280px;box-shadow:0 4px 20px rgba(0,0,0,0.2);"></div>
-                ${!isToday ? `<button onclick="journalGoToday()" style="background:#5b7cfa;color:#ffffff;border:none;border-radius:20px;padding:8px 20px;font-size:14px;font-weight:bold;cursor:pointer;display:block;margin:6px auto 0;box-shadow:0 2px 6px rgba(0,0,0,0.3);">חזרה להיום</button>` : ''}
+        <div class="workout-selector">${weekRow}</div>
+        <div class="journal-datebar">
+            <div class="journal-date-capsule">
+                <button onclick="journalPrevDay()" ${atMin ? 'disabled' : ''}>›</button>
+                <button class="journal-date-mid" onclick="toggleJournalCal()">${selDate.getDate()} ב${monthNames[selDate.getMonth()]}</button>
+                <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''}>‹</button>
             </div>
-            <button onclick="journalNextDay()" ${atMax ? 'disabled' : ''} style="${navBtnStyle}opacity:${atMax ? '.35' : '1'}">יום הבא</button>
+            ${!isToday ? '<button class="journal-today-btn" onclick="journalGoToday()">היום</button>' : ''}
+            <div id="journal-calendar" style="display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);z-index:1000;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:12px;min-width:280px;box-shadow:0 4px 20px rgba(0,0,0,0.2);"></div>
         </div>`;
 
     const workoutLetter = getWorkoutLetterForDate(dateStr);
@@ -388,40 +395,39 @@ async function renderJournalForDate(dateStr) {
         console.error('Journal load error:', err);
     }
 
-    html += `<div style="font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:4px;">אימון ${workoutLetter}</div>`;
-    html += `<div style="font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:12px;">יש להזין משקל וחזרות מהסט הטוב ביותר באימון הנוכחי</div>`;
+    html += `<div class="journal-workout-label">אימון ליום ${_CWE_DAY_NAMES[selDate.getDay()]}</div>`;
+    html += `<div class="journal-hint">יש להזין משקל וחזרות מהסט הטוב ביותר באימון הנוכחי</div>`;
     html += '<div id="journal-exercises">';
 
-    exercises.forEach(ex => {
+    exercises.forEach((ex, idx) => {
         const saved = savedEntries[ex.name] || {};
         const last = lastEntries[ex.name];
         const lastHtml = last
-            ? `<div class="journal-last-entry">אימון קודם (${journalFormatShortDate(last.date)}): משקל ${last.weight_kg} × ${last.reps} חזרות</div>`
-            : `<div class="journal-last-entry" style="color:var(--text-muted)">אין רשומה קודמת</div>`;
+            ? `<div class="journal-last-entry">קודם ${journalFormatShortDate(last.date)}: ${last.weight_kg} ק"ג ל-${last.reps} חזרות</div>`
+            : `<div class="journal-last-entry journal-last-empty">אין רשומה קודמת</div>`;
         const isSaved = saved.weight_kg != null;
         html += `
             <div class="journal-ex-card${isSaved ? ' journal-ex-saved' : ''}">
                 <div class="journal-ex-header">
+                    <span class="journal-ex-num">${isSaved ? '✓' : idx + 1}</span>
                     <span class="journal-ex-name">${ex.name}</span>
-                    <button class="journal-chart-btn" data-exercise="${ex.name}" style="display:inline-flex;align-items:center;"><svg viewBox="0 0 24 24" width="13" height="13" fill="var(--accent)"><rect x="4" y="13" width="4" height="7" rx="1"/><rect x="10" y="8" width="4" height="12" rx="1"/><rect x="16" y="4" width="4" height="16" rx="1"/></svg></button>
+                    <button class="journal-hist-btn" data-exercise="${ex.name}"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><rect x="4" y="13" width="4" height="7" rx="1"/><rect x="10" y="8" width="4" height="12" rx="1"/><rect x="16" y="4" width="4" height="16" rx="1"/></svg>היסטוריה</button>
                 </div>
                 ${lastHtml}
                 <div class="journal-ex-body">
                     <div class="journal-ex-inputs">
-                        <label class="journal-ex-label">
-                            <span>משקל:</span>
-                            <input type="number" class="journal-weight-input" data-exercise="${ex.name}"
-                                   value="${saved.weight_kg ?? ''}" min="0" step="0.5"
-                                   style="width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:16px;text-align:center;">
-                        </label>
-                        <label class="journal-ex-label">
-                            <span>חזרות:</span>
-                            <input type="number" class="journal-reps-input" data-exercise="${ex.name}"
-                                   value="${saved.reps ?? ''}" min="0" step="1"
-                                   style="width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:16px;text-align:center;">
-                        </label>
+                        <div class="journal-ex-field">
+                            <span class="journal-ex-field-label">משקל</span>
+                            <input type="number" class="journal-weight-input journal-ex-input" data-exercise="${ex.name}"
+                                   value="${saved.weight_kg ?? ''}" min="0" step="0.5">
+                        </div>
+                        <div class="journal-ex-field">
+                            <span class="journal-ex-field-label">חזרות</span>
+                            <input type="number" class="journal-reps-input journal-ex-input" data-exercise="${ex.name}"
+                                   value="${saved.reps ?? ''}" min="0" step="1">
+                        </div>
+                        <button class="journal-save-btn" data-exercise="${ex.name}">שמירה <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg></button>
                     </div>
-                    <button class="journal-save-btn" data-exercise="${ex.name}">שמירה <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg></button>
                 </div>
             </div>`;
     });
@@ -433,12 +439,12 @@ async function renderJournalForDate(dateStr) {
 
     container.querySelectorAll('.journal-ex-header').forEach(header => {
         header.addEventListener('click', (e) => {
-            if (e.target.classList.contains('journal-chart-btn')) return;
+            if (e.target.closest('.journal-hist-btn')) return;
             header.closest('.journal-ex-card').classList.toggle('open');
         });
     });
 
-    container.querySelectorAll('.journal-chart-btn').forEach(btn => {
+    container.querySelectorAll('.journal-hist-btn').forEach(btn => {
         btn.addEventListener('click', () => showStrengthChart(btn.dataset.exercise, userId));
     });
 
@@ -587,6 +593,14 @@ function journalNextDay() {
 function journalGoToday() {
     journalSelectedDate = localDateStr();
     renderJournalForDate(journalSelectedDate);
+}
+
+function journalSelectDate(dateStr) {
+    const startDate = CLIENT.startDate || localDateStr();
+    const maxDate = new Date(new Date(startDate + 'T12:00:00').getTime() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    if (dateStr < startDate || dateStr > maxDate) return;
+    journalSelectedDate = dateStr;
+    renderJournalForDate(dateStr);
 }
 
 async function loadChartJs() {
