@@ -4463,6 +4463,7 @@ legend { padding: 0; display: block; width: 100%; }
 .cwe-cat-list {
     display: flex;
     flex-direction: column;
+    gap: 7px;
     margin-bottom: 16px;
 }
 .cwe-cat-row {
@@ -4470,19 +4471,43 @@ legend { padding: 0; display: block; width: 100%; }
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    padding: 13px 2px;
-    border: none;
-    border-bottom: 0.5px solid var(--border);
-    background: none;
+    background: var(--bg-card-alt);
+    border: 0.5px solid rgba(59, 130, 246, 0.35);
+    border-radius: 13px;
+    padding: 12px 14px;
     font-family: inherit;
     color: var(--text-primary);
     cursor: pointer;
     text-align: right;
 }
-.cwe-cat-list .cwe-cat-row:first-child { border-top: 0.5px solid var(--border); }
-.cwe-cat-row:active { background: var(--bg-card-alt); }
-.cwe-cat-row-name { font-size: 13.5px; font-weight: 600; }
-.cwe-cat-row-arrow { color: var(--text-muted); font-size: 13px; }
+.cwe-cat-row-name { font-size: 13px; font-weight: 700; }
+.cwe-cat-row-arrow {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.cwe-cb-cat-back {
+    display: block;
+    width: fit-content;
+    margin: 0 auto 14px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    border: none;
+    border-radius: 99px;
+    background: var(--accent-light);
+    color: var(--accent);
+    cursor: pointer;
+}
 .cwe-catpick-sub {
     text-align: center;
     font-size: 12px;
@@ -4533,21 +4558,6 @@ legend { padding: 0; display: block; width: 100%; }
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .cwe-catpick-btn:active { transform: scale(0.98); }
-.cwe-cb-cat-back {
-    display: block;
-    width: 100%;
-    margin-bottom: 12px;
-    padding: 0 0 10px;
-    font-size: 12px;
-    font-weight: 500;
-    font-family: inherit;
-    border: none;
-    border-bottom: 0.5px solid var(--border);
-    background: none;
-    color: var(--text-secondary);
-    text-align: right;
-    cursor: pointer;
-}
 
 /* ── סידור מחדש של תרגילים (טבלת אימון + בונה קאסטום) ── */
 .workout-order-btns, .cwe-cb-ex-move {
