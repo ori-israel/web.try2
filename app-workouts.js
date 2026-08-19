@@ -751,6 +751,13 @@ function closeClientWorkoutEditor() {
     document.getElementById('client-workout-editor-modal').classList.add('hidden');
 }
 
+let _cweCurrentBack = null;
+
+function cweHandleClose() {
+    if (_cweCurrentBack) _cweCurrentBack();
+    else closeClientWorkoutEditor();
+}
+
 function _setCweTitle(text) {
     const t = document.getElementById('cwe-modal-title');
     if (t) t.textContent = text;
@@ -762,6 +769,7 @@ function _cweTemplateLevel(tpl) {
 }
 
 function _renderWorkoutGallery() {
+    _cweCurrentBack = null;
     _setCweTitle('בחירת תוכנית אימונים');
     const body = document.getElementById('cwe-gallery-body');
     if (!body) return;
@@ -802,6 +810,7 @@ function _renderWorkoutGallery() {
 function openTemplateDetail(index) {
     const tpl = workoutTemplates[index];
     if (!tpl) return;
+    _cweCurrentBack = _renderWorkoutGallery;
     _setCweTitle('פירוט תוכנית');
     const body = document.getElementById('cwe-gallery-body');
     if (!body) return;
@@ -960,6 +969,7 @@ function openExercisePicker(workoutIdx) {
 }
 
 function _renderCategoryChips() {
+    _cweCurrentBack = _renderCustomBuilder;
     _setCweTitle('בחירת קבוצת שרירים');
     const body = document.getElementById('cwe-gallery-body');
     if (!body) return;
@@ -982,6 +992,7 @@ function _renderCategoryChips() {
 let _cweCategoryExerciseNames = [];
 
 function selectExerciseCategory(cat) {
+    _cweCurrentBack = _renderCategoryChips;
     _setCweTitle(cat);
     const body = document.getElementById('cwe-gallery-body');
     if (!body) return;
@@ -1011,6 +1022,7 @@ function backToCustomBuilder() {
 }
 
 function _renderCustomBuilder() {
+    _cweCurrentBack = _renderWorkoutGallery;
     _setCweTitle('התאמה אישית');
     const body = document.getElementById('cwe-gallery-body');
     if (!body) return;
