@@ -825,10 +825,14 @@ async function resetWorkout() {
     if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
 
     document.querySelectorAll(`[data-id^="${activeLetter}_"]`).forEach(cb => cb.checked = false);
-    document.querySelectorAll(`#workout-${activeLetter} .accord-checkbox`).forEach(cb => {
+    document.querySelectorAll(`#workout-${activeLetter} .accord-checkbox`).forEach((cb, i) => {
         cb.checked = false;
         const header = cb.closest('.workout-accord-header');
         if (header) header.classList.remove('checked');
+        const item = cb.closest('.workout-accord-item');
+        if (item) item.classList.remove('checked');
+        const numBadge = item?.querySelector('.accord-num');
+        if (numBadge) numBadge.textContent = i + 1;
     });
 }
 
