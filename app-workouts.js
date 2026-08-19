@@ -1027,7 +1027,10 @@ function _renderCustomBuilder() {
         const exRows = w.exercises.map((ex, ei) => `
             <div class="cwe-cb-ex-row" data-workout-idx="${wi}" data-ex-idx="${ei}">
                 <div class="cwe-cb-ex-top">
-                    <span class="cwe-cb-ex-name">${ex.name}</span>
+                    <span class="cwe-cb-ex-title">
+                        <span class="cwe-cb-ex-num">${ei + 1}</span>
+                        <span class="cwe-cb-ex-name">${ex.name}</span>
+                    </span>
                     <div class="cwe-cb-ex-move">
                         <button class="cwe-cb-ex-move-btn" ${ei === 0 ? 'disabled' : ''} onclick="moveExerciseInCustomWorkout(${wi}, ${ei}, -1)" aria-label="הזז למעלה">${_CWE_UP_ICON}</button>
                         <button class="cwe-cb-ex-move-btn" ${ei === w.exercises.length - 1 ? 'disabled' : ''} onclick="moveExerciseInCustomWorkout(${wi}, ${ei}, 1)" aria-label="הזז למטה">${_CWE_DOWN_ICON}</button>

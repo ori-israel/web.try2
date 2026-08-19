@@ -4261,9 +4261,9 @@ legend { padding: 0; display: block; width: 100%; }
 
 /* ── התאמה אישית: בניית תוכנית מאפס ── */
 .cwe-cb-workout {
-    background: var(--bg-card-alt);
-    border: 0.5px solid var(--border);
-    border-radius: 14px;
+    background: linear-gradient(160deg, var(--accent-light), var(--bg-card-alt));
+    border: 1px solid var(--accent);
+    border-radius: 16px;
     padding: 14px;
     margin-bottom: 10px;
 }
@@ -4335,6 +4335,20 @@ legend { padding: 0; display: block; width: 100%; }
     align-items: center;
     justify-content: space-between;
     margin-bottom: 9px;
+}
+.cwe-cb-ex-title { display: flex; align-items: center; gap: 6px; }
+.cwe-cb-ex-num {
+    width: 20px;
+    height: 20px;
+    border-radius: 7px;
+    background: var(--gradient-btn);
+    color: #fff;
+    font-size: 10.5px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 .cwe-cb-ex-name { font-size: 12.5px; font-weight: 600; }
 .cwe-cb-ex-fields {
