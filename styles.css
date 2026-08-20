@@ -1464,6 +1464,16 @@ h1 {
 .cwe-cb-field-tap .cwe-cb-field-val { font-size: 12px; font-weight: 700; color: var(--accent); }
 
 /* ============================================
+   Generic Number Ruler Sheet (reused: journal weight/reps, height)
+   ============================================ */
+.num-sheet-overlay { z-index: 10010; }
+.journal-ex-tap-box {
+    width: 100%; box-sizing: border-box; text-align: center; font-size: 14px; font-weight: 700;
+    padding: 8px; border-radius: 8px; border: 0.5px solid var(--border);
+    background: rgba(0, 0, 0, 0.2); color: var(--text-primary); cursor: pointer;
+}
+
+/* ============================================
    Weight Chart
    ============================================ */
 .weight-chart-card {

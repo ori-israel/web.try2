@@ -57,7 +57,7 @@
             <p style="width:100%; text-align:right; font-size:12px; color:var(--text-secondary,#888); margin:2px 0 6px; line-height:1.5;">הגיל משמש לחישוב כמויות המזון והתוכנית באפליקציה, חשוב להזין תאריך לידה נכון</p>
 
             <label for="signup-height" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">גובה (ס״מ)</label>
-            <input id="signup-height" type="number" placeholder="ס״מ" class="login-input" aria-label="גובה" step="1" onkeydown="if(event.key==='.'||event.key===',')event.preventDefault()" oninput="_showHeightInInches(this.value)">
+            <input id="signup-height" type="number" placeholder="ס״מ" class="login-input" aria-label="גובה" readonly onclick="openHeightPickerFor('signup-height', true)">
             <span id="height-inches-hint" style="font-size:12px;color:var(--text-secondary,#888);width:100%;text-align:right;min-height:16px;display:block;"></span>
 
             <label for="signup-gender" style="width:100%; text-align:right; font-size:13px; color:var(--text-secondary,#888); margin:6px 0 2px;">מין</label>

@@ -769,6 +769,134 @@ function initFAQ() {
         closeWeightUpdateSheet();
     }
 
+    // ── סרגל מספרים כללי לשימוש חוזר (יומן משקל/חזרות, גובה) ──────
+    const _NUM_SHEET_TICK_GAP = 14;
+    let _numSheetMin = 0, _numSheetMax = 100, _numSheetStep = 1, _numSheetLabelStep = 10;
+    let _numSheetValue = 0;
+    let _numSheetOnSave = null;
+    let _numSheetReady = false;
+
+    function _numSheetOffsetFor(v) {
+        return -((v - _numSheetMin) / _numSheetStep) * _NUM_SHEET_TICK_GAP;
+    }
+
+    function _buildNumSheetTicks() {
+        const track = document.getElementById('num-sheet-track');
+        if (!track) return;
+        track.innerHTML = '';
+        const n = Math.round((_numSheetMax - _numSheetMin) / _numSheetStep);
+        for (let i = 0; i <= n; i++) {
+            const v = _numSheetMin + i * _numSheetStep;
+            const isMajor = Math.round(v) % _numSheetLabelStep === 0;
+            const t = document.createElement('div');
+            t.className = 'weight-ruler-tick' + (isMajor ? ' major' : '');
+            const line = document.createElement('div');
+            line.className = 'weight-ruler-tick-line';
+            t.appendChild(line);
+            if (isMajor) {
+                const lbl = document.createElement('div');
+                lbl.className = 'weight-ruler-tick-label';
+                lbl.textContent = Math.round(v);
+                t.appendChild(lbl);
+            }
+            track.appendChild(t);
+        }
+    }
+
+    function _renderNumSheet() {
+        const track = document.getElementById('num-sheet-track');
+        const valEl = document.getElementById('num-sheet-value');
+        if (!track || !valEl) return;
+        track.style.transform = `translateX(${_numSheetOffsetFor(_numSheetValue)}px)`;
+        valEl.textContent = Math.round(_numSheetValue);
+    }
+
+    function _initNumSheetDrag() {
+        if (_numSheetReady) return;
+        _numSheetReady = true;
+        const wrap = document.getElementById('num-sheet-wrap');
+        const track = document.getElementById('num-sheet-track');
+        if (!wrap || !track) return;
+        let dragging = false, startX = 0, startOffset = 0;
+        const pointerX = e => e.touches ? e.touches[0].clientX : e.clientX;
+
+        wrap.addEventListener('pointerdown', e => {
+            dragging = true;
+            track.style.transition = 'none';
+            startX = pointerX(e);
+            startOffset = _numSheetOffsetFor(_numSheetValue);
+        });
+        window.addEventListener('pointermove', e => {
+            if (!dragging) return;
+            const minOffset = _numSheetOffsetFor(_numSheetMax);
+            const maxOffset = _numSheetOffsetFor(_numSheetMin);
+            let newOffset = startOffset + (pointerX(e) - startX);
+            newOffset = Math.max(minOffset, Math.min(maxOffset, newOffset));
+            _numSheetValue = _numSheetMin + (-newOffset / _NUM_SHEET_TICK_GAP) * _numSheetStep;
+            _renderNumSheet();
+        });
+        window.addEventListener('pointerup', () => {
+            if (!dragging) return;
+            dragging = false;
+            _numSheetValue = Math.round(_numSheetValue / _numSheetStep) * _numSheetStep;
+            track.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+            _renderNumSheet();
+        });
+    }
+
+    function openNumberRulerSheet(opts) {
+        _numSheetMin = opts.min;
+        _numSheetMax = opts.max;
+        _numSheetStep = opts.step || 1;
+        _numSheetLabelStep = opts.labelStep || 10;
+        _numSheetOnSave = opts.onSave;
+        _numSheetValue = Math.max(_numSheetMin, Math.min(_numSheetMax, opts.value ?? _numSheetMin));
+
+        document.getElementById('num-sheet-title').textContent = opts.title || '';
+        const subtitleEl = document.getElementById('num-sheet-subtitle');
+        if (subtitleEl) {
+            subtitleEl.textContent = opts.subtitle || '';
+            subtitleEl.style.display = opts.subtitle ? '' : 'none';
+        }
+        document.getElementById('num-sheet-unit').textContent = opts.unit || '';
+
+        _buildNumSheetTicks();
+        const track = document.getElementById('num-sheet-track');
+        if (track) track.style.transition = 'none';
+        _renderNumSheet();
+        _initNumSheetDrag();
+
+        document.getElementById('num-sheet-overlay').classList.add('open');
+        window._dynamicOverlayOpen();
+    }
+
+    function closeNumberRulerSheet() {
+        const overlay = document.getElementById('num-sheet-overlay');
+        if (!overlay || !overlay.classList.contains('open')) return;
+        overlay.classList.remove('open');
+        window._dynamicOverlayClosed();
+    }
+
+    function saveNumberRulerSheet() {
+        const val = Math.round(_numSheetValue / _numSheetStep) * _numSheetStep;
+        if (typeof _numSheetOnSave === 'function') _numSheetOnSave(val);
+        closeNumberRulerSheet();
+    }
+
+    function openHeightPickerFor(inputId, isSignup) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        openNumberRulerSheet({
+            min: 120, max: 240, step: 1, labelStep: 10,
+            title: 'גובה', unit: 'ס״מ',
+            value: parseInt(input.value) || 170,
+            onSave: (val) => {
+                input.value = val;
+                if (isSignup && typeof _showHeightInInches === 'function') _showHeightInInches(val);
+            }
+        });
+    }
+
 // ── Progress Photos ──────────────────────────────────────────────────────────
 
 const PROGRESS_PHOTOS_LIMIT = 10;

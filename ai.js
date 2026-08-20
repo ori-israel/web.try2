@@ -397,7 +397,7 @@ async function buildSystemPrompt() {
             const note = CLIENT.exerciseNotes?.[e.name] ? `(${CLIENT.exerciseNotes[e.name]})` : '';
             const t = workoutTargets[e.name];
             const repsInfo = t
-                ? t.suggest_increase ? `הגיע הזמן להעלות משקל — עשה כמה שאפשר` : `${t.target_reps} חזרות עם ${t.target_weight} ק"ג`
+                ? t.suggest_increase ? `הגיע הזמן להעלות משקל — עשה כמה שאפשר` : `${t.target_reps} חזרות עם ${t.target_weight}`
                 : '';
             return `${e.name}${repsInfo ? ' ' + repsInfo : ''}${note}`;
         }).join(', ');
@@ -412,7 +412,7 @@ async function buildSystemPrompt() {
     const tomorrowInfo = tomorrowWorkout
         ? `${tomorrowShort} — ${(CLIENT['workout'+tomorrowWorkout[0]] || []).map(e => {
             const t = workoutTargets[e.name];
-            return t ? t.suggest_increase ? `${e.name} — הגיע הזמן להעלות משקל, עשה כמה שאפשר` : `${e.name} ${t.target_reps} חזרות עם ${t.target_weight} ק"ג` : e.name;
+            return t ? t.suggest_increase ? `${e.name} — הגיע הזמן להעלות משקל, עשה כמה שאפשר` : `${e.name} ${t.target_reps} חזרות עם ${t.target_weight}` : e.name;
           }).join(', ')}`
         : `${tomorrowShort} — יום מנוחה`;
 
@@ -511,7 +511,7 @@ async function buildSystemPrompt() {
             const lines = Object.entries(byExercise).map(([name, rows]) => {
                 const latest = rows[0];
                 const bestWeight = Math.max(...rows.map(r => r.weight_kg));
-                return `• ${name}: אחרון ${latest.date} — ${latest.weight_kg}ק״ג x ${latest.reps} חזרות. שיא: ${bestWeight}ק״ג`;
+                return `• ${name}: אחרון ${latest.date} — ${latest.weight_kg} x ${latest.reps} חזרות. שיא: ${bestWeight}`;
             });
             stableText += '\n\nנתוני ביצועי אימון אחרונים:\n' + lines.join('\n');
         }

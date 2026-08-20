@@ -127,7 +127,7 @@
             </div>
             <div class="profile-row">
                 <label for="prof-height">גובה (ס״מ)</label>
-                <input id="prof-height" type="number" class="profile-input">
+                <input id="prof-height" type="number" class="profile-input" readonly onclick="openHeightPickerFor('prof-height', false)">
             </div>
             <div class="profile-row">
                 <label for="prof-activity">אקטיביות</label>
@@ -553,6 +553,18 @@
       </div>
     </div>
     <button class="sets-sheet-save-btn" onclick="saveSetsSheet()">שמירה <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
+  </div>
+</div>
+
+<div class="weight-sheet-overlay num-sheet-overlay" id="num-sheet-overlay" onclick="if(event.target===this)closeNumberRulerSheet()">
+  <div class="weight-sheet">
+    <div class="weight-sheet-handle"></div>
+    <div class="weight-sheet-label" id="num-sheet-title"></div>
+    <div class="weight-sheet-label" id="num-sheet-subtitle" style="display:none;margin-bottom:8px;"></div>
+    <div class="weight-ruler-value" id="num-sheet-value">—</div>
+    <div class="weight-ruler-unit" id="num-sheet-unit"></div>
+    <div class="weight-ruler-wrap" id="num-sheet-wrap"><div class="weight-ruler-track" id="num-sheet-track"></div><div class="weight-ruler-needle"></div></div>
+    <button class="weight-sheet-save-btn" onclick="saveNumberRulerSheet()">שמירה <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
   </div>
 </div>
 

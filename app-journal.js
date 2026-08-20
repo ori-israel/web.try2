@@ -403,7 +403,7 @@ async function renderJournalForDate(dateStr) {
         const saved = savedEntries[ex.name] || {};
         const last = lastEntries[ex.name];
         const lastHtml = last
-            ? `<div class="journal-last-entry">קודם ${journalFormatShortDate(last.date)}: ${last.weight_kg} ק"ג ל-${last.reps} חזרות</div>`
+            ? `<div class="journal-last-entry">קודם ${journalFormatShortDate(last.date)}: ${last.weight_kg} ל-${last.reps} חזרות</div>`
             : `<div class="journal-last-entry journal-last-empty">אין רשומה קודמת</div>`;
         const isSaved = saved.weight_kg != null;
         html += `
@@ -418,13 +418,13 @@ async function renderJournalForDate(dateStr) {
                     <div class="journal-ex-inputs">
                         <div class="journal-ex-field">
                             <span class="journal-ex-field-label">משקל</span>
-                            <input type="number" class="journal-weight-input journal-ex-input" data-exercise="${ex.name}"
-                                   value="${saved.weight_kg ?? ''}" min="0" step="0.5">
+                            <div class="journal-ex-tap-box" data-role="weight" data-exercise="${ex.name}">${saved.weight_kg ?? '—'}</div>
+                            <input type="hidden" class="journal-weight-input" data-exercise="${ex.name}" value="${saved.weight_kg ?? ''}">
                         </div>
                         <div class="journal-ex-field">
                             <span class="journal-ex-field-label">חזרות</span>
-                            <input type="number" class="journal-reps-input journal-ex-input" data-exercise="${ex.name}"
-                                   value="${saved.reps ?? ''}" min="0" step="1">
+                            <div class="journal-ex-tap-box" data-role="reps" data-exercise="${ex.name}">${saved.reps ?? '—'}</div>
+                            <input type="hidden" class="journal-reps-input" data-exercise="${ex.name}" value="${saved.reps ?? ''}">
                         </div>
                         <button class="journal-save-btn" data-exercise="${ex.name}">שמירה <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg></button>
                     </div>
@@ -457,14 +457,28 @@ async function renderJournalForDate(dateStr) {
             setTimeout(() => { btn.innerHTML = 'שמירה <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg>'; }, 2000);
         });
     });
-    container.querySelectorAll('.journal-weight-input').forEach(inp => {
-        inp.addEventListener('keydown', e => {
-            if (!['0','1','2','3','4','5','6','7','8','9','.','Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+    container.querySelectorAll('.journal-ex-tap-box[data-role="weight"]').forEach(box => {
+        box.addEventListener('click', () => {
+            const exName = box.dataset.exercise;
+            const hidden = container.querySelector(`.journal-weight-input[data-exercise="${CSS.escape(exName)}"]`);
+            openNumberRulerSheet({
+                min: 0, max: 300, step: 1, labelStep: 25,
+                title: 'משקל', subtitle: exName,
+                value: parseFloat(hidden.value) || 0,
+                onSave: (val) => { hidden.value = val; box.textContent = val; }
+            });
         });
     });
-    container.querySelectorAll('.journal-reps-input').forEach(inp => {
-        inp.addEventListener('keydown', e => {
-            if (!['0','1','2','3','4','5','6','7','8','9','Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+    container.querySelectorAll('.journal-ex-tap-box[data-role="reps"]').forEach(box => {
+        box.addEventListener('click', () => {
+            const exName = box.dataset.exercise;
+            const hidden = container.querySelector(`.journal-reps-input[data-exercise="${CSS.escape(exName)}"]`);
+            openNumberRulerSheet({
+                min: 1, max: 30, step: 1, labelStep: 5,
+                title: 'חזרות', subtitle: exName,
+                value: parseInt(hidden.value) || 1,
+                onSave: (val) => { hidden.value = val; box.textContent = val; }
+            });
         });
     });
     initJournalCal(dateStr, startDate, maxDate);
