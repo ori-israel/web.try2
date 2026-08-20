@@ -499,20 +499,16 @@
         <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:6px;">שם המאכל:</label>
         <input id="edit-food-name" type="text" aria-label="שם המאכל" style="width:100%;box-sizing:border-box;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:16px;color:var(--text-primary);font-family:inherit;outline:none;text-align:right;" />
       </div>
-      <div style="display:flex;gap:8px;">
-        <div style="flex:1;">
-          <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:6px;">כמות:</label>
-          <input id="edit-food-amount" type="number" aria-label="כמות" style="width:100%;box-sizing:border-box;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:16px;color:var(--text-primary);font-family:inherit;outline:none;text-align:right;" />
-        </div>
-        <div style="flex:1;">
-          <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:6px;">יחידת מידה:</label>
-          <select id="edit-food-unit" style="width:100%;box-sizing:border-box;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:16px;color:var(--text-primary);font-family:inherit;outline:none;text-align:right;">
-            <option value="גרם">גרם</option>
-            <option value="יחידות">יחידות</option>
-            <option value="כוסות">כוסות</option>
-            <option value="כפות">כפות</option>
-          </select>
-        </div>
+      <div>
+        <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:6px;">כמות ויחידה:</label>
+        <div class="edit-food-amount-box" id="edit-food-amount-tap" onclick="openEditFoodAmountSheet()">100 גרם</div>
+        <input id="edit-food-amount" type="hidden" />
+        <select id="edit-food-unit">
+          <option value="גרם">גרם</option>
+          <option value="יחידות">יחידות</option>
+          <option value="כוסות">כוסות</option>
+          <option value="כפות">כפות</option>
+        </select>
       </div>
       <div id="edit-food-loading" style="display:none;text-align:center;color:var(--text-muted);font-size:13px;padding:8px 0;">מחשב ערכים תזונתיים... ⏳</div>
       <div id="edit-food-error" style="display:none;color:#ff6b6b;font-size:13px;"></div>
@@ -565,6 +561,23 @@
     <div class="weight-ruler-unit" id="num-sheet-unit"></div>
     <div class="weight-ruler-wrap" id="num-sheet-wrap"><div class="weight-ruler-track" id="num-sheet-track"></div><div class="weight-ruler-needle"></div></div>
     <button class="weight-sheet-save-btn" onclick="saveNumberRulerSheet()">שמירה <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
+  </div>
+</div>
+
+<div class="weight-sheet-overlay amount-sheet-overlay" id="amount-sheet-overlay" onclick="if(event.target===this)closeAmountSheet()">
+  <div class="weight-sheet">
+    <div class="weight-sheet-handle"></div>
+    <div class="weight-sheet-label">כמות</div>
+    <div class="amount-unit-chips" id="amount-sheet-unit-chips">
+      <button type="button" class="amount-unit-chip" data-u="גרם" onclick="_amtSheetSwitchUnit('גרם')">גרם</button>
+      <button type="button" class="amount-unit-chip" data-u="יחידות" onclick="_amtSheetSwitchUnit('יחידות')">יחידות</button>
+      <button type="button" class="amount-unit-chip" data-u="כוסות" onclick="_amtSheetSwitchUnit('כוסות')">כוסות</button>
+      <button type="button" class="amount-unit-chip" data-u="כפות" onclick="_amtSheetSwitchUnit('כפות')">כפות</button>
+    </div>
+    <div class="weight-ruler-value" id="amount-sheet-value">100</div>
+    <div class="weight-ruler-unit" id="amount-sheet-unit-label">גרם</div>
+    <div class="weight-ruler-wrap" id="amount-sheet-wrap"><div class="weight-ruler-track" id="amount-sheet-track"></div><div class="weight-ruler-needle"></div></div>
+    <button class="weight-sheet-save-btn" onclick="saveAmountSheet()">שמירה <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
   </div>
 </div>
 

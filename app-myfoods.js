@@ -121,16 +121,13 @@ function openCustomFoodForm(id = null) {
     document.getElementById('cf-name').value    = food ? food.name : '';
     document.getElementById('cf-amount').value  = food ? food.unit_amount : 100;
     document.getElementById('cf-unit').value    = food ? food.unit : 'גרם';
+    document.getElementById('cf-amount-tap').textContent = (food ? food.unit_amount : 100) + ' ' + (food ? food.unit : 'גרם');
     document.getElementById('cf-protein').value = food ? food.protein_g : 0;
     document.getElementById('cf-carbs').value   = food ? food.carbs_g   : 0;
     document.getElementById('cf-fat').value     = food ? food.fat_g     : 0;
     document.getElementById('cf-alcohol').value = food ? (food.alcohol_g || 0) : 0;
     _setCfAlcoholOn(!!(food && food.alcohol_g));
     document.getElementById('cf-error').style.display = 'none';
-
-    if (!id) {
-        document.getElementById('cf-unit').addEventListener('change', _cfUnitDefaultAmount);
-    }
 
     document.getElementById('myfoods-modal').style.display = 'none';
     const m = document.getElementById('custom-food-modal');
@@ -139,9 +136,16 @@ function openCustomFoodForm(id = null) {
     document.getElementById('cf-name').focus();
 }
 
-function _cfUnitDefaultAmount() {
-    const unit = document.getElementById('cf-unit').value;
-    document.getElementById('cf-amount').value = unit === 'גרם' ? 100 : 1;
+function openCfAmountSheet() {
+    openAmountUnitSheet({
+        amount: parseFloat(document.getElementById('cf-amount').value) || 100,
+        unit: document.getElementById('cf-unit').value,
+        onSave: (amt, unit) => {
+            document.getElementById('cf-amount').value = amt;
+            document.getElementById('cf-unit').value = unit;
+            document.getElementById('cf-amount-tap').textContent = amt + ' ' + unit;
+        }
+    });
 }
 
 function _setCfAlcoholOn(on) {
@@ -161,7 +165,6 @@ function closeCustomFoodForm() {
     const m = document.getElementById('custom-food-modal');
     m.classList.add('hidden');
     m.style.display = 'none';
-    document.getElementById('cf-unit').removeEventListener('change', _cfUnitDefaultAmount);
     document.getElementById('myfoods-modal').style.display = 'flex';
     renderMyFoodsList();
 }
@@ -290,6 +293,7 @@ function openRecipeIngredientPicker() {
     document.getElementById('cr-step-add').style.display = '';
     document.getElementById('cr-ing-amount').value = 100;
     document.getElementById('cr-ing-unit').value = 'גרם';
+    document.getElementById('cr-ing-amount-tap').textContent = '100 גרם';
     document.getElementById('cr-ing-name').value = '';
     document.getElementById('cr-ing-suggestions').innerHTML = '';
     _crIngPending = null;
@@ -346,8 +350,21 @@ function selectRecipeIngSuggestion(i) {
     } else {
         document.getElementById('cr-ing-unit').value = 'גרם';
     }
-    document.getElementById('cr-ing-amount').focus();
-    document.getElementById('cr-ing-amount').select();
+    document.getElementById('cr-ing-amount-tap').textContent =
+        document.getElementById('cr-ing-amount').value + ' ' + document.getElementById('cr-ing-unit').value;
+    openCrIngAmountSheet();
+}
+
+function openCrIngAmountSheet() {
+    openAmountUnitSheet({
+        amount: parseFloat(document.getElementById('cr-ing-amount').value) || 100,
+        unit: document.getElementById('cr-ing-unit').value,
+        onSave: (amt, unit) => {
+            document.getElementById('cr-ing-amount').value = amt;
+            document.getElementById('cr-ing-unit').value = unit;
+            document.getElementById('cr-ing-amount-tap').textContent = amt + ' ' + unit;
+        }
+    });
 }
 
 function confirmAddRecipeIngredient() {

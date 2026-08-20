@@ -876,6 +876,22 @@ h1 {
     font-variant-numeric: tabular-nums;
 }
 
+.entry-pill-amt-tap {
+    white-space: nowrap;
+    text-align: center;
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+/* select-ים שהוסבו לבועת כמות מאוחדת: מסתירים גם את כפתור ui-select.js שנוצר לידם */
+#cf-unit + .cs-trigger, #cr-ing-unit + .cs-trigger, #edit-food-unit + .cs-trigger, #add-item-unit + .cs-trigger {
+    display: none;
+}
+
 .entry-pill-unit {
     background: transparent;
     border: none;
@@ -1471,6 +1487,25 @@ h1 {
     width: 100%; box-sizing: border-box; text-align: center; font-size: 14px; font-weight: 700;
     padding: 8px; border-radius: 8px; border: 0.5px solid var(--border);
     background: rgba(0, 0, 0, 0.2); color: var(--text-primary); cursor: pointer;
+}
+
+/* ============================================
+   Amount+Unit Picker Sheet (food amount)
+   ============================================ */
+.amount-sheet-overlay { z-index: 10010; }
+.amount-unit-chips { display: flex; gap: 6px; justify-content: center; margin: 10px 0 4px; }
+.amount-unit-chip {
+    flex: 1; padding: 8px 4px; border-radius: 12px; border: 1.5px solid var(--border);
+    background: var(--bg-card-alt); color: var(--text-secondary); font-size: 12.5px; font-weight: 700;
+    font-family: inherit; cursor: pointer;
+    transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background 0.15s, color 0.15s, border-color 0.15s;
+}
+.amount-unit-chip.sel { background: var(--gradient-btn); color: #fff; border-color: transparent; }
+.amount-unit-chip:active { transform: scale(0.95); }
+.edit-food-amount-box {
+    width: 100%; box-sizing: border-box; text-align: right; font-size: 16px; font-weight: 700;
+    background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 10px 12px; color: var(--accent); cursor: pointer;
 }
 
 /* ============================================

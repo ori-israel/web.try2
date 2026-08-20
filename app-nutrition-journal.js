@@ -428,6 +428,7 @@ function openFoodLogEdit(idx) {
     document.getElementById('edit-food-name').value   = name;
     document.getElementById('edit-food-amount').value = amount;
     document.getElementById('edit-food-unit').value   = unit;
+    document.getElementById('edit-food-amount-tap').textContent = amount + ' ' + unit;
     document.getElementById('edit-food-loading').style.display = 'none';
     document.getElementById('edit-food-error').style.display   = 'none';
 
@@ -435,6 +436,18 @@ function openFoodLogEdit(idx) {
     modal.classList.remove('hidden');
     modal.style.display = '';
     document.getElementById('edit-food-name').focus();
+}
+
+function openEditFoodAmountSheet() {
+    openAmountUnitSheet({
+        amount: parseFloat(document.getElementById('edit-food-amount').value) || 100,
+        unit: document.getElementById('edit-food-unit').value,
+        onSave: (amt, unit) => {
+            document.getElementById('edit-food-amount').value = amt;
+            document.getElementById('edit-food-unit').value = unit;
+            document.getElementById('edit-food-amount-tap').textContent = amt + ' ' + unit;
+        }
+    });
 }
 
 function closeFoodLogEdit() {

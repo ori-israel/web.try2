@@ -921,6 +921,137 @@ function initFAQ() {
         });
     }
 
+    // ── כמות+יחידה — בוטום שיט עם צ'יפים+סרגל (רכיב עצמאי, לא משתף DOM עם num-sheet) ──
+    const _AMOUNT_UNIT_CONFIG = {
+        'גרם':    { min: 1,    max: 1000, step: 5,    labelStep: 100, decimals: 0, default: 100 },
+        'יחידות': { min: 1,    max: 20,   step: 1,    labelStep: 5,   decimals: 0, default: 1 },
+        'כוסות':  { min: 0.25, max: 10,   step: 0.25, labelStep: 1,   decimals: 2, default: 1 },
+        'כפות':   { min: 0.25, max: 10,   step: 0.25, labelStep: 1,   decimals: 2, default: 1 },
+    };
+    let _amtSheetUnit = 'גרם';
+    let _amtSheetValue = 100;
+    let _amtSheetOnSave = null;
+    let _amtSheetReady = false;
+
+    function _amtSheetOffsetFor(v) {
+        const cfg = _AMOUNT_UNIT_CONFIG[_amtSheetUnit];
+        return -((v - cfg.min) / cfg.step) * _NUM_SHEET_TICK_GAP;
+    }
+
+    function _buildAmtSheetTicks() {
+        const track = document.getElementById('amount-sheet-track');
+        if (!track) return;
+        const cfg = _AMOUNT_UNIT_CONFIG[_amtSheetUnit];
+        track.innerHTML = '';
+        const n = Math.round((cfg.max - cfg.min) / cfg.step);
+        for (let i = 0; i <= n; i++) {
+            const v = cfg.min + i * cfg.step;
+            const isMajor = Math.abs(v - Math.round(v)) < 0.001 && Math.round(v) % cfg.labelStep === 0;
+            const t = document.createElement('div');
+            t.className = 'weight-ruler-tick' + (isMajor ? ' major' : '');
+            const line = document.createElement('div');
+            line.className = 'weight-ruler-tick-line';
+            t.appendChild(line);
+            if (isMajor) {
+                const lbl = document.createElement('div');
+                lbl.className = 'weight-ruler-tick-label';
+                lbl.textContent = Math.round(v);
+                t.appendChild(lbl);
+            }
+            track.appendChild(t);
+        }
+    }
+
+    function _renderAmtSheet() {
+        const track = document.getElementById('amount-sheet-track');
+        const valEl = document.getElementById('amount-sheet-value');
+        if (!track || !valEl) return;
+        const cfg = _AMOUNT_UNIT_CONFIG[_amtSheetUnit];
+        track.style.transform = `translateX(${_amtSheetOffsetFor(_amtSheetValue)}px)`;
+        valEl.textContent = cfg.decimals > 0 ? _amtSheetValue.toFixed(cfg.decimals) : Math.round(_amtSheetValue);
+    }
+
+    function _initAmtSheetDrag() {
+        if (_amtSheetReady) return;
+        _amtSheetReady = true;
+        const wrap = document.getElementById('amount-sheet-wrap');
+        const track = document.getElementById('amount-sheet-track');
+        if (!wrap || !track) return;
+        let dragging = false, startX = 0, startOffset = 0;
+        const pointerX = e => e.touches ? e.touches[0].clientX : e.clientX;
+
+        wrap.addEventListener('pointerdown', e => {
+            dragging = true;
+            track.style.transition = 'none';
+            startX = pointerX(e);
+            startOffset = _amtSheetOffsetFor(_amtSheetValue);
+        });
+        window.addEventListener('pointermove', e => {
+            if (!dragging) return;
+            const cfg = _AMOUNT_UNIT_CONFIG[_amtSheetUnit];
+            const minOffset = _amtSheetOffsetFor(cfg.max);
+            const maxOffset = _amtSheetOffsetFor(cfg.min);
+            let newOffset = startOffset + (pointerX(e) - startX);
+            newOffset = Math.max(minOffset, Math.min(maxOffset, newOffset));
+            _amtSheetValue = cfg.min + (-newOffset / _NUM_SHEET_TICK_GAP) * cfg.step;
+            _renderAmtSheet();
+        });
+        window.addEventListener('pointerup', () => {
+            if (!dragging) return;
+            dragging = false;
+            const cfg = _AMOUNT_UNIT_CONFIG[_amtSheetUnit];
+            _amtSheetValue = Math.round(_amtSheetValue / cfg.step) * cfg.step;
+            track.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+            _renderAmtSheet();
+        });
+    }
+
+    function _amtSheetSwitchUnit(unit) {
+        _amtSheetUnit = unit;
+        document.querySelectorAll('#amount-sheet-unit-chips .amount-unit-chip').forEach(c => c.classList.toggle('sel', c.dataset.u === unit));
+        document.getElementById('amount-sheet-unit-label').textContent = unit;
+        _amtSheetValue = _AMOUNT_UNIT_CONFIG[unit].default;
+        const track = document.getElementById('amount-sheet-track');
+        if (track) track.style.transition = 'none';
+        _buildAmtSheetTicks();
+        _renderAmtSheet();
+        _initAmtSheetDrag();
+    }
+
+    function openAmountUnitSheet(opts) {
+        _amtSheetOnSave = opts.onSave;
+        const initUnit = (opts.unit && _AMOUNT_UNIT_CONFIG[opts.unit]) ? opts.unit : 'גרם';
+        const cfg = _AMOUNT_UNIT_CONFIG[initUnit];
+        _amtSheetUnit = initUnit;
+        _amtSheetValue = Math.max(cfg.min, Math.min(cfg.max, opts.amount ?? cfg.default));
+
+        document.querySelectorAll('#amount-sheet-unit-chips .amount-unit-chip').forEach(c => c.classList.toggle('sel', c.dataset.u === initUnit));
+        document.getElementById('amount-sheet-unit-label').textContent = initUnit;
+        _buildAmtSheetTicks();
+        const track = document.getElementById('amount-sheet-track');
+        if (track) track.style.transition = 'none';
+        _renderAmtSheet();
+        _initAmtSheetDrag();
+
+        document.getElementById('amount-sheet-overlay').classList.add('open');
+        window._dynamicOverlayOpen();
+    }
+
+    function closeAmountSheet() {
+        const overlay = document.getElementById('amount-sheet-overlay');
+        if (!overlay || !overlay.classList.contains('open')) return;
+        overlay.classList.remove('open');
+        window._dynamicOverlayClosed();
+    }
+
+    function saveAmountSheet() {
+        const cfg = _AMOUNT_UNIT_CONFIG[_amtSheetUnit];
+        const raw = Math.round(_amtSheetValue / cfg.step) * cfg.step;
+        const val = Math.round(raw * 100) / 100;
+        if (typeof _amtSheetOnSave === 'function') _amtSheetOnSave(val, _amtSheetUnit);
+        closeAmountSheet();
+    }
+
 // ── Progress Photos ──────────────────────────────────────────────────────────
 
 const PROGRESS_PHOTOS_LIMIT = 10;

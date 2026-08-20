@@ -64,7 +64,8 @@
         <div class="entry-pill">
             <button class="entry-pill-btn entry-pill-cancel" onclick="closeCustomFoodForm()" aria-label="ביטול"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
             <div class="entry-pill-div"></div>
-            <input id="cf-amount" type="number" placeholder="כמות" value="100" class="entry-pill-amt" />
+            <span class="entry-pill-amt-tap" id="cf-amount-tap" onclick="openCfAmountSheet()">100 גרם</span>
+            <input id="cf-amount" type="hidden" value="100" />
             <select id="cf-unit" class="entry-pill-unit">
                 <option value="גרם">גרם</option>
                 <option value="יחידות">יחידות</option>
@@ -122,7 +123,8 @@
             <div class="entry-pill">
                 <button class="entry-pill-btn entry-pill-cancel" onclick="backToRecipeList()" aria-label="חזרה"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
                 <div class="entry-pill-div"></div>
-                <input id="cr-ing-amount" type="number" placeholder="כמות" value="100" class="entry-pill-amt" />
+                <span class="entry-pill-amt-tap" id="cr-ing-amount-tap" onclick="openCrIngAmountSheet()">100 גרם</span>
+                <input id="cr-ing-amount" type="hidden" value="100" />
                 <select id="cr-ing-unit" class="entry-pill-unit">
                     <option value="גרם">גרם</option>
                     <option value="יחידות">יחידות</option>

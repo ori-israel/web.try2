@@ -132,7 +132,8 @@ function showAddItemForm() {
         <div class="entry-pill">
             <button class="entry-pill-btn entry-pill-cancel" onclick="renderScanDetails()" aria-label="ביטול"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
             <div class="entry-pill-div"></div>
-            <input id="add-item-amount" type="number" placeholder="כמות" value="100" class="entry-pill-amt" />
+            <span class="entry-pill-amt-tap" id="add-item-amount-tap" onclick="openAddItemAmountSheet()">100 גרם</span>
+            <input id="add-item-amount" type="hidden" value="100" />
             <select id="add-item-unit" class="entry-pill-unit">
                 <option value="גרם">גרם</option>
                 <option value="יחידות">יחידות</option>
@@ -145,9 +146,7 @@ function showAddItemForm() {
         </div>
         <div id="add-item-suggestions" style="display:flex;flex-direction:column;gap:1px;margin-top:6px;"></div>`;
     document.getElementById('add-item-name').focus();
-    document.getElementById('add-item-amount').addEventListener('focus', function() { this.select(); });
-    document.getElementById('add-item-amount').addEventListener('keydown', e => { if (e.key === 'Enter') confirmAddItem(); });
-    document.getElementById('add-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') { document.getElementById('add-item-suggestions').innerHTML = ''; document.getElementById('add-item-amount').focus(); } });
+    document.getElementById('add-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') { document.getElementById('add-item-suggestions').innerHTML = ''; openAddItemAmountSheet(); } });
     document.getElementById('add-item-name').addEventListener('input', function() { renderFoodSuggestions(this.value); });
     if (typeof renderQuickPicks === 'function') renderQuickPicks();
 }
@@ -241,7 +240,24 @@ function selectFoodSuggestion(i) {
         if (unitEl) unitEl.value = 'גרם';
     }
     if (box) box.innerHTML = '';
-    if (amountEl) { amountEl.focus(); amountEl.select(); }
+    const tapEl = document.getElementById('add-item-amount-tap');
+    if (tapEl && amountEl && unitEl) tapEl.textContent = amountEl.value + ' ' + unitEl.value;
+    openAddItemAmountSheet();
+}
+
+function openAddItemAmountSheet() {
+    const amountEl = document.getElementById('add-item-amount');
+    const unitEl = document.getElementById('add-item-unit');
+    if (!amountEl || !unitEl) return;
+    openAmountUnitSheet({
+        amount: parseFloat(amountEl.value) || 100,
+        unit: unitEl.value,
+        onSave: (amt, unit) => {
+            amountEl.value = amt;
+            unitEl.value = unit;
+            document.getElementById('add-item-amount-tap').textContent = amt + ' ' + unit;
+        }
+    });
 }
 
 // בירור מאקרו דרך Gemini + חיפוש באינטרנט (להזנה בכתב בלבד).
