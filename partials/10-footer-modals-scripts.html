@@ -101,15 +101,14 @@
                 <h2 id="cr-modal-title">מתכון חדש</h2>
                 <button class="close-btn" onclick="closeCustomRecipeForm()">&times;</button>
             </div>
-            <input id="cr-name" type="text" placeholder="שם המתכון" autocomplete="off"
-                style="width:100%;background:var(--portion-bg);border:1px solid var(--portion-border);border-radius:12px;padding:10px 12px;color:var(--text-primary);font-size:14px;text-align:right;margin-bottom:10px;font-family:inherit;">
+            <input id="cr-name" type="text" placeholder="שם המתכון" autocomplete="off" class="cr-name-headline">
             <div id="cr-ingredients-list"></div>
             <button class="ai-help-btn" onclick="openRecipeIngredientPicker()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> הוספת מרכיב</button>
             <div class="cf-macro-row" id="cr-macro-summary">
-                <div class="cf-macro-box p"><div style="font-size:14px;font-weight:800;" id="cr-sum-protein">0</div><div class="lbl">חלבון</div></div>
-                <div class="cf-macro-box c"><div style="font-size:14px;font-weight:800;" id="cr-sum-carbs">0</div><div class="lbl">פחמימה</div></div>
-                <div class="cf-macro-box f"><div style="font-size:14px;font-weight:800;" id="cr-sum-fat">0</div><div class="lbl">שומן</div></div>
-                <div class="cf-macro-box a" id="cr-sum-alcohol-box" style="display:none;"><div style="font-size:14px;font-weight:800;color:var(--alcohol);" id="cr-sum-alcohol">0</div><div class="lbl">אלכוהול</div></div>
+                <div class="cf-macro-box p"><span class="cf-macro-tap" id="cr-sum-protein">0</span><div class="lbl">חלבון</div></div>
+                <div class="cf-macro-box c"><span class="cf-macro-tap" id="cr-sum-carbs">0</span><div class="lbl">פחמימה</div></div>
+                <div class="cf-macro-box f"><span class="cf-macro-tap" id="cr-sum-fat">0</span><div class="lbl">שומן</div></div>
+                <div class="cf-macro-box a" id="cr-sum-alcohol-box" style="display:none;"><span class="cf-macro-tap" id="cr-sum-alcohol">0</span><div class="lbl">אלכוהול</div></div>
             </div>
             <div id="cr-error" style="color:#ef4444;font-size:12.5px;margin-top:4px;display:none;"></div>
             <button class="calc-btn" style="width:100%;margin-top:8px;" onclick="saveCustomRecipe()">שמירת מתכון</button>

@@ -297,7 +297,7 @@ function renderRecipeIngredientsList() {
     box.innerHTML = _crIngredients.map((ing, i) => `
         <div class="recipe-ing-pill">
             <span class="ing-name">${_esc(ing.name)}</span>
-            <span class="ing-amt">${ing.amount} ${_esc(ing.unit)}</span>
+            <span class="ing-amt entry-pill-amt-tap" onclick="editRecipeIngredientAmount(${i})">${ing.amount} ${_esc(ing.unit)}</span>
             <button class="ing-remove" onclick="removeRecipeIngredient(${i})" aria-label="הסרה">×</button>
         </div>`).join('');
 
@@ -308,6 +308,30 @@ function renderRecipeIngredientsList() {
     document.getElementById('cr-sum-fat').textContent     = Math.round(f);
     document.getElementById('cr-sum-alcohol').textContent = Math.round(a);
     document.getElementById('cr-sum-alcohol-box').style.display = a > 0 ? '' : 'none';
+}
+
+// עריכת כמות למרכיב קיים במתכון - פותח את סרגל הכמות הרגיל (כמו בהוספת מרכיב חדש),
+// וכשמאשרים מכפילים את המאקרו של אותו מרכיב ביחס בין הכמות הישנה לחדשה
+function editRecipeIngredientAmount(i) {
+    const ing = _crIngredients[i];
+    if (!ing) return;
+    openAmountUnitSheet({
+        amount: ing.amount,
+        unit: ing.unit,
+        onSave: (amt, unit) => {
+            const ratio = (ing.unit === unit && ing.amount > 0) ? (amt / ing.amount) : 1;
+            _crIngredients[i] = {
+                ...ing,
+                amount: amt,
+                unit: unit,
+                protein_g: Math.round(ing.protein_g * ratio * 10) / 10,
+                carbs_g:   Math.round(ing.carbs_g   * ratio * 10) / 10,
+                fat_g:     Math.round(ing.fat_g     * ratio * 10) / 10,
+                alcohol_g: Math.round((ing.alcohol_g || 0) * ratio * 10) / 10
+            };
+            renderRecipeIngredientsList();
+        }
+    });
 }
 
 function removeRecipeIngredient(i) {
