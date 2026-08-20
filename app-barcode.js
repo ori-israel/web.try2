@@ -309,7 +309,7 @@ async function readNutritionLabel(base64, mimeType) {
         const { data: { session } } = await db.auth.getSession();
         if (!session) throw new Error('לא מחובר');
 
-        const prompt = `בתמונה מוצגת טבלת ערכים תזונתיים מודפסת על אריזת מוצר מזון. קרא את הערכים המודפסים בטבלה (אל תעריך). אם הטבלה מציגה ערכים למנה (Serving) ולא ל-100 גרם/מ"ל, המר אותם ל-100 גרם/מ"ל לפי גודל המנה הרשום בטבלה. אם מופיע אלכוהול טהור כלול alcohol_g, אחרת 0. אם לא ניתן לקרוא ערך מסוים בבירור, שים 0. החזר JSON בלבד ללא הסברים: {"protein_g": X, "carbs_g": X, "fat_g": X, "alcohol_g": X}`;
+        const prompt = `בתמונה מוצגת טבלת ערכים תזונתיים מודפסת על אריזת מוצר מזון. קרא את הערכים המודפסים בטבלה (אל תעריך ואל תחשב לבד). אם הטבלה מציגה ערכים למנה (Serving) ולא ל-100 גרם/מ"ל, המר אותם ל-100 גרם/מ"ל לפי גודל המנה הרשום בטבלה. חובה לקרוא גם את מספר הקלוריות/אנרגיה המודפס בטבלה (kcal) בדיוק כפי שהוא כתוב - אסור לחשב אותו בעצמך מהמאקרו, כי היצרן משתמש בשיטת חישוב מדויקת יותר. אם מופיע אלכוהול טהור כלול alcohol_g, אחרת 0. אם לא ניתן לקרוא בבירור את אחד הערכים (כולל הקלוריות), החזר עבורו null ולא 0. החזר JSON בלבד ללא הסברים: {"kcal": X, "protein_g": X, "carbs_g": X, "fat_g": X, "alcohol_g": X}`;
 
         const response = await fetch('/api/gemini', {
             method: 'POST',
@@ -352,7 +352,9 @@ async function readNutritionLabel(base64, mimeType) {
         if (!match) throw new Error('no json');
         const macros = JSON.parse(match[0]);
         if (!macros.protein_g && !macros.carbs_g && !macros.fat_g) throw new Error('nothing read');
+        if (macros.kcal == null) throw new Error('no kcal');
         _labelMacros = {
+            kcal_100:  macros.kcal,
             protein_g: macros.protein_g || 0,
             carbs_g:   macros.carbs_g   || 0,
             fat_g:     macros.fat_g     || 0,
@@ -369,7 +371,7 @@ async function readNutritionLabel(base64, mimeType) {
     } catch (e) {
         loadingModal.classList.add('hidden');
         if (_labelReadCancelled) return;
-        if (typeof showAlert === 'function') showAlert('לא הצלחנו לקרוא את הערכים. אפשר לנסות שוב עם תמונה ברורה יותר.');
+        if (typeof showAlert === 'function') showAlert('לא הצלחנו לקרוא בבירור את מספר הקלוריות. אפשר לנסות שוב עם תמונה ברורה יותר.');
     }
 }
 
@@ -381,7 +383,7 @@ function updateLabelConfirmTotals() {
     const c = Math.round(_labelMacros.carbs_g   * ratio * 10) / 10;
     const f = Math.round(_labelMacros.fat_g     * ratio * 10) / 10;
     const a = Math.round((_labelMacros.alcohol_g || 0) * ratio * 10) / 10;
-    const kcal = Math.round(p * 4 + c * 4 + f * 9 + a * 7);
+    const kcal = Math.round(_labelMacros.kcal_100 * ratio);
 
     document.getElementById('label-kcal-val').textContent = kcal;
     document.getElementById('label-kcal-lbl').textContent = `קלוריות ב-${amount} גרם`;
@@ -417,6 +419,7 @@ async function confirmLabelAdd() {
     const carbs_g   = Math.round(_labelMacros.carbs_g   * ratio * 10) / 10;
     const fat_g     = Math.round(_labelMacros.fat_g     * ratio * 10) / 10;
     const alcohol_g = Math.round((_labelMacros.alcohol_g || 0) * ratio * 10) / 10;
+    const kcal_g    = Math.round(_labelMacros.kcal_100 * ratio);
 
     if (typeof addFoodLogEntry === 'function') {
         addFoodLogEntry({
@@ -428,6 +431,7 @@ async function confirmLabelAdd() {
             carbs_g:   carbs_g   || null,
             fat_g:     fat_g     || null,
             alcohol_g: alcohol_g || null,
+            kcal_g:    kcal_g,
         });
     }
 
@@ -437,7 +441,8 @@ async function confirmLabelAdd() {
             protein_g: _labelMacros.protein_g,
             carbs_g:   _labelMacros.carbs_g,
             fat_g:     _labelMacros.fat_g,
-            alcohol_g: _labelMacros.alcohol_g
+            alcohol_g: _labelMacros.alcohol_g,
+            kcal_g:    _labelMacros.kcal_100
         });
         if (!savedId) {
             if (typeof showAlert === 'function') showAlert('הפריט נוסף ליומן, אבל השמירה ב"מאכלים שלי" נכשלה. אפשר לנסות שוב מתוך "המזונות שלי".');
@@ -450,9 +455,8 @@ async function confirmLabelAdd() {
     closeLabelConfirm();
     if (typeof closeFoodScanner === 'function') closeFoodScanner();
 
-    const kcal = Math.round(protein_g * 4 + carbs_g * 4 + fat_g * 9 + alcohol_g * 7);
     const toast = document.createElement('div');
-    toast.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> נוסף ליומן: ${kcal} קלוריות`;
+    toast.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> נוסף ליומן: ${kcal_g} קלוריות`;
     toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:10100;box-shadow:0 4px 15px rgba(0,0,0,0.2);white-space:nowrap;';
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);

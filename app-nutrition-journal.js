@@ -221,9 +221,9 @@ function _flGoToday() { _flSelectDate(_flToday()); }
 
 // רק ליום הנוכחי: הטבעות למעלה בדשבורד מחושבות פה ישירות (לא מקומי - אין יומן מקומי לצד אדמין).
 // נקרא גם כשהיומן ריק (0 בכל מקום), לא רק כשיש בו פריטים
-function _pdRefreshTodayTotals(dateStr, userId, totalP, totalC, totalF, totalA) {
+function _pdRefreshTodayTotals(dateStr, userId, totalP, totalC, totalF, totalA, totalKcalSum) {
     if (dateStr !== (typeof localDateStr === 'function' ? localDateStr() : dateStr)) return;
-    const totalKcal = Math.round(totalP*4 + totalC*4 + totalF*9 + totalA*7);
+    const totalKcal = (totalKcalSum != null) ? Math.round(totalKcalSum) : Math.round(totalP*4 + totalC*4 + totalF*9 + totalA*7);
     const pv = document.getElementById('protein-val'); if (pv) pv.innerText = Math.round(totalP*10)/10;
     const cv = document.getElementById('carbs-val');   if (cv) cv.innerText = Math.round(totalC*10)/10;
     const fv = document.getElementById('fat-val');     if (fv) fv.innerText = Math.round(totalF*10)/10;
@@ -248,8 +248,8 @@ async function _renderFoodLogPastDay(dateStr) {
             _pdRefreshTodayTotals(dateStr, userId, 0, 0, 0, 0);
             return;
         }
-        let totalP=0,totalC=0,totalF=0,totalA=0;
-        items.forEach(r => { totalP+=r.protein_g||0; totalC+=r.carbs_g||0; totalF+=r.fat_g||0; totalA+=r.alcohol_g||0; });
+        let totalP=0,totalC=0,totalF=0,totalA=0,totalK=0;
+        items.forEach(r => { totalP+=r.protein_g||0; totalC+=r.carbs_g||0; totalF+=r.fat_g||0; totalA+=r.alcohol_g||0; totalK+=(typeof entryKcal==='function')?entryKcal(r):((r.protein_g||0)*4+(r.carbs_g||0)*4+(r.fat_g||0)*9+(r.alcohol_g||0)*7); });
         const meals = _groupFoodLogByMeal(items, r => r.time);
         let html='<div class="fl-timeline"><div class="fl-timeline-line"></div>';
         meals.forEach(meal => {
@@ -270,13 +270,13 @@ async function _renderFoodLogPastDay(dateStr) {
             html+='</div>';
         });
         html+='</div>';
-        const totalKcal = Math.round(totalP*4 + totalC*4 + totalF*9 + totalA*7);
+        const totalKcal = Math.round(totalK);
         el.innerHTML = html + `<div class="fl-summary">
             <div class="fl-summary-kcal">${totalKcal}<span>קלוריות</span></div>
             <div class="fl-summary-macros">${totalP?`<b class="fl-m-p">${Math.round(totalP)}g</b>`:''}${totalC?`<b class="fl-m-c">${Math.round(totalC)}g</b>`:''}${totalF?`<b class="fl-m-f">${Math.round(totalF)}g</b>`:''}${totalA?`<b class="fl-m-a">${Math.round(totalA)}g</b>`:''}</div>
         </div>`;
 
-        _pdRefreshTodayTotals(dateStr, userId, totalP, totalC, totalF, totalA);
+        _pdRefreshTodayTotals(dateStr, userId, totalP, totalC, totalF, totalA, totalK);
     } catch(e) {
         el.innerHTML = '<div style="text-align:center;color:#e55;padding:12px;">שגיאה בטעינה</div>';
     }
@@ -355,12 +355,13 @@ function renderFoodLog() {
         el.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:12px 0;font-size:13px;">עוד לא הוזן אוכל היום</div>';
         return;
     }
-    let totalProtein = 0, totalCarbs = 0, totalFat = 0, totalAlcohol = 0;
+    let totalProtein = 0, totalCarbs = 0, totalFat = 0, totalAlcohol = 0, totalKcalSum = 0;
     entries.forEach(e => {
         totalProtein += e.protein_g || 0;
         totalCarbs   += e.carbs_g   || 0;
         totalFat     += e.fat_g     || 0;
         totalAlcohol += e.alcohol_g || 0;
+        totalKcalSum += (typeof entryKcal === 'function') ? entryKcal(e) : ((e.protein_g||0)*4 + (e.carbs_g||0)*4 + (e.fat_g||0)*9 + (e.alcohol_g||0)*7);
     });
     // קיבוץ לארוחות לפי פערי זמן (90 דקות) — לא רק פריטים באותה דקה בדיוק
     entries.forEach((e, i) => { e._idx = i; });
@@ -387,7 +388,7 @@ function renderFoodLog() {
     });
     html += '</div>';
 
-    const totalKcal = Math.round(totalProtein * 4 + totalCarbs * 4 + totalFat * 9 + totalAlcohol * 7);
+    const totalKcal = Math.round(totalKcalSum);
     el.innerHTML = html +
         `<div class="fl-summary">
             <div class="fl-summary-kcal">${totalKcal}<span>קלוריות</span></div>
@@ -422,7 +423,8 @@ function openFoodLogEdit(idx) {
         protein_g: entry.protein_g || 0,
         carbs_g:   entry.carbs_g   || 0,
         fat_g:     entry.fat_g     || 0,
-        alcohol_g: entry.alcohol_g || 0
+        alcohol_g: entry.alcohol_g || 0,
+        kcal_g:    entry.kcal_g != null ? entry.kcal_g : null
     };
 
     document.getElementById('edit-food-name').value   = name;
@@ -478,6 +480,9 @@ async function saveFoodLogEdit() {
 
         // רק הכמות השתנתה (שם ויחידה זהים) — מכפילים את הערכים המקוריים ביחס, בלי לחפש מחדש.
         // כך לא דורסים ערך מדויק שהגיע במקור מזיהוי תמונה/הזנה ידנית בערך כללי ממאגר/AI
+        // kcal_g מדויק (מתווית): נשמר רק כשלא חיפשנו מחדש. אם רק הכמות השתנתה — מוכפל ביחס.
+        // ברגע שמחפשים מחדש (USDA/Gemini) הוא מתאפס, כי זה כבר מקור אחר ולא ערך היצרן המקורי
+        let newKcalG = null;
         const orig = _editFoodLogOriginal;
         if (orig && orig.name === name && orig.unit === unit && orig.amount > 0) {
             const ratio = amount / orig.amount;
@@ -488,6 +493,7 @@ async function saveFoodLogEdit() {
                 fat_g:     Math.round(orig.fat_g     * ratio * 10) / 10,
                 alcohol_g: Math.round(orig.alcohol_g * ratio * 10) / 10
             };
+            if (orig.kcal_g != null) newKcalG = Math.round(orig.kcal_g * ratio);
         }
 
         // בדיקת USDA לפני Gemini — חינם ומדויק
@@ -528,7 +534,8 @@ async function saveFoodLogEdit() {
             protein_g: Math.round(newMacros.protein_g * 10) / 10 || null,
             carbs_g:   Math.round(newMacros.carbs_g   * 10) / 10 || null,
             fat_g:     Math.round(newMacros.fat_g     * 10) / 10 || null,
-            alcohol_g: Math.round(newMacros.alcohol_g * 10) / 10 || null
+            alcohol_g: Math.round(newMacros.alcohol_g * 10) / 10 || null,
+            kcal_g:    newKcalG
         };
         saveFoodLogEntries(entries);
 
@@ -540,7 +547,8 @@ async function saveFoodLogEdit() {
                 protein_g: entries[idx].protein_g || 0,
                 carbs_g:   entries[idx].carbs_g   || 0,
                 fat_g:     entries[idx].fat_g     || 0,
-                alcohol_g: entries[idx].alcohol_g || 0
+                alcohol_g: entries[idx].alcohol_g || 0,
+                kcal_g:    newKcalG
             }).catch(() => {});
         }
 
@@ -600,6 +608,7 @@ async function addScannedPortions() {
                     carbs_g:     Math.round((item.carbs_g   || 0) * 10) / 10 || null,
                     fat_g:       Math.round((item.fat_g     || 0) * 10) / 10 || null,
                     alcohol_g:   Math.round((item.alcohol_g || 0) * 10) / 10 || null,
+                    kcal_g:      item.kcal_g != null ? item.kcal_g : null,
                     id:          (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()),
                     time:        timeStr
                 });
@@ -633,7 +642,7 @@ async function addScannedPortions() {
     if (_failedItemNames.length && typeof showAlert === 'function') {
         showAlert('הפריטים הבאים לא נשמרו ביומן, כדאי להוסיף אותם ידנית: ' + _failedItemNames.join(', '));
     }
-    const kcal = Math.round(protein * 4 + carbs * 4 + fat * 9 + alcohol * 7);
+    const kcal = Math.round(_itemsToSave.reduce((s, it) => s + ((typeof entryKcal === 'function') ? entryKcal(it) : ((it.protein_g||0)*4 + (it.carbs_g||0)*4 + (it.fat_g||0)*9 + (it.alcohol_g||0)*7)), 0));
     const toast = document.createElement('div');
     toast.innerHTML = (protein || carbs || fat || alcohol)
         ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> נוסף ליומן: ${kcal} קלוריות`

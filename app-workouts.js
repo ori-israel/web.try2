@@ -283,7 +283,11 @@ function closeCompleteMsg() {
 
     function updateKcalDisplay() {
         const alcoholKcal = Math.round(dailyGrams.alcohol * 7);
-        const kcal = Math.round(dailyGrams.protein * 4 + dailyGrams.carbs * 4 + dailyGrams.fat * 9) + alcoholKcal;
+        // הסכום היומי: אם נשמר סכום קלוריות מדויק מפריטים עם תווית (dailyGrams.kcal) — משתמשים בו.
+        // אחרת חישוב מהמאקרו כמו קודם (תאימות לאחור אם משום מה אין את הערך)
+        const kcal = (dailyGrams.kcal != null)
+            ? Math.round(dailyGrams.kcal)
+            : Math.round(dailyGrams.protein * 4 + dailyGrams.carbs * 4 + dailyGrams.fat * 9) + alcoholKcal;
         const el = document.getElementById('kcal-val');
         if (el) el.innerText = kcal;
         const noteEl = document.getElementById('kcal-alcohol-note');
@@ -315,7 +319,8 @@ function closeCompleteMsg() {
             carbs:   Math.round((sum.carbs   + (e.carbs_g   || 0)) * 10) / 10,
             fat:     Math.round((sum.fat     + (e.fat_g     || 0)) * 10) / 10,
             alcohol: Math.round((sum.alcohol + (e.alcohol_g || 0)) * 10) / 10,
-        }), { protein: 0, carbs: 0, fat: 0, alcohol: 0 });
+            kcal:    sum.kcal + (typeof entryKcal === 'function' ? entryKcal(e) : ((e.protein_g||0)*4 + (e.carbs_g||0)*4 + (e.fat_g||0)*9 + (e.alcohol_g||0)*7)),
+        }), { protein: 0, carbs: 0, fat: 0, alcohol: 0, kcal: 0 });
         document.getElementById('protein-val').innerText = dailyGrams.protein;
         document.getElementById('carbs-val').innerText   = dailyGrams.carbs;
         document.getElementById('fat-val').innerText     = dailyGrams.fat;

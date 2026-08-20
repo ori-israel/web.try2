@@ -177,7 +177,7 @@ function renderFoodSuggestions(query) {
         .filter(f => f.name.includes(q))
         .slice(0, 3)
         .map(f => {
-            const kcal = Math.round((f.protein_g || 0) * 4 + (f.carbs_g || 0) * 4 + (f.fat_g || 0) * 9 + (f.alcohol_g || 0) * 7);
+            const kcal = (f.kcal_g != null) ? Math.round(f.kcal_g) : Math.round((f.protein_g || 0) * 4 + (f.carbs_g || 0) * 4 + (f.fat_g || 0) * 9 + (f.alcohol_g || 0) * 7);
             return { type: 'custom', ref: f, label: f.name, sub: `${kcal} קל' ל-${f.unit_amount} ${f.unit}`, icon: _SUGG_ICON_CUSTOM };
         });
 
@@ -334,7 +334,8 @@ async function confirmAddItem() {
             protein_g: macros.protein_g,
             fat_g: macros.fat_g,
             carbs_g: macros.carbs_g,
-            alcohol_g: macros.alcohol_g || 0
+            alcohol_g: macros.alcohol_g || 0,
+            kcal_g: macros.kcal_g
         });
         updateScannedTotals();
         renderScanDetails();
@@ -489,14 +490,17 @@ function updateScannedTotals() {
         protein: Math.round(scannedItems.reduce((s, i) => s + (i.protein_g || 0), 0)),
         fat:     Math.round(scannedItems.reduce((s, i) => s + (i.fat_g     || 0), 0)),
         carbs:   Math.round(scannedItems.reduce((s, i) => s + (i.carbs_g   || 0), 0)),
-        alcohol: Math.round(scannedItems.reduce((s, i) => s + (i.alcohol_g || 0), 0))
+        alcohol: Math.round(scannedItems.reduce((s, i) => s + (i.alcohol_g || 0), 0)),
+        kcal:    Math.round(scannedItems.reduce((s, i) => s + (typeof entryKcal === 'function' ? entryKcal(i) : ((i.protein_g||0)*4 + (i.carbs_g||0)*4 + (i.fat_g||0)*9 + (i.alcohol_g||0)*7)), 0))
     };
     renderScanGramsSummary();
 }
 
 // תצוגה משותפת של סיכום ארוחה בגרמים: קלוריות + חלבון/פחמימה/שומן בגרמים (ללא המרה למנות)
 function renderScanGramsSummary() {
-    const kcal = Math.round(scannedGrams.protein * 4 + scannedGrams.carbs * 4 + scannedGrams.fat * 9 + scannedGrams.alcohol * 7);
+    const kcal = (scannedGrams.kcal != null)
+        ? Math.round(scannedGrams.kcal)
+        : Math.round(scannedGrams.protein * 4 + scannedGrams.carbs * 4 + scannedGrams.fat * 9 + scannedGrams.alcohol * 7);
     document.getElementById('scan-portions').innerHTML =
         `<div style="text-align:center;margin-bottom:10px;">
             <div style="font-size:26px;font-weight:800;color:var(--accent-dark);">${kcal}</div>
@@ -578,7 +582,7 @@ function renderQuickPicks() {
     const nameEl = document.getElementById('add-item-name');
     if (nameEl && nameEl.value.trim()) return; // המשתמש כבר מקליד חיפוש - לא לדרוס
     const customPicks = (typeof _myFoods !== 'undefined' ? _myFoods : []).slice(0, 3).map(f => {
-        const kcal = Math.round((f.protein_g || 0) * 4 + (f.carbs_g || 0) * 4 + (f.fat_g || 0) * 9 + (f.alcohol_g || 0) * 7);
+        const kcal = (f.kcal_g != null) ? Math.round(f.kcal_g) : Math.round((f.protein_g || 0) * 4 + (f.carbs_g || 0) * 4 + (f.fat_g || 0) * 9 + (f.alcohol_g || 0) * 7);
         return { type: 'custom', ref: f, label: f.name, sub: `${kcal} קל' ל-${f.unit_amount} ${f.unit}`, icon: _SUGG_ICON_CUSTOM };
     });
     const usedNames = new Set(customPicks.map(m => m.label));

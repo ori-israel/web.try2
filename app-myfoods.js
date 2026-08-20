@@ -34,7 +34,8 @@ function _customFoodMacrosForAmount(food, amount) {
         protein_g: Math.round(food.protein_g * ratio * 10) / 10,
         carbs_g:   Math.round(food.carbs_g   * ratio * 10) / 10,
         fat_g:     Math.round(food.fat_g     * ratio * 10) / 10,
-        alcohol_g: Math.round((food.alcohol_g || 0) * ratio * 10) / 10
+        alcohol_g: Math.round((food.alcohol_g || 0) * ratio * 10) / 10,
+        kcal_g:    food.kcal_g != null ? Math.round(food.kcal_g * ratio) : null
     };
 }
 
@@ -79,7 +80,7 @@ function renderMyFoodsList() {
             return;
         }
         list.innerHTML = _myFoods.map(f => {
-            const kcal = Math.round((f.protein_g || 0) * 4 + (f.carbs_g || 0) * 4 + (f.fat_g || 0) * 9 + (f.alcohol_g || 0) * 7);
+            const kcal = (f.kcal_g != null) ? Math.round(f.kcal_g) : Math.round((f.protein_g || 0) * 4 + (f.carbs_g || 0) * 4 + (f.fat_g || 0) * 9 + (f.alcohol_g || 0) * 7);
             return `<div class="myfoods-item">
                 <div class="myfoods-item-ic"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-1.2 2.8-4.5 5-4.5 8.3a4.5 4.5 0 0 0 9 0C16.5 8 13.2 5.8 12 3z"/></svg></div>
                 <div class="myfoods-item-body">
@@ -244,7 +245,9 @@ async function saveCustomFood() {
         return;
     }
 
-    const payload = { name, unit, unit_amount, protein_g, carbs_g, fat_g, alcohol_g };
+    // עריכה ידנית של מאכל: המאקרו נקבע כעת בעצמו, לכן קלוריות מדויקות שהגיעו בעבר מתווית
+    // (kcal_g) כבר לא רלוונטיות — מאפסים כדי שהתצוגה תחזור לחישוב מהמאקרו
+    const payload = { name, unit, unit_amount, protein_g, carbs_g, fat_g, alcohol_g, kcal_g: null };
     if (_cfEditId) {
         await sbUpdateCustomFood(_cfEditId, payload);
     } else {
@@ -415,7 +418,9 @@ function confirmAddRecipeIngredient() {
         }
     }
 
-    _crIngredients.push({ name, amount, unit, ...macros });
+    // מתכון מחושב תמיד מסכום המרכיבים (אין תווית יצרן אחת לכל המתכון) — לא לשמור kcal_g למרכיב
+    const { kcal_g: _drop, ...macrosNoKcal } = macros;
+    _crIngredients.push({ name, amount, unit, ...macrosNoKcal });
     backToRecipeList();
     renderRecipeIngredientsList();
 }

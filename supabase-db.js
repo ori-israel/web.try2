@@ -286,6 +286,7 @@ async function sbAddFoodLog(entry) {
         carbs_g:   entry.carbs_g   || 0,
         fat_g:     entry.fat_g     || 0,
         alcohol_g: entry.alcohol_g || 0,
+        kcal_g:    entry.kcal_g != null ? entry.kcal_g : null,
         recipe_items: entry.recipe_items || null
     });
     if (error) console.warn('sbAddFoodLog:', error.message);
@@ -307,7 +308,7 @@ async function sbUpdateFoodLog(id, fields) {
 
 async function sbFetchFoodLogRange(userId, fromDate) {
     const { data, error } = await db.from('food_log')
-        .select('id, date, time, food, grams, protein_g, carbs_g, fat_g, alcohol_g, recipe_items')
+        .select('id, date, time, food, grams, protein_g, carbs_g, fat_g, alcohol_g, kcal_g, recipe_items')
         .eq('user_id', userId)
         .gte('date', fromDate)
         .order('date', { ascending: true })
@@ -320,7 +321,7 @@ async function sbFetchFoodLogRange(userId, fromDate) {
 
 async function sbFetchCustomFoods(userId) {
     const { data, error } = await db.from('custom_foods')
-        .select('id, name, unit, unit_amount, protein_g, carbs_g, fat_g, alcohol_g')
+        .select('id, name, unit, unit_amount, protein_g, carbs_g, fat_g, alcohol_g, kcal_g')
         .eq('user_id', userId)
         .order('created_at', { ascending: true });
     if (error) { console.warn('sbFetchCustomFoods:', error.message); return []; }
@@ -338,7 +339,8 @@ async function sbAddCustomFood(food) {
         protein_g:   food.protein_g || 0,
         carbs_g:     food.carbs_g   || 0,
         fat_g:       food.fat_g     || 0,
-        alcohol_g:   food.alcohol_g || 0
+        alcohol_g:   food.alcohol_g || 0,
+        kcal_g:      food.kcal_g != null ? food.kcal_g : null
     }).select('id').single();
     if (error) { console.warn('sbAddCustomFood:', error.message); return null; }
     return data?.id || null;
