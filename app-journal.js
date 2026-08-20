@@ -613,6 +613,13 @@ async function loadChartJs() {
     });
 }
 
+function _journalNiceAxisMax(maxValue) {
+    const candidates = [5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120, 150, 200, 250, 300, 400, 500, 750, 1000];
+    const target = Math.max(maxValue, 1) * 1.15;
+    for (const c of candidates) { if (c >= target) return c; }
+    return Math.ceil(target / 100) * 100;
+}
+
 async function showStrengthChart(exerciseName, userId) {
     await loadChartJs();
     const { data, error } = await db
@@ -650,6 +657,9 @@ async function showStrengthChart(exerciseName, userId) {
         <div style="font-weight:bold;font-size:1.1rem;text-align:center;margin-bottom:16px;direction:rtl;">${exerciseName}</div>
         <canvas id="strength-chart-canvas"></canvas>`;
 
+    const weightMax = _journalNiceAxisMax(Math.max(...data.map(r => r.weight_kg)));
+    const repsMax = _journalNiceAxisMax(Math.max(...data.map(r => r.reps)));
+
     const ctx = modal.querySelector('#strength-chart-canvas').getContext('2d');
     new Chart(ctx, {
         type: 'line',
@@ -659,8 +669,8 @@ async function showStrengthChart(exerciseName, userId) {
                 {
                     label: 'משקל',
                     data: data.map(r => r.weight_kg),
-                    borderColor: '#5b7cfa',
-                    backgroundColor: 'rgba(91,124,250,0.15)',
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59,130,246,0.15)',
                     fill: true,
                     tension: 0.3,
                     yAxisID: 'y',
@@ -668,7 +678,7 @@ async function showStrengthChart(exerciseName, userId) {
                 {
                     label: 'חזרות',
                     data: data.map(r => r.reps),
-                    borderColor: '#4caf50',
+                    borderColor: '#22c55e',
                     backgroundColor: 'transparent',
                     borderDash: [6, 3],
                     tension: 0.3,
@@ -680,8 +690,8 @@ async function showStrengthChart(exerciseName, userId) {
             responsive: true,
             interaction: { mode: 'index', intersect: false },
             scales: {
-                y:  { type: 'linear', position: 'left',  min: 0, max: 100, ticks: { color: '#5b7cfa' }, title: { display: true, text: 'משקל' } },
-                y2: { type: 'linear', position: 'right', min: 0, max: 25,  grid: { drawOnChartArea: false }, ticks: { color: '#4caf50', stepSize: 1, precision: 0 }, title: { display: true, text: 'חזרות' } }
+                y:  { type: 'linear', position: 'left',  min: 0, max: weightMax, ticks: { color: '#3b82f6' }, title: { display: true, text: 'משקל', color: '#3b82f6' } },
+                y2: { type: 'linear', position: 'right', min: 0, max: repsMax,  grid: { drawOnChartArea: false }, ticks: { color: '#22c55e', precision: 0 }, title: { display: true, text: 'חזרות', color: '#22c55e' } }
             }
         }
     });
