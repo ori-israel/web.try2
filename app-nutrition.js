@@ -451,42 +451,37 @@ function undoDeleteItem() {
 
 function editItemGrams(idx, el) {
     const current = Math.round(scannedItems[idx].grams);
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.value = current;
-    input.style.cssText = 'width:52px;background:var(--input-bg);border:0.5px solid var(--input-border);border-radius:4px;color:var(--text-primary);font-size:16px;padding:2px 4px;text-align:center;';
-    el.replaceWith(input);
-    input.focus();
-    input.select();
-    const save = () => {
-        const val = parseInt(input.value);
-        if (val > 0) {
-            // שינוי גרמים לא אמור לחפש מחדש את המאכל (בברקוד/AI/USDA) — רק להכפיל את המאקרו
-            // שכבר נמצא לפריט הזה ביחס לגרמים החדשים. חיפוש מחדש (enrichItemMacros) עלול להתאים
-            // בטעות למוצר אחר לגמרי בטבלת USDA ולזרוק מאקרו מדויק שכבר היה קיים.
-            const item = scannedItems[idx];
-            const ratio = val / item.grams;
-            let updated = {
-                ...item,
-                grams: val,
-                protein_g: Math.round((item.protein_g || 0) * ratio * 10) / 10,
-                fat_g: Math.round((item.fat_g || 0) * ratio * 10) / 10,
-                carbs_g: Math.round((item.carbs_g || 0) * ratio * 10) / 10,
-                alcohol_g: Math.round((item.alcohol_g || 0) * ratio * 10) / 10
-            };
-            // אותה תקרת בטיחות פיזית כמו ב-enrichItemMacros — לא תלוית מקור
-            const proteinCap = updated.grams * 0.9;
-            if (updated.protein_g > proteinCap) updated.protein_g = Math.round(proteinCap * 10) / 10;
-            ['carbs_g', 'fat_g'].forEach(key => {
-                if (updated[key] > updated.grams) updated[key] = Math.round(updated.grams * 10) / 10;
-            });
-            scannedItems[idx] = updated;
-            updateScannedTotals();
+    openNumberRulerSheet({
+        min: 1, max: 1000, step: 5, labelStep: 100,
+        title: 'כמות', unit: 'גרם',
+        value: current,
+        onSave: (val) => {
+            if (val > 0) {
+                // שינוי גרמים לא אמור לחפש מחדש את המאכל (בברקוד/AI/USDA) — רק להכפיל את המאקרו
+                // שכבר נמצא לפריט הזה ביחס לגרמים החדשים. חיפוש מחדש (enrichItemMacros) עלול להתאים
+                // בטעות למוצר אחר לגמרי בטבלת USDA ולזרוק מאקרו מדויק שכבר היה קיים.
+                const item = scannedItems[idx];
+                const ratio = val / item.grams;
+                let updated = {
+                    ...item,
+                    grams: val,
+                    protein_g: Math.round((item.protein_g || 0) * ratio * 10) / 10,
+                    fat_g: Math.round((item.fat_g || 0) * ratio * 10) / 10,
+                    carbs_g: Math.round((item.carbs_g || 0) * ratio * 10) / 10,
+                    alcohol_g: Math.round((item.alcohol_g || 0) * ratio * 10) / 10
+                };
+                // אותה תקרת בטיחות פיזית כמו ב-enrichItemMacros — לא תלוית מקור
+                const proteinCap = updated.grams * 0.9;
+                if (updated.protein_g > proteinCap) updated.protein_g = Math.round(proteinCap * 10) / 10;
+                ['carbs_g', 'fat_g'].forEach(key => {
+                    if (updated[key] > updated.grams) updated[key] = Math.round(updated.grams * 10) / 10;
+                });
+                scannedItems[idx] = updated;
+                updateScannedTotals();
+            }
+            renderScanDetails();
         }
-        renderScanDetails();
-    };
-    input.addEventListener('blur', save);
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') { input.blur(); } });
+    });
 }
 
 function updateScannedTotals() {

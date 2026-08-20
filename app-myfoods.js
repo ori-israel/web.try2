@@ -480,11 +480,31 @@ function _renderRecipeLogItems() {
     box.innerHTML = _rlItems.map((ing, i) => `
         <div class="recipe-ing-pill">
             <span class="ing-name">${_esc(ing.name)}</span>
-            <input type="number" value="${ing.amount}" oninput="_rlUpdateAmount(${i}, this.value)"
-                style="width:52px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:4px 4px;text-align:center;color:var(--text-primary);font-family:inherit;font-size:12.5px;">
+            <span onclick="openRlAmountSheet(${i})"
+                style="display:inline-block;width:52px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:4px 4px;text-align:center;color:var(--accent);font-weight:700;font-family:inherit;font-size:12.5px;cursor:pointer;">${ing.amount}</span>
             <span class="ing-amt">${_esc(ing.unit)}</span>
         </div>`).join('');
     _rlUpdateSummary();
+}
+
+function openRlAmountSheet(i) {
+    const ing = _rlItems[i];
+    const ranges = {
+        'גרם':    { min: 1,    max: 1000, step: 5,    labelStep: 100, decimals: 0 },
+        'יחידות': { min: 1,    max: 20,   step: 1,    labelStep: 5,   decimals: 0 },
+        'כוסות':  { min: 0.25, max: 10,   step: 0.25, labelStep: 1,   decimals: 2 },
+        'כפות':   { min: 0.25, max: 10,   step: 0.25, labelStep: 1,   decimals: 2 },
+    };
+    const r = ranges[ing.unit] || ranges['גרם'];
+    openNumberRulerSheet({
+        min: r.min, max: r.max, step: r.step, labelStep: r.labelStep, decimals: r.decimals,
+        title: ing.name, unit: ing.unit,
+        value: parseFloat(ing.amount) || r.min,
+        onSave: (val) => {
+            _rlUpdateAmount(i, val);
+            _renderRecipeLogItems();
+        }
+    });
 }
 
 function _rlUpdateAmount(i, value) {
