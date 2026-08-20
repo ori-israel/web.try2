@@ -1507,6 +1507,33 @@
   </div>
 </div>
 
+<div class="sets-sheet-overlay" id="sets-sheet-overlay" onclick="if(event.target===this)closeSetsSheet()">
+  <div class="sets-sheet">
+    <div class="sets-sheet-handle"></div>
+    <div class="sets-sheet-title">מספר סטים</div>
+    <div class="sets-sheet-ex-name" id="sets-sheet-ex-name"></div>
+    <div class="sets-sheet-group">
+      <div class="sets-sheet-group-label">סטים לחימום</div>
+      <div class="sets-big-chips" id="sets-sheet-warm">
+        <button type="button" class="sets-big-chip" data-v="0" onclick="_pickSetsChip('sets-sheet-warm', this)">0</button>
+        <button type="button" class="sets-big-chip" data-v="1" onclick="_pickSetsChip('sets-sheet-warm', this)">1</button>
+        <button type="button" class="sets-big-chip" data-v="2" onclick="_pickSetsChip('sets-sheet-warm', this)">2</button>
+      </div>
+    </div>
+    <div class="sets-sheet-group">
+      <div class="sets-sheet-group-label">סטים לעבודה</div>
+      <div class="sets-big-chips" id="sets-sheet-work">
+        <button type="button" class="sets-big-chip" data-v="1" onclick="_pickSetsChip('sets-sheet-work', this)">1</button>
+        <button type="button" class="sets-big-chip" data-v="2" onclick="_pickSetsChip('sets-sheet-work', this)">2</button>
+        <button type="button" class="sets-big-chip" data-v="3" onclick="_pickSetsChip('sets-sheet-work', this)">3</button>
+        <button type="button" class="sets-big-chip" data-v="4" onclick="_pickSetsChip('sets-sheet-work', this)">4</button>
+        <button type="button" class="sets-big-chip" data-v="5" onclick="_pickSetsChip('sets-sheet-work', this)">5</button>
+      </div>
+    </div>
+    <button class="sets-sheet-save-btn" onclick="saveSetsSheet()">שמירה <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
+  </div>
+</div>
+
 <script src="/supabase.js"></script>
 <script src="bmr.js"></script>
 <script src="client.js"></script>

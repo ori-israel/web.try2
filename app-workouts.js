@@ -1048,13 +1048,11 @@ function _renderCustomBuilder() {
                     <button class="cwe-cb-ex-del" onclick="removeExerciseFromCustomWorkout(${wi}, ${ei})">${_CWE_DEL_ICON}</button>
                 </div>
                 <div class="cwe-cb-ex-fields">
-                    <div class="cwe-cb-field">
-                        <span class="cwe-cb-field-label">סטים לחימום</span>
-                        <input class="cwe-cb-input" type="number" min="0" max="9" value="${ex.warmupSets}" data-field="warmupSets" aria-label="סטים לחימום">
-                    </div>
-                    <div class="cwe-cb-field">
-                        <span class="cwe-cb-field-label">סטים לעבודה</span>
-                        <input class="cwe-cb-input" type="number" min="0" max="9" value="${ex.workSets}" data-field="workSets" aria-label="סטים לעבודה">
+                    <div class="cwe-cb-field cwe-cb-field-tap" onclick="openSetsSheet(${wi}, ${ei})">
+                        <span class="cwe-cb-field-label">סטים</span>
+                        <span class="cwe-cb-field-val">${ex.warmupSets} חימום · ${ex.workSets} עבודה</span>
+                        <input type="hidden" data-field="warmupSets" value="${ex.warmupSets}">
+                        <input type="hidden" data-field="workSets" value="${ex.workSets}">
                     </div>
                     <div class="cwe-cb-field">
                         <span class="cwe-cb-field-label">חזרות</span>
@@ -1102,6 +1100,52 @@ function _cweSyncCustomBuilderDom() {
         if (work) ex.workSets   = parseInt(work.value) || 0;
         if (reps) ex.reps       = reps.value.trim() || '10-15';
     });
+}
+
+// ── בחירת סטים — בוטום שיט (במקום מקלדת) ──────────────────────
+let _setsSheetWi = null, _setsSheetEi = null;
+
+function openSetsSheet(wi, ei) {
+    const ex = _cweCustomState?.workouts[wi]?.exercises[ei];
+    if (!ex) return;
+    _setsSheetWi = wi;
+    _setsSheetEi = ei;
+    document.getElementById('sets-sheet-ex-name').textContent = ex.name;
+    document.querySelectorAll('#sets-sheet-warm .sets-big-chip').forEach(c => {
+        c.classList.toggle('sel', parseInt(c.dataset.v) === ex.warmupSets);
+    });
+    document.querySelectorAll('#sets-sheet-work .sets-big-chip').forEach(c => {
+        c.classList.toggle('sel', parseInt(c.dataset.v) === ex.workSets);
+    });
+    document.getElementById('sets-sheet-overlay').classList.add('open');
+    window._dynamicOverlayOpen();
+}
+
+function closeSetsSheet() {
+    const overlay = document.getElementById('sets-sheet-overlay');
+    if (!overlay || !overlay.classList.contains('open')) return;
+    overlay.classList.remove('open');
+    window._dynamicOverlayClosed();
+}
+
+function _pickSetsChip(groupId, chip) {
+    document.querySelectorAll('#' + groupId + ' .sets-big-chip').forEach(c => c.classList.remove('sel'));
+    chip.classList.add('sel');
+}
+
+function saveSetsSheet() {
+    if (_setsSheetWi == null || _setsSheetEi == null) return;
+    const warmChip = document.querySelector('#sets-sheet-warm .sets-big-chip.sel');
+    const workChip = document.querySelector('#sets-sheet-work .sets-big-chip.sel');
+    const warm = warmChip ? parseInt(warmChip.dataset.v) : 0;
+    const work = workChip ? parseInt(workChip.dataset.v) : 1;
+    const row = document.querySelector(`.cwe-cb-ex-row[data-workout-idx="${_setsSheetWi}"][data-ex-idx="${_setsSheetEi}"]`);
+    if (row) {
+        row.querySelector('[data-field="warmupSets"]').value = warm;
+        row.querySelector('[data-field="workSets"]').value = work;
+        row.querySelector('.cwe-cb-field-val').textContent = `${warm} חימום · ${work} עבודה`;
+    }
+    closeSetsSheet();
 }
 
 async function saveCustomWorkout() {
