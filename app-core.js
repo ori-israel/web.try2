@@ -910,6 +910,17 @@ function initFAQ() {
         });
     }
 
+    function openMonthsPickerFor(inputId, title) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        openNumberRulerSheet({
+            min: 1, max: 50, step: 1, labelStep: 10,
+            title: title || 'חודשים', unit: 'חודשים',
+            value: parseInt(input.value) || 1,
+            onSave: (val) => { input.value = val; }
+        });
+    }
+
 // ── Progress Photos ──────────────────────────────────────────────────────────
 
 const PROGRESS_PHOTOS_LIMIT = 10;

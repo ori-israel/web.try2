@@ -1178,11 +1178,11 @@
             </div>
             <div class="profile-row" id="coaching-duration-row">
                 <label for="prof-coaching-duration">משך ליווי (חודשים)</label>
-                <input id="prof-coaching-duration" type="number" class="profile-input coach-editable-field" disabled min="1" max="24" placeholder="לדוגמה: 3">
+                <input id="prof-coaching-duration" type="number" class="profile-input coach-editable-field" disabled readonly placeholder="לדוגמה: 3" onclick="openMonthsPickerFor('prof-coaching-duration', 'משך ליווי')">
             </div>
             <div class="profile-row">
                 <label for="prof-subscription-duration">משך מנוי (חודשים)</label>
-                <input id="prof-subscription-duration" type="number" class="profile-input coach-editable-field" disabled min="1" placeholder="לדוגמה: 15">
+                <input id="prof-subscription-duration" type="number" class="profile-input coach-editable-field" disabled readonly placeholder="לדוגמה: 15" onclick="openMonthsPickerFor('prof-subscription-duration', 'משך מנוי')">
             </div>
             <div class="profile-row">
                 <label for="prof-subscription-type">סוג מנוי</label>
