@@ -3642,20 +3642,22 @@ select.login-input:focus {
 .qmodal-q p { margin: 4px 0 0; font-size: 14px; line-height: 1.5; color: var(--text-primary); }
 
 /* ── journal: ניווט תאריך ── */
-.journal-datebar { position: relative; display: flex; justify-content: center; margin-bottom: 14px; }
+.journal-datebar { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 14px; }
 .journal-date-capsule { display: flex; align-items: stretch; background: var(--bg-card-alt); border: 0.5px solid var(--border); border-radius: 99px; overflow: hidden; }
-.journal-date-capsule button { background: none; border: none; color: var(--accent); font-size: 15px; font-weight: 800; padding: 7px 14px; font-family: inherit; cursor: pointer; }
+.journal-date-capsule button { background: none; border: none; color: var(--accent); display: flex; align-items: center; justify-content: center; padding: 0 14px; font-family: inherit; cursor: pointer; }
 .journal-date-capsule button:disabled { opacity: 0.35; cursor: default; }
 .journal-date-capsule .journal-date-mid { color: var(--text-primary); font-size: 13px; font-weight: 700; padding: 7px 10px; }
 .journal-today-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
     background: var(--accent-light);
     color: var(--accent);
-    border: none;
-    font-size: 11px;
+    border: 0.5px solid rgba(59, 130, 246, 0.4);
+    font-size: 11.5px;
     font-weight: 800;
-    padding: 6px 12px;
+    padding: 7px 13px;
     border-radius: 99px;
-    margin-right: 8px;
     cursor: pointer;
     font-family: inherit;
 }
