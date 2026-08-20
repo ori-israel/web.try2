@@ -689,6 +689,23 @@ async function showStrengthChart(exerciseName, userId) {
         options: {
             responsive: true,
             interaction: { mode: 'index', intersect: false },
+            plugins: {
+                tooltip: {
+                    titleAlign: 'center',
+                    bodyAlign: 'center',
+                    titleFont: { size: 12, weight: 'bold' },
+                    bodyFont: { size: 12, weight: 'bold' },
+                    padding: 10,
+                    cornerRadius: 12,
+                    usePointStyle: true,
+                    boxWidth: 8,
+                    boxHeight: 8,
+                    boxPadding: 4,
+                    callbacks: {
+                        label: (c) => `${c.dataset.label}: ${c.formattedValue}`
+                    }
+                }
+            },
             scales: {
                 y:  { type: 'linear', position: 'left',  min: 0, max: weightMax, ticks: { color: '#3b82f6' }, title: { display: true, text: 'משקל', color: '#3b82f6' } },
                 y2: { type: 'linear', position: 'right', min: 0, max: repsMax,  grid: { drawOnChartArea: false }, ticks: { color: '#22c55e', precision: 0 }, title: { display: true, text: 'חזרות', color: '#22c55e' } }
