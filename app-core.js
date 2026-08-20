@@ -638,55 +638,125 @@ function initFAQ() {
         showWorkout('A');
     });
 
-    function editWeightInline(el) {
-    if (el.querySelector('input')) return;
-    const current = el.innerText;
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.value = current;
-    input.style.cssText = 'width:70px; text-align:center; border:1px solid var(--main-green); border-radius:6px; padding:4px; font-size:22px; font-weight:bold; color:var(--dark-green);';
-    el.innerText = '';
-    el.appendChild(input);
-    el.onclick = null;
-    input.focus();
-    const save = () => {
-        const val = parseFloat(input.value.trim());
-        if (val && !isNaN(val)) {
-            el.innerText = val;
-            sessionStorage.setItem('current_weight', val);
-            const _wDate = localDateStr();
-            const weightHistory = JSON.parse(sessionStorage.getItem('weight_history') || '[]');
-            weightHistory.push({ date: _wDate, weight: val });
-            sessionStorage.setItem('weight_history', JSON.stringify(weightHistory));
-            if (typeof syncWeightNow === 'function') syncWeightNow(_wDate, val).then(() => {
-                const uid = getActiveUserId();
-                if (uid && typeof _trackingWidgetCache !== 'undefined') {
-                    delete _trackingWidgetCache['weekly_' + uid];
-                    delete _trackingWidgetCache['history_' + uid];
-                    if (typeof renderWeeklyScore === 'function') renderWeeklyScore(uid);
-                    if (typeof renderScoreHistory === 'function') renderScoreHistory(uid);
-                }
-            });
-            const allVals = document.querySelectorAll('.weight-val');
-            const startWeight = parseFloat(allVals[0].innerText);
-            const goalWeight = parseFloat(allVals[2].innerText);
-            const weightDiff = startWeight - goalWeight;
-            const percent = weightDiff === 0 ? 0 : Math.min(100, Math.round(((startWeight - val) / weightDiff) * 100));
-            document.querySelectorAll('.progress-bar')[0].style.width = percent + '%';
-            const pt = document.querySelector('.progress-text');
-            pt.innerText = 'עברת כבר ' + percent + '% מהדרך ליעד!';
-            pt.style.visibility = 'visible';
-            generatePortionGoals();
-            showWeightUpdateToast();
-            renderWeightChart();
-        } else {
-            el.innerText = current;
+    // ── עדכון משקל נוכחי — סרגל גרירה (בוטום שיט) ──────────────────────
+    const _WEIGHT_RULER_MIN = 30, _WEIGHT_RULER_MAX = 250, _WEIGHT_RULER_STEP = 0.5, _WEIGHT_RULER_TICK_GAP = 14;
+    let _weightRulerValue = 70;
+    let _weightRulerReady = false;
+
+    function _weightRulerOffsetFor(v) {
+        return -((v - _WEIGHT_RULER_MIN) / _WEIGHT_RULER_STEP) * _WEIGHT_RULER_TICK_GAP;
+    }
+
+    function _buildWeightRulerTicks() {
+        const track = document.getElementById('weight-ruler-track');
+        if (!track) return;
+        track.innerHTML = '';
+        const n = Math.round((_WEIGHT_RULER_MAX - _WEIGHT_RULER_MIN) / _WEIGHT_RULER_STEP);
+        for (let i = 0; i <= n; i++) {
+            const v = _WEIGHT_RULER_MIN + i * _WEIGHT_RULER_STEP;
+            const isMajor = Math.abs(v - Math.round(v)) < 0.001 && Math.round(v) % 5 === 0;
+            const t = document.createElement('div');
+            t.className = 'weight-ruler-tick' + (isMajor ? ' major' : '');
+            const line = document.createElement('div');
+            line.className = 'weight-ruler-tick-line';
+            t.appendChild(line);
+            if (isMajor) {
+                const lbl = document.createElement('div');
+                lbl.className = 'weight-ruler-tick-label';
+                lbl.textContent = Math.round(v);
+                t.appendChild(lbl);
+            }
+            track.appendChild(t);
         }
-        el.onclick = () => editWeightInline(el);
-    };
-    input.addEventListener('blur', save);
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); }});
-}
+    }
+
+    function _renderWeightRuler() {
+        const track = document.getElementById('weight-ruler-track');
+        const valEl = document.getElementById('weight-ruler-value');
+        if (!track || !valEl) return;
+        track.style.transform = `translateX(${_weightRulerOffsetFor(_weightRulerValue)}px)`;
+        valEl.textContent = _weightRulerValue.toFixed(1);
+    }
+
+    function _initWeightRulerDrag() {
+        if (_weightRulerReady) return;
+        _weightRulerReady = true;
+        const wrap = document.getElementById('weight-ruler-wrap');
+        if (!wrap) return;
+        let dragging = false, startX = 0, startOffset = 0;
+        const pointerX = e => e.touches ? e.touches[0].clientX : e.clientX;
+        wrap.addEventListener('pointerdown', e => {
+            dragging = true;
+            startX = pointerX(e);
+            startOffset = _weightRulerOffsetFor(_weightRulerValue);
+        });
+        window.addEventListener('pointermove', e => {
+            if (!dragging) return;
+            const dx = pointerX(e) - startX;
+            const newOffset = startOffset + dx;
+            let v = _WEIGHT_RULER_MIN + (-newOffset / _WEIGHT_RULER_TICK_GAP) * _WEIGHT_RULER_STEP;
+            v = Math.max(_WEIGHT_RULER_MIN, Math.min(_WEIGHT_RULER_MAX, v));
+            _weightRulerValue = Math.round(v / _WEIGHT_RULER_STEP) * _WEIGHT_RULER_STEP;
+            _renderWeightRuler();
+        });
+        window.addEventListener('pointerup', () => { dragging = false; });
+    }
+
+    function openWeightUpdateSheet() {
+        const el = document.getElementById('current-weight-display');
+        const overlay = document.getElementById('weight-sheet-overlay');
+        if (!el || !overlay) return;
+        const current = parseFloat(el.innerText);
+        _weightRulerValue = !isNaN(current)
+            ? Math.max(_WEIGHT_RULER_MIN, Math.min(_WEIGHT_RULER_MAX, Math.round(current / _WEIGHT_RULER_STEP) * _WEIGHT_RULER_STEP))
+            : 70;
+        _buildWeightRulerTicks();
+        _renderWeightRuler();
+        _initWeightRulerDrag();
+        overlay.classList.add('open');
+        window._dynamicOverlayOpen();
+    }
+
+    function closeWeightUpdateSheet() {
+        const overlay = document.getElementById('weight-sheet-overlay');
+        if (!overlay || !overlay.classList.contains('open')) return;
+        overlay.classList.remove('open');
+        window._dynamicOverlayClosed();
+    }
+
+    function saveWeightFromSheet() {
+        const val = _weightRulerValue;
+        const el = document.getElementById('current-weight-display');
+        if (!el || !val || isNaN(val)) { closeWeightUpdateSheet(); return; }
+        el.innerText = val;
+        sessionStorage.setItem('current_weight', val);
+        const _wDate = localDateStr();
+        const weightHistory = JSON.parse(sessionStorage.getItem('weight_history') || '[]');
+        weightHistory.push({ date: _wDate, weight: val });
+        sessionStorage.setItem('weight_history', JSON.stringify(weightHistory));
+        if (typeof syncWeightNow === 'function') syncWeightNow(_wDate, val).then(() => {
+            const uid = getActiveUserId();
+            if (uid && typeof _trackingWidgetCache !== 'undefined') {
+                delete _trackingWidgetCache['weekly_' + uid];
+                delete _trackingWidgetCache['history_' + uid];
+                if (typeof renderWeeklyScore === 'function') renderWeeklyScore(uid);
+                if (typeof renderScoreHistory === 'function') renderScoreHistory(uid);
+            }
+        });
+        const allVals = document.querySelectorAll('.weight-val');
+        const startWeight = parseFloat(allVals[0].innerText);
+        const goalWeight = parseFloat(allVals[2].innerText);
+        const weightDiff = startWeight - goalWeight;
+        const percent = weightDiff === 0 ? 0 : Math.min(100, Math.round(((startWeight - val) / weightDiff) * 100));
+        document.querySelectorAll('.progress-bar')[0].style.width = percent + '%';
+        const pt = document.querySelector('.progress-text');
+        pt.innerText = 'עברת כבר ' + percent + '% מהדרך ליעד!';
+        pt.style.visibility = 'visible';
+        generatePortionGoals();
+        showWeightUpdateToast();
+        renderWeightChart();
+        closeWeightUpdateSheet();
+    }
 
 // ── Progress Photos ──────────────────────────────────────────────────────────
 

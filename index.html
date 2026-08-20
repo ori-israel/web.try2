@@ -703,7 +703,7 @@
                 <div style="font-size: 20px; color: var(--main-green); padding-top: 15px;">←</div>
                <div class="weight-item">
                     <span class="weight-label">נוכחי</span>
-                    <span class="weight-val" id="current-weight-display" style="cursor:pointer; text-decoration: underline dotted;" onclick="editWeightInline(this)">—</span>
+                    <span class="weight-val" id="current-weight-display" style="cursor:pointer; text-decoration: underline dotted;" onclick="openWeightUpdateSheet()">—</span>
                 </div>
                 <div style="font-size: 20px; color: var(--main-green); padding-top: 15px;">←</div>
                 <div class="weight-item">
@@ -715,6 +715,17 @@
                 <div class="progress-bar" style="width: 0%;"></div>
             </div>
             <span class="progress-text" style="visibility:hidden;">עברת כבר 0% מהדרך ליעד!</span>
+        </div>
+
+        <div class="weight-sheet-overlay" id="weight-sheet-overlay" onclick="if(event.target===this)closeWeightUpdateSheet()">
+            <div class="weight-sheet">
+                <div class="weight-sheet-handle"></div>
+                <div class="weight-sheet-label">עדכון משקל נוכחי</div>
+                <div class="weight-ruler-value" id="weight-ruler-value">—</div>
+                <div class="weight-ruler-unit">ק"ג</div>
+                <div class="weight-ruler-wrap" id="weight-ruler-wrap"><div class="weight-ruler-track" id="weight-ruler-track"></div><div class="weight-ruler-needle"></div></div>
+                <button class="weight-sheet-save-btn" onclick="saveWeightFromSheet()">שמירה <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
+            </div>
         </div>
 
         <div id="weight-chart-modal" style="display:none;position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeWeightChartModal()">
