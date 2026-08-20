@@ -3637,13 +3637,6 @@ const USDA_TABLE = [
     "carbs": 67.0
   },
   {
-    "name": "מצה עם חמאה",
-    "name_en": "Matzah with butter",
-    "protein": 9.5,
-    "fat": 18.5,
-    "carbs": 74.0
-  },
-  {
     "name": "חלבה (רולדה)",
     "name_en": "Halva roll",
     "protein": 12.5,
