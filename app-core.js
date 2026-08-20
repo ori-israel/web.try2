@@ -682,24 +682,33 @@ function initFAQ() {
         if (_weightRulerReady) return;
         _weightRulerReady = true;
         const wrap = document.getElementById('weight-ruler-wrap');
-        if (!wrap) return;
+        const track = document.getElementById('weight-ruler-track');
+        if (!wrap || !track) return;
         let dragging = false, startX = 0, startOffset = 0;
         const pointerX = e => e.touches ? e.touches[0].clientX : e.clientX;
+        const minOffset = _weightRulerOffsetFor(_WEIGHT_RULER_MAX);
+        const maxOffset = _weightRulerOffsetFor(_WEIGHT_RULER_MIN);
+
         wrap.addEventListener('pointerdown', e => {
             dragging = true;
+            track.style.transition = 'none';
             startX = pointerX(e);
             startOffset = _weightRulerOffsetFor(_weightRulerValue);
         });
         window.addEventListener('pointermove', e => {
             if (!dragging) return;
-            const dx = pointerX(e) - startX;
-            const newOffset = startOffset + dx;
-            let v = _WEIGHT_RULER_MIN + (-newOffset / _WEIGHT_RULER_TICK_GAP) * _WEIGHT_RULER_STEP;
-            v = Math.max(_WEIGHT_RULER_MIN, Math.min(_WEIGHT_RULER_MAX, v));
-            _weightRulerValue = Math.round(v / _WEIGHT_RULER_STEP) * _WEIGHT_RULER_STEP;
+            let newOffset = startOffset + (pointerX(e) - startX);
+            newOffset = Math.max(minOffset, Math.min(maxOffset, newOffset));
+            _weightRulerValue = _WEIGHT_RULER_MIN + (-newOffset / _WEIGHT_RULER_TICK_GAP) * _WEIGHT_RULER_STEP;
             _renderWeightRuler();
         });
-        window.addEventListener('pointerup', () => { dragging = false; });
+        window.addEventListener('pointerup', () => {
+            if (!dragging) return;
+            dragging = false;
+            _weightRulerValue = Math.round(_weightRulerValue / _WEIGHT_RULER_STEP) * _WEIGHT_RULER_STEP;
+            track.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+            _renderWeightRuler();
+        });
     }
 
     function openWeightUpdateSheet() {
@@ -711,6 +720,8 @@ function initFAQ() {
             ? Math.max(_WEIGHT_RULER_MIN, Math.min(_WEIGHT_RULER_MAX, Math.round(current / _WEIGHT_RULER_STEP) * _WEIGHT_RULER_STEP))
             : 70;
         _buildWeightRulerTicks();
+        const track = document.getElementById('weight-ruler-track');
+        if (track) track.style.transition = 'none';
         _renderWeightRuler();
         _initWeightRulerDrag();
         overlay.classList.add('open');
