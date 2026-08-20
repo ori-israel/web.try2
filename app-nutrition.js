@@ -644,6 +644,11 @@ function openTextEntry() {
     // "בקשת תיקון" ו"הערכה בלבד" רלוונטיים רק לזיהוי AI מתמונה - לא לחיפוש שבו המשתמש בוחר בעצמו
     document.getElementById('scan-correction-row').style.display = 'none'; // מוסתר בחיפוש - אין זיהוי AI לתקן
     document.getElementById('scan-disclaimer').style.display = 'none';
+    const _scanSaveRecipe = document.getElementById('scan-save-recipe');
+    if (_scanSaveRecipe) _scanSaveRecipe.checked = false;
+    const _scanRecipeName = document.getElementById('scan-recipe-name');
+    if (_scanRecipeName) _scanRecipeName.value = '';
+    document.getElementById('scan-recipe-name-row')?.classList.add('hidden');
     document.getElementById('scanner-step-2').classList.remove('hidden');
     showAddItemForm();
 }

@@ -108,8 +108,9 @@ async function onBarcodeDetected(barcode) {
         if (!macros) { _bcShowStep('bc-notfound-step'); return; }
 
         _bcProduct = { barcode, name: row.name, ...macros };
-        document.getElementById('bc-product-name').textContent = row.name;
+        document.getElementById('bc-product-name').value = row.name;
         document.getElementById('bc-amount').value = 100;
+        document.getElementById('bc-save-myfoods').checked = false;
         updateBarcodeConfirmTotals();
         _bcShowStep('bc-confirm-step');
     } catch (e) {
@@ -205,8 +206,17 @@ function updateBarcodeConfirmTotals() {
     document.getElementById('bc-alcohol-val').textContent = a;
 }
 
-function confirmBarcodeAdd() {
+async function confirmBarcodeAdd() {
     if (!_bcProduct) return;
+    const nameEl = document.getElementById('bc-product-name');
+    const name = (nameEl.value || '').trim() || _bcProduct.name;
+    const saveToMyFoods = document.getElementById('bc-save-myfoods').checked;
+
+    if (saveToMyFoods && typeof _myFoods !== 'undefined' && typeof MYFOODS_MAX_FOODS !== 'undefined' && _myFoods.length >= MYFOODS_MAX_FOODS) {
+        if (typeof showAlert === 'function') showAlert('הגעת למגבלה של 60 מאכלים אישיים שמורים. כדי לשמור מאכל חדש, אפשר למחוק אחד ישן קודם.');
+        return;
+    }
+
     const amount = parseFloat(document.getElementById('bc-amount').value) || 0;
     const ratio = amount / 100;
     const protein_g = Math.round(_bcProduct.protein_g * ratio * 10) / 10;
@@ -216,7 +226,7 @@ function confirmBarcodeAdd() {
 
     if (typeof addFoodLogEntry === 'function') {
         addFoodLogEntry({
-            name: _bcProduct.name,
+            name: name,
             unit_amount: amount,
             unit: 'גרם',
             grams: amount,
@@ -226,6 +236,22 @@ function confirmBarcodeAdd() {
             alcohol_g: alcohol_g || null,
         });
     }
+
+    if (saveToMyFoods && typeof sbAddCustomFood === 'function') {
+        const savedId = await sbAddCustomFood({
+            name, unit: 'גרם', unit_amount: 100,
+            protein_g: _bcProduct.protein_g,
+            carbs_g:   _bcProduct.carbs_g,
+            fat_g:     _bcProduct.fat_g,
+            alcohol_g: _bcProduct.alcohol_g
+        });
+        if (!savedId) {
+            if (typeof showAlert === 'function') showAlert('הפריט נוסף ליומן, אבל השמירה ב"מאכלים שלי" נכשלה. אפשר לנסות שוב מתוך "המזונות שלי".');
+        } else if (typeof _loadMyFoodsData === 'function') {
+            await _loadMyFoodsData();
+        }
+    }
+
     // אדמין שצופה בלקוח: addFoodLogEntry כבר כותב לשרת וממתין ואז מרנדר. קריאה נוספת ל-addFoodMacros
     // כאן תפעיל רינדור מקביל שמתחרה בו (קורא מהשרת לפני שהכתיבה הסתיימה) — לכן מדלגים עליה כמו בנתיב הסריקה.
     const _adminOther = typeof SB_VIEW_ID !== 'undefined' && SB_VIEW_ID && typeof SB_USER !== 'undefined' && SB_USER && SB_VIEW_ID !== SB_USER.id;

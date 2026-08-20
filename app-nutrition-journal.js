@@ -567,6 +567,19 @@ async function saveFoodLogEdit() {
 async function addScannedPortions() {
     const btn = document.querySelector('.scan-action-btn.primary');
     if (btn && btn.disabled) return;
+
+    // שמירה כמתכון אישי: שם חובה אם הצ'קבוקס מסומן - בודקים לפני כל פעולה אחרת
+    const saveAsRecipe = document.getElementById('scan-save-recipe')?.checked;
+    const recipeName = document.getElementById('scan-recipe-name')?.value.trim() || '';
+    if (saveAsRecipe && !recipeName) {
+        if (typeof showAlert === 'function') showAlert('כדי לשמור כמתכון אישי צריך למלא שם.');
+        return;
+    }
+    if (saveAsRecipe && typeof _myRecipes !== 'undefined' && typeof MYFOODS_MAX_RECIPES !== 'undefined' && _myRecipes.length >= MYFOODS_MAX_RECIPES) {
+        if (typeof showAlert === 'function') showAlert('הגעת למגבלה של 30 מתכונים שמורים. כדי לשמור מתכון חדש, אפשר למחוק אחד ישן קודם.');
+        return;
+    }
+
     if (btn) btn.disabled = true; // חוסם לחיצה כפולה על כל הפונקציה, לא רק בזמן חיפוש טקסט פתוח
 
     const pendingInput = document.getElementById('add-item-name');
@@ -587,6 +600,26 @@ async function addScannedPortions() {
     const _itemsToSave = (scannedItems && scannedItems.length > 0)
         ? scannedItems
         : ((protein || carbs || fat || alcohol) ? [{ name: 'ארוחה', grams: null, protein_g: protein, carbs_g: carbs, fat_g: fat, alcohol_g: alcohol }] : []);
+
+    // שמירה כמתכון אישי (רשימת המרכיבים בפועל שעומדים להישמר ביומן) - קלוריות מדויקות (kcal_g)
+    // לא רלוונטיות למתכון, כי הוא מחושב תמיד מסכום המרכיבים
+    if (saveAsRecipe && recipeName && _itemsToSave.length > 0 && typeof sbAddCustomRecipe === 'function') {
+        const ingredients = _itemsToSave.map(it => ({
+            name: it.name,
+            amount: it.unit_amount || it.grams || 0,
+            unit: it.unit || 'גרם',
+            protein_g: it.protein_g || 0,
+            carbs_g:   it.carbs_g   || 0,
+            fat_g:     it.fat_g     || 0,
+            alcohol_g: it.alcohol_g || 0
+        }));
+        const savedRecipeId = await sbAddCustomRecipe({ name: recipeName, ingredients });
+        if (!savedRecipeId) {
+            if (typeof showAlert === 'function') showAlert('הפריטים נוספו ליומן, אבל השמירה כמתכון אישי נכשלה. אפשר לנסות שוב מתוך "המזונות שלי".');
+        } else if (typeof _loadMyFoodsData === 'function') {
+            await _loadMyFoodsData();
+        }
+    }
 
     // אדמין שצופה בלקוח: מקור האמת הוא סופאבייס (לא הזיכרון המקומי של מכשיר האדמין).
     // חייבים לחכות שהכתיבה לשרת תסתיים לפני שמרנדרים, אחרת הרינדור (שקורא מהשרת) יקבל נתון ישן וריק.
