@@ -123,7 +123,7 @@
             </div>
             <div class="profile-row">
                 <label for="prof-goal-weight">משקל יעד</label>
-                <input id="prof-goal-weight" type="number" class="profile-input" step="0.1">
+                <input id="prof-goal-weight" type="number" class="profile-input" readonly onclick="openWeightPickerFor('prof-goal-weight', 'משקל יעד')">
             </div>
             <div class="profile-row">
                 <label for="prof-height">גובה (ס״מ)</label>
@@ -188,7 +188,7 @@
             </div>
             <div class="profile-row">
                 <label for="prof-start-weight">משקל התחלתי</label>
-                <input id="prof-start-weight" type="number" class="profile-input coach-editable-field" disabled step="0.1">
+                <input id="prof-start-weight" type="number" class="profile-input coach-editable-field" disabled readonly onclick="openWeightPickerFor('prof-start-weight', 'משקל התחלתי')">
             </div>
             <div class="profile-row">
                 <label for="prof-birth-date">תאריך לידה</label>

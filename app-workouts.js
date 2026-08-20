@@ -688,7 +688,8 @@ function _cweCardioDetailsHtml(cardio) {
         <div class="cwe-cardio-detail" data-day="${d}">
             <span class="cwe-cardio-detail-label">${_CWE_DAY_LETTERS[d]}׳</span>
             <select class="cwe-cardio-type-select" onchange="_cweCardioFieldChanged(this)">${_cweCardioTypeOptionsHtml(cardio[d].type)}</select>
-            <input class="cwe-cardio-min-input" type="number" min="1" max="300" value="${cardio[d].minutes}" oninput="_cweCardioFieldChanged(this)">
+            <span class="cwe-cardio-min-tap" onclick="openCardioMinutesSheet(${d})">${cardio[d].minutes}</span>
+            <input type="hidden" class="cwe-cardio-min-input" value="${cardio[d].minutes}">
             <span class="cwe-cardio-min-unit">דק׳</span>
         </div>`).join('');
 }
@@ -740,6 +741,23 @@ function _cweCardioFieldChanged(el) {
     const minutes = parseInt(row.querySelector('.cwe-cardio-min-input').value) || 0;
     _cweActiveCardioState[d] = { type, minutes };
     _cweUpdateCardioTotal(row.closest('.cwe-cardio-section'));
+}
+
+function openCardioMinutesSheet(d) {
+    const row = document.querySelector(`.cwe-cardio-detail[data-day="${d}"]`);
+    if (!row) return;
+    const hidden = row.querySelector('.cwe-cardio-min-input');
+    const disp = row.querySelector('.cwe-cardio-min-tap');
+    openNumberRulerSheet({
+        min: 1, max: 300, step: 5, labelStep: 30,
+        title: 'דקות אירובי',
+        value: parseInt(hidden.value) || 20,
+        onSave: (val) => {
+            hidden.value = val;
+            disp.textContent = val;
+            _cweCardioFieldChanged(hidden);
+        }
+    });
 }
 
 function openClientWorkoutEditor() {

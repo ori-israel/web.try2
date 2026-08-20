@@ -771,7 +771,7 @@ function initFAQ() {
 
     // ── סרגל מספרים כללי לשימוש חוזר (יומן משקל/חזרות, גובה) ──────
     const _NUM_SHEET_TICK_GAP = 14;
-    let _numSheetMin = 0, _numSheetMax = 100, _numSheetStep = 1, _numSheetLabelStep = 10;
+    let _numSheetMin = 0, _numSheetMax = 100, _numSheetStep = 1, _numSheetLabelStep = 10, _numSheetDecimals = 0;
     let _numSheetValue = 0;
     let _numSheetOnSave = null;
     let _numSheetReady = false;
@@ -787,7 +787,7 @@ function initFAQ() {
         const n = Math.round((_numSheetMax - _numSheetMin) / _numSheetStep);
         for (let i = 0; i <= n; i++) {
             const v = _numSheetMin + i * _numSheetStep;
-            const isMajor = Math.round(v) % _numSheetLabelStep === 0;
+            const isMajor = Math.abs(v - Math.round(v)) < 0.001 && Math.round(v) % _numSheetLabelStep === 0;
             const t = document.createElement('div');
             t.className = 'weight-ruler-tick' + (isMajor ? ' major' : '');
             const line = document.createElement('div');
@@ -808,7 +808,7 @@ function initFAQ() {
         const valEl = document.getElementById('num-sheet-value');
         if (!track || !valEl) return;
         track.style.transform = `translateX(${_numSheetOffsetFor(_numSheetValue)}px)`;
-        valEl.textContent = Math.round(_numSheetValue);
+        valEl.textContent = _numSheetDecimals > 0 ? _numSheetValue.toFixed(_numSheetDecimals) : Math.round(_numSheetValue);
     }
 
     function _initNumSheetDrag() {
@@ -849,6 +849,7 @@ function initFAQ() {
         _numSheetMax = opts.max;
         _numSheetStep = opts.step || 1;
         _numSheetLabelStep = opts.labelStep || 10;
+        _numSheetDecimals = opts.decimals || 0;
         _numSheetOnSave = opts.onSave;
         _numSheetValue = Math.max(_numSheetMin, Math.min(_numSheetMax, opts.value ?? _numSheetMin));
 
@@ -878,7 +879,8 @@ function initFAQ() {
     }
 
     function saveNumberRulerSheet() {
-        const val = Math.round(_numSheetValue / _numSheetStep) * _numSheetStep;
+        const raw = Math.round(_numSheetValue / _numSheetStep) * _numSheetStep;
+        const val = Math.round(raw * 100) / 100;
         if (typeof _numSheetOnSave === 'function') _numSheetOnSave(val);
         closeNumberRulerSheet();
     }
@@ -894,6 +896,17 @@ function initFAQ() {
                 input.value = val;
                 if (isSignup && typeof _showHeightInInches === 'function') _showHeightInInches(val);
             }
+        });
+    }
+
+    function openWeightPickerFor(inputId, title) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        openNumberRulerSheet({
+            min: 30, max: 250, step: 0.5, decimals: 1, labelStep: 5,
+            title: title || 'משקל', unit: 'ק״ג',
+            value: parseFloat(input.value) || 70,
+            onSave: (val) => { input.value = val; }
         });
     }
 
