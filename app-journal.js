@@ -15,8 +15,8 @@ function loadSavedWeight() {
         const goalWeight = parseFloat(allVals[2].innerText);
         const weightDiff = startWeight - goalWeight;
         const percent = weightDiff === 0 ? 0 : Math.min(100, Math.round(((startWeight - parseFloat(savedWeight)) / weightDiff) * 100));
-        document.querySelectorAll('.progress-bar')[0].style.width = percent + '%';
-        const pt = document.querySelector('.progress-text');
+        document.getElementById('weight-progress-bar').style.width = percent + '%';
+        const pt = document.getElementById('weight-progress-text');
         pt.innerText = 'עברת כבר ' + percent + '% מהדרך ליעד!';
         pt.style.visibility = 'visible';
     }
