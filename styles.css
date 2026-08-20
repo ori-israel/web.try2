@@ -1096,7 +1096,8 @@ h1 {
 
 .cf-macro-row { display: flex; gap: 6px; margin: 12px 0; }
 .cf-macro-box { flex: 1; min-width: 0; text-align: center; }
-.cf-macro-box input {
+.cf-macro-box input, .cf-macro-box .cf-macro-tap {
+    display: block;
     width: 100%;
     background: var(--portion-bg);
     border: 1px solid var(--portion-border);
@@ -1107,11 +1108,13 @@ h1 {
     font-weight: 700;
     font-family: inherit;
     font-variant-numeric: tabular-nums;
+    box-sizing: border-box;
+    cursor: pointer;
 }
-.cf-macro-box.p input { color: #22c55e; }
-.cf-macro-box.c input { color: #f59e0b; }
-.cf-macro-box.f input { color: #ef4444; }
-.cf-macro-box.a input { color: var(--alcohol); }
+.cf-macro-box.p input, .cf-macro-box.p .cf-macro-tap { color: #22c55e; }
+.cf-macro-box.c input, .cf-macro-box.c .cf-macro-tap { color: #f59e0b; }
+.cf-macro-box.f input, .cf-macro-box.f .cf-macro-tap { color: #ef4444; }
+.cf-macro-box.a input, .cf-macro-box.a .cf-macro-tap { color: var(--alcohol); }
 .cf-macro-box .lbl { font-size: 10.5px; color: var(--text-secondary); margin-top: 4px; }
 
 .cf-alc-capsule {
@@ -1129,7 +1132,7 @@ h1 {
 .cf-alc-capsule .cf-alc-label { font-size: 12.5px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
 .cf-alc-capsule .cf-alc-spacer { flex: 1; }
 .cf-alc-capsule .cf-macro-box { flex: 0 0 auto; margin: 0; }
-.cf-alc-capsule .cf-macro-box input { width: 108px; margin: 0; }
+.cf-alc-capsule .cf-macro-box input, .cf-alc-capsule .cf-macro-box .cf-macro-tap { width: 108px; margin: 0; }
 .cf-alc-switch {
     width: 38px; height: 22px; border-radius: 20px;
     background: var(--progress-bg); position: relative; flex-shrink: 0;

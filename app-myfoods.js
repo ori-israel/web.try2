@@ -122,10 +122,10 @@ function openCustomFoodForm(id = null) {
     document.getElementById('cf-amount').value  = food ? food.unit_amount : 100;
     document.getElementById('cf-unit').value    = food ? food.unit : 'גרם';
     document.getElementById('cf-amount-tap').textContent = (food ? food.unit_amount : 100) + ' ' + (food ? food.unit : 'גרם');
-    document.getElementById('cf-protein').value = food ? food.protein_g : 0;
-    document.getElementById('cf-carbs').value   = food ? food.carbs_g   : 0;
-    document.getElementById('cf-fat').value     = food ? food.fat_g     : 0;
-    document.getElementById('cf-alcohol').value = food ? (food.alcohol_g || 0) : 0;
+    _setCfMacro('cf-protein', food ? food.protein_g : 0);
+    _setCfMacro('cf-carbs',   food ? food.carbs_g   : 0);
+    _setCfMacro('cf-fat',     food ? food.fat_g     : 0);
+    _setCfMacro('cf-alcohol', food ? (food.alcohol_g || 0) : 0);
     _setCfAlcoholOn(!!(food && food.alcohol_g));
     document.getElementById('cf-error').style.display = 'none';
 
@@ -153,7 +153,25 @@ function _setCfAlcoholOn(on) {
     document.getElementById('cf-alc-switch').classList.toggle('on', on);
     document.getElementById('cf-alc-spacer').style.display = on ? '' : 'none';
     document.getElementById('cf-alc-box').style.display = on ? '' : 'none';
-    if (!on) document.getElementById('cf-alcohol').value = 0;
+    if (!on) _setCfMacro('cf-alcohol', 0);
+}
+
+function _setCfMacro(id, val) {
+    const v = Math.round((val || 0) * 10) / 10;
+    const input = document.getElementById(id);
+    input.value = v;
+    const box = input.closest('.cf-macro-box');
+    const tap = box && box.querySelector('.cf-macro-tap');
+    if (tap) tap.textContent = v;
+}
+
+function openCfMacroSheet(inputId, title) {
+    openNumberRulerSheet({
+        min: 0, max: 200, step: 1, labelStep: 25,
+        title, unit: 'גרם',
+        value: parseFloat(document.getElementById(inputId).value) || 0,
+        onSave: (val) => _setCfMacro(inputId, val)
+    });
 }
 
 function toggleCfAlcohol() {
@@ -183,10 +201,10 @@ async function aiEstimateCustomFood() {
         const match = text.match(/\{[\s\S]*?\}/);
         if (!match) throw new Error('no json');
         const macros = JSON.parse(match[0]);
-        document.getElementById('cf-protein').value = Math.round((macros.protein_g || 0) * 10) / 10;
-        document.getElementById('cf-carbs').value   = Math.round((macros.carbs_g   || 0) * 10) / 10;
-        document.getElementById('cf-fat').value     = Math.round((macros.fat_g     || 0) * 10) / 10;
-        document.getElementById('cf-alcohol').value = Math.round((macros.alcohol_g || 0) * 10) / 10;
+        _setCfMacro('cf-protein', macros.protein_g);
+        _setCfMacro('cf-carbs',   macros.carbs_g);
+        _setCfMacro('cf-fat',     macros.fat_g);
+        _setCfMacro('cf-alcohol', macros.alcohol_g);
         if (macros.alcohol_g > 0) _setCfAlcoholOn(true);
     } catch (e) {
         const err = document.getElementById('cf-error');
@@ -210,6 +228,12 @@ async function saveCustomFood() {
 
     if (!name || !unit_amount) {
         err.textContent = 'צריך למלא שם וכמות.';
+        err.style.display = 'block';
+        return;
+    }
+
+    if (unit === 'גרם' && (protein_g + carbs_g + fat_g + alcohol_g) > unit_amount) {
+        err.textContent = 'הסכום גדול מדי ביחס לכמות שהזנת.';
         err.style.display = 'block';
         return;
     }

@@ -1661,15 +1661,15 @@
             <input id="cf-name" type="text" placeholder="שם המאכל" autocomplete="off" class="entry-pill-search" />
         </div>
         <div class="cf-macro-row">
-            <div class="cf-macro-box p"><input id="cf-protein" type="number" value="0"><div class="lbl">חלבון</div></div>
-            <div class="cf-macro-box c"><input id="cf-carbs" type="number" value="0"><div class="lbl">פחמימה</div></div>
-            <div class="cf-macro-box f"><input id="cf-fat" type="number" value="0"><div class="lbl">שומן</div></div>
+            <div class="cf-macro-box p"><span class="cf-macro-tap" onclick="openCfMacroSheet('cf-protein', 'חלבון')">0</span><input id="cf-protein" type="hidden" value="0"><div class="lbl">חלבון</div></div>
+            <div class="cf-macro-box c"><span class="cf-macro-tap" onclick="openCfMacroSheet('cf-carbs', 'פחמימה')">0</span><input id="cf-carbs" type="hidden" value="0"><div class="lbl">פחמימה</div></div>
+            <div class="cf-macro-box f"><span class="cf-macro-tap" onclick="openCfMacroSheet('cf-fat', 'שומן')">0</span><input id="cf-fat" type="hidden" value="0"><div class="lbl">שומן</div></div>
         </div>
         <div class="cf-alc-capsule off" id="cf-alc-capsule">
             <div class="cf-alc-label">מכיל אלכוהול?</div>
             <button type="button" class="cf-alc-switch" id="cf-alc-switch" onclick="toggleCfAlcohol()" aria-label="מכיל אלכוהול?"></button>
             <div class="cf-alc-spacer" id="cf-alc-spacer" style="display:none;"></div>
-            <div class="cf-macro-box a" id="cf-alc-box" style="display:none;"><input id="cf-alcohol" type="number" value="0"></div>
+            <div class="cf-macro-box a" id="cf-alc-box" style="display:none;"><span class="cf-macro-tap" onclick="openCfMacroSheet('cf-alcohol', 'אלכוהול')">0</span><input id="cf-alcohol" type="hidden" value="0"></div>
         </div>
         <button class="ai-help-btn" onclick="aiEstimateCustomFood()" id="cf-ai-btn"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-1.2 2.8-4.5 5-4.5 8.3a4.5 4.5 0 0 0 9 0C16.5 8 13.2 5.8 12 3z"/></svg> לא ברור מה הערכים? אפשר עזרה מ-AI</button>
         <div id="cf-error" style="color:#ef4444;font-size:12.5px;margin-top:8px;display:none;"></div>
