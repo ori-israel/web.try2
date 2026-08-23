@@ -1,15 +1,27 @@
-function openAIChat() {
-    _aiStableCtx = { userId: null, loaded: false, text: '' };
-    document.getElementById('ai-chat-overlay').style.display = 'flex';
+// מפעיל טאב לפי מזהה (כמו לחיצה על כפתור הטאב, אבל מהקוד)
+function _activateTab(tabId) {
+    document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelector(`.tab-btn[data-tab="${tabId}"]`)?.classList.add('active');
+    document.getElementById(tabId)?.classList.add('active');
+}
+
+// אתחול הצ'אט: טעינת היסטוריה + הודעת פתיחה אם השיחה ריקה. נקרא בכל כניסה לטאב המאמן.
+function initAIChat() {
     loadChatHistory();
     if (aiChatHistory.length === 0) {
         addChatMessage(`היי ${CLIENT.nickname}! אני המאמן AI של אורי, כאן איתך לאורך כל הדרך. אפשר לשאול אותי כל שאלה על תזונה, אימונים והתאוששות. במה נתחיל?`, 'assistant');
     }
 }
 
-function closeAIChat() {
-    document.getElementById('ai-chat-overlay').style.display = 'none';
+// פתיחת המאמן AI מבחוץ (כרטיס "רעיון לארוחה", מדריך) — עובר לטאב המאמן ומאתחל
+function openAIChat() {
+    _activateTab('tab5');
+    window.scrollTo({ top: 0 });
+    initAIChat();
 }
+
+// נשמר לתאימות אחורה — אין יותר overlay לסגור, הצ'אט הוא טאב קבוע
+function closeAIChat() {}
 
 let aiChatHistory = JSON.parse(sessionStorage.getItem('ai_chat_history') || '[]');
 let _aiStableCtx = { userId: null, loaded: false, text: '' };
@@ -49,6 +61,38 @@ function _buildUSDAContext(text) {
     return hits.slice(0, 5).map(r => `${r.name} — חלבון ${r.protein}g שומן ${r.fat}g פחמימות ${r.carbs}g ל-100ג`).join(' | ');
 }
 
+// חיפוש בבסיס הידע המקצועי (6 קבצי knowledge-*.js) — התאמת מילות מפתח מקומית, בלי קריאת AI נוספת.
+// מזריק רק את הרשומות הרלוונטיות ביותר להודעה, בדיוק בשיטת _buildUSDAContext.
+function _buildKnowledgeContext(text) {
+    let all = [];
+    if (typeof KNOWLEDGE_NUTRITION  !== 'undefined') all = all.concat(KNOWLEDGE_NUTRITION);
+    if (typeof KNOWLEDGE_SLEEP      !== 'undefined') all = all.concat(KNOWLEDGE_SLEEP);
+    if (typeof KNOWLEDGE_WORKOUTS   !== 'undefined') all = all.concat(KNOWLEDGE_WORKOUTS);
+    if (typeof KNOWLEDGE_RECOVERY   !== 'undefined') all = all.concat(KNOWLEDGE_RECOVERY);
+    if (typeof KNOWLEDGE_PSYCHOLOGY !== 'undefined') all = all.concat(KNOWLEDGE_PSYCHOLOGY);
+    if (typeof KNOWLEDGE_HABITS     !== 'undefined') all = all.concat(KNOWLEDGE_HABITS);
+    if (!all.length) return '';
+
+    const t = text;
+    const msgWords = text.replace(/[()"'״׳,.?!\-]/g, ' ').split(/\s+/).filter(w => w.length > 1);
+
+    const scored = [];
+    for (const e of all) {
+        let score = 0;
+        for (const kw of (e.keywords || [])) {
+            if (t.includes(kw)) { score += 10; continue; }              // ביטוי מילת מפתח שלם מופיע בהודעה
+            const kwWords = kw.split(/\s+/).filter(w => w.length > 1);
+            if (kwWords.length > 1 && kwWords.every(w => msgWords.includes(w))) score += 6; // כל מילות הביטוי מופיעות
+        }
+        const titleWords = e.title.replace(/[()\-—״׳,.]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+        for (const tw of titleWords) if (msgWords.includes(tw)) score += 3;
+        if (score > 0) scored.push({ e, score });
+    }
+    if (!scored.length) return '';
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, 3).map(x => `${x.e.title}: ${x.e.content}`).join('\n\n');
+}
+
 function toggleWebSearch(btn) {
     window.aiWebSearch = !window.aiWebSearch;
     if (window.aiWebSearch) {
@@ -77,7 +121,10 @@ async function sendAIMessage() {
     addChatMessage(msg, 'user');
     aiChatHistory.push({ role: 'user', content: msg });
     const usdaCtx = _buildUSDAContext(msg);
-    const msgWithUSDA = usdaCtx ? `${msg}\n\n[נתוני USDA: ${usdaCtx}]` : msg;
+    const knowledgeCtx = _buildKnowledgeContext(msg);
+    let msgWithUSDA = msg;
+    if (usdaCtx)      msgWithUSDA += `\n\n[נתוני USDA: ${usdaCtx}]`;
+    if (knowledgeCtx) msgWithUSDA += `\n\n[ידע מקצועי רלוונטי, בסיס להתבסס עליו בתשובה. אל תצטט אותו כמו שהוא, נסח בשפה פשוטה ובקצרה מה שרלוונטי לשאלה בלבד: ${knowledgeCtx}]`;
 
     const loadingId = addLoadingMessage();
 
@@ -427,7 +474,7 @@ async function buildSystemPrompt() {
 יעד פגישה: ${CLIENT.coachingGoal} | זום הבא: ${nextMeetingStr}
 אלרגיות: ${allergies} | לא אוהב: ${dislikedFoods} | אוהב: ${likedFoods}
 לוח אימונים: ${workoutsCompact}
-כללים: שאלות_מורכבות→ווטסאפ_לאורי | ללא_ייעוץ_רפואי | עודד_תמיד | תאריך_מהנתונים_בלבד | תשובות_קצרות | אל_תשתמש_בסימן_@ | אימון_מחר_לפי_שדה_מחר_בלבד_אל_תחשב_לבד | שאלה_על_ערכי_מוצר→רק_קלוריות+חלבון+פחמימה+שומן_ל-100ג_בלי_פירוט_נוסף | המלצת_חלבון_תמיד_1.8_עד_2.2_גרם_לק״ג_גוף | טון_שיתופי: הלקוח לא לבד, אתה מלווה אותו — כשמתאים העדף ניסוח כמו "נעשה", "נעקוב", "בוא נראה" על פני ניסוח מרוחק כמו "אתה יכול", בלי להגזים או לחזור על זה בכל משפט
+כללים: שאלות_רפואיות/פציעה_חמורה/מצוקה_נפשית→המלץ_בעדינות_לפנות_לרופא_או_איש_מקצוע_מתאים_ולא_להסתמך_עליי_בלבד | לעולם_אל_תפנה_את_המשתמש_לאורי_או_לוואטסאפ | ללא_ייעוץ_רפואי | שפה_פשוטה_מאוד: הסבר תמיד כאילו למישהו בן 10 שלא מכיר מונחים, בלי ז'רגון מקצועי מפחיד, ואם חייב מונח מקצועי תרגם אותו מיד למילים פשוטות | עודד_תמיד | תאריך_מהנתונים_בלבד | תשובות_קצרות | אל_תשתמש_בסימן_@ | אימון_מחר_לפי_שדה_מחר_בלבד_אל_תחשב_לבד | שאלה_על_ערכי_מוצר→רק_קלוריות+חלבון+פחמימה+שומן_ל-100ג_בלי_פירוט_נוסף | המלצת_חלבון_תמיד_1.8_עד_2.2_גרם_לק״ג_גוף | טון_שיתופי: הלקוח לא לבד, אתה מלווה אותו — כשמתאים העדף ניסוח כמו "נעשה", "נעקוב", "בוא נראה" על פני ניסוח מרוחק כמו "אתה יכול", בלי להגזים או לחזור על זה בכל משפט
 הוספה_ליומן: כשמשתמש מבקש להוסיף מאכל ליומן — קודם שאל לאישור בפורמט הזה בדיוק (כל מאכל בשורה נפרדת):
 "אוסיף:
 • [שם] [כמות] — חלבון Xג, פחמימות Xג, שומן Xג

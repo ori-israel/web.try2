@@ -483,6 +483,9 @@ function closeCompleteMsg() {
     initWorkoutsFromClient();
     initWorkoutJournal();
 }
+            if (tabId === 'tab5' && typeof initAIChat === 'function') {
+    initAIChat();
+}
         });
     });
 

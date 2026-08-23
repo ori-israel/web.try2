@@ -57,29 +57,6 @@
     </div>
 </div>
 
-<!-- צ'אט AI -->
-<div id="ai-chat-overlay" class="overlay" style="display:none; flex-direction:column;">
-    <div class="overlay-header">
-        <h2 style="margin:0;display:flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10.5h.01"/><path d="M12 10.5h.01"/><path d="M16 10.5h.01"/></svg> שאל את המאמן AI</h2>
-        <div style="display:flex;gap:6px;align-items:center;">
-            <button onclick="startAITour()" class="close-btn" title="מדריך שימוש" aria-label="מדריך שימוש" style="border:1.3px solid var(--accent);background:var(--bg-card-alt);color:var(--accent);font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;">?</button>
-            <button id="ai-websearch-btn" onclick="toggleWebSearch(this)" class="close-btn" title="חיפוש באינטרנט: כבוי" style="border:1px solid var(--border);background:var(--bg-card-alt);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 9h18M3 15h18"/><ellipse cx="12" cy="12" rx="4" ry="9"/></svg></button>
-            <button onclick="resetAIChat()" class="close-btn" title="נקה שיחה" style="border:1px solid var(--border);background:var(--bg-card-alt);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M6 7v13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
-            <button class="close-btn" onclick="closeAIChat()">&times;</button>
-        </div>
-    </div>
-    <div id="ai-chat-messages" style="flex:1; overflow-y:auto; padding: 10px 0; display:flex; flex-direction:column;">
-    </div>
-    <div style="display:flex; align-items:center; gap:10px; padding-top:15px; border-top:1px solid var(--border);">
-        <button onclick="sendAIMessage()" class="calc-btn" style="width:80px; height:48px; padding:0; margin:0; flex-shrink:0; order:1;">שלח</button>
-        <input type="text" id="ai-chat-input" placeholder="כתוב שאלה..." maxlength="500" aria-label="הודעה לצ'אט AI"
-            style="flex:1; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:16px; font-family:inherit; height:48px; order:2; background:var(--input-bg); color:var(--text-primary);"
-            onkeydown="if(event.key==='Enter') sendAIMessage()">
-    </div>
-    <p style="font-size:11px; color:var(--text-muted); text-align:center; margin:6px 0 0 0;"><span style="display:inline-flex;color:#f59e0b;vertical-align:-3px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.3 3.9L2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/></svg></span> הסוכן עשוי לטעות, יש להשתמש בו ככלי עזר בלבד</p>
-</div>
-
-
 <!-- מסך פרטים אישיים -->
 <div id="profile-overlay" class="profile-overlay" onclick="handleProfileOverlayClick(event)">
     <div class="profile-sheet">
@@ -493,8 +470,8 @@
             <span>מעקב ויעדים</span>
         </button>
         <button class="tab-btn" data-tab="tab5">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg>
-            <span>מרכז המידע</span>
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10.5h.01"/><path d="M12 10.5h.01"/><path d="M16 10.5h.01"/></svg>
+            <span>מאמן AI</span>
         </button>
     </div>
 

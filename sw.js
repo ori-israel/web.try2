@@ -1,9 +1,10 @@
-const CACHE_NAME = 'oi-fitness-v353';
+const CACHE_NAME = 'oi-fitness-v354';
 const PRECACHE = [
     '/', '/index.html', '/styles.css',
     '/app-core.js', '/app-workouts.js', '/app-journal.js', '/app-workout-plan.js', '/app-weight-chart.js', '/app-nutrition.js', '/app-nutrition-journal.js', '/app-report.js',
     '/auth.js', '/admin.js', '/supabase-db.js', '/client.js', '/data.js', '/profile.js',
     '/ai.js', '/achievements.js', '/tour.js', '/ui-select.js', '/ui-date.js', '/bmr.js', '/app-myfoods.js', '/app-barcode.js',
+    '/knowledge-nutrition.js', '/knowledge-sleep.js', '/knowledge-workouts.js', '/knowledge-recovery.js', '/knowledge-psychology.js', '/knowledge-habits.js',
 ];
 
 const IDB_NAME  = 'pf-sw-db';

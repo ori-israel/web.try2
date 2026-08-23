@@ -481,6 +481,26 @@ h1 {
 
 .tab-content.active { display: block; }
 
+/* ============================================
+   טאב מאמן AI (tab5) — פאנל צ'אט קבוע במסך מלא.
+   סרגל הטאבים (z-index 30) נשאר גלוי מעל הפאנל (z-index 20),
+   וריפוד תחתון שומר מקום כדי שתיבת ההקלדה לא תוסתר מאחוריו.
+   ============================================ */
+#tab5.tab-content.active {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 500px;
+    box-sizing: border-box;
+    padding: calc(16px + env(safe-area-inset-top)) 16px calc(84px + env(safe-area-inset-bottom));
+    background: var(--bg-card);
+    z-index: 20;
+}
+
 .tab-content h2 {
     font-size: 21px;
     font-weight: 700;
