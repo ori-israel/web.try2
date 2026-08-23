@@ -1,4 +1,4 @@
-const CACHE_NAME = 'oi-fitness-v355';
+const CACHE_NAME = 'oi-fitness-v356';
 const PRECACHE = [
     '/', '/index.html', '/styles.css',
     '/app-core.js', '/app-workouts.js', '/app-journal.js', '/app-workout-plan.js', '/app-weight-chart.js', '/app-nutrition.js', '/app-nutrition-journal.js', '/app-report.js',
@@ -134,6 +134,20 @@ self.addEventListener('fetch', e => {
     // HTML — תמיד מהרשת כדי שעדכונים ייכנסו מיד
     // cache:'no-store' בכל fetch כאן עוקף את מטמון ה-HTTP של הדפדפן/הרשת, כדי שהגרסה הכי טרייה תמיד תגיע בפועל
     if (url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname === '') {
+        e.respondWith(
+            fetch(e.request, { cache: 'no-store' }).then(res => {
+                if (res && res.status === 200) {
+                    const clone = res.clone();
+                    caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+                }
+                return res;
+            }).catch(() => caches.match(e.request))
+        );
+        return;
+    }
+
+    // CSS — תמיד מהרשת, כמו HTML/JS, כדי שעדכוני עיצוב ייכנסו מיד ולא יתקעו על גרסה ישנה
+    if (url.pathname.endsWith('.css')) {
         e.respondWith(
             fetch(e.request, { cache: 'no-store' }).then(res => {
                 if (res && res.status === 200) {
