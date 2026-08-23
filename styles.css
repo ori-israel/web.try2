@@ -501,6 +501,13 @@ h1 {
     z-index: 20;
 }
 
+/* כשהמקלדת פתוחה (מנוהל ב-ai.js דרך visualViewport): הפאנל מצטמצם לגובה הנראה,
+   הריפוד התחתון קטן כך שתיבת הכתיבה נצמדת מעל המקלדת, וסרגל הטאבים מוסתר */
+#tab5.tab-content.active.kbd-open {
+    padding-bottom: 10px;
+}
+body.ai-kbd-open .tabs { display: none; }
+
 .tab-content h2 {
     font-size: 21px;
     font-weight: 700;
