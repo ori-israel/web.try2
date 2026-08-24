@@ -28,7 +28,7 @@ ${convo}
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generation_config: { temperature: 0.3, max_output_tokens: 400, thinking_config: { thinking_level: "minimal" } }
+            generation_config: { temperature: 0.3, max_output_tokens: 400 }
         })
     });
     if (!res.ok) throw new Error('gemini ' + res.status);

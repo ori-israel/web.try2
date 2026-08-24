@@ -285,7 +285,7 @@ async function sendAIMessage() {
                     model: 'gemini-3.5-flash-lite',
                     payload: {
                         system_instruction: { parts: [{ text: await buildSystemPrompt() }] },
-                        generation_config: { response_modalities: ["TEXT"], thinking_config: { thinking_level: "minimal" } },
+                        generation_config: { response_modalities: ["TEXT"] },
                         contents: messages,
                         ...(window.aiWebSearch ? { tools: [{ google_search: {} }] } : {})
                     }
@@ -303,9 +303,11 @@ async function sendAIMessage() {
 
         if (!response.ok) {
             let _msg = 'שגיאה בחיבור, נסה שוב.';
+            const _e = await response.json().catch(() => ({}));
             if (response.status === 429) {
-                const _e = await response.json().catch(() => ({}));
                 _msg = _e.error || 'הגעת למגבלה היומית. נסה שוב מחר.';
+            } else {
+                console.error('AI request failed:', response.status, _e); // לצורך אבחון תקלות
             }
             const loadingEl = document.getElementById(loadingId);
             if (loadingEl) {
