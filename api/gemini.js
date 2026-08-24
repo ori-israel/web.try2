@@ -4,12 +4,16 @@ export const config = { api: { bodyParser: { sizeLimit: '10mb' } } };
 
 const ALLOWED_MODELS = new Set([
     'gemini-3.5-flash',
+    'gemini-3.5-flash-lite',
     'gemini-2.5-flash',
     'gemini-2.5-flash-lite',
     'gemini-2.0-flash',
     'gemini-1.5-flash',
     'gemini-1.5-pro',
 ]);
+
+// גיבוי: אם המודל המבוקש נכשל (לא עומס זמני שכבר יש לו ניסיון חוזר), מנסים פעם אחת עם מודל חזק יותר
+const FALLBACK_MODEL = 'gemini-3.5-flash';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -37,7 +41,7 @@ export default async function handler(req, res) {
     const { data: { user }, error: authErr } = await db.auth.getUser(token);
     if (authErr || !user) return res.status(401).json({ error: 'Unauthorized' });
 
-    const { model = 'gemini-2.5-flash-lite', payload, kind } = req.body || {};
+    const { model = 'gemini-3.5-flash-lite', payload, kind } = req.body || {};
 
     if (!ALLOWED_MODELS.has(model)) {
         return res.status(400).json({ error: 'Invalid model' });
@@ -149,17 +153,26 @@ export default async function handler(req, res) {
         ...(safeTools ? { tools: safeTools } : {}),
     };
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
+    async function callGemini(modelName) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:streamGenerateContent?alt=sse&key=${apiKey}`;
+        let r;
+        for (let attempt = 0; attempt < 3; attempt++) {
+            r = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(safePayload)
+            });
+            if (r.status !== 503 || attempt === 2) break;
+            await new Promise(res2 => setTimeout(res2, 1000 * Math.pow(2, attempt)));
+        }
+        return r;
+    }
 
-    let geminiRes;
-    for (let attempt = 0; attempt < 3; attempt++) {
-        geminiRes = await fetch(geminiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(safePayload)
-        });
-        if (geminiRes.status !== 503 || attempt === 2) break;
-        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+    let geminiRes = await callGemini(model);
+
+    // המודל הראשי נכשל (לא עומס זמני שכבר טופל למעלה) — ניסיון יחיד עם מודל גיבוי חזק יותר
+    if (!geminiRes.ok && model !== FALLBACK_MODEL) {
+        geminiRes = await callGemini(FALLBACK_MODEL);
     }
 
     if (!geminiRes.ok) {

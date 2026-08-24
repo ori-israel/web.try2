@@ -5,7 +5,7 @@ const { createClient } = require('@supabase/supabase-js');
 // מאז הסיכום האחרון. מדחיס שיחות לתקציר קצר שנכנס לכל שיחה עתידית.
 // ============================================================
 
-const MODEL = 'gemini-2.5-flash-lite';
+const MODEL = 'gemini-3.5-flash-lite';
 const LOOKBACK_DAYS = 8;   // חלון שליפת הודעות (ה-cron רץ יומי, מרווח ביטחון)
 const MAX_MSGS = 40;       // תקרת הודעות חדשות לסיכום בודד (עלות/גודל)
 const CLEANUP_DAYS = 60;   // מחיקת הודעות ישנות מ-60 יום (הפתק שומר את הזיכרון ארוך-הטווח)
