@@ -52,6 +52,16 @@ function _sbSaveAiMsg(role, content) {
     } catch (e) {}
 }
 
+// שמירת הודעה שלא מצאה שום התאמה בבסיס הידע — כדי לגלות בעתיד חורים אמיתיים
+// לפי שימוש בפועל, במקום לנחש נושאים. fire-and-forget, לא חוסם את הצ'אט.
+function _sbLogKnowledgeGap(message) {
+    try {
+        const uid = getActiveUserId();
+        if (!uid || !message) return;
+        db.from('ai_knowledge_gaps').insert({ user_id: uid, message }).then(() => {}, () => {});
+    } catch (e) {}
+}
+
 // עדכון פתק הזיכרון ארוך-הטווח (מה-MEMORY_UPDATE של הסוכן)
 function _sbSaveAiMemory(summary) {
     try {
@@ -161,6 +171,7 @@ async function sendAIMessage() {
     let msgWithUSDA = msg;
     if (usdaCtx)      msgWithUSDA += `\n\n[נתוני USDA: ${usdaCtx}]`;
     if (knowledgeCtx) msgWithUSDA += `\n\n[ידע מקצועי רלוונטי, בסיס להתבסס עליו בתשובה. אל תצטט אותו כמו שהוא, נסח בשפה פשוטה ובקצרה מה שרלוונטי לשאלה בלבד: ${knowledgeCtx}]`;
+    else if (!usdaCtx) _sbLogKnowledgeGap(msg); // לא נמצאה שום התאמה בבסיס הידע — שווה לבדוק בעתיד
 
     const loadingId = addLoadingMessage();
 
