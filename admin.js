@@ -13,6 +13,7 @@ async function renderAdminPanel() {
     list.innerHTML = '<div class="admin-loading">טוען נתונים...</div>';
     _syncCoachToggle();
     _refreshPendingBadge();
+    _refreshKnowledgeGapsBadge();
     try {
         _coachClients = await sbFetchAllClients();
         if (!_coachClients.length) {
@@ -35,7 +36,6 @@ function setCoachMode(mode) {
     if (mode === 'archive') _renderArchiveMode(list);
     else if (mode === 'pending') _renderPendingMode(list);
     else if (mode === 'subscribers') _renderSubscribersMode(list);
-    else if (mode === 'knowledge') _renderKnowledgeGapsMode(list);
     else if (_coachClients && _coachDashData) _renderCoachList(list);
 }
 
@@ -107,53 +107,75 @@ async function _renderPendingMode(list) {
     }
 }
 
-// "ידע חסר" — דוח שאלות שהמאמן AI לא מצא עליהן ידע ב-30 הימים האחרונים, מקובץ לפי נושא דומה
-async function _renderKnowledgeGapsMode(list) {
-    list.className = 'admin-client-list';
-    list.innerHTML = '<div class="admin-loading">טוען...</div>';
-    try {
-        const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-        const { data, error } = await db.from('ai_knowledge_gaps')
-            .select('message, created_at')
-            .gte('created_at', since)
-            .order('created_at', { ascending: false });
-        if (error) throw error;
+// "ידע חסר" — sheet נפרד (לא חלק ממצבי הלקוחות) שמציג שאלות שהמאמן AI לא מצא עליהן ידע,
+// מקובצות לפי שאלה זהה, מ-30 הימים האחרונים.
+async function _fetchKnowledgeGaps() {
+    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await db.from('ai_knowledge_gaps')
+        .select('message, created_at')
+        .gte('created_at', since)
+        .order('created_at', { ascending: false });
+    if (error) throw error;
+    const groups = {};
+    (data || []).forEach(r => {
+        const key = r.message.trim().toLowerCase();
+        if (!groups[key]) groups[key] = { message: r.message, count: 0, lastDate: r.created_at };
+        groups[key].count++;
+    });
+    const rows = Object.values(groups).sort((a, b) => b.count - a.count || new Date(b.lastDate) - new Date(a.lastDate));
+    return { total: (data || []).length, rows };
+}
 
-        if (!data || !data.length) {
-            list.innerHTML = '<div class="admin-empty">אין שאלות ללא כיסוי ב-30 הימים האחרונים <span style="display:inline-flex;color:#22c55e;vertical-align:-2px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span></div>';
+// עדכון תגית המספר על כפתור "ידע חסר" — נקרא בכל פתיחת לוח המנהל
+async function _refreshKnowledgeGapsBadge() {
+    const badge = document.getElementById('knowledge-gaps-badge');
+    if (!badge) return;
+    try {
+        const { rows } = await _fetchKnowledgeGaps();
+        if (rows.length) { badge.textContent = rows.length; badge.style.display = 'inline-block'; }
+        else { badge.style.display = 'none'; }
+    } catch { badge.style.display = 'none'; }
+}
+
+async function openKnowledgeGapsSheet() {
+    const content = document.getElementById('knowledge-gaps-content');
+    const overlay = document.getElementById('knowledge-gaps-overlay');
+    content.innerHTML = '<div class="admin-loading">טוען...</div>';
+    overlay.style.display = 'flex';
+    requestAnimationFrame(() => overlay.classList.add('open'));
+
+    try {
+        const { total, rows } = await _fetchKnowledgeGaps();
+        if (!rows.length) {
+            content.innerHTML = '<div class="admin-empty">אין שאלות ללא כיסוי ב-30 הימים האחרונים <span style="display:inline-flex;color:#22c55e;vertical-align:-2px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span></div>';
             return;
         }
-
-        // קיבוץ שאלות זהות (מנקה רווחים/אותיות גדולות-קטנות) — סופר כמה פעם כל אחת נשאלה
-        const groups = {};
-        data.forEach(r => {
-            const key = r.message.trim().toLowerCase();
-            if (!groups[key]) groups[key] = { message: r.message, count: 0, lastDate: r.created_at };
-            groups[key].count++;
-        });
-        const rows = Object.values(groups).sort((a, b) => b.count - a.count || new Date(b.lastDate) - new Date(a.lastDate));
-
-        list.innerHTML = '';
-        const header = document.createElement('div');
-        header.style.cssText = 'font-size:13px;color:var(--text-secondary,#888);margin-bottom:14px;';
-        header.textContent = `${data.length} שאלות ב-30 הימים האחרונים (${rows.length} ייחודיות) — ממוין מהנפוצה ביותר`;
-        list.appendChild(header);
-
+        content.innerHTML = `<div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">${total} שאלות ב-30 הימים האחרונים (${rows.length} ייחודיות) — ממוין מהנפוצה ביותר</div>`;
         rows.forEach(r => {
             const row = document.createElement('div');
             row.className = 'coach-overview-card';
-            row.style.padding = '13px';
+            row.style.cssText = 'padding:13px;margin-bottom:6px;';
             const date = new Date(r.lastDate).toLocaleDateString('he-IL');
             row.innerHTML =
-                `<div style="font-weight:bold;font-size:15px;color:var(--text-primary,#fff);">${_esc(r.message)}</div>` +
-                `<div style="font-size:13px;color:var(--text-secondary,#888);margin-top:4px;">` +
+                `<div style="font-weight:bold;font-size:15px;color:var(--text-primary);">${_esc(r.message)}</div>` +
+                `<div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">` +
                 (r.count > 1 ? `נשאלה ${r.count} פעמים · ` : '') +
                 `לאחרונה ${date}</div>`;
-            list.appendChild(row);
+            content.appendChild(row);
         });
     } catch (err) {
-        list.innerHTML = `<div class="admin-error">שגיאה: ${err.message}</div>`;
+        content.innerHTML = `<div class="admin-error">שגיאה: ${err.message}</div>`;
     }
+}
+
+function closeKnowledgeGapsSheet() {
+    const overlay = document.getElementById('knowledge-gaps-overlay');
+    overlay.classList.remove('open');
+    overlay.classList.add('closing');
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        overlay.classList.remove('closing');
+    }, 300);
 }
 
 function _renderCoachList(list) {

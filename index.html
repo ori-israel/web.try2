@@ -167,6 +167,10 @@
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
             <h2 style="margin:0; color:var(--text-primary,#fff); font-size:22px;">לוח מנהל</h2>
             <div style="display:flex; gap:8px; align-items:center;">
+                <button onclick="openKnowledgeGapsSheet()" title="ידע חסר למאמן AI" style="position:relative; width:34px; height:34px; border-radius:10px; border:1px solid var(--border); background:var(--bg-card); color:var(--text-secondary); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0;">
+                    <span id="knowledge-gaps-badge" style="display:none; position:absolute; top:-5px; right:-5px; background:#ef4444; color:#fff; font-size:10px; font-weight:700; border-radius:10px; padding:1px 5px; line-height:1.4;"></span>
+                    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10.5h.01"/><path d="M12 10.5h.01"/><path d="M16 10.5h.01"/></svg>
+                </button>
                 <button onclick="openNewClientModal()" class="admin-add-client-btn">+ לקוח חדש</button>
                 <button onclick="doLogout()" class="admin-logout-btn">התנתק</button>
             </div>
@@ -178,9 +182,20 @@
             <button class="coach-mode-btn" data-mode="subscribers" onclick="setCoachMode('subscribers')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><path d="M2.5 10h19"/><path d="M8 15l1.5 1.5L13 13"/></svg> מנויים</button>
             <button class="coach-mode-btn" data-mode="pending" onclick="setCoachMode('pending')">ממתינים <span id="pending-count-badge" style="display:none;background:#e55;color:#fff;border-radius:10px;padding:0 6px;font-size:11px;font-weight:bold;margin-right:2px;"></span></button>
             <button class="coach-mode-btn" data-mode="archive" onclick="setCoachMode('archive')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><rect x="3" y="4" width="18" height="5" rx="1.2"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/></svg> ארכיון</button>
-            <button class="coach-mode-btn" data-mode="knowledge" onclick="setCoachMode('knowledge')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10.5h.01"/><path d="M12 10.5h.01"/><path d="M16 10.5h.01"/></svg> ידע חסר</button>
         </div>
         <div id="admin-client-list"></div>
+    </div>
+</div>
+
+<!-- ══ ידע חסר למאמן AI — sheet נפרד, לא חלק ממצבי הלקוחות ══ -->
+<div id="knowledge-gaps-overlay" class="profile-overlay" onclick="if(event.target===this)closeKnowledgeGapsSheet()">
+    <div class="profile-sheet">
+        <div class="profile-handle"></div>
+        <div class="profile-header">
+            <h2>ידע חסר למאמן AI</h2>
+            <button class="close-btn" onclick="closeKnowledgeGapsSheet()">&times;</button>
+        </div>
+        <div id="knowledge-gaps-content"></div>
     </div>
 </div>
 
