@@ -27,6 +27,22 @@ async function initAIChat() {
         // הודעת פתיחה — תצוגה בלבד, לא נשמרת ל-DB ולא נכנסת להיסטוריה שנשלחת למודל
         addChatMessage(`היי ${CLIENT.nickname}! אני המאמן AI שלך, כאן איתך לאורך כל הדרך. אפשר לשאול אותי כל שאלה על תזונה, אימונים והתאוששות. במה נתחיל?`, 'assistant');
     }
+    _wireAiSendBtn();
+}
+
+// תוקן: כשהמקלדת פתוחה במובייל, הקשה ראשונה על "שליחה" רק סגרה מקלדת (בלי לשלוח) בגלל
+// שינוי הפריסה שקורה תוך כדי המגע (הפאנל מתכווץ כשהמקלדת נסגרת). touchstart קורה
+// לפני שהפריסה זזה, אז הוא תופס את הכוונה לפני שמשהו זז מתחת לאצבע.
+let _aiSendBtnWired = false;
+function _wireAiSendBtn() {
+    if (_aiSendBtnWired) return;
+    const btn = document.getElementById('ai-send-btn');
+    if (!btn) return;
+    _aiSendBtnWired = true;
+    btn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (typeof btn.onclick === 'function') btn.onclick();
+    }, { passive: false });
 }
 
 // פתיחת המאמן AI מבחוץ (כרטיס "רעיון לארוחה", מדריך) — עובר לטאב המאמן ומאתחל
