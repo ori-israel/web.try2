@@ -14,6 +14,7 @@ async function renderAdminPanel() {
     _syncCoachToggle();
     _refreshPendingBadge();
     _refreshKnowledgeGapsBadge();
+    _refreshAiFeedbackBadge();
     try {
         _coachClients = await sbFetchAllClients();
         if (!_coachClients.length) {
@@ -170,6 +171,68 @@ async function openKnowledgeGapsSheet() {
 
 function closeKnowledgeGapsSheet() {
     const overlay = document.getElementById('knowledge-gaps-overlay');
+    overlay.classList.remove('open');
+    overlay.classList.add('closing');
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        overlay.classList.remove('closing');
+    }, 300);
+}
+
+// "משוב שלילי" — sheet נפרד שמציג תשובות מהמאמן AI שסומנו 👎 ע"י משתמשים, מ-30 הימים האחרונים.
+async function _fetchAiFeedback() {
+    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await db.from('ai_feedback')
+        .select('question, answer, created_at')
+        .gte('created_at', since)
+        .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+}
+
+// עדכון תגית המספר על כפתור "משוב שלילי" — נקרא בכל פתיחת לוח המנהל
+async function _refreshAiFeedbackBadge() {
+    const badge = document.getElementById('ai-feedback-badge');
+    if (!badge) return;
+    try {
+        const rows = await _fetchAiFeedback();
+        if (rows.length) { badge.textContent = rows.length; badge.style.display = 'inline-block'; }
+        else { badge.style.display = 'none'; }
+    } catch { badge.style.display = 'none'; }
+}
+
+async function openAiFeedbackSheet() {
+    const content = document.getElementById('ai-feedback-content');
+    const overlay = document.getElementById('ai-feedback-overlay');
+    content.innerHTML = '<div class="admin-loading">טוען...</div>';
+    overlay.style.display = 'flex';
+    requestAnimationFrame(() => overlay.classList.add('open'));
+
+    try {
+        const rows = await _fetchAiFeedback();
+        if (!rows.length) {
+            content.innerHTML = '<div class="admin-empty">אין תשובות שסומנו לא טובות ב-30 הימים האחרונים <span style="display:inline-flex;color:#22c55e;vertical-align:-2px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span></div>';
+            return;
+        }
+        content.innerHTML = `<div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">${rows.length} תשובות סומנו לא טובות ב-30 הימים האחרונים</div>`;
+        rows.forEach(r => {
+            const row = document.createElement('div');
+            row.className = 'coach-overview-card';
+            row.style.cssText = 'padding:13px;margin-bottom:6px;';
+            const date = new Date(r.created_at).toLocaleDateString('he-IL');
+            row.innerHTML =
+                `<div style="font-weight:bold;font-size:14px;color:var(--text-primary);">${_esc(r.question)}</div>` +
+                `<div style="font-size:13px;color:var(--text-secondary);margin-top:6px;">${_esc(r.answer)}</div>` +
+                `<div style="font-size:12px;color:var(--text-muted);margin-top:8px;">${date}</div>`;
+            content.appendChild(row);
+        });
+    } catch (err) {
+        content.innerHTML = `<div class="admin-error">שגיאה: ${err.message}</div>`;
+    }
+}
+
+function closeAiFeedbackSheet() {
+    const overlay = document.getElementById('ai-feedback-overlay');
     overlay.classList.remove('open');
     overlay.classList.add('closing');
     setTimeout(() => {
