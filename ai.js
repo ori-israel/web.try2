@@ -42,6 +42,31 @@ function closeAIChat() {}
 let aiChatHistory = [];              // מקור האמת: טבלת ai_chat_history בסופאבייס
 let _aiHistoryLoaded = false;        // נטען פעם אחת לכל סשן, ואז נשמר בזיכרון
 let _aiStableCtx = { userId: null, loaded: false, text: '' };
+let _aiStreaming = false;            // תשובה בתהליך כתיבה כרגע — מונע שליחה כפולה
+let _aiAbortController = null;       // מאפשר לעצור תשובה באמצע (כפתור "עצירה")
+
+// מחליף בין מצב "שליחה" ל"עצירה" בכפתור השליחה בזמן שתשובה נכתבת
+function _setAiSendBtnStopping(stopping) {
+    const btn = document.getElementById('ai-send-btn');
+    if (!btn) return;
+    if (stopping) {
+        btn.textContent = 'עצירה';
+        btn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+        btn.onclick = () => { if (_aiAbortController) _aiAbortController.abort(); };
+    } else {
+        btn.textContent = 'שליחה';
+        btn.style.background = '';
+        btn.onclick = sendAIMessage;
+    }
+}
+
+// מציג/מסתיר רמז עדין כשמתקרבים למכסת ההודעות היומית (לא מציג מספר, רק כשקרוב לסוף)
+function _updateAiQuotaHint(response) {
+    const hint = document.getElementById('ai-quota-hint');
+    if (!hint) return;
+    const remaining = parseInt(response.headers.get('X-Messages-Remaining'), 10);
+    hint.style.display = (!isNaN(remaining) && remaining <= 10) ? 'flex' : 'none';
+}
 
 // שמירת הודעה בודדת להיסטוריה המתמשכת (fire-and-forget, לא חוסם את הצ'אט)
 function _sbSaveAiMsg(role, content) {
@@ -173,6 +198,7 @@ function toggleWebSearch(btn) {
 }
 
 async function sendAIMessage() {
+    if (_aiStreaming) return; // כבר יש תשובה בכתיבה — Enter לא ישלח הודעה נוספת
     const input = document.getElementById('ai-chat-input');
     const msg = input.value.trim();
     if (!msg) return;
@@ -225,12 +251,16 @@ async function sendAIMessage() {
         const { data: { session: _aiSession } } = await db.auth.getSession();
         if (!_aiSession) throw new Error('לא מחובר');
 
+        _aiStreaming = true;
+        _aiAbortController = new AbortController();
+
         const response = await fetch('/api/gemini', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${_aiSession.access_token}`,
             },
+            signal: _aiAbortController.signal,
             body: JSON.stringify({
                 model: 'gemini-3.5-flash-lite',
                 payload: {
@@ -257,6 +287,9 @@ async function sendAIMessage() {
             return;
         }
 
+        _updateAiQuotaHint(response);
+        _setAiSendBtnStopping(true);
+
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
 
@@ -279,7 +312,14 @@ async function sendAIMessage() {
         let lastGrounding = null;
 
         while (true) {
-            const { done, value } = await reader.read();
+            let _readResult;
+            try {
+                _readResult = await reader.read();
+            } catch (readErr) {
+                if (readErr.name === 'AbortError') break; // המשתמש לחץ "עצירה" — ממשיכים עם מה שכבר התקבל
+                throw readErr;
+            }
+            const { done, value } = _readResult;
             if (done) break;
 
             buffer += decoder.decode(value, { stream: true });
@@ -407,6 +447,10 @@ async function sendAIMessage() {
             loadingEl.style.cssText = bubbleStyle;
             loadingEl.innerHTML = '<span style="display:inline-flex;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10.5h.01"/><path d="M12 10.5h.01"/><path d="M16 10.5h.01"/></svg></span><span>שגיאה בחיבור, נסה שוב.</span>';
         }
+    } finally {
+        _aiStreaming = false;
+        _aiAbortController = null;
+        _setAiSendBtnStopping(false);
     }
 }
 

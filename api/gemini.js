@@ -112,6 +112,7 @@ export default async function handler(req, res) {
 
     // ── מגבלות צ'אט יומיות (אכיפה בשרת, מתאפס בחצות ישראל) ──────
     // צ'אט בלבד (לא סריקת תמונה, לא בירור מאקרו). 50 הודעות/יום, 20 חיפושים/יום.
+    let messagesRemaining = null; // מועבר ללקוח בכותרת התשובה, כדי שאפשר להראות רמז לפני שנגמר לגמרי
     if (!isScan && kind !== 'macro') {
         // תאריך לפי שעון ישראל → איפוס אוטומטי בחצות מקומית
         const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
@@ -132,6 +133,7 @@ export default async function handler(req, res) {
             messages: curMsg + 1,
             searches: curSearch + (isSearch ? 1 : 0),
         }, { onConflict: 'user_id,date' });
+        messagesRemaining = 50 - (curMsg + 1);
 
         // ניקוי שורות ישנות ברקע (לא חוסם תשובה) — שומר רק היום + אתמול
         const cutoff = new Date(Date.now() - 36 * 60 * 60 * 1000)
@@ -183,6 +185,7 @@ export default async function handler(req, res) {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
+    if (messagesRemaining !== null) res.setHeader('X-Messages-Remaining', String(messagesRemaining));
 
     const reader = geminiRes.body.getReader();
     const decoder = new TextDecoder();
