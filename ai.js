@@ -283,6 +283,7 @@ async function sendAIMessage() {
                 signal: _aiAbortController.signal,
                 body: JSON.stringify({
                     model: 'gemini-3.5-flash-lite',
+                    raw_message: msg, // ההודעה המקורית שהמשתמש הקליד (בלי הקשר מוזרק) — לבדיקת אורך 500 תווים בשרת
                     payload: {
                         system_instruction: { parts: [{ text: await buildSystemPrompt() }] },
                         generation_config: { response_modalities: ["TEXT"] },

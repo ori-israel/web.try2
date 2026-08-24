@@ -41,7 +41,7 @@ export default async function handler(req, res) {
     const { data: { user }, error: authErr } = await db.auth.getUser(token);
     if (authErr || !user) return res.status(401).json({ error: 'Unauthorized' });
 
-    const { model = 'gemini-3.5-flash-lite', payload, kind } = req.body || {};
+    const { model = 'gemini-3.5-flash-lite', payload, kind, raw_message } = req.body || {};
 
     if (!ALLOWED_MODELS.has(model)) {
         return res.status(400).json({ error: 'Invalid model' });
@@ -55,10 +55,18 @@ export default async function handler(req, res) {
     const isScan = JSON.stringify(payload.contents || '').includes('inline_data');
 
     // הגבלת אורך הודעה — מקסימום 500 תווים (רק בצ'אט; פרומפט הסריקה קבוע וארוך יותר)
+    // בודקים את raw_message (מה שהמשתמש בפועל הקליד) אם נשלח — לא את ה-contents שנשלחים ל-Gemini,
+    // כי אלה כוללים גם הקשר מוזרק (בסיס ידע/USDA) שיכול להיות ארוך בהרבה מההודעה עצמה.
+    // אם raw_message לא נשלח (למשל קריאות ישנות/אחרות) — נופלים חזרה לבדיקה הישנה על ה-contents.
     if (!isScan) {
-        const contents = payload.contents || [];
-        const lastContent = contents[contents.length - 1];
-        const lastText = lastContent?.parts?.find(p => p.text)?.text || '';
+        let lastText;
+        if (typeof raw_message === 'string') {
+            lastText = raw_message;
+        } else {
+            const contents = payload.contents || [];
+            const lastContent = contents[contents.length - 1];
+            lastText = lastContent?.parts?.find(p => p.text)?.text || '';
+        }
         if (lastText.length > 500) {
             return res.status(400).json({ error: 'ההודעה ארוכה מדי (מקסימום 500 תווים).' });
         }
