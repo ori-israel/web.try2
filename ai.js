@@ -164,7 +164,7 @@ async function sendAIMessage() {
                 'Authorization': `Bearer ${_aiSession.access_token}`,
             },
             body: JSON.stringify({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-2.5-flash-lite',
                 payload: {
                     system_instruction: { parts: [{ text: await buildSystemPrompt() }] },
                     generation_config: { response_modalities: ["TEXT"], thinking_config: { thinking_budget: 0 } },
