@@ -253,24 +253,36 @@ async function sendAIMessage() {
 
         _aiStreaming = true;
         _aiAbortController = new AbortController();
+        _setAiSendBtnStopping(true); // כפתור "עצירה" זמין כבר משלב ה"חושב", לא רק אחרי שמתחילים לראות טקסט
 
-        const response = await fetch('/api/gemini', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${_aiSession.access_token}`,
-            },
-            signal: _aiAbortController.signal,
-            body: JSON.stringify({
-                model: 'gemini-3.5-flash-lite',
-                payload: {
-                    system_instruction: { parts: [{ text: await buildSystemPrompt() }] },
-                    generation_config: { response_modalities: ["TEXT"], thinking_config: { thinking_budget: 0 } },
-                    contents: messages,
-                    ...(window.aiWebSearch ? { tools: [{ google_search: {} }] } : {})
-                }
-            })
-        });
+        let response;
+        try {
+            response = await fetch('/api/gemini', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${_aiSession.access_token}`,
+                },
+                signal: _aiAbortController.signal,
+                body: JSON.stringify({
+                    model: 'gemini-3.5-flash-lite',
+                    payload: {
+                        system_instruction: { parts: [{ text: await buildSystemPrompt() }] },
+                        generation_config: { response_modalities: ["TEXT"], thinking_config: { thinking_budget: 0 } },
+                        contents: messages,
+                        ...(window.aiWebSearch ? { tools: [{ google_search: {} }] } : {})
+                    }
+                })
+            });
+        } catch (fetchErr) {
+            if (fetchErr.name === 'AbortError') {
+                // נעצר לפני שהגיע בכלל מענה — מוחקים את בועת "חושב" בלי הודעת שגיאה
+                const loadingEl = document.getElementById(loadingId);
+                if (loadingEl) loadingEl.remove();
+                return;
+            }
+            throw fetchErr;
+        }
 
         if (!response.ok) {
             let _msg = 'שגיאה בחיבור, נסה שוב.';
@@ -288,7 +300,6 @@ async function sendAIMessage() {
         }
 
         _updateAiQuotaHint(response);
-        _setAiSendBtnStopping(true);
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
