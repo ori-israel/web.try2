@@ -285,7 +285,7 @@ async function sendAIMessage() {
                     model: 'gemini-3.5-flash-lite',
                     payload: {
                         system_instruction: { parts: [{ text: await buildSystemPrompt() }] },
-                        generation_config: { response_modalities: ["TEXT"], thinking_config: { thinking_budget: 0 } },
+                        generation_config: { response_modalities: ["TEXT"], thinking_config: { thinking_level: "minimal" } },
                         contents: messages,
                         ...(window.aiWebSearch ? { tools: [{ google_search: {} }] } : {})
                     }
