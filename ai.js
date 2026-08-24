@@ -106,6 +106,17 @@ function _buildUSDAContext(text) {
     return hits.slice(0, 5).map(r => `${r.name} — חלבון ${r.protein}g שומן ${r.fat}g פחמימות ${r.carbs}g ל-100ג`).join(' | ');
 }
 
+// מסיר עד 2 אותיות יחס/חיבור בתחילת מילה (ו,ה,ב,ל,מ,ש,כ) כדי שצורות כמו
+// "ולחלבון"/"בפחמימות" יתאימו למילת המפתח הבסיסית "חלבון"/"פחמימות".
+// לא נוגע בהתאמת הביטוי המדויק (score+10) — רק בשכבות ההתאמה החלקית, כדי לא להגדיל סיכון להתאמות שווא.
+const _HE_PREFIXES = ['ו', 'ה', 'ב', 'ל', 'מ', 'ש', 'כ'];
+function _stripHePrefixes(w) {
+    for (let i = 0; i < 2 && w.length >= 4 && _HE_PREFIXES.includes(w[0]); i++) {
+        w = w.slice(1);
+    }
+    return w;
+}
+
 // חיפוש בבסיס הידע המקצועי (6 קבצי knowledge-*.js) — התאמת מילות מפתח מקומית, בלי קריאת AI נוספת.
 // מזריק רק את הרשומות הרלוונטיות ביותר להודעה, בדיוק בשיטת _buildUSDAContext.
 function _buildKnowledgeContext(text) {
@@ -120,6 +131,7 @@ function _buildKnowledgeContext(text) {
 
     const t = text;
     const msgWords = text.replace(/[()"'״׳,.?!\-]/g, ' ').split(/\s+/).filter(w => w.length > 1);
+    const msgWordsNorm = msgWords.map(_stripHePrefixes);
 
     const scored = [];
     for (const e of all) {
@@ -127,10 +139,10 @@ function _buildKnowledgeContext(text) {
         for (const kw of (e.keywords || [])) {
             if (t.includes(kw)) { score += 10; continue; }              // ביטוי מילת מפתח שלם מופיע בהודעה
             const kwWords = kw.split(/\s+/).filter(w => w.length > 1);
-            if (kwWords.length > 1 && kwWords.every(w => msgWords.includes(w))) score += 6; // כל מילות הביטוי מופיעות
+            if (kwWords.length > 1 && kwWords.every(w => msgWordsNorm.includes(_stripHePrefixes(w)))) score += 6; // כל מילות הביטוי מופיעות (אחרי הסרת קידומות)
         }
         const titleWords = e.title.replace(/[()\-—״׳,.]/g, ' ').split(/\s+/).filter(w => w.length > 2);
-        for (const tw of titleWords) if (msgWords.includes(tw)) score += 3;
+        for (const tw of titleWords) if (msgWordsNorm.includes(_stripHePrefixes(tw))) score += 3;
         if (score > 0) scored.push({ e, score });
     }
     if (!scored.length) return '';
