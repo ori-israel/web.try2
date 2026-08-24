@@ -60,6 +60,23 @@ function _setAiSendBtnStopping(stopping) {
     }
 }
 
+// Gemini דורש שההיסטוריה תתחיל בתור המשתמש ותתחלף בדיוק user/model, בלי שני תורות רצופים
+// מאותו צד. אם היסטוריה שלנו נפגמת (למשל הודעה שנכשלה/נעצרה בלי תשובה) — Gemini מחזיר 400
+// על כל הודעה הבאה, כולל למודל הגיבוי (זו בעיית מבנה בקשה, לא בעיית מודל ספציפי).
+// שכבת הגנה: תמיד לשלוח רק רצף חוקי, בלי קשר למה שקרה קודם בשיחה.
+function _sanitizeHistoryForGemini(history) {
+    const out = [];
+    for (const m of history) {
+        if (out.length && out[out.length - 1].role === m.role) {
+            out[out.length - 1] = m; // שני תורות רצופים מאותו צד — משאירים רק את האחרון
+        } else {
+            out.push(m);
+        }
+    }
+    while (out.length && out[0].role === 'assistant') out.shift(); // חייב להתחיל בתור המשתמש
+    return out;
+}
+
 // מציג/מסתיר רמז עדין כשמתקרבים למכסת ההודעות היומית (לא מציג מספר, רק כשקרוב לסוף)
 function _updateAiQuotaHint(response) {
     const hint = document.getElementById('ai-quota-hint');
@@ -242,7 +259,7 @@ async function sendAIMessage() {
     `;
 
     try {
-        const historySlice = aiChatHistory.slice(-20).filter((m, i) => !(i === 0 && m.role === 'assistant'));
+        const historySlice = _sanitizeHistoryForGemini(aiChatHistory.slice(-20));
         const messages = historySlice.map((m, i) => ({
             role: m.role === 'assistant' ? 'model' : 'user',
             parts: [{ text: (i === historySlice.length - 1 && m.role === 'user') ? msgWithUSDA : m.content }]
