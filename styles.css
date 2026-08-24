@@ -485,12 +485,15 @@ h1 {
    טאב מאמן AI (tab5) — פאנל צ'אט קבוע במסך מלא.
    סרגל הטאבים (z-index 30) נשאר גלוי מעל הפאנל (z-index 20),
    וריפוד תחתון שומר מקום כדי שתיבת ההקלדה לא תוסתר מאחוריו.
+   גובה ב-dvh (לא top+bottom): יחידת ה-viewport הדינמית מצטמצמת אוטומטית
+   כשהמקלדת נפתחת בדפדפן נייד, בלי צורך לעקוב ב-JS.
    ============================================ */
 #tab5.tab-content.active {
     display: flex;
     flex-direction: column;
     position: fixed;
-    top: 0; bottom: 0;
+    top: 0;
+    height: 100dvh;
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
@@ -501,12 +504,16 @@ h1 {
     z-index: 20;
 }
 
-/* כשהמקלדת פתוחה (מנוהל ב-ai.js דרך visualViewport): הפאנל מצטמצם לגובה הנראה,
-   הריפוד התחתון קטן כך שתיבת הכתיבה נצמדת מעל המקלדת, וסרגל הטאבים מוסתר */
-#tab5.tab-content.active.kbd-open {
+/* כשתיבת הכתיבה בפוקוס (המקלדת פתוחה): מצמצמים את הריפוד התחתון כדי שהתיבה
+   תישאר צמודה לתחתית הפאנל (שכבר מתכווץ בעצמו לגובה ה-dvh), ומסתירים את
+   סרגל הטאבים כדי לא להשאיר רווח מתחת לתיבה. הכל CSS טהור עם :has() —
+   מתאפס לבד כשהפוקוס עוזב, בלי אפשרות להישאר "תקוע" */
+body:has(#ai-chat-input:focus) #tab5.tab-content.active {
     padding-bottom: 10px;
 }
-body.ai-kbd-open .tabs { display: none; }
+body:has(#ai-chat-input:focus) .tabs {
+    display: none;
+}
 
 .tab-content h2 {
     font-size: 21px;

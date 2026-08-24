@@ -9,44 +9,8 @@ function _activateTab(tabId) {
 function initAIChat() {
     loadChatHistory();
     if (aiChatHistory.length === 0) {
-        addChatMessage(`היי ${CLIENT.nickname}! אני המאמן AI של אורי, כאן איתך לאורך כל הדרך. אפשר לשאול אותי כל שאלה על תזונה, אימונים והתאוששות. במה נתחיל?`, 'assistant');
+        addChatMessage(`היי ${CLIENT.nickname}! אני המאמן AI שלך, כאן איתך לאורך כל הדרך. אפשר לשאול אותי כל שאלה על תזונה, אימונים והתאוששות. במה נתחיל?`, 'assistant');
     }
-    _aiWireKeyboard();
-}
-
-// כשהמקלדת נפתחת: מצמצם את פאנל הצ'אט לגובה החלק הנראה כך שתיבת הכתיבה נצמדת מעל המקלדת,
-// ומסתיר את סרגל הטאבים (כמו ChatGPT). מסתמך על visualViewport; אם לא קיים — נשאר כרגיל.
-function _aiWireKeyboard() {
-    const input = document.getElementById('ai-chat-input');
-    const panel = document.getElementById('tab5');
-    if (!input || !panel || !window.visualViewport || panel._kbdWired) return;
-    panel._kbdWired = true;
-    const vv = window.visualViewport;
-
-    function clearKbd() {
-        panel.classList.remove('kbd-open');
-        panel.style.height = '';
-        panel.style.top = '';
-        panel.style.bottom = '';
-        document.body.classList.remove('ai-kbd-open');
-    }
-    function applyKbd() {
-        if (!panel.classList.contains('active') || document.activeElement !== input) { clearKbd(); return; }
-        const keyboardOpen = (window.innerHeight - vv.height) > 120; // המקלדת תופסת חלק ניכר מהמסך
-        if (!keyboardOpen) { clearKbd(); return; }
-        panel.classList.add('kbd-open');
-        panel.style.top = vv.offsetTop + 'px';
-        panel.style.bottom = 'auto';
-        panel.style.height = vv.height + 'px';
-        document.body.classList.add('ai-kbd-open');
-        const msgs = document.getElementById('ai-chat-messages');
-        if (msgs) msgs.scrollTop = msgs.scrollHeight;
-    }
-
-    vv.addEventListener('resize', applyKbd);
-    vv.addEventListener('scroll', applyKbd);
-    input.addEventListener('focus', () => setTimeout(applyKbd, 100));
-    input.addEventListener('blur', () => setTimeout(clearKbd, 100));
 }
 
 // פתיחת המאמן AI מבחוץ (כרטיס "רעיון לארוחה", מדריך) — עובר לטאב המאמן ומאתחל
