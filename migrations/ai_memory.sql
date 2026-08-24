@@ -41,3 +41,13 @@ create policy "own_ai_memory_insert" on public.ai_memory
   for insert with check (auth.uid() = user_id);
 create policy "own_ai_memory_update" on public.ai_memory
   for update using (auth.uid() = user_id);
+
+-- 3) הרשאות — חובה! בפרויקט הזה סופאבייס לא נותן GRANT אוטומטי, בלי זה מקבלים 403
+grant select, insert, delete on public.ai_chat_history to authenticated;
+grant select, insert, update on public.ai_memory       to authenticated;
+
+-- 4) מנהל יכול לקרוא הכל (לדשבורד מאמן עתידי, לעקביות עם שאר הטבלאות)
+create policy "ai_chat_admin_select" on public.ai_chat_history
+  for select using (exists (select 1 from public.profiles where id = auth.uid() and is_admin = true));
+create policy "ai_memory_admin_select" on public.ai_memory
+  for select using (exists (select 1 from public.profiles where id = auth.uid() and is_admin = true));
