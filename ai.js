@@ -5,10 +5,26 @@ function _activateTab(tabId) {
     document.getElementById(tabId)?.classList.add('active');
 }
 
-// אתחול הצ'אט: טעינת היסטוריה + הודעת פתיחה אם השיחה ריקה. נקרא בכל כניסה לטאב המאמן.
-function initAIChat() {
+// אתחול הצ'אט: טעינת היסטוריה מהשרת (פעם אחת לסשן) + הודעת פתיחה אם השיחה ריקה.
+// נקרא בכל כניסה לטאב המאמן; הטעינה מ-DB קורית רק בפעם הראשונה.
+async function initAIChat() {
+    if (!_aiHistoryLoaded) {
+        _aiHistoryLoaded = true;
+        try {
+            const uid = getActiveUserId();
+            if (uid) {
+                const { data } = await db.from('ai_chat_history')
+                    .select('role, content')
+                    .eq('user_id', uid)
+                    .order('created_at', { ascending: true })
+                    .limit(40); // מציגים עד 40 אחרונות; למודל נשלחות 20 (ב-sendAIMessage)
+                aiChatHistory = (data || []).map(r => ({ role: r.role, content: r.content }));
+            }
+        } catch (e) { /* לא מחובר/אופליין — מתחילים ריק */ }
+    }
     loadChatHistory();
     if (aiChatHistory.length === 0) {
+        // הודעת פתיחה — תצוגה בלבד, לא נשמרת ל-DB ולא נכנסת להיסטוריה שנשלחת למודל
         addChatMessage(`היי ${CLIENT.nickname}! אני המאמן AI שלך, כאן איתך לאורך כל הדרך. אפשר לשאול אותי כל שאלה על תזונה, אימונים והתאוששות. במה נתחיל?`, 'assistant');
     }
 }
@@ -23,8 +39,27 @@ function openAIChat() {
 // נשמר לתאימות אחורה — אין יותר overlay לסגור, הצ'אט הוא טאב קבוע
 function closeAIChat() {}
 
-let aiChatHistory = JSON.parse(sessionStorage.getItem('ai_chat_history') || '[]');
+let aiChatHistory = [];              // מקור האמת: טבלת ai_chat_history בסופאבייס
+let _aiHistoryLoaded = false;        // נטען פעם אחת לכל סשן, ואז נשמר בזיכרון
 let _aiStableCtx = { userId: null, loaded: false, text: '' };
+
+// שמירת הודעה בודדת להיסטוריה המתמשכת (fire-and-forget, לא חוסם את הצ'אט)
+function _sbSaveAiMsg(role, content) {
+    try {
+        const uid = getActiveUserId();
+        if (!uid || !content) return;
+        db.from('ai_chat_history').insert({ user_id: uid, role, content }).then(() => {}, () => {});
+    } catch (e) {}
+}
+
+// עדכון פתק הזיכרון ארוך-הטווח (מה-MEMORY_UPDATE של הסוכן)
+function _sbSaveAiMemory(summary) {
+    try {
+        const uid = getActiveUserId();
+        if (!uid) return;
+        db.from('ai_memory').upsert({ user_id: uid, summary, updated_at: new Date().toISOString() }, { onConflict: 'user_id' }).then(() => {}, () => {});
+    } catch (e) {}
+}
 
 // מצב חיפוש באינטרנט — כבוי כברירת מחדל
 window.aiWebSearch = false;
@@ -120,6 +155,7 @@ async function sendAIMessage() {
     input.value = '';
     addChatMessage(msg, 'user');
     aiChatHistory.push({ role: 'user', content: msg });
+    _sbSaveAiMsg('user', msg);
     const usdaCtx = _buildUSDAContext(msg);
     const knowledgeCtx = _buildKnowledgeContext(msg);
     let msgWithUSDA = msg;
@@ -237,10 +273,21 @@ async function sendAIMessage() {
 
         // זיהוי כל FOOD_ADD והסרתם מהטקסט המוצג
         const foodAddMatches = [...fullText.matchAll(/FOOD_ADD:(\{[\s\S]*?\})/g)];
+        // זיהוי עדכון זיכרון (הפתק ארוך-הטווח) — הסוכן מעדכן כשמשתמש חולק/מתקן עובדה אישית
+        const memoryMatch = fullText.match(/MEMORY_UPDATE:(\{[\s\S]*?\})/);
         const displayText = fullText
             .replace(/FOOD_ADD:\{[\s\S]*?\}/g, '')
+            .replace(/MEMORY_UPDATE:\{[\s\S]*?\}/g, '')
             .replace(/THOUGHT:[\s\S]*?(?=\n\n|$)/gi, '') // רשת ביטחון: הסרת מחשבה פנימית שדלפה
             .trim();
+
+        // עדכון פתק הזיכרון אם הסוכן ביקש (בלתי נראה למשתמש)
+        if (memoryMatch) {
+            try {
+                const memData = JSON.parse(memoryMatch[1]);
+                if (typeof memData.summary === 'string') _sbSaveAiMemory(memData.summary.slice(0, 1500));
+            } catch (e) { console.warn('MEMORY_UPDATE parse error:', e); }
+        }
 
         if (replyTextDiv) {
             // בניית HTML בטוח — הטקסט עובר escaping, רק bold ושורות מותרים
@@ -300,7 +347,7 @@ async function sendAIMessage() {
         }
 
         aiChatHistory.push({ role: 'assistant', content: displayText });
-        sessionStorage.setItem('ai_chat_history', JSON.stringify(aiChatHistory));
+        _sbSaveAiMsg('assistant', displayText);
 
     } catch (err) {
         console.error('AI error:', err);
@@ -481,12 +528,20 @@ async function buildSystemPrompt() {
 • [שם] [כמות] — חלבון Xג, פחמימות Xג, שומן Xג
 להוסיף?"
 רק אחרי שהמשתמש אישר — כתוב "מעולה! הוספתי." ואחריה בשורות נפרדות: FOOD_ADD:{"name":"שם (כמות יחידה)","grams":X,"protein_g":X,"fat_g":X,"carbs_g":X,"alcohol_g":X} | אם המאכל/משקה מכיל אלכוהול טהור כלול alcohol_g (גרם אלכוהול, לא נפח המשקה), אחרת 0 | FOOD_ADD הוא קוד מערכת בלתי נראה — אל תסביר אותו, רק כתוב אותו בשורה נפרדת | אם תיקן — עדכן ושאל שוב | אל תוסיף FOOD_ADD ללא אישור
-הצעת_ארוחה: כשמשתמש מבקש רעיון/הצעה לארוחה — קודם שאל לפחות 3 שאלות קצרות (מקסימום 4), בניסוח טבעי ולא קבוע לפי המצב, מתוך: (1) כמה מאמץ/זמן הכנה יש לו כרגע (מהיר בלי בישול, או מוכן להשקיע במטבח), (2) אילו מצרכים יש/אין לו בבית, (3) האם זו הארוחה האחרונה שלו היום או יש עוד ארוחות אחריה, (4) לפי הקשר — חשק (מתוק/מלוח/חם/קר) | שאל שאלה אחת בכל הודעה, לא את כולן ביחד, ואל תתקדם להמלצה לפני שאלת לפחות 3 | אחרי שיש מספיק מידע — תן המלצה אחת מדויקת בלבד (לא רשימת אפשרויות): שם הארוחה והמרכיבים בכמות, הסבר קצר (משפט אחד) למה נבחרה בדיוק היא (מתאימה למה שנשאר לו/למצרכים שיש לו/להעדפות שלו), וסיכום מאקרו של הארוחה כולה (קלוריות, חלבון, פחמימה, שומן) | בשלב הזה בלי שלבי הכנה — בסוף ההמלצה תמיד שאל אם הוא רוצה את המתכון המדויק, ותן שלבי הכנה פשוטים רק אם הוא מאשר | אחרי זה אפשר להמשיך ולכוונן ביחד (למשל להחליף מרכיב) כשיחה רגילה | אם המשתמש כבר חרג מהיעד היום — ציין את זה בעדינות ואפשר להציע כיוון קליל יותר, אבל לעולם אל תגיד לו לא לאכול או תשפוט אותו על זה, זו בחירה שלו | כלל בטיחות קשיח וללא פשרות: לעולם אל תמליץ על מאכל שמכיל אלרגן שלו, גם אם הוא מבקש או מתעקש`;
+הצעת_ארוחה: כשמשתמש מבקש רעיון/הצעה לארוחה — קודם שאל לפחות 3 שאלות קצרות (מקסימום 4), בניסוח טבעי ולא קבוע לפי המצב, מתוך: (1) כמה מאמץ/זמן הכנה יש לו כרגע (מהיר בלי בישול, או מוכן להשקיע במטבח), (2) אילו מצרכים יש/אין לו בבית, (3) האם זו הארוחה האחרונה שלו היום או יש עוד ארוחות אחריה, (4) לפי הקשר — חשק (מתוק/מלוח/חם/קר) | שאל שאלה אחת בכל הודעה, לא את כולן ביחד, ואל תתקדם להמלצה לפני שאלת לפחות 3 | אחרי שיש מספיק מידע — תן המלצה אחת מדויקת בלבד (לא רשימת אפשרויות): שם הארוחה והמרכיבים בכמות, הסבר קצר (משפט אחד) למה נבחרה בדיוק היא (מתאימה למה שנשאר לו/למצרכים שיש לו/להעדפות שלו), וסיכום מאקרו של הארוחה כולה (קלוריות, חלבון, פחמימה, שומן) | בשלב הזה בלי שלבי הכנה — בסוף ההמלצה תמיד שאל אם הוא רוצה את המתכון המדויק, ותן שלבי הכנה פשוטים רק אם הוא מאשר | אחרי זה אפשר להמשיך ולכוונן ביחד (למשל להחליף מרכיב) כשיחה רגילה | אם המשתמש כבר חרג מהיעד היום — ציין את זה בעדינות ואפשר להציע כיוון קליל יותר, אבל לעולם אל תגיד לו לא לאכול או תשפוט אותו על זה, זו בחירה שלו | כלל בטיחות קשיח וללא פשרות: לעולם אל תמליץ על מאכל שמכיל אלרגן שלו, גם אם הוא מבקש או מתעקש
+זיכרון_אישי: יש לך פתק זיכרון קצר על המשתמש (מופיע למטה תחת "זיכרון על המשתמש") שנשמר בין שיחות — הוא עוזר לך להיות מאמן אישי שמכיר אותו. כשהמשתמש חולק עובדה אישית קבועה ששווה לזכור לטווח ארוך (העדפה, מגבלה, פציעה, מטרה, נסיבות חיים), או מתקן/מבטל עובדה קיימת (למשל "כבר לא כואב לי הברך") — עדכן את הפתק: כתוב בשורה נפרדת בסוף התשובה MEMORY_UPDATE:{"summary":"הפתק המלא והמעודכן — כל מה שכבר היה ועדיין רלוונטי, בתוספת/פחות השינוי"} | זהו קוד מערכת בלתי נראה, אל תסביר אותו ואל תזכיר אותו, פשוט כתוב אותו בשורה נפרדת | עדכן רק על עובדות קבועות ומשמעותיות, לא על כל דבר חולף | שמור את הפתק קצר (עד כמה משפטים), בגוף שלישי`;
 
     // בלוק משתנה — מתעדכן תוך כדי שיחה (מאקרו חי + ציון נוכחי). מצורף בסוף כדי לא לשבור מטמון.
     let volatile = '';
 
     const userId = getActiveUserId();
+
+    // פתק הזיכרון ארוך-הטווח — נטען טרי בכל הודעה (עשוי להתעדכן תוך כדי שיחה דרך MEMORY_UPDATE)
+    let _aiMemoryNote = '';
+    try {
+        const { data: _mem } = await db.from('ai_memory').select('summary').eq('user_id', userId).maybeSingle();
+        if (_mem && _mem.summary) _aiMemoryNote = _mem.summary;
+    } catch (e) {}
 
     const { monStr, sunStr } = typeof getWeekRange === 'function' ? getWeekRange() : (() => {
         const now = new Date();
@@ -641,6 +696,9 @@ async function buildSystemPrompt() {
     volatile += `\nכשנשאלים "כמה נשאר" — תן תשובה ישירה בלי חישובים: "נשאר Xג חלבון, Yג פחמימה, Zג שומן" בלבד.`;
     volatile += `\nכשנשאלים כמה קלוריות/חלבון/פחמימה/שומן נאכלו היום — תמיד השתמש בערכים המוכנים משורת "תזונה היום" (כולל ה-סה"כ) בדיוק כפי שהם, אל תחשב בעצמך מפריטי יומן המאכלים.`;
 
+    // פתק הזיכרון ארוך-הטווח על המשתמש — בבלוק המשתנה כדי שעדכונים ייכנסו מיד
+    volatile += `\n\nזיכרון על המשתמש (מה שאתה זוכר עליו מהיכרות והשיחות הקודמות — השתמש בזה כדי להיות אישי ורלוונטי, בלי להזכיר שיש לך "פתק"): ${_aiMemoryNote || 'עדיין אין, זו ההיכרות הראשונית'}`;
+
     // קבוע (נשמר במטמון) + משתנה (בסוף) = אותו מידע בדיוק, סדר ממוטב למטמון
     return prompt + volatile;
 }
@@ -664,11 +722,15 @@ if (localStorage.getItem('birthday_shown') !== todayStr) {
     }
 }
 
+// ניקוי שיחה: מוחק את היסטוריית הצ'אט (בזיכרון ובשרת), אך משאיר את פתק הזיכרון ארוך-הטווח
 function resetAIChat() {
     _aiStableCtx = { userId: null, loaded: false, text: '' };
     aiChatHistory = [];
-    sessionStorage.removeItem('ai_chat_history');
+    try {
+        const uid = getActiveUserId();
+        if (uid) db.from('ai_chat_history').delete().eq('user_id', uid).then(() => {}, () => {});
+    } catch (e) {}
     const container = document.getElementById('ai-chat-messages');
     container.innerHTML = '';
-    openAIChat();
+    initAIChat();
 }
