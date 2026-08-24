@@ -465,6 +465,11 @@ function closeCompleteMsg() {
     document.querySelectorAll('.tab-btn').forEach(button => {
         button.addEventListener('click', function() {
             const tabId = this.getAttribute('data-tab');
+            // עוזבים את טאב המאמן: לסגור מקלדת אם פתוחה, כדי שסרגל הטאבים לא יישאר תקוע מוסתר
+            if (tabId !== 'tab5') {
+                const aiInput = document.getElementById('ai-chat-input');
+                if (aiInput === document.activeElement) aiInput.blur();
+            }
             document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
             this.classList.add('active');
             document.getElementById(tabId).classList.add('active');
