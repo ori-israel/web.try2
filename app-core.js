@@ -654,7 +654,8 @@ function initFAQ() {
     let _weightRulerReady = false;
 
     function _weightRulerOffsetFor(v) {
-        return -((v - _WEIGHT_RULER_MIN) / _WEIGHT_RULER_STEP) * _WEIGHT_RULER_TICK_GAP;
+        // הקווים ממורכזים בתוך תא ברוחב TICK_GAP — צריך להוסיף חצי תא כדי שהמחוג יתיישר בדיוק על הקו
+        return -((v - _WEIGHT_RULER_MIN) / _WEIGHT_RULER_STEP) * _WEIGHT_RULER_TICK_GAP - _WEIGHT_RULER_TICK_GAP / 2;
     }
 
     function _buildWeightRulerTicks() {
@@ -715,7 +716,7 @@ function initFAQ() {
         window.addEventListener('pointerup', () => {
             if (!dragging) return;
             dragging = false;
-            _weightRulerValue = Math.round(_weightRulerValue / _WEIGHT_RULER_STEP) * _WEIGHT_RULER_STEP;
+            _weightRulerValue = Math.round(_weightRulerValue * 10) / 10;
             track.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
             _renderWeightRuler();
         });
@@ -787,7 +788,8 @@ function initFAQ() {
     let _numSheetReady = false;
 
     function _numSheetOffsetFor(v) {
-        return -((v - _numSheetMin) / _numSheetStep) * _NUM_SHEET_TICK_GAP;
+        // הקווים ממורכזים בתוך תא ברוחב TICK_GAP — צריך להוסיף חצי תא כדי שהמחוג יתיישר בדיוק על הקו
+        return -((v - _numSheetMin) / _numSheetStep) * _NUM_SHEET_TICK_GAP - _NUM_SHEET_TICK_GAP / 2;
     }
 
     function _buildNumSheetTicks() {
@@ -848,7 +850,8 @@ function initFAQ() {
         window.addEventListener('pointerup', () => {
             if (!dragging) return;
             dragging = false;
-            _numSheetValue = Math.round(_numSheetValue / _numSheetStep) * _numSheetStep;
+            const _nsRoundFactor = Math.pow(10, _numSheetDecimals);
+            _numSheetValue = Math.round(_numSheetValue * _nsRoundFactor) / _nsRoundFactor;
             track.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
             _renderNumSheet();
         });
@@ -889,8 +892,7 @@ function initFAQ() {
     }
 
     function saveNumberRulerSheet() {
-        const raw = Math.round(_numSheetValue / _numSheetStep) * _numSheetStep;
-        const val = Math.round(raw * 100) / 100;
+        const val = Math.round(_numSheetValue * 100) / 100;
         if (typeof _numSheetOnSave === 'function') _numSheetOnSave(val);
         closeNumberRulerSheet();
     }
@@ -945,7 +947,8 @@ function initFAQ() {
 
     function _amtSheetOffsetFor(v) {
         const cfg = _AMOUNT_UNIT_CONFIG[_amtSheetUnit];
-        return -((v - cfg.min) / cfg.step) * _NUM_SHEET_TICK_GAP;
+        // הקווים ממורכזים בתוך תא ברוחב TICK_GAP — צריך להוסיף חצי תא כדי שהמחוג יתיישר בדיוק על הקו
+        return -((v - cfg.min) / cfg.step) * _NUM_SHEET_TICK_GAP - _NUM_SHEET_TICK_GAP / 2;
     }
 
     function _buildAmtSheetTicks() {
@@ -1010,7 +1013,8 @@ function initFAQ() {
             if (!dragging) return;
             dragging = false;
             const cfg = _AMOUNT_UNIT_CONFIG[_amtSheetUnit];
-            _amtSheetValue = Math.round(_amtSheetValue / cfg.step) * cfg.step;
+            const _amtRoundFactor = Math.pow(10, cfg.decimals);
+            _amtSheetValue = Math.round(_amtSheetValue * _amtRoundFactor) / _amtRoundFactor;
             track.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
             _renderAmtSheet();
         });
@@ -1056,8 +1060,7 @@ function initFAQ() {
 
     function saveAmountSheet() {
         const cfg = _AMOUNT_UNIT_CONFIG[_amtSheetUnit];
-        const raw = Math.round(_amtSheetValue / cfg.step) * cfg.step;
-        const val = Math.round(raw * 100) / 100;
+        const val = Math.round(_amtSheetValue * 100) / 100;
         if (typeof _amtSheetOnSave === 'function') _amtSheetOnSave(val, _amtSheetUnit);
         closeAmountSheet();
     }
