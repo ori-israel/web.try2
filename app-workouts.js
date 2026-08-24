@@ -358,6 +358,11 @@ function closeCompleteMsg() {
             label.textContent = percent + '%';
             label.classList.toggle('complete', percent >= 100);
         }
+        // חלבון: הנקודה הכחולה ליד "חלבון" הופכת ירוקה עם שאר הבר כשמגיעים ליעד
+        if (type === 'protein') {
+            const dot = document.getElementById('protein-dot');
+            if (dot) dot.classList.toggle('complete', percent >= 100);
+        }
     }
 
     function updateAllMacroProgress() {

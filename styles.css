@@ -777,9 +777,10 @@ body:has(#ai-chat-input:focus) .tabs {
     display: inline-block;
 }
 
-.dot-protein, .fill-protein { background: #22c55e; }
+.dot-protein, .fill-protein { background: var(--accent); }
 .dot-carbs,   .fill-carbs   { background: #f59e0b; }
 .dot-fat,     .fill-fat     { background: #ef4444; }
+.macro-dot.complete { background: #22c55e !important; }
 
 .macro-progress-nums {
     font-variant-numeric: tabular-nums;
