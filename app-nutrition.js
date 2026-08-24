@@ -271,7 +271,7 @@ async function geminiMacroLookup(prompt) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3.5-flash',
             kind: 'macro',
             payload: {
                 generation_config: { response_modalities: ["TEXT"] },
