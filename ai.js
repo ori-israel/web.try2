@@ -694,16 +694,31 @@ async function buildSystemPrompt() {
     })();
 
     // קבוצה משתנה — תמיד חיה
-    const [curWorkoutRes, curNutRes, curWeightRes] = await Promise.allSettled([
+    const [curWorkoutRes, curNutRes, curWeightRes, curCardioRes] = await Promise.allSettled([
         db.from('workout_performance_log').select('date').eq('client_id', userId).gte('date', monStr).lte('date', sunStr),
         db.from('daily_nutrition').select('date, protein:protein_g, carbs:carbs_g, fat:fat_g').eq('user_id', userId).gte('date', monStr).lte('date', sunStr),
         db.from('weight_history').select('date').eq('user_id', userId).gte('date', monStr).lte('date', sunStr).limit(1),
+        db.from('cardio_log').select('date, minutes').eq('user_id', userId).gte('date', monStr).lte('date', sunStr),
     ]);
 
     // ציון שבועי נוכחי
     const curWorkoutData = curWorkoutRes.status === 'fulfilled' ? curWorkoutRes.value.data : null;
     const curNutData     = curNutRes.status     === 'fulfilled' ? curNutRes.value.data     : null;
     const curWeightData  = curWeightRes.status  === 'fulfilled' ? curWeightRes.value.data  : null;
+    const curCardioData  = curCardioRes.status  === 'fulfilled' ? curCardioRes.value.data  : null;
+
+    // אירובי: לוח שבועי (CLIENT.cardioSchedule), יעד דקות, וכמה בפועל נעשה השבוע/היום
+    if (curCardioData !== null) {
+        const cardioGoal = CLIENT.cardioWeeklyGoalMinutes ?? 150;
+        const cardioDoneMinutes = curCardioData.reduce((sum, r) => sum + (r.minutes || 0), 0);
+        const todayStr = typeof localDateStr === 'function' ? localDateStr() : new Date().toLocaleDateString('en-CA');
+        const cardioScheduledToday = CLIENT.cardioSchedule?.[todayDay];
+        const cardioDoneToday = curCardioData.some(r => r.date === todayStr);
+        const todayCardioNote = cardioScheduledToday
+            ? `היום מתוכנן אירובי (${cardioScheduledToday.minutes} דק') — ${cardioDoneToday ? 'כבר בוצע' : 'עדיין לא בוצע'}`
+            : 'אין אירובי מתוכנן היום';
+        volatile += `\n\nאירובי השבוע (${monStr} – ${sunStr}): ${cardioDoneMinutes}/${cardioGoal} דקות | ${todayCardioNote}`;
+    }
     if (curWorkoutData !== null) {
         const weeklyTarget  = Object.values(CLIENT.workoutDays || {}).reduce((s, days) => s + days.length, 0) || CLIENT.workoutsPerWeek || 3;
         const workoutCount  = new Set((curWorkoutData || []).map(r => r.date)).size;
