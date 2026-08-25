@@ -8,6 +8,7 @@ function _activateTab(tabId) {
 // אתחול הצ'אט: טעינת היסטוריה מהשרת (פעם אחת לסשן) + הודעת פתיחה אם השיחה ריקה.
 // נקרא בכל כניסה לטאב המאמן; הטעינה מ-DB קורית רק בפעם הראשונה.
 async function initAIChat() {
+    _aiChipsDismissed = false; // כניסה חדשה לטאב — הצ'יפים רלוונטים שוב עד שנשלחת הודעה
     if (!_aiHistoryLoaded) {
         _aiHistoryLoaded = true;
         try {
@@ -54,10 +55,11 @@ function _quickChipsCacheKey() {
     return `ai_quick_chips_${uid}_${dateStr}_${_quickChipsBucket()}`;
 }
 
+let _aiChipsDismissed = false; // true ברגע שנשלחה הודעה בכניסה הנוכחית לטאב — לא קשור להיסטוריה השמורה
 function _renderQuickChips(chips) {
     const row = document.getElementById('ai-quick-chips');
     if (!row) return;
-    if (!chips || !chips.length || aiChatHistory.length > 0) {
+    if (!chips || !chips.length || _aiChipsDismissed) {
         row.style.display = 'none';
         row.innerHTML = '';
         return;
@@ -130,7 +132,7 @@ async function _fetchQuickChips() {
 }
 
 async function _loadQuickChips() {
-    if (aiChatHistory.length > 0) return; // כבר יש שיחה — לא רלוונטי
+    if (_aiChipsDismissed) return; // כבר נשלחה הודעה בכניסה הנוכחית — לא רלוונטי
     _renderQuickChips(_aiQuickChipsFallback()); // ברירת מחדל מיידית, בלי לחכות לרשת
     const uid = getActiveUserId();
     if (!uid) return;
@@ -142,7 +144,7 @@ async function _loadQuickChips() {
     } catch (e) {}
 
     const chips = await _fetchQuickChips();
-    if (chips && chips.length && aiChatHistory.length === 0) {
+    if (chips && chips.length && !_aiChipsDismissed) {
         try { localStorage.setItem(cacheKey, JSON.stringify(chips)); } catch (e) {}
         _renderQuickChips(chips);
     }
@@ -387,6 +389,7 @@ async function sendAIMessage() {
     const msg = input.value.trim();
     if (!msg) return;
 
+    _aiChipsDismissed = true;
     _renderQuickChips(null); // מוסתר ברגע ששולחים הודעה, גם אם לא דרך צ'יפ
 
     // הגבלת 6 שניות בין הודעות — נשלח מיד ומחכים ברקע (בלי הודעת "המתן")
