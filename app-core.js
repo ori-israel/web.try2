@@ -205,7 +205,7 @@ function setTheme(value) {
     if (typeof addFoodMacros === 'function') addFoodMacros();
 
     const goalText = CLIENT.goal === 'cut' ? 'חיטוב' : CLIENT.goal === 'maintain' ? 'שמירה על המשקל הנוכחי' : 'מסה';
-    document.getElementById('header-goal-display').innerText = `${goalText} | ${totalCalories} קק"ל`;
+    document.getElementById('header-goal-display').innerText = `${goalText} | ${totalCalories} קלוריות`;
     // שם המאמן מוצג רק ללקוחות ליווי - למנויים אין מאמן אישי, השורה נסגרת לגמרי
     const coachLine = document.getElementById('coach-name-line');
     if (coachLine) {
