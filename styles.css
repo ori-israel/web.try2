@@ -1557,6 +1557,15 @@ body:has(#ai-chat-input:focus) .tabs {
 }
 .amount-unit-chip.sel { background: var(--gradient-btn); color: #fff; border-color: transparent; }
 .amount-unit-chip:active { transform: scale(0.95); }
+
+.ai-quick-chips-row { display: flex; flex-wrap: wrap; gap: 7px; padding: 2px 0 10px; }
+.ai-quick-chip {
+    padding: 8px 13px; border-radius: 100px; border: 1.5px solid var(--border);
+    background: var(--bg-card-alt); color: var(--text-secondary); font-size: 13px; font-weight: 600;
+    font-family: inherit; cursor: pointer;
+    transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background 0.15s, color 0.15s, border-color 0.15s;
+}
+.ai-quick-chip:active { transform: scale(0.95); background: var(--gradient-btn); color: #fff; border-color: transparent; }
 .edit-food-amount-box {
     width: 100%; box-sizing: border-box; text-align: right; font-size: 16px; font-weight: 700;
     background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: var(--radius-sm);

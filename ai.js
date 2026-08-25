@@ -28,6 +28,117 @@ async function initAIChat() {
         addChatMessage(`היי ${CLIENT.nickname}! אני המאמן AI שלך, כאן איתך לאורך כל הדרך. אפשר לשאול אותי כל שאלה על תזונה, אימונים והתאוששות. במה נתחיל?`, 'assistant');
     }
     _wireAiSendBtn();
+    _loadQuickChips();
+}
+
+// ── צ'יפים לשאלות נפוצות: מוצגים רק כשהצ'אט ריק, נעלמים ברגע שיש שיחה ──────
+// מחושבים ע"י AI לפי כל המידע על המשתמש (אותו הקשר שכבר נאסף לכל הודעה), פעם אחת
+// לכל "חלון זמן" ביום (בוקר/צהריים/ערב) — נשמר במטמון המכשיר, לא מחושב בכל פתיחה.
+const _AI_QUICK_CHIPS_FALLBACK = ['אני תקוע כבר כמה שבועות, מה לעשות?', 'יש לי אירוע הערב, איך מתכננים סביב זה?', 'תעודד אותי, אין לי כוח היום'];
+
+function _quickChipsBucket() {
+    const h = new Date().getHours();
+    return h < 11 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+}
+
+function _quickChipsCacheKey() {
+    const uid = getActiveUserId();
+    const dateStr = typeof localDateStr === 'function' ? localDateStr() : new Date().toISOString().slice(0, 10);
+    return `ai_quick_chips_${uid}_${dateStr}_${_quickChipsBucket()}`;
+}
+
+function _renderQuickChips(chips) {
+    const row = document.getElementById('ai-quick-chips');
+    if (!row) return;
+    if (!chips || !chips.length || aiChatHistory.length > 0) {
+        row.style.display = 'none';
+        row.innerHTML = '';
+        return;
+    }
+    row.innerHTML = '';
+    chips.forEach(text => {
+        const btn = document.createElement('button');
+        btn.className = 'ai-quick-chip';
+        btn.textContent = text;
+        btn.onclick = () => {
+            row.style.display = 'none';
+            document.getElementById('ai-chat-input').value = text;
+            sendAIMessage();
+        };
+        row.appendChild(btn);
+    });
+    row.style.display = 'flex';
+}
+
+// קריאת AI קטנה ונפרדת (לא חלק מהצ'אט) שמציעה 3 שאלות לפי כל המידע על המשתמש.
+// לא נכשלת בקול — אם משהו משתבש, פשוט נשארים עם הצ'יפים הקבועים.
+async function _fetchQuickChips() {
+    try {
+        const { data: { session } } = await db.auth.getSession();
+        if (!session) return null;
+
+        const instruction = `\n\nמתוך כל המידע שלמעלה על המשתמש, הצע בדיוק 3 שאלות קצרות (עד 8 מילים כל אחת) שהכי הגיוני שהוא ישאל אותך עכשיו, ברגע הזה — משהו אמיתי ורלוונטי למצב שלו כרגע (משהו שחסר לו היום, הזדמנות טובה, או דבר ששווה לדבר עליו). לשון ניטרלית מגדרית, בלי לפנות בזכר או ברבים. החזר אך ורק מערך JSON של 3 מחרוזות, בלי שום טקסט נוסף. לדוגמה: ["שאלה אחת", "שאלה שנייה", "שאלה שלישית"]`;
+
+        const response = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+            body: JSON.stringify({
+                model: 'gemini-3.5-flash-lite',
+                kind: 'quick_chips',
+                payload: {
+                    generation_config: { response_modalities: ["TEXT"] },
+                    contents: [{ role: 'user', parts: [{ text: (await buildSystemPrompt()) + instruction }] }]
+                }
+            })
+        });
+        if (!response.ok) return null;
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '', fullText = '';
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const jsonStr = line.slice(6).trim();
+                if (!jsonStr || jsonStr === '[DONE]') continue;
+                try {
+                    const parsed = JSON.parse(jsonStr);
+                    const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) fullText += text;
+                } catch {}
+            }
+        }
+
+        const match = fullText.match(/\[[\s\S]*\]/);
+        if (!match) return null;
+        const arr = JSON.parse(match[0]);
+        if (!Array.isArray(arr) || !arr.length) return null;
+        return arr.filter(s => typeof s === 'string').slice(0, 3);
+    } catch (e) { return null; }
+}
+
+async function _loadQuickChips() {
+    if (aiChatHistory.length > 0) return; // כבר יש שיחה — לא רלוונטי
+    _renderQuickChips(_AI_QUICK_CHIPS_FALLBACK); // ברירת מחדל מיידית, בלי לחכות לרשת
+    const uid = getActiveUserId();
+    if (!uid) return;
+
+    const cacheKey = _quickChipsCacheKey();
+    try {
+        const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+        if (Array.isArray(cached) && cached.length) { _renderQuickChips(cached); return; }
+    } catch (e) {}
+
+    const chips = await _fetchQuickChips();
+    if (chips && chips.length && aiChatHistory.length === 0) {
+        try { localStorage.setItem(cacheKey, JSON.stringify(chips)); } catch (e) {}
+        _renderQuickChips(chips);
+    }
 }
 
 // תוקן: כשהמקלדת פתוחה במובייל, הקשה ראשונה על "שליחה" רק סגרה מקלדת (בלי לשלוח) בגלל
@@ -235,6 +346,8 @@ async function sendAIMessage() {
     const input = document.getElementById('ai-chat-input');
     const msg = input.value.trim();
     if (!msg) return;
+
+    _renderQuickChips(null); // מוסתר ברגע ששולחים הודעה, גם אם לא דרך צ'יפ
 
     // הגבלת 6 שניות בין הודעות — נשלח מיד ומחכים ברקע (בלי הודעת "המתן")
     const now = Date.now();

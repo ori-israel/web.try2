@@ -58,7 +58,7 @@ export default async function handler(req, res) {
     // בודקים את raw_message (מה שהמשתמש בפועל הקליד) אם נשלח — לא את ה-contents שנשלחים ל-Gemini,
     // כי אלה כוללים גם הקשר מוזרק (בסיס ידע/USDA) שיכול להיות ארוך בהרבה מההודעה עצמה.
     // אם raw_message לא נשלח (למשל קריאות ישנות/אחרות) — נופלים חזרה לבדיקה הישנה על ה-contents.
-    if (!isScan) {
+    if (!isScan && kind !== 'quick_chips') {
         let lastText;
         if (typeof raw_message === 'string') {
             lastText = raw_message;
@@ -118,10 +118,19 @@ export default async function handler(req, res) {
         await db.from('scan_logs').insert({ user_id: user.id, type: 'macro' });
     }
 
+    // Rate limit: 10 הצעות צ'יפים ביום למשתמש (רשת ביטחון — הלקוח ממילא שומר מטמון ולא קורא לזה בכל פתיחה)
+    if (kind === 'quick_chips') {
+        const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const { count } = await db.from('scan_logs').select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id).eq('type', 'quick_chips').gte('created_at', dayAgo);
+        if (count >= 10) return res.status(429).json({ error: 'הגעת למגבלת ההצעות היומית.' });
+        await db.from('scan_logs').insert({ user_id: user.id, type: 'quick_chips' });
+    }
+
     // ── מגבלות צ'אט יומיות (אכיפה בשרת, מתאפס בחצות ישראל) ──────
-    // צ'אט בלבד (לא סריקת תמונה, לא בירור מאקרו). 50 הודעות/יום, 20 חיפושים/יום.
+    // צ'אט בלבד (לא סריקת תמונה, לא בירור מאקרו, לא הצעות צ'יפים). 50 הודעות/יום, 20 חיפושים/יום.
     let messagesRemaining = null; // מועבר ללקוח בכותרת התשובה, כדי שאפשר להראות רמז לפני שנגמר לגמרי
-    if (!isScan && kind !== 'macro') {
+    if (!isScan && kind !== 'macro' && kind !== 'quick_chips') {
         // תאריך לפי שעון ישראל → איפוס אוטומטי בחצות מקומית
         const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
 
