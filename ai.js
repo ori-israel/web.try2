@@ -77,6 +77,10 @@ function _renderQuickChips(chips) {
         row.appendChild(btn);
     });
     row.style.display = 'flex';
+    // חלק מזרימת הגלילה של השיחה עצמה — כדי שהצ'יפים יופיעו אחרי ההודעה האחרונה המלאה, לא צמודים לחיתוך הגלילה
+    const container = document.getElementById('ai-chat-messages');
+    if (container && row.parentElement !== container) container.appendChild(row);
+    if (container) container.scrollTop = container.scrollHeight;
 }
 
 // קריאת AI קטנה ונפרדת (לא חלק מהצ'אט) שמציעה 3 שאלות לפי כל המידע על המשתמש.
