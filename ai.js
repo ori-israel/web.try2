@@ -238,6 +238,39 @@ function _sbLogKnowledgeGap(message) {
     } catch (e) {}
 }
 
+// הופך טקסט תשובה (עם ** לבולד, שורות בולטים עם •/-/* ופסקאות מופרדות בשורה ריקה)
+// ל-HTML קריא: פסקאות עם רווח ביניהן, ורשימות אמיתיות (<ul><li>) במקום בלוק טקסט אחד.
+// כל טקסט עובר escaping לפני שמוסיפים תגיות, כדי שלא יהיה אפשר להזריק HTML.
+function _formatAiReplyHtml(text) {
+    const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const inlineFormat = s => esc(s).split(/\*\*(.*?)\*\*/g).map((part, i) => i % 2 === 1 ? `<strong>${part}</strong>` : part).join('');
+
+    const lines = String(text).split('\n');
+    let html = '', inList = false, paraBuffer = [];
+
+    const flushPara = () => {
+        if (paraBuffer.length) { html += '<p class="ai-reply-p">' + paraBuffer.join('<br>') + '</p>'; paraBuffer = []; }
+    };
+    const closeList = () => { if (inList) { html += '</ul>'; inList = false; } };
+
+    for (const raw of lines) {
+        const line = raw.trim();
+        if (!line) { closeList(); flushPara(); continue; }
+        const bulletMatch = line.match(/^[•\-*]\s+(.*)$/);
+        if (bulletMatch) {
+            flushPara();
+            if (!inList) { html += '<ul class="ai-reply-list">'; inList = true; }
+            html += '<li>' + inlineFormat(bulletMatch[1]) + '</li>';
+        } else {
+            closeList();
+            paraBuffer.push(inlineFormat(line));
+        }
+    }
+    closeList();
+    flushPara();
+    return html;
+}
+
 // שמירת דיווח משתמש שתשובה מסוימת לא הייתה טובה (כפתור 👎) — לסקירה תקופתית של המנהל
 function _sbSaveAiFeedback(question, answer) {
     try {
@@ -529,15 +562,8 @@ async function sendAIMessage() {
         }
 
         if (replyTextDiv) {
-            // בניית HTML בטוח — הטקסט עובר escaping, רק bold ושורות מותרים
-            const safeHtml = displayText
-                .split(/\*\*(.*?)\*\*/g)
-                .map((part, i) => {
-                    const escaped = part.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-                    return i % 2 === 1 ? `<strong>${escaped}</strong>` : escaped.replace(/\n/g, '<br>');
-                })
-                .join('');
-            replyTextDiv.innerHTML = safeHtml;
+            // בניית HTML בטוח — הטקסט עובר escaping, ומעוצב לפסקאות + רשימות אמיתיות
+            replyTextDiv.innerHTML = _formatAiReplyHtml(displayText);
 
             // הצגת מקורות (חובה לפי תנאי Google כשמשתמשים בחיפוש)
             const chunks = lastGrounding?.groundingChunks || [];
@@ -676,7 +702,7 @@ function addChatMessage(text, role, isLoading = false) {
     icon.style.cssText = 'font-size: 16px; flex-shrink: 0; margin-top: 2px;';
     icon.innerHTML = role === 'user' ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>' : '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10.5h.01"/><path d="M12 10.5h.01"/><path d="M16 10.5h.01"/></svg>';
     const textDiv = document.createElement('div');
-    textDiv.innerHTML = _esc(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+    textDiv.innerHTML = _formatAiReplyHtml(text);
     div.appendChild(icon);
     div.appendChild(textDiv);
     container.appendChild(div);

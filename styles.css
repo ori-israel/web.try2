@@ -1567,6 +1567,14 @@ body:has(#ai-chat-input:focus) .tabs {
 }
 .ai-quick-chip svg { flex-shrink: 0; }
 .ai-quick-chip:active { transform: scale(0.95); background: var(--gradient-btn); color: #fff; }
+
+.ai-reply-p { margin: 0 0 10px; }
+.ai-reply-p:last-child { margin-bottom: 0; }
+.ai-reply-list { margin: 0 0 10px; padding: 0; list-style: none; }
+.ai-reply-list:last-child { margin-bottom: 0; }
+.ai-reply-list li { position: relative; padding-right: 16px; margin-bottom: 6px; }
+.ai-reply-list li:last-child { margin-bottom: 0; }
+.ai-reply-list li::before { content: '•'; position: absolute; right: 0; color: var(--accent); font-weight: 700; }
 .edit-food-amount-box {
     width: 100%; box-sizing: border-box; text-align: right; font-size: 16px; font-weight: 700;
     background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: var(--radius-sm);
