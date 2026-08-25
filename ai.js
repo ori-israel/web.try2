@@ -77,12 +77,6 @@ function _renderQuickChips(chips) {
         row.appendChild(btn);
     });
     row.style.display = 'flex';
-    // חלק מזרימת הגלילה של השיחה עצמה — תמיד מוזז לסוף כדי שיופיע אחרי ההודעה האחרונה, גם אם כבר היה בפנים במיקום ישן
-    const container = document.getElementById('ai-chat-messages');
-    if (container) {
-        container.appendChild(row);
-        container.scrollTop = container.scrollHeight;
-    }
 }
 
 // קריאת AI קטנה ונפרדת (לא חלק מהצ'אט) שמציעה 3 שאלות לפי כל המידע על המשתמש.
@@ -721,12 +715,10 @@ function addChatMessage(text, role, isLoading = false) {
 
 function loadChatHistory() {
     const container = document.getElementById('ai-chat-messages');
-    const chipsRow = document.getElementById('ai-quick-chips'); // ייתכן שכבר בפנים מהצגה קודמת — שומרים כדי לא לאבד אותו בניקוי
     container.innerHTML = '';
     aiChatHistory.forEach(msg => {
         addChatMessage(msg.content, msg.role);
     });
-    if (chipsRow) container.appendChild(chipsRow);
 }
 
 async function buildSystemPrompt() {

@@ -1558,7 +1558,7 @@ body:has(#ai-chat-input:focus) .tabs {
 .amount-unit-chip.sel { background: var(--gradient-btn); color: #fff; border-color: transparent; }
 .amount-unit-chip:active { transform: scale(0.95); }
 
-.ai-quick-chips-row { display: flex; flex-wrap: wrap; gap: 7px; padding: 12px 0 10px; border-top: 1px solid var(--border); margin-top: 4px; }
+.ai-quick-chips-row { display: flex; flex-wrap: wrap; gap: 7px; padding: 2px 0 10px; }
 .ai-quick-chip {
     padding: 7px 13px 7px 10px; border-radius: 100px; border: 1.5px solid transparent;
     background: var(--accent-light); color: var(--accent); font-size: 13px; font-weight: 700;
