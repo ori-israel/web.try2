@@ -719,10 +719,12 @@ function addChatMessage(text, role, isLoading = false) {
 
 function loadChatHistory() {
     const container = document.getElementById('ai-chat-messages');
+    const chipsRow = document.getElementById('ai-quick-chips'); // ייתכן שכבר בפנים מהצגה קודמת — שומרים כדי לא לאבד אותו בניקוי
     container.innerHTML = '';
     aiChatHistory.forEach(msg => {
         addChatMessage(msg.content, msg.role);
     });
+    if (chipsRow) container.appendChild(chipsRow);
 }
 
 async function buildSystemPrompt() {
@@ -1040,7 +1042,5 @@ function resetAIChat() {
         const uid = getActiveUserId();
         if (uid) db.from('ai_chat_history').delete().eq('user_id', uid).then(() => {}, () => {});
     } catch (e) {}
-    const container = document.getElementById('ai-chat-messages');
-    container.innerHTML = '';
-    initAIChat();
+    initAIChat(); // loadChatHistory (בתוכה) כבר מנקה את container ובונה מחדש
 }
