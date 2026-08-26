@@ -55,6 +55,119 @@ function _quickChipsCacheKey() {
     return `ai_quick_chips_${uid}_${dateStr}_${_quickChipsBucket()}`;
 }
 
+// ── זיהוי צוואר בקבוק: נתונים מסוכמים (חודש אחרון) לכל תחום, כדי שהמאמן AI יוכל
+// להסיק בעצמו מה הכי מעכב את המשתמש כרגע, במקום שנקבע לו חוקים קשיחים ──────
+function _isoDaysAgo(n) {
+    const d = new Date(); d.setDate(d.getDate() - n);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+async function _weightSignal(userId) {
+    const { data } = await db.from('weight_history')
+        .select('date, weight').eq('user_id', userId)
+        .order('date', { ascending: false }).limit(8);
+    if (!data || !data.length) return 'לא נשקל אף פעם';
+
+    const daysSince = Math.floor((new Date() - new Date(data[0].date)) / 86400000);
+    if (data.length < 2) return `נשקל לאחרונה לפני ${daysSince} ימים, אין עוד מספיק שקילות למגמה`;
+
+    const oldest = data[data.length - 1];
+    const weeksSpan = Math.max((new Date(data[0].date) - new Date(oldest.date)) / (86400000 * 7), 1);
+    const weeklyRate = ((data[0].weight - oldest.weight) / weeksSpan).toFixed(2);
+
+    return `נשקל לאחרונה לפני ${daysSince} ימים | קצב שינוי משקל: ${weeklyRate > 0 ? '+' : ''}${weeklyRate} ק"ג לשבוע (מבוסס על ${data.length} השקילות האחרונות)`;
+}
+
+async function _workoutSessionsSignal(userId) {
+    const { data } = await db.from('workout_performance_log')
+        .select('date').eq('client_id', userId).gte('date', _isoDaysAgo(28));
+    const weeklyTarget = Object.values(CLIENT.workoutDays || {}).reduce((s, days) => s + days.length, 0) || CLIENT.workoutsPerWeek || 3;
+    const done = new Set((data || []).map(r => r.date)).size;
+    return `ביצע ${done} אימונים מתוך יעד ${weeklyTarget * 4} בחודש האחרון`;
+}
+
+async function _exerciseSignal(userId) {
+    const { data } = await db.from('workout_performance_log')
+        .select('exercise_name, date, weight_kg').eq('client_id', userId)
+        .order('date', { ascending: true });
+    if (!data || !data.length) return 'אין עדיין נתוני ביצועים לתרגילים';
+
+    const byExercise = {};
+    data.forEach(r => (byExercise[r.exercise_name] = byExercise[r.exercise_name] || []).push(r));
+
+    const stuck = [];
+    Object.entries(byExercise).forEach(([name, rows]) => {
+        const last4 = rows.slice(-4);
+        if (last4.length >= 3 && last4[last4.length - 1].weight_kg <= last4[0].weight_kg) stuck.push(name);
+    });
+
+    if (!stuck.length) return 'כל התרגילים מתקדמים יפה, אין תרגיל תקוע';
+    return `תרגילים תקועים (בלי עלייה במשקל ב-4 האימונים האחרונים): ${stuck.slice(0, 3).join(', ')}`;
+}
+
+async function _nutritionSignal(userId) {
+    const { data } = await db.from('daily_nutrition')
+        .select('date, protein:protein_g, carbs:carbs_g, fat:fat_g')
+        .eq('user_id', userId).gte('date', _isoDaysAgo(28));
+    if (!data || !data.length) return 'אין נתוני תזונה בחודש האחרון';
+
+    const _w = CLIENT.currentWeight || CLIENT.startWeight || 80;
+    const _age = CLIENT.birthDate ? Math.floor((new Date() - new Date(CLIENT.birthDate)) / (86400000 * 365.25)) : 30;
+    const { proteinGrams: tgProtein, carbsGrams: tgCarbs, fatGrams: tgFat } = calcNutritionTargets({
+        weight: _w, height: CLIENT.height || 170, age: _age, gender: CLIENT.gender || 'male',
+        activityLevel: CLIENT.activityLevel || 1.4, goal: CLIENT.goal,
+        proteinRatio: CLIENT.proteinRatio, carbRatio: CLIENT.carbRatio
+    });
+
+    const met = data.filter(r => r.protein >= tgProtein && r.carbs >= tgCarbs && r.fat >= tgFat).length;
+    const pct = Math.round((met / data.length) * 100);
+    return `עמד ביעד המאקרו ב-${pct}% מהימים בחודש האחרון (${met}/${data.length} ימים שתועדו)`;
+}
+
+async function _foodLogSignal(userId) {
+    if (typeof sbFetchFoodLogRange !== 'function') return '';
+    try {
+        const rows = await sbFetchFoodLogRange(userId, _isoDaysAgo(28));
+        if (!rows) return '';
+        const days = new Set(rows.map(r => r.date));
+        const pct = Math.round((days.size / 28) * 100);
+        return `תיעד ביומן המאכלים ב-${pct}% מהימים בחודש האחרון (${days.size}/28 ימים)`;
+    } catch (e) { return ''; }
+}
+
+async function _cardioSignal(userId) {
+    const { data } = await db.from('cardio_log').select('date, minutes').eq('user_id', userId).gte('date', _isoDaysAgo(28));
+    const goal = (CLIENT.cardioWeeklyGoalMinutes ?? 150) * 4;
+    const done = (data || []).reduce((s, r) => s + (r.minutes || 0), 0);
+    const pct = goal ? Math.round((done / goal) * 100) : 0;
+    return `ביצע ${pct}% מיעד האירובי החודשי (${done}/${goal} דקות)`;
+}
+
+async function _scoreSignal(userId) {
+    const { data } = await db.from('weekly_scores').select('week_start, score').eq('client_id', userId).order('week_start', { ascending: false }).limit(4);
+    if (!data || !data.length) return 'אין עדיין ציונים שבועיים';
+    const latest = Math.round(data[0].score);
+    if (data.length < 2) return `ציון שבועי נוכחי: ${latest}`;
+    const trend = latest - Math.round(data[data.length - 1].score);
+    const trendText = trend > 3 ? 'במגמת עלייה' : trend < -3 ? 'במגמת ירידה' : 'יציב';
+    return `ציון שבועי נוכחי: ${latest} (${trendText} ביחס ל-${data.length} השבועות האחרונים)`;
+}
+
+async function _buildBottleneckSummary(userId) {
+    const [weight, workouts, exercises, nutrition, foodLog, cardio, score] = await Promise.all([
+        _weightSignal(userId), _workoutSessionsSignal(userId), _exerciseSignal(userId),
+        _nutritionSignal(userId), _foodLogSignal(userId), _cardioSignal(userId), _scoreSignal(userId)
+    ]);
+
+    const p = JSON.parse(localStorage.getItem('profile_data_v1') || '{}');
+    const goal = p.goal !== undefined ? p.goal : CLIENT.goal;
+    const gender = p.gender !== undefined ? p.gender : CLIENT.gender;
+    const goalText = goal === 'cut' ? 'חיטוב (ירידה במשקל)' : goal === 'maintain' ? 'שמירה על המשקל הנוכחי' : 'מסה (עלייה במשקל)';
+    const genderText = gender === 'male' ? 'גבר, פנה בלשון זכר' : 'אישה, פנה בלשון נקבה';
+
+    return `מטרת המשתמש: ${goalText} | מגדר: ${genderText}\n\nנתונים מסוכמים (חודש אחרון):\n• ${weight}\n• ${workouts}\n• ${exercises}\n• ${nutrition}\n${foodLog ? '• ' + foodLog + '\n' : ''}• ${cardio}\n• ${score}`;
+}
+
 let _aiChipsDismissed = false; // true ברגע שנשלחה הודעה בכניסה הנוכחית לטאב — לא קשור להיסטוריה השמורה
 // הצ'יפים הם ילד רגיל בתוך זרימת הגלילה של #ai-chat-messages, ממש בסוף — לא שורה קבועה נפרדת.
 // ככה כשגוללים ידנית למעלה בשיחה הם פשוט יוצאים מהמסך כמו כל תוכן אחר, ולא צריך שום חישוב
@@ -93,8 +206,11 @@ async function _fetchQuickChips() {
     try {
         const { data: { session } } = await db.auth.getSession();
         if (!session) return null;
+        const uid = getActiveUserId();
+        if (!uid) return null;
 
-        const instruction = `\n\nמתוך כל המידע שלמעלה על המשתמש, הצע בדיוק 3 שאלות קצרות (עד 8 מילים כל אחת) שהכי הגיוני שהוא ישאל אותך עכשיו, ברגע הזה — משהו אמיתי ורלוונטי למצב שלו כרגע (משהו שחסר לו היום, הזדמנות טובה, או דבר ששווה לדבר עליו). כל שאלה חייבת להתבסס על נתון קונקרטי אמיתי מהמידע שלמעלה (למשל תרגיל ספציפי, מספר מדויק, מאכל מהיומן, מגמת משקל) — לא ניסוח כללי שיכול להתאים לכל אחד. 3 השאלות צריכות לגעת בתחומים שונים זה מזה (למשל אחת אימונים, אחת תזונה, אחת משקל/סטריק/הרגלים) ולא לחפוף. בכל פעם שמבקשים ממך את זה מחדש, לבחור זווית שונה מקודם. כל שאלה בגוף ראשון, כאילו המשתמש עצמו כותב אותה — לנסח בלשון הזכר/נקבה שמתאימה למגדר שלו כפי שצוין למעלה, לא בלשון ניטרלית. החזר אך ורק מערך JSON של 3 מחרוזות, בלי שום טקסט נוסף. לדוגמה: ["שאלה אחת", "שאלה שנייה", "שאלה שלישית"]`;
+        const summary = await _buildBottleneckSummary(uid);
+        const instruction = `\n\nנתח את הנתונים המסוכמים למעלה ותזהה מה צוואר הבקבוק העיקרי שמעכב כרגע את ההתקדמות של המשתמש, בהתחשב במטרה שלו (לדוגמה: משקל יציב זה תקין ורצוי בשמירה, אבל בעיה בחיטוב או במסה). הצע בדיוק 3 שאלות קצרות (עד 8 מילים כל אחת) שהכי הגיוני שהוא ישאל אותך עכשיו. תעדיף לבנות את השאלות סביב הדבר הכי משמעותי שצריך לטפל בו כרגע — גם אם זה חוזר על אותו נושא מפעם קודמת, וגם אם כמה מהשאלות מאותו תחום, כל עוד זה באמת מה שהכי חשוב. אם שום דבר לא בולט כבעיה — אפשר להציע שאלה על הזדמנות טובה או עידוד כללי. כל שאלה חייבת להתבסס על נתון קונקרטי מהמידע למעלה, לא ניסוח כללי שיכול להתאים לכל אחד. כל שאלה בגוף ראשון, כאילו המשתמש עצמו כותב אותה — לנסח בלשון הזכר/נקבה שמתאימה למגדר שלו כפי שצוין למעלה, לא בלשון ניטרלית. החזר אך ורק מערך JSON של 3 מחרוזות, בלי שום טקסט נוסף. לדוגמה: ["שאלה אחת", "שאלה שנייה", "שאלה שלישית"]`;
 
         const response = await fetch('/api/gemini', {
             method: 'POST',
@@ -104,7 +220,7 @@ async function _fetchQuickChips() {
                 kind: 'quick_chips',
                 payload: {
                     generation_config: { response_modalities: ["TEXT"] },
-                    contents: [{ role: 'user', parts: [{ text: (await buildSystemPrompt()) + instruction }] }]
+                    contents: [{ role: 'user', parts: [{ text: summary + instruction }] }]
                 }
             })
         });
