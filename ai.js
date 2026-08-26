@@ -29,20 +29,7 @@ async function initAIChat() {
         addChatMessage(`היי ${CLIENT.nickname}! אני המאמן AI שלך, כאן איתך לאורך כל הדרך. אפשר לשאול אותי כל שאלה על תזונה, אימונים והתאוששות. במה נתחיל?`, 'assistant');
     }
     _wireAiSendBtn();
-    _wireAiChipsResizeObserver();
     _loadQuickChips();
-}
-
-// רשת ביטחון נוספת מעבר לקריאות הידניות ל-_rescrollAiMessages: עוקב אחרי כל שינוי גובה בפועל
-// של שורת הצ'יפים (הופעה/היעלמות/שינוי תוכן) ומצמיד מחדש את הגלילה ברגע שהדפדפן בפועל סיים
-// למדוד את הגובה החדש — לא תלוי בניחוש תזמון (setTimeout/rAF), ResizeObserver תמיד מדויק.
-let _aiChipsResizeObserverWired = false;
-function _wireAiChipsResizeObserver() {
-    if (_aiChipsResizeObserverWired || typeof ResizeObserver === 'undefined') return;
-    const row = document.getElementById('ai-quick-chips');
-    if (!row) return;
-    _aiChipsResizeObserverWired = true;
-    new ResizeObserver(_rescrollAiMessages).observe(row);
 }
 
 // ── צ'יפים לשאלות נפוצות: מוצגים רק כשהצ'אט ריק, נעלמים ברגע שיש שיחה ──────
@@ -69,26 +56,15 @@ function _quickChipsCacheKey() {
 }
 
 let _aiChipsDismissed = false; // true ברגע שנשלחה הודעה בכניסה הנוכחית לטאב — לא קשור להיסטוריה השמורה
-// גלילה מחדש לתחתית ההודעות — הצ'יפים הם אח נפרד מתחת לאזור ההודעות (flex:1), אז ברגע
-// שהם מופיעים/נעלמים הגובה הפנוי של אזור ההודעות משתנה, וה-scrollTop שנקבע קודם (לפני
-// שהצ'יפים תפסו מקום) כבר לא מצביע על הסוף האמיתי. חובה לחשב מחדש בכל שינוי גובה כזה.
-function _rescrollAiMessages() {
-    const container = document.getElementById('ai-chat-messages');
-    if (!container) return;
-    container.scrollTop = container.scrollHeight; // מיידי, ליתר ביטחון
-    // דחייה לפריים הבא: לפעמים הדפדפן עדיין לא סיים למדוד את הגובה החדש (למשל מיד אחרי שהטאב עצמו
-    // עבר מ-display:none ל-flex) באותו טיק סינכרוני, אז מודדים שוב אחרי שהלייאאוט התייצב בוודאות
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
-    });
-}
+// הצ'יפים הם ילד רגיל בתוך זרימת הגלילה של #ai-chat-messages, ממש בסוף — לא שורה קבועה נפרדת.
+// ככה כשגוללים ידנית למעלה בשיחה הם פשוט יוצאים מהמסך כמו כל תוכן אחר, ולא צריך שום חישוב
+// גלילה מיוחד: scrollTop=scrollHeight רגיל (כמו שכל הודעה עושה) מספיק כדי לראות אותם בתחתית.
 function _renderQuickChips(chips) {
     const row = document.getElementById('ai-quick-chips');
     if (!row) return;
     if (!chips || !chips.length || _aiChipsDismissed) {
         row.style.display = 'none';
         row.innerHTML = '';
-        _rescrollAiMessages();
         return;
     }
     row.innerHTML = '';
@@ -98,14 +74,17 @@ function _renderQuickChips(chips) {
         btn.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span>' + _esc(text) + '</span>';
         btn.onclick = () => {
             row.style.display = 'none';
-            _rescrollAiMessages();
             document.getElementById('ai-chat-input').value = text;
             sendAIMessage();
         };
         row.appendChild(btn);
     });
     row.style.display = 'flex';
-    _rescrollAiMessages();
+    const container = document.getElementById('ai-chat-messages');
+    if (container) {
+        container.appendChild(row); // תמיד ילד אחרון — אחרי ההודעה האחרונה שכבר שם
+        container.scrollTop = container.scrollHeight;
+    }
 }
 
 // קריאת AI קטנה ונפרדת (לא חלק מהצ'אט) שמציעה 3 שאלות לפי כל המידע על המשתמש.
@@ -744,10 +723,12 @@ function addChatMessage(text, role, isLoading = false) {
 
 function loadChatHistory() {
     const container = document.getElementById('ai-chat-messages');
+    const chipsRow = document.getElementById('ai-quick-chips'); // עלול כבר להיות ילד של container מתצוגה קודמת — לשמור רפרנס לפני שהניקוי מוחק אותו
     container.innerHTML = '';
     aiChatHistory.forEach(msg => {
         addChatMessage(msg.content, msg.role);
     });
+    if (chipsRow) container.appendChild(chipsRow); // מוחזר בסוף כדי ש-getElementById ימשיך למצוא אותו; התצוגה/מיקום הסופי נקבעים ב-_renderQuickChips
 }
 
 async function buildSystemPrompt() {
