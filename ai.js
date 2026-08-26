@@ -61,7 +61,13 @@ let _aiChipsDismissed = false; // true ברגע שנשלחה הודעה בכני
 // שהצ'יפים תפסו מקום) כבר לא מצביע על הסוף האמיתי. חובה לחשב מחדש בכל שינוי גובה כזה.
 function _rescrollAiMessages() {
     const container = document.getElementById('ai-chat-messages');
-    if (container) container.scrollTop = container.scrollHeight;
+    if (!container) return;
+    container.scrollTop = container.scrollHeight; // מיידי, ליתר ביטחון
+    // דחייה לפריים הבא: לפעמים הדפדפן עדיין לא סיים למדוד את הגובה החדש (למשל מיד אחרי שהטאב עצמו
+    // עבר מ-display:none ל-flex) באותו טיק סינכרוני, אז מודדים שוב אחרי שהלייאאוט התייצב בוודאות
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
+    });
 }
 function _renderQuickChips(chips) {
     const row = document.getElementById('ai-quick-chips');
