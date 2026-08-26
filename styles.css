@@ -1560,8 +1560,8 @@ body:has(#ai-chat-input:focus) .tabs {
 
 .ai-quick-chips-row { display: flex; flex-wrap: wrap; gap: 7px; padding: 2px 0 10px; }
 .ai-quick-chip {
-    padding: 7px 13px 7px 10px; border-radius: 100px; border: 1.5px solid transparent;
-    background: var(--accent-light); color: var(--accent); font-size: 13px; font-weight: 700;
+    padding: 7px 13px 7px 10px; border-radius: 100px; border: 1px solid rgba(59, 130, 246, 0.35);
+    background: rgba(59, 130, 246, 0.22); color: var(--accent-dark); font-size: 13px; font-weight: 700;
     font-family: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
     transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background 0.15s, color 0.15s;
 }
