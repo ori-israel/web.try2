@@ -56,12 +56,20 @@ function _quickChipsCacheKey() {
 }
 
 let _aiChipsDismissed = false; // true ברגע שנשלחה הודעה בכניסה הנוכחית לטאב — לא קשור להיסטוריה השמורה
+// גלילה מחדש לתחתית ההודעות — הצ'יפים הם אח נפרד מתחת לאזור ההודעות (flex:1), אז ברגע
+// שהם מופיעים/נעלמים הגובה הפנוי של אזור ההודעות משתנה, וה-scrollTop שנקבע קודם (לפני
+// שהצ'יפים תפסו מקום) כבר לא מצביע על הסוף האמיתי. חובה לחשב מחדש בכל שינוי גובה כזה.
+function _rescrollAiMessages() {
+    const container = document.getElementById('ai-chat-messages');
+    if (container) container.scrollTop = container.scrollHeight;
+}
 function _renderQuickChips(chips) {
     const row = document.getElementById('ai-quick-chips');
     if (!row) return;
     if (!chips || !chips.length || _aiChipsDismissed) {
         row.style.display = 'none';
         row.innerHTML = '';
+        _rescrollAiMessages();
         return;
     }
     row.innerHTML = '';
@@ -71,12 +79,14 @@ function _renderQuickChips(chips) {
         btn.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span>' + _esc(text) + '</span>';
         btn.onclick = () => {
             row.style.display = 'none';
+            _rescrollAiMessages();
             document.getElementById('ai-chat-input').value = text;
             sendAIMessage();
         };
         row.appendChild(btn);
     });
     row.style.display = 'flex';
+    _rescrollAiMessages();
 }
 
 // קריאת AI קטנה ונפרדת (לא חלק מהצ'אט) שמציעה 3 שאלות לפי כל המידע על המשתמש.
