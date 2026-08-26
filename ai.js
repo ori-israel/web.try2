@@ -29,36 +29,20 @@ async function initAIChat() {
         addChatMessage(`היי ${CLIENT.nickname}! אני המאמן AI שלך, כאן איתך לאורך כל הדרך. אפשר לשאול אותי כל שאלה על תזונה, אימונים והתאוששות. במה נתחיל?`, 'assistant');
     }
     _wireAiSendBtn();
-    _wireAiScrollVisibility();
+    _wireAiChipsResizeObserver();
     _loadQuickChips();
 }
 
-// הצ'יפים תלויי-מיקום-גלילה: מוצגים רק כשההודעה האחרונה בפועל גלויה במלואה (בתחתית אזור
-// ההודעות). ברגע שגוללים ידנית למעלה בתוך השיחה (לקרוא הודעות ישנות) הם נעלמים — כי אין להם
-// מקום הגיוני ליד טקסט אקראי שנחתך; חוזרים לבד ברגע שחוזרים לתחתית.
-let _aiScrollVisibilityWired = false;
-function _wireAiScrollVisibility() {
-    if (_aiScrollVisibilityWired) return;
-    const container = document.getElementById('ai-chat-messages');
-    if (!container) return;
-    _aiScrollVisibilityWired = true;
-    container.addEventListener('scroll', _updateChipsVisibility, { passive: true });
-}
-function _isAiMessagesAtBottom() {
-    const container = document.getElementById('ai-chat-messages');
-    if (!container) return true;
-    return container.scrollHeight - container.scrollTop - container.clientHeight < 24; // סבילות קטנה
-}
-function _updateChipsVisibility() {
+// רשת ביטחון נוספת מעבר לקריאות הידניות ל-_rescrollAiMessages: עוקב אחרי כל שינוי גובה בפועל
+// של שורת הצ'יפים (הופעה/היעלמות/שינוי תוכן) ומצמיד מחדש את הגלילה ברגע שהדפדפן בפועל סיים
+// למדוד את הגובה החדש — לא תלוי בניחוש תזמון (setTimeout/rAF), ResizeObserver תמיד מדויק.
+let _aiChipsResizeObserverWired = false;
+function _wireAiChipsResizeObserver() {
+    if (_aiChipsResizeObserverWired || typeof ResizeObserver === 'undefined') return;
     const row = document.getElementById('ai-quick-chips');
     if (!row) return;
-    const shouldShow = !!_aiChipsData && _isAiMessagesAtBottom();
-    const isShown = row.style.display === 'flex';
-    if (shouldShow === isShown) return;
-    row.style.display = shouldShow ? 'flex' : 'none';
-    // מתקנים גלילה רק כשמראים (הצ'יפים "גונבים" גובה מאזור ההודעות וצריך לפצות) —
-    // כשמסתירים כי המשתמש גלל בעצמו למעלה, לא נוגעים בגלילה שלו בכלל
-    if (shouldShow) _rescrollAiMessages();
+    _aiChipsResizeObserverWired = true;
+    new ResizeObserver(_rescrollAiMessages).observe(row);
 }
 
 // ── צ'יפים לשאלות נפוצות: מוצגים רק כשהצ'אט ריק, נעלמים ברגע שיש שיחה ──────
@@ -98,24 +82,21 @@ function _rescrollAiMessages() {
         requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
     });
 }
-let _aiChipsData = null; // רשימת הצ'יפים התקפה כרגע (או null) — התצוגה בפועל מוכרעת ב-_updateChipsVisibility לפי מיקום הגלילה
 function _renderQuickChips(chips) {
     const row = document.getElementById('ai-quick-chips');
     if (!row) return;
     if (!chips || !chips.length || _aiChipsDismissed) {
-        _aiChipsData = null;
+        row.style.display = 'none';
         row.innerHTML = '';
-        _updateChipsVisibility();
+        _rescrollAiMessages();
         return;
     }
-    _aiChipsData = chips;
     row.innerHTML = '';
     chips.forEach(text => {
         const btn = document.createElement('button');
         btn.className = 'ai-quick-chip';
         btn.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span>' + _esc(text) + '</span>';
         btn.onclick = () => {
-            _aiChipsData = null;
             row.style.display = 'none';
             _rescrollAiMessages();
             document.getElementById('ai-chat-input').value = text;
@@ -123,8 +104,8 @@ function _renderQuickChips(chips) {
         };
         row.appendChild(btn);
     });
-    row.style.display = 'none'; // _updateChipsVisibility קובע את התצוגה בפועל לפי מיקום הגלילה
-    _updateChipsVisibility();
+    row.style.display = 'flex';
+    _rescrollAiMessages();
 }
 
 // קריאת AI קטנה ונפרדת (לא חלק מהצ'אט) שמציעה 3 שאלות לפי כל המידע על המשתמש.
