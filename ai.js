@@ -29,7 +29,20 @@ async function initAIChat() {
         addChatMessage(`היי ${CLIENT.nickname}! אני המאמן AI שלך, כאן איתך לאורך כל הדרך. אפשר לשאול אותי כל שאלה על תזונה, אימונים והתאוששות. במה נתחיל?`, 'assistant');
     }
     _wireAiSendBtn();
+    _wireAiChipsResizeObserver();
     _loadQuickChips();
+}
+
+// רשת ביטחון נוספת מעבר לקריאות הידניות ל-_rescrollAiMessages: עוקב אחרי כל שינוי גובה בפועל
+// של שורת הצ'יפים (הופעה/היעלמות/שינוי תוכן) ומצמיד מחדש את הגלילה ברגע שהדפדפן בפועל סיים
+// למדוד את הגובה החדש — לא תלוי בניחוש תזמון (setTimeout/rAF), ResizeObserver תמיד מדויק.
+let _aiChipsResizeObserverWired = false;
+function _wireAiChipsResizeObserver() {
+    if (_aiChipsResizeObserverWired || typeof ResizeObserver === 'undefined') return;
+    const row = document.getElementById('ai-quick-chips');
+    if (!row) return;
+    _aiChipsResizeObserverWired = true;
+    new ResizeObserver(_rescrollAiMessages).observe(row);
 }
 
 // ── צ'יפים לשאלות נפוצות: מוצגים רק כשהצ'אט ריק, נעלמים ברגע שיש שיחה ──────
