@@ -1118,7 +1118,7 @@ function addExerciseToCustomWorkout(idx) {
         w.exercises[_cweSwapExIdx] = { name, reps: old.reps, warmupSets: old.warmupSets, workSets: old.workSets };
         _cweSwapExIdx = null;
     } else {
-        w.exercises.push({ name, reps: '10-15', warmupSets: 1, workSets: 3 });
+        w.exercises.push({ name, reps: '10–15', warmupSets: 1, workSets: 3 });
     }
     _renderCustomBuilder();
 }
