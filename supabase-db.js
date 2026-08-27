@@ -409,14 +409,6 @@ async function sbLookupBarcode(barcode) {
     return data;
 }
 
-async function sbResetBarcodeMacros(barcode) {
-    const { error } = await db
-        .from('barcode_products')
-        .update({ protein_g: null, carbs_g: null, fat_g: null, alcohol_g: null })
-        .eq('barcode', barcode);
-    if (error) console.warn('sbResetBarcodeMacros:', error.message);
-}
-
 async function sbSaveBarcodeMacros(barcode, macros) {
     const { error } = await db
         .from('barcode_products')

@@ -245,14 +245,12 @@ async function confirmBarcodeAdd() {
     setTimeout(() => toast.remove(), 3000);
 }
 
-// דיווח על נתון שגוי בברקוד → איפוס במאגר + מעבר ישיר לצילום התווית האמיתית
+// דיווח על נתון שגוי בברקוד → מעבר ישיר לצילום התווית האמיתית
+// (בלי דיאלוג אישור באמצע - דפדפנים חוסמים פתיחת מצלמה/קובץ שלא נובעת ישירות מלחיצת משתמש)
 let _bcReportBarcode = null;
 
-async function reportBarcodeMacrosInaccurate() {
+function reportBarcodeMacrosInaccurate() {
     if (!_bcProduct) return;
-    const ok = await showConfirm('לצלם את התווית ולתקן את הנתונים?');
-    if (!ok) return;
-    await sbResetBarcodeMacros(_bcProduct.barcode);
     _bcReportBarcode = _bcProduct.barcode;
     closeBarcodeScanner();
     if (typeof openFoodScanner === 'function') openFoodScanner();
