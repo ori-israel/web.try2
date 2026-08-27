@@ -37,30 +37,6 @@ function initWorkoutTableWeights(targets = {}) {
     });
 }
 
-async function resetWorkout() {
-    const day = window._selectedWorkoutDay ?? new Date().getDay();
-    const activeLetter = _cweLetterForDay(day);
-    if (!activeLetter) return;
-
-    const confirmed = await showConfirmDanger('לאפס את כל הסימונים שסימנת באימון הזה היום?');
-    if (!confirmed) return;
-
-    const progress = _ensureWorkoutCache().exercises;
-    Object.keys(progress).forEach(key => { if (key.startsWith(activeLetter + '_')) delete progress[key]; });
-    if (typeof scheduleSyncWorkoutProgress === 'function') scheduleSyncWorkoutProgress();
-
-    document.querySelectorAll(`[data-id^="${activeLetter}_"]`).forEach(cb => cb.checked = false);
-    document.querySelectorAll(`#workout-${activeLetter} .accord-checkbox`).forEach((cb, i) => {
-        cb.checked = false;
-        const header = cb.closest('.workout-accord-header');
-        if (header) header.classList.remove('checked');
-        const item = cb.closest('.workout-accord-item');
-        if (item) item.classList.remove('checked');
-        const numBadge = item?.querySelector('.accord-num');
-        if (numBadge) numBadge.textContent = i + 1;
-    });
-}
-
 const _ORDER_UP_ICON   = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>';
 const _ORDER_DOWN_ICON  = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 
