@@ -98,10 +98,6 @@ async function onBarcodeDetected(barcode) {
         } else {
             _bcSetLoadingText('מחפשים ערכים תזונתיים...');
             macros = await _bcFetchFromOpenFoodFacts(barcode);
-            if (!macros) {
-                _bcSetLoadingText('כמעט סיימנו...');
-                macros = await _bcFetchFromAI(row.name);
-            }
             if (macros) sbSaveBarcodeMacros(barcode, macros).catch(() => {});
         }
 
@@ -139,24 +135,6 @@ async function _bcFetchFromOpenFoodFacts(barcode) {
     }
 }
 
-async function _bcFetchFromAI(name) {
-    try {
-        const prompt = `מהם ערכי המאקרו ל-100 גרם של המוצר "${name}"? אם זה מוצר ספציפי/מותג — חפש באינטרנט את הערכים האמיתיים. אם המוצר מכיל אלכוהול טהור — כלול גם alcohol_g, אחרת 0. החזר JSON בלבד ללא הסברים: {"protein_g": X, "fat_g": X, "carbs_g": X, "alcohol_g": X}`;
-        const text = await geminiMacroLookup(prompt);
-        const match = text.match(/\{[\s\S]*?\}/);
-        if (!match) return null;
-        const macros = JSON.parse(match[0]);
-        return {
-            protein_g: macros.protein_g || 0,
-            carbs_g:   macros.carbs_g   || 0,
-            fat_g:     macros.fat_g     || 0,
-            alcohol_g: macros.alcohol_g || 0,
-        };
-    } catch (_) {
-        return null;
-    }
-}
-
 // חיפוש מוצרים לפי שם (לתיבת החיפוש הרגילה, לא רק סריקה)
 async function searchBarcodeProductsByName(query) {
     try {
@@ -174,15 +152,14 @@ async function searchBarcodeProductsByName(query) {
     }
 }
 
-// שולף מאקרו ל-100 גרם למוצר לפי ברקוד: מהמאגר (אם כבר ידוע), אחרת Open Food Facts, אחרת AI — ושומר חזרה
+// שולף מאקרו ל-100 גרם למוצר לפי ברקוד: מהמאגר (אם כבר ידוע), אחרת Open Food Facts (מקור אמיתי לפי ברקוד) — ושומר חזרה
 async function resolveBarcodeProductMacros(barcode) {
     const row = await sbLookupBarcode(barcode);
     if (!row) return null;
     if (row.protein_g != null) {
         return { protein_g: row.protein_g, carbs_g: row.carbs_g, fat_g: row.fat_g, alcohol_g: row.alcohol_g };
     }
-    let macros = await _bcFetchFromOpenFoodFacts(barcode);
-    if (!macros) macros = await _bcFetchFromAI(row.name);
+    const macros = await _bcFetchFromOpenFoodFacts(barcode);
     if (macros) sbSaveBarcodeMacros(barcode, macros).catch(() => {});
     return macros;
 }

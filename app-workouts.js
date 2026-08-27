@@ -1164,9 +1164,9 @@ function _renderCustomBuilder() {
                         <input type="hidden" data-field="warmupSets" value="${ex.warmupSets}">
                         <input type="hidden" data-field="workSets" value="${ex.workSets}">
                     </div>
-                    <div class="cwe-cb-field">
+                    <div class="cwe-cb-field cwe-cb-field-tap" onclick="openRepsSheet(${wi}, ${ei})">
                         <span class="cwe-cb-field-label">חזרות</span>
-                        <input class="cwe-cb-input" type="text" value="${ex.reps}" data-field="reps" aria-label="טווח חזרות">
+                        <span class="cwe-cb-field-val">${ex.reps}</span>
                     </div>
                 </div>
             </div>`).join('');
@@ -1205,10 +1205,8 @@ function _cweSyncCustomBuilderDom() {
         if (!ex) return;
         const warm = row.querySelector('[data-field="warmupSets"]');
         const work = row.querySelector('[data-field="workSets"]');
-        const reps = row.querySelector('[data-field="reps"]');
         if (warm) ex.warmupSets = parseInt(warm.value) || 0;
         if (work) ex.workSets   = parseInt(work.value) || 0;
-        if (reps) ex.reps       = reps.value.trim() || '10-15';
     });
 }
 
@@ -1256,6 +1254,75 @@ function saveSetsSheet() {
         row.querySelector('.cwe-cb-field-val').textContent = `${warm} חימום · ${work} עבודה`;
     }
     closeSetsSheet();
+}
+
+// ── בחירת טווח חזרות — בוטום שיט (במקום מקלדת) ────────────────
+let _repsSheetWi = null, _repsSheetEi = null, _repsSheetMin = 10, _repsSheetMax = 15;
+
+function _parseRepsRange(str) {
+    const m = String(str || '').match(/(\d+)\D+(\d+)/);
+    if (!m) return [10, 15];
+    return [parseInt(m[1]), parseInt(m[2])];
+}
+
+function openRepsSheet(wi, ei) {
+    const ex = _cweCustomState?.workouts[wi]?.exercises[ei];
+    if (!ex) return;
+    _repsSheetWi = wi;
+    _repsSheetEi = ei;
+    [_repsSheetMin, _repsSheetMax] = _parseRepsRange(ex.reps);
+    document.getElementById('reps-sheet-ex-name').textContent = ex.name;
+    _renderRepsSheetVals();
+    document.getElementById('reps-sheet-overlay').classList.add('open');
+    window._dynamicOverlayOpen();
+}
+
+function closeRepsSheet() {
+    const overlay = document.getElementById('reps-sheet-overlay');
+    if (!overlay || !overlay.classList.contains('open')) return;
+    overlay.classList.remove('open');
+    window._dynamicOverlayClosed();
+}
+
+function _renderRepsSheetVals() {
+    document.getElementById('reps-sheet-min-val').textContent = _repsSheetMin;
+    document.getElementById('reps-sheet-max-val').textContent = _repsSheetMax;
+}
+
+function pickRepsMin() {
+    openNumberRulerSheet({
+        min: 1, max: 30, step: 1, labelStep: 5,
+        title: 'מינימום חזרות',
+        value: _repsSheetMin,
+        onSave: (val) => {
+            _repsSheetMin = val;
+            if (_repsSheetMax < _repsSheetMin) _repsSheetMax = _repsSheetMin;
+            _renderRepsSheetVals();
+        }
+    });
+}
+
+function pickRepsMax() {
+    openNumberRulerSheet({
+        min: 1, max: 30, step: 1, labelStep: 5,
+        title: 'מקסימום חזרות',
+        value: _repsSheetMax,
+        onSave: (val) => {
+            _repsSheetMax = val;
+            if (_repsSheetMin > _repsSheetMax) _repsSheetMin = _repsSheetMax;
+            _renderRepsSheetVals();
+        }
+    });
+}
+
+function saveRepsSheet() {
+    if (_repsSheetWi == null || _repsSheetEi == null) return;
+    const ex = _cweCustomState?.workouts[_repsSheetWi]?.exercises[_repsSheetEi];
+    if (!ex) { closeRepsSheet(); return; }
+    ex.reps = `${_repsSheetMin}–${_repsSheetMax}`;
+    const row = document.querySelector(`.cwe-cb-ex-row[data-workout-idx="${_repsSheetWi}"][data-ex-idx="${_repsSheetEi}"]`);
+    if (row) row.querySelector('[onclick^="openRepsSheet"] .cwe-cb-field-val').textContent = ex.reps;
+    closeRepsSheet();
 }
 
 async function saveCustomWorkout() {

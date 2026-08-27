@@ -1519,6 +1519,16 @@ body:has(#ai-chat-input:focus) .tabs {
 .sets-sheet-save-btn:active { transform: scale(0.98); }
 .cwe-cb-field-tap { cursor: pointer; }
 .cwe-cb-field-tap .cwe-cb-field-val { font-size: 12px; font-weight: 700; color: var(--accent); }
+.reps-range-row { display: flex; gap: 10px; margin-bottom: 18px; }
+.reps-range-field {
+    flex: 1; background: var(--bg-card-alt); border: 0.5px solid var(--border);
+    border-radius: 14px; padding: 12px 10px 11px; text-align: center; cursor: pointer;
+    transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reps-range-field:active { transform: scale(0.97); }
+.reps-range-field-label { font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 4px; }
+.reps-range-field-val { font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.reps-range-sep { display: flex; align-items: center; color: var(--text-secondary); font-size: 0.9rem; padding-top: 16px; }
 
 /* ============================================
    Generic Number Ruler Sheet (reused: journal weight/reps, height)

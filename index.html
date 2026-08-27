@@ -1367,6 +1367,26 @@
   </div>
 </div>
 
+<div class="sets-sheet-overlay" id="reps-sheet-overlay" onclick="if(event.target===this)closeRepsSheet()">
+  <div class="sets-sheet">
+    <div class="sets-sheet-handle"></div>
+    <div class="sets-sheet-title">טווח חזרות</div>
+    <div class="sets-sheet-ex-name" id="reps-sheet-ex-name"></div>
+    <div class="reps-range-row">
+      <div class="reps-range-field" onclick="pickRepsMin()">
+        <div class="reps-range-field-label">מינימום</div>
+        <div class="reps-range-field-val" id="reps-sheet-min-val">10</div>
+      </div>
+      <div class="reps-range-sep">עד</div>
+      <div class="reps-range-field" onclick="pickRepsMax()">
+        <div class="reps-range-field-label">מקסימום</div>
+        <div class="reps-range-field-val" id="reps-sheet-max-val">15</div>
+      </div>
+    </div>
+    <button class="sets-sheet-save-btn" onclick="saveRepsSheet()">שמירה <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
+  </div>
+</div>
+
 <div class="weight-sheet-overlay num-sheet-overlay" id="num-sheet-overlay" onclick="if(event.target===this)closeNumberRulerSheet()">
   <div class="weight-sheet">
     <div class="weight-sheet-handle"></div>
