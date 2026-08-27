@@ -3255,7 +3255,10 @@ select.login-input:focus {
     border-radius: 50%;
     animation: spin 0.75s linear infinite;
 }
+.login-spinner-sm { width: 26px; height: 26px; border-width: 2.5px; }
 @keyframes spin { to { transform: rotate(360deg); } }
+.login-loading-logo { animation: login-logo-pulse 1.8s ease-in-out infinite; }
+@keyframes login-logo-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 
 /* ══════════════════════════════════════════════
    Admin overlay & client list
