@@ -206,10 +206,7 @@ function checkWorkoutCompletion(clickedCheckbox) {
         if (localStorage.getItem(_popupKey) !== today && isScheduledToday) {
             localStorage.setItem(_popupKey, today);
             const msg = document.getElementById('workout-complete-msg');
-            if (msg) {
-                msg.style.cssText = "display:flex; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9999; align-items:center; justify-content:center;";
-                msg.onclick = (e) => { if (e.target === msg) closeCompleteMsg(); };
-            }
+            if (msg) msg.style.cssText = "display:flex; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9999; align-items:center; justify-content:center;";
         }
     }
 }

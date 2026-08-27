@@ -48,7 +48,7 @@
     </div>
 </div>
 
-<div id="workout-complete-msg" class="complete-modal" style="display:none;">
+<div id="workout-complete-msg" class="complete-modal" style="display:none;" onclick="if(event.target===this) closeCompleteMsg()">
     <div class="complete-content complete-content-minimal">
         <div class="complete-check-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
         <h2>אימון הושלם!</h2>
@@ -211,7 +211,7 @@
 </div>
 
 <!-- PWA install prompt -->
-<div id="pwa-install-popup" class="complete-modal" style="display:none;">
+<div id="pwa-install-popup" class="complete-modal" style="display:none;" onclick="if(event.target===this) pwaInstallLater()">
     <div class="complete-content" style="max-width:300px;padding:16px;">
         <span class="close-complete" onclick="pwaInstallLater()">&times;</span>
         <div style="margin-bottom:6px;"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M8 7l4-4 4 4"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></div>
@@ -224,7 +224,7 @@
 </div>
 
 <!-- תזכורת חידוש מנוי -->
-<div id="renewal-reminder-popup" class="complete-modal" style="display:none;">
+<div id="renewal-reminder-popup" class="complete-modal" style="display:none;" onclick="if(event.target===this) dismissRenewalReminder()">
     <div class="complete-content" style="max-width:300px;padding:16px;">
         <span class="close-complete" onclick="dismissRenewalReminder()">&times;</span>
         <div style="font-size:1.5rem;margin-bottom:6px;">⏳</div>
@@ -237,7 +237,7 @@
 </div>
 
 <!-- PWA iOS instructions -->
-<div id="pwa-ios-popup" class="complete-modal" style="display:none;">
+<div id="pwa-ios-popup" class="complete-modal" style="display:none;" onclick="if(event.target===this) pwaIosClose()">
     <div class="complete-content" style="max-width:300px;padding:16px;">
         <span class="close-complete" onclick="pwaIosClose()">&times;</span>
         <div style="margin-bottom:6px;"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M8 7l4-4 4 4"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></div>
@@ -251,7 +251,7 @@
     </div>
 </div>
 
-<div id="birthday-modal" class="complete-modal" style="display:none;">
+<div id="birthday-modal" class="complete-modal" style="display:none;" onclick="if(event.target===this) this.style.display='none'">
     <div class="complete-content">
         <h2><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><rect x="4" y="13" width="16" height="7" rx="1.5"/><path d="M4 16h16"/><path d="M8 13v-2a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M12 10V7"/><path d="M12 7c-1-1-1-2 0-3 1 1 1 2 0 3z"/></svg> יום הולדת שמח!</h2>
         <p id="birthday-msg"></p>
