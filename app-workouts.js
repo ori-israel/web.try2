@@ -950,7 +950,12 @@ const _CWE_CATEGORIES = ['חזה', 'גב', 'כתפיים', 'רגליים', 'יד
 const _CWE_DEL_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const _CWE_UP_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>';
 const _CWE_DOWN_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
-const _CWE_SWAP_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
+const _CWE_SWAP_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
+// גרסאות גדולות יותר של אייקוני הסידור/מחיקה, לשורת תרגיל בעריכה בלבד — לא לגעת ב-_CWE_UP/DOWN/DEL_ICON
+// המקוריים, הם משותפים גם עם כפתורי הסידור באקורדיון היומי (buildWorkoutAccordions)
+const _CWE_UP_ICON_LG = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>';
+const _CWE_DOWN_ICON_LG = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+const _CWE_DEL_ICON_LG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 
 let _cweCustomState  = null;
 let _cweActiveWorkoutIdx = null;
@@ -1015,13 +1020,39 @@ function removeExerciseFromCustomWorkout(workoutIdx, exIdx) {
     _renderCustomBuilder();
 }
 
+async function confirmRemoveExerciseFromCustomWorkout(workoutIdx, exIdx) {
+    _cweSyncCustomBuilderDom();
+    const ex = _cweCustomState.workouts[workoutIdx]?.exercises[exIdx];
+    if (!ex) return;
+    const confirmed = await _appDialog({
+        message: `להסיר את "${ex.name}" מהתוכנית? אפשר להוסיף אותו בחזרה בכל שלב`,
+        okLabel: 'הסרה', cancelLabel: 'ביטול'
+    });
+    if (!confirmed) return;
+    removeExerciseFromCustomWorkout(workoutIdx, exIdx);
+}
+
 function moveExerciseInCustomWorkout(workoutIdx, exIdx, direction) {
     _cweSyncCustomBuilderDom();
     const exercises = _cweCustomState.workouts[workoutIdx].exercises;
     const newIdx = exIdx + direction;
     if (newIdx < 0 || newIdx >= exercises.length) return;
+
+    const rowSel = (i) => `.cwe-cb-ex-row[data-workout-idx="${workoutIdx}"][data-ex-idx="${i}"]`;
+    const beforeI = document.querySelector(rowSel(exIdx))?.getBoundingClientRect().top;
+    const beforeJ = document.querySelector(rowSel(newIdx))?.getBoundingClientRect().top;
+
     [exercises[exIdx], exercises[newIdx]] = [exercises[newIdx], exercises[exIdx]];
     _renderCustomBuilder();
+
+    const afterI = document.querySelector(rowSel(exIdx));
+    const afterJ = document.querySelector(rowSel(newIdx));
+    _slideSwapPair(beforeI, beforeJ, afterI, afterJ);
+    [afterI, afterJ].forEach(el => {
+        if (!el) return;
+        el.classList.add('order-flash');
+        setTimeout(() => el.classList.remove('order-flash'), 450);
+    });
 }
 
 function openExercisePicker(workoutIdx) {
@@ -1118,12 +1149,15 @@ function _renderCustomBuilder() {
                         <span class="cwe-cb-ex-num">${ei + 1}</span>
                         <span class="cwe-cb-ex-name">${ex.name}</span>
                     </span>
-                    <div class="cwe-cb-ex-move">
-                        <button class="cwe-cb-ex-move-btn" ${ei === 0 ? 'disabled' : ''} onclick="moveExerciseInCustomWorkout(${wi}, ${ei}, -1)" aria-label="הזז למעלה">${_CWE_UP_ICON}</button>
-                        <button class="cwe-cb-ex-move-btn" ${ei === w.exercises.length - 1 ? 'disabled' : ''} onclick="moveExerciseInCustomWorkout(${wi}, ${ei}, 1)" aria-label="הזז למטה">${_CWE_DOWN_ICON}</button>
+                    <div class="cwe-cb-ex-actions">
+                        <div class="cwe-cb-ex-move-group">
+                            <button class="cwe-cb-ex-move-btn-lg" ${ei === 0 ? 'disabled' : ''} onclick="moveExerciseInCustomWorkout(${wi}, ${ei}, -1)" aria-label="הזז למעלה">${_CWE_UP_ICON_LG}</button>
+                            <span class="cwe-cb-ex-move-sep"></span>
+                            <button class="cwe-cb-ex-move-btn-lg" ${ei === w.exercises.length - 1 ? 'disabled' : ''} onclick="moveExerciseInCustomWorkout(${wi}, ${ei}, 1)" aria-label="הזז למטה">${_CWE_DOWN_ICON_LG}</button>
+                        </div>
+                        <button class="cwe-cb-ex-swap" onclick="swapExerciseInCustomWorkout(${wi}, ${ei})" aria-label="החלפת תרגיל">${_CWE_SWAP_ICON}</button>
+                        <button class="cwe-cb-ex-del" onclick="confirmRemoveExerciseFromCustomWorkout(${wi}, ${ei})" aria-label="הסרת תרגיל">${_CWE_DEL_ICON_LG}</button>
                     </div>
-                    <button class="cwe-cb-ex-swap" onclick="swapExerciseInCustomWorkout(${wi}, ${ei})" aria-label="החלפת תרגיל">${_CWE_SWAP_ICON}</button>
-                    <button class="cwe-cb-ex-del" onclick="removeExerciseFromCustomWorkout(${wi}, ${ei})" aria-label="הסרת תרגיל">${_CWE_DEL_ICON}</button>
                 </div>
                 <div class="cwe-cb-ex-fields">
                     <div class="cwe-cb-field cwe-cb-field-tap" onclick="openSetsSheet(${wi}, ${ei})">
