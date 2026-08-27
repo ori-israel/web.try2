@@ -562,23 +562,9 @@ body:has(#ai-chat-input:focus) .tabs {
     margin: 0;
     font-size: 19px;
     font-weight: 700;
-    text-align: center;
     letter-spacing: -0.3px;
     color: var(--text-primary);
     white-space: nowrap;
-}
-
-.nutrition-streak-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--streak-bg) !important;
-    border: 1px solid rgba(59, 130, 246, 0.3) !important;
-    border-radius: 14px;
-    padding: 7px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--accent) !important;
 }
 
 .portion-hint {
