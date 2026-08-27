@@ -811,6 +811,18 @@ function _renderWorkoutGallery() {
 
     let html = '<div class="cwe-list">';
     const customLocked = !_hasCustomBuilderAccess();
+    const hasExistingPlan = Object.keys(CLIENT.workoutDays || {}).length > 0;
+    if (hasExistingPlan) {
+        html += `
+            <button class="cwe-row${customLocked ? ' cwe-locked' : ''}" ${customLocked ? 'disabled' : 'onclick="openQuickEditor()"'}>
+                <span class="cwe-row-stripe custom"></span>
+                <span class="cwe-row-text">
+                    <span class="cwe-row-name">עריכת התוכנית הנוכחית שלי${customLocked ? '' : '<span class="cwe-row-tag custom">מהיר</span>'}</span>
+                    <span class="cwe-row-split">${customLocked ? 'פרימיום, בקרוב' : 'הוספה או הסרה של תרגיל בודד, בלי לבנות הכל מחדש'}</span>
+                </span>
+                <span class="cwe-row-meta">${customLocked ? `<span class="cwe-lock">${_CWE_LOCK_ICON}</span>` : chevron}</span>
+            </button>`;
+    }
     html += `
         <button class="cwe-row${customLocked ? ' cwe-locked' : ''}" ${customLocked ? 'disabled' : 'onclick="openCustomBuilder()"'}>
             <span class="cwe-row-stripe custom"></span>
@@ -938,13 +950,32 @@ const _CWE_CATEGORIES = ['חזה', 'גב', 'כתפיים', 'רגליים', 'יד
 const _CWE_DEL_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const _CWE_UP_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>';
 const _CWE_DOWN_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+const _CWE_SWAP_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
 
 let _cweCustomState  = null;
 let _cweActiveWorkoutIdx = null;
+let _cweSwapExIdx = null; // כשלא null — בחירת התרגיל הבאה מחליפה את התרגיל הזה במקום להוסיף חדש
+let _cweQuickEditMode = false; // true = עורכים תוכנית קיימת (מולאה מראש), לא בונים מאפס
 let _cweTemplateCardio = {};
 
 function openCustomBuilder() {
     _cweCustomState = { workouts: [], cardio: {} };
+    _cweQuickEditMode = false;
+    _renderCustomBuilder();
+}
+
+// עריכה מהירה: אותו מסך בדיוק כמו "התאמה אישית", אבל מלא מראש בתוכנית הפעילה של המשתמש —
+// כדי שאפשר יהיה להוסיף/להסיר/להחליף תרגיל בודד בלי לבנות הכל מחדש.
+function openQuickEditor() {
+    _cweCustomState = {
+        workouts: Object.entries(CLIENT.workoutDays || {}).map(([letter, days]) => ({
+            letter,
+            days: [...days],
+            exercises: (CLIENT['workout' + letter] || []).map(ex => ({ ...ex }))
+        })),
+        cardio: { ...(CLIENT.cardioSchedule || {}) }
+    };
+    _cweQuickEditMode = true;
     _renderCustomBuilder();
 }
 
@@ -996,6 +1027,15 @@ function moveExerciseInCustomWorkout(workoutIdx, exIdx, direction) {
 function openExercisePicker(workoutIdx) {
     _cweSyncCustomBuilderDom();
     _cweActiveWorkoutIdx = workoutIdx;
+    _cweSwapExIdx = null;
+    _renderCategoryChips();
+}
+
+// כמו openExercisePicker, אבל התרגיל שייבחר יחליף תרגיל קיים (לפי exIdx) במקום להתווסף
+function swapExerciseInCustomWorkout(workoutIdx, exIdx) {
+    _cweSyncCustomBuilderDom();
+    _cweActiveWorkoutIdx = workoutIdx;
+    _cweSwapExIdx = exIdx;
     _renderCategoryChips();
 }
 
@@ -1044,7 +1084,13 @@ function addExerciseToCustomWorkout(idx) {
     const name = _cweCategoryExerciseNames[idx];
     const w = _cweCustomState.workouts[_cweActiveWorkoutIdx];
     if (!w || !name) return;
-    w.exercises.push({ name, reps: '10-15', warmupSets: 1, workSets: 3 });
+    if (_cweSwapExIdx != null) {
+        const old = w.exercises[_cweSwapExIdx]; // שומרים על אותם סטים/חזרות, רק מחליפים את התרגיל עצמו
+        w.exercises[_cweSwapExIdx] = { name, reps: old.reps, warmupSets: old.warmupSets, workSets: old.workSets };
+        _cweSwapExIdx = null;
+    } else {
+        w.exercises.push({ name, reps: '10-15', warmupSets: 1, workSets: 3 });
+    }
     _renderCustomBuilder();
 }
 
@@ -1054,7 +1100,7 @@ function backToCustomBuilder() {
 
 function _renderCustomBuilder() {
     _cweCurrentBack = _renderWorkoutGallery;
-    _setCweTitle('התאמה אישית');
+    _setCweTitle(_cweQuickEditMode ? 'עריכת התוכנית שלי' : 'התאמה אישית');
     const body = document.getElementById('cwe-gallery-body');
     if (!body) return;
     if (!_cweCustomState.cardio) _cweCustomState.cardio = {};
@@ -1076,7 +1122,8 @@ function _renderCustomBuilder() {
                         <button class="cwe-cb-ex-move-btn" ${ei === 0 ? 'disabled' : ''} onclick="moveExerciseInCustomWorkout(${wi}, ${ei}, -1)" aria-label="הזז למעלה">${_CWE_UP_ICON}</button>
                         <button class="cwe-cb-ex-move-btn" ${ei === w.exercises.length - 1 ? 'disabled' : ''} onclick="moveExerciseInCustomWorkout(${wi}, ${ei}, 1)" aria-label="הזז למטה">${_CWE_DOWN_ICON}</button>
                     </div>
-                    <button class="cwe-cb-ex-del" onclick="removeExerciseFromCustomWorkout(${wi}, ${ei})">${_CWE_DEL_ICON}</button>
+                    <button class="cwe-cb-ex-swap" onclick="swapExerciseInCustomWorkout(${wi}, ${ei})" aria-label="החלפת תרגיל">${_CWE_SWAP_ICON}</button>
+                    <button class="cwe-cb-ex-del" onclick="removeExerciseFromCustomWorkout(${wi}, ${ei})" aria-label="הסרת תרגיל">${_CWE_DEL_ICON}</button>
                 </div>
                 <div class="cwe-cb-ex-fields">
                     <div class="cwe-cb-field cwe-cb-field-tap" onclick="openSetsSheet(${wi}, ${ei})">
@@ -1111,7 +1158,7 @@ function _renderCustomBuilder() {
             ${_cweCustomState.workouts.length < 7 ? '<button class="cwe-cb-add-workout-btn" onclick="addCustomWorkout()">+ הוספת אימון</button>' : ''}
             ${_cweCardioSectionHtml(_cweCustomState.cardio)}
             <div class="cwe-detail-actions">
-                <button class="cwe-choose-btn" onclick="saveCustomWorkout()">שמירת התוכנית</button>
+                <button class="cwe-choose-btn" onclick="saveCustomWorkout()">${_cweQuickEditMode ? 'שמירת השינויים' : 'שמירת התוכנית'}</button>
                 <button class="cwe-back-btn" onclick="_renderWorkoutGallery()">חזרה</button>
             </div>
         </div>`;
@@ -1187,8 +1234,10 @@ async function saveCustomWorkout() {
         if (!w.exercises.length) { await showAlert(`אימון ${w.letter} חייב לפחות תרגיל אחד.`); return; }
     }
 
-    const confirmed = await showConfirmDanger('התוכנית הקיימת תוחלף בתוכנית שבנית. להמשיך?');
-    if (!confirmed) return;
+    if (!_cweQuickEditMode) {
+        const confirmed = await showConfirmDanger('התוכנית הקיימת תוחלף בתוכנית שבנית. להמשיך?');
+        if (!confirmed) return;
+    }
 
     CLIENT.workoutsPerWeek = _cweCustomState.workouts.length;
     CLIENT.workoutSource = 'custom';
@@ -1207,6 +1256,7 @@ async function saveCustomWorkout() {
     await initWorkoutsFromClient();
     initWorkoutsChecklist();
     initVideos();
+    _cweQuickEditMode = false;
     closeClientWorkoutEditor();
 }
 

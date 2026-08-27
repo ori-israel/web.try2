@@ -4655,6 +4655,7 @@ legend { padding: 0; display: block; width: 100%; }
     font-family: inherit;
     font-variant-numeric: tabular-nums;
 }
+.cwe-cb-ex-swap,
 .cwe-cb-ex-del {
     width: 20px;
     height: 20px;
@@ -4668,6 +4669,8 @@ legend { padding: 0; display: block; width: 100%; }
     cursor: pointer;
     flex-shrink: 0;
 }
+.cwe-cb-ex-swap:active { background: var(--accent-light); color: var(--accent); }
+.cwe-cb-ex-del:active { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
 .cwe-cb-add-ex-btn {
     width: 100%;
     padding: 10px;
