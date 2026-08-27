@@ -81,6 +81,7 @@ function _wireCardioDoneToggle(btn, entry, dateStr) {
         if (nowDone) {
             localStorage.setItem(_cardioDoneKey(dateStr), '1');
             if (typeof logCardioDone === 'function') await logCardioDone(entry.type, entry.minutes);
+            if (typeof refreshWorkoutStreak === 'function') refreshWorkoutStreak();
         } else {
             localStorage.removeItem(_cardioDoneKey(dateStr));
         }

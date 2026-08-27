@@ -21,7 +21,7 @@
     ],
     tab2: [
       { center: true, text: 'זה אזור האימונים, כאן נעקוב יחד אחרי תוכנית האימונים השבועית שלך, תרגיל אחרי תרגיל' },
-      { sel: '#workout-streak-display', text: 'מספר השבועות ברצף שבהם עמדת ביעד האימונים השבועי <svg viewBox="0 0 24 24" width="14" height="14" fill="#f97316" stroke="#f97316" stroke-width="1" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 2.5c-1.2 3.3-5 5.7-5 9.5a5 5 0 0 0 10 0c0-1.6-.7-2.9-1.8-4 .1 1.7-.9 2.4-1.6 2 .9-2 -.2-4.2-1.6-7.5z"/></svg>' },
+      { sel: '#workout-streak-display', text: 'מספר הימים ברצף שבהם עמדת בתוכנית האימונים <svg viewBox="0 0 24 24" width="14" height="14" fill="#f97316" stroke="#f97316" stroke-width="1" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 2.5c-1.2 3.3-5 5.7-5 9.5a5 5 0 0 0 10 0c0-1.6-.7-2.9-1.8-4 .1 1.7-.9 2.4-1.6 2 .9-2 -.2-4.2-1.6-7.5z"/></svg>' },
       { sel: '#cardio-section', text: 'כאן מוצג האירובי שמתוכנן להיום, עם אפשרות לסמן שבוצע, ומעקב אחרי כמות הדקות שהצטברו השבוע מול היעד' },
       { sel: '#workout-selector',       text: 'בחירת האימון להיום: ראשון, שני, שלישי וכן הלאה לפי התוכנית' },
       { sel: function () {

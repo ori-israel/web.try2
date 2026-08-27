@@ -274,25 +274,97 @@ function updateVacationBanner() {
     if (banner) banner.style.display = CLIENT.vacationMode ? 'block' : 'none';
 }
 
+function _renderWorkoutStreakUI(streak) {
+    const el = document.getElementById('workout-streak-count');
+    if (!el) return;
+    if (CLIENT.vacationMode) {
+        el.innerHTML = streak + ' <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>';
+    } else {
+        el.innerText = streak;
+    }
+}
+
 function updateWorkoutStreak() {
     // הצגה מיידית מהמטמון, ואז חישוב מחדש אסינכרוני מהשרת
-    const streak = _streaksCache.workout_streak || 0;
-    const el = document.getElementById('workout-streak-count');
-    if (el) el.innerHTML = CLIENT.vacationMode ? streak + ' <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>' : streak;
-    refreshWorkoutStreak();
+    _renderWorkoutStreakUI(_streaksCache.workout_streak || 0);
+    if (!CLIENT.vacationMode) refreshWorkoutStreak();
 }
 
 async function refreshWorkoutStreak() {
-    const uid = getActiveUserId();
-    if (!uid || typeof sbFetchWorkoutStreak !== 'function') return;
+    await _evaluateWorkoutStreak();
+}
+
+// דרישת היום/התאריך הנתון: יום מנוחה מתוכנן (בלי כוח ובלי אירובי) עובר אוטומטית. אימון כוח מתוכנן
+// חייב את הרשומה האמיתית שכבר נכתבת ל-DB כשמסמנים את כל הצ'קליסט (completeWorkoutStreak).
+// אירובי מתוכנן חייב רשומה אמיתית ב-cardio_log. נבדק תמיד מול נתון קבוע ב-DB, לא מול מצב חי בממשק —
+// כדי שאי אפשר יהיה "לשחק" עם זה ע"י סימון/ביטול צ'קבוקסים.
+async function _workoutDayRequirementMet(uid, dateStr, dow) {
+    const scheduledLetter = _cweLetterForDay(dow);
+    const hasCardioScheduled = !!CLIENT.cardioSchedule?.[dow];
+    if (!scheduledLetter && !hasCardioScheduled) return true; // יום מנוחה מתוכנן — תואם לתוכנית
+
+    if (scheduledLetter) {
+        const { data } = await db.from('workout_performance_log').select('date')
+            .eq('client_id', uid).eq('date', dateStr)
+            .eq('exercise_name', '__workout_done__').eq('workout_letter', scheduledLetter).limit(1);
+        if (!data || !data.length) return false;
+    }
+    if (hasCardioScheduled) {
+        const { data } = await db.from('cardio_log').select('date')
+            .eq('user_id', uid).eq('date', dateStr).limit(1);
+        if (!data || !data.length) return false;
+    }
+    return true;
+}
+
+// תצוגה בלבד: המספר הקבוע ששמור, ועוד 1 אם דרישת היום כבר מתקיימת עכשיו בפועל. לא נשמר לשום מקום —
+// מחושב מחדש מהנתון האמיתי בכל קריאה, כדי שאפשר יהיה לראות את המספר עולה מיד בלי לסכן את הרצף השמור.
+async function _renderWorkoutStreakWithTodayBonus() {
+    const base = _streaksCache.workout_streak || 0;
+    const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+    if (!uid || !Object.keys(CLIENT.workoutDays || {}).length) { _renderWorkoutStreakUI(base); return; }
     try {
-        const streak = await sbFetchWorkoutStreak(uid);
-        if (getActiveUserId() !== uid) return;
+        const metToday = await _workoutDayRequirementMet(uid, localDateStr(), new Date().getDay());
+        _renderWorkoutStreakUI(base + (metToday ? 1 : 0));
+    } catch (e) { _renderWorkoutStreakUI(base); }
+}
+
+// מריץ מחדש רק ימים שכבר הסתיימו (לא "היום" — הוא עדיין פתוח, ר' _renderWorkoutStreakWithTodayBonus),
+// אחד-אחד מהיום האחרון שכבר הוערך. בדיוק אותה שיטה שכבר עובדת ב-_evaluateNutritionStreak.
+async function _evaluateWorkoutStreak() {
+    const uid = typeof getActiveUserId === 'function' ? getActiveUserId() : null;
+    if (!uid) return;
+    if (!Object.keys(CLIENT.workoutDays || {}).length) { _renderWorkoutStreakUI(0); return; } // אין תוכנית בכלל — לא סופרים
+
+    const today = localDateStr();
+    const lastEvaluated = _streaksCache.workout_completed_date;
+    let cursor = lastEvaluated ? _addDaysToDateStr(lastEvaluated, 1) : _addDaysToDateStr(today, -1);
+    const datesToEvaluate = [];
+    while (cursor < today) {
+        datesToEvaluate.push(cursor);
+        cursor = _addDaysToDateStr(cursor, 1);
+    }
+
+    if (datesToEvaluate.length > 0) {
+        // הגנה מפני פער ענק (לקוח חדש/לא נכנס הרבה זמן) — מספיק להעריך עד 30 יום אחורה
+        const limited = datesToEvaluate.slice(-30);
+        let streak = _streaksCache.workout_streak || 0;
+        let reached7 = false;
+        for (const dateStr of limited) {
+            const dow = new Date(dateStr + 'T12:00:00').getDay();
+            const ok = await _workoutDayRequirementMet(uid, dateStr, dow);
+            if (ok) { streak++; if (streak === 7) reached7 = true; }
+            else streak = 0;
+        }
+
         _streaksCache.workout_streak = streak;
-        const el = document.getElementById('workout-streak-count');
-        if (el) el.innerHTML = CLIENT.vacationMode ? streak + ' <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>' : streak;
+        _streaksCache.workout_completed_date = limited[limited.length - 1];
         if (typeof syncStreaksNow === 'function') syncStreaksNow();
-    } catch (e) { console.warn('[streak] refresh failed:', e.message); }
+        if (reached7 && typeof _showAchievementPopup === 'function') _showAchievementPopup('streak_7_workout');
+        if (typeof checkAchievements === 'function') checkAchievements(CLIENT, null, null, null);
+    }
+
+    await _renderWorkoutStreakWithTodayBonus();
 }
 
 function completeWorkoutStreak(letter) {

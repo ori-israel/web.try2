@@ -69,27 +69,25 @@ async function _selectTopExercises(userId, limit, minDataPoints) {
     return candidates.slice(0, limit);
 }
 
-// הרצף הארוך ביותר אי-פעם (לא הרצף הנוכחי): שבועות רצופים שבהם עמד ביעד האימונים השבועי
-function _longestWorkoutStreakWeeks(workoutDates) {
-    if (!workoutDates.length) return 0;
-    const weeklyTarget = Object.values(CLIENT.workoutDays || {}).reduce((s, days) => s + days.length, 0) || CLIENT.workoutsPerWeek || 3;
-    const weekCounts = {};
-    workoutDates.forEach(dateStr => {
-        const d = new Date(dateStr);
-        const sun = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
-        const key = sun.toISOString().split('T')[0];
-        weekCounts[key] = (weekCounts[key] || 0) + 1;
-    });
-    const weekKeys = Object.keys(weekCounts).sort();
+// הרצף הארוך ביותר אי-פעם (לא הרצף הנוכחי): ימים רצופים שבהם עמד בתוכנית האימונים —
+// אותה הגדרה בדיוק כמו הרצף החי (_workoutDayRequirementMet ב-app-workout-plan.js): יום מנוחה
+// מתוכנן עובר אוטומטית, יום עם אימון כוח/אירובי מתוכנן חייב את הרשומה האמיתית שכבר נכתבה ל-DB.
+// מחושב כאן סטטית מנתונים שכבר נשלפו (בלי שאילתה נפרדת ליום, כי זה חישוב היסטורי חד-פעמי לדוח).
+function _longestWorkoutStreakDays(doneMarkers, cardioDates, sinceDate) {
+    const doneByDate = {};
+    doneMarkers.forEach(r => { (doneByDate[r.date] = doneByDate[r.date] || new Set()).add(r.workout_letter); });
+    const cardioSet = new Set(cardioDates);
+
+    const todayStr = localDateStr();
     let maxRun = 0, curRun = 0;
-    for (let d = new Date(weekKeys[0]); d <= new Date(weekKeys[weekKeys.length - 1]); d.setDate(d.getDate() + 7)) {
-        const key = d.toISOString().split('T')[0];
-        if ((weekCounts[key] || 0) >= weeklyTarget) {
-            curRun++;
-            maxRun = Math.max(maxRun, curRun);
-        } else {
-            curRun = 0;
-        }
+    for (let d = sinceDate; d <= todayStr; d = _addDaysToDateStr(d, 1)) {
+        const dow = new Date(d + 'T12:00:00').getDay();
+        const scheduledLetter = _cweLetterForDay(dow);
+        const hasCardioScheduled = !!CLIENT.cardioSchedule?.[dow];
+        let ok = true;
+        if (scheduledLetter && !doneByDate[d]?.has(scheduledLetter)) ok = false;
+        if (hasCardioScheduled && !cardioSet.has(d)) ok = false;
+        if (ok) { curRun++; maxRun = Math.max(maxRun, curRun); } else { curRun = 0; }
     }
     return maxRun;
 }
@@ -136,9 +134,11 @@ function _longestNutritionStreakDays(nutritionRows, targets) {
 }
 
 async function _fetchTrainingStats(userId, sinceDate) {
-    const [wRes, nRes] = await Promise.all([
+    const [wRes, nRes, doneRes, cardioRes] = await Promise.all([
         db.from('workout_performance_log').select('date').eq('client_id', userId),
         db.from('daily_nutrition').select('date, protein:protein_g, carbs:carbs_g, fat:fat_g').eq('user_id', userId).gte('date', sinceDate),
+        db.from('workout_performance_log').select('date, workout_letter').eq('client_id', userId).eq('exercise_name', '__workout_done__').gte('date', sinceDate),
+        db.from('cardio_log').select('date').eq('user_id', userId).gte('date', sinceDate),
     ]);
     const workoutDates = [...new Set((wRes.data || []).map(r => r.date))];
     const targets = _getNutritionTargets();
@@ -152,7 +152,7 @@ async function _fetchTrainingStats(userId, sinceDate) {
         avgProtein: avg('protein'),
         avgCarbs: avg('carbs'),
         avgFat: avg('fat'),
-        longestWorkoutStreakWeeks: _longestWorkoutStreakWeeks(workoutDates),
+        longestWorkoutStreakDays: _longestWorkoutStreakDays(doneRes.data || [], (cardioRes.data || []).map(r => r.date), sinceDate),
         longestNutritionStreakDays: _longestNutritionStreakDays(nutritionRows, targets),
     };
 }
@@ -207,7 +207,7 @@ async function gatherCardData(userId) {
         ? CLIENT.currentWeight - CLIENT.startWeight : null;
 
     // הרצף המוצג הוא הרצף הכי ארוך אי-פעם, לא בהכרח הנוכחי
-    const workoutStreak = Math.max(stats.longestWorkoutStreakWeeks, streaks.workout_streak || 0);
+    const workoutStreak = Math.max(stats.longestWorkoutStreakDays, streaks.workout_streak || 0);
     const nutritionStreak = stats.longestNutritionStreakDays != null
         ? Math.max(stats.longestNutritionStreakDays, streaks.nutrition_streak || 0)
         : (streaks.nutrition_streak || 0);
@@ -536,7 +536,7 @@ function _drawStreakTiles(ctx, data, x, y, w, h) {
     const C = _REPORT_COLORS;
     const tiles = [
         { label: 'אימונים בתקופה', value: `${data.stats.sessionCount}` },
-        { label: 'הרצף הכי ארוך: אימונים', value: `${data.workoutStreak} שבועות` },
+        { label: 'הרצף הכי ארוך: אימונים', value: `${data.workoutStreak} ימים` },
         { label: 'הרצף הכי ארוך: תזונה', value: `${data.nutritionStreak} ימים` },
     ];
     const gap = 16;
