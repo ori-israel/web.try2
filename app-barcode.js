@@ -245,6 +245,20 @@ async function confirmBarcodeAdd() {
     setTimeout(() => toast.remove(), 3000);
 }
 
+// דיווח על נתון שגוי בברקוד → איפוס במאגר + מעבר ישיר לצילום התווית האמיתית
+let _bcReportBarcode = null;
+
+async function reportBarcodeMacrosInaccurate() {
+    if (!_bcProduct) return;
+    const ok = await showConfirm('לצלם את התווית ולתקן את הנתונים?');
+    if (!ok) return;
+    await sbResetBarcodeMacros(_bcProduct.barcode);
+    _bcReportBarcode = _bcProduct.barcode;
+    closeBarcodeScanner();
+    if (typeof openFoodScanner === 'function') openFoodScanner();
+    document.getElementById('label-image-input')?.click();
+}
+
 function switchBarcodeToTextSearch() {
     closeBarcodeScanner();
     if (typeof openFoodScanner === 'function') openFoodScanner();
@@ -260,6 +274,7 @@ let _labelReadCancelled = false;
 function cancelLabelRead() {
     _labelReadCancelled = true;
     document.getElementById('label-loading-modal').classList.add('hidden');
+    _bcReportBarcode = null;
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -400,10 +415,12 @@ function updateLabelConfirmTotals() {
 function closeLabelConfirm() {
     document.getElementById('label-confirm-modal').classList.add('hidden');
     _labelMacros = null;
+    _bcReportBarcode = null;
 }
 
 async function confirmLabelAdd() {
     if (!_labelMacros) return;
+    const reportedBarcode = _bcReportBarcode;
     const name = document.getElementById('label-name-input').value.trim();
     const amount = parseFloat(document.getElementById('label-amount').value) || 0;
     const saveToMyFoods = document.getElementById('label-save-myfoods').checked;
@@ -454,12 +471,22 @@ async function confirmLabelAdd() {
         }
     }
 
+    if (reportedBarcode) {
+        sbSaveBarcodeMacros(reportedBarcode, {
+            protein_g: _labelMacros.protein_g,
+            carbs_g:   _labelMacros.carbs_g,
+            fat_g:     _labelMacros.fat_g,
+            alcohol_g: _labelMacros.alcohol_g,
+        }).catch(() => {});
+    }
+
     if (typeof addFoodMacros === 'function') addFoodMacros();
     closeLabelConfirm();
     if (typeof closeFoodScanner === 'function') closeFoodScanner();
 
     const toast = document.createElement('div');
-    toast.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> נוסף ליומן: ${kcal_g} קלוריות`;
+    const toastMsg = reportedBarcode ? 'תודה, הנתונים תוקנו' : `נוסף ליומן: ${kcal_g} קלוריות`;
+    toast.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 13l4 4L19 7"/></svg> ${toastMsg}`;
     toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:12px 24px;border-radius:25px;font-size:15px;font-weight:bold;z-index:10100;box-shadow:0 4px 15px rgba(0,0,0,0.2);white-space:nowrap;';
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
