@@ -3626,6 +3626,23 @@ select.login-input:focus {
     background: var(--bg-card); border: 0.5px solid var(--border); border-radius: var(--radius-lg);
     padding: 18px; margin-bottom: 14px;
 }
+
+.workout-empty-hero {
+    text-align: center; background: var(--bg-card); border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 28px 20px; margin-bottom: 14px;
+}
+.workout-empty-hero-icon {
+    width: 52px; height: 52px; border-radius: 50%; background: var(--accent-light);
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; color: var(--accent);
+}
+.workout-empty-hero-title { font-size: 16px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.2px; }
+.workout-empty-hero-sub { font-size: 13.5px; color: var(--text-secondary); margin: 0 0 18px; line-height: 1.5; }
+.workout-empty-hero-btn {
+    background: var(--gradient-btn); color: #fff; border: none; border-radius: var(--radius);
+    padding: 13px 22px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer;
+    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3); transition: transform 0.15s ease;
+}
+.workout-empty-hero-btn:active { transform: scale(0.97); }
 .cardio-exec-icon svg { display: block; }
 
 .we-footer { margin-top: 16px; border-top: 0.5px solid var(--border); padding-top: 16px; }

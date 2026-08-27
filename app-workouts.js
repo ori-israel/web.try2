@@ -37,8 +37,12 @@ function showWorkoutDay(day) {
     initWorkoutTableWeights(_exerciseTargets);
 
     const emptyMsg = document.getElementById('workout-empty-day-msg');
+    const heroEmpty = document.getElementById('workout-empty-plan-hero');
     const hasCardio = !!CLIENT.cardioSchedule?.[day];
-    if (emptyMsg) emptyMsg.style.display = (!letter && !hasCardio) ? 'block' : 'none';
+    const hasAnyPlan = Object.values(CLIENT.workoutDays || {}).some(d => Array.isArray(d) && d.length)
+        || Object.keys(CLIENT.cardioSchedule || {}).length > 0;
+    if (heroEmpty) heroEmpty.style.display = (!hasAnyPlan) ? 'block' : 'none';
+    if (emptyMsg) emptyMsg.style.display = (hasAnyPlan && !letter && !hasCardio) ? 'block' : 'none';
 
     if (typeof renderCardioSection === 'function') renderCardioSection();
     if (typeof buildWorkoutAccordions === 'function') buildWorkoutAccordions(_exerciseTargets || {});
