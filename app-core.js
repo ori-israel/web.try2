@@ -782,7 +782,7 @@ function initFAQ() {
 
     // ── סרגל מספרים כללי לשימוש חוזר (יומן משקל/חזרות, גובה) ──────
     const _NUM_SHEET_TICK_GAP = 14;
-    let _numSheetMin = 0, _numSheetMax = 100, _numSheetStep = 1, _numSheetLabelStep = 10, _numSheetDecimals = 0;
+    let _numSheetMin = 0, _numSheetMax = 100, _numSheetStep = 1, _numSheetLabelStep = 10, _numSheetDecimals = 0, _numSheetRoundStep = false;
     let _numSheetValue = 0;
     let _numSheetOnSave = null;
     let _numSheetReady = false;
@@ -850,8 +850,12 @@ function initFAQ() {
         window.addEventListener('pointerup', () => {
             if (!dragging) return;
             dragging = false;
-            const _nsRoundFactor = Math.pow(10, _numSheetDecimals);
-            _numSheetValue = Math.round(_numSheetValue * _nsRoundFactor) / _nsRoundFactor;
+            if (_numSheetRoundStep) {
+                _numSheetValue = _numSheetMin + Math.round((_numSheetValue - _numSheetMin) / _numSheetStep) * _numSheetStep;
+            } else {
+                const _nsRoundFactor = Math.pow(10, _numSheetDecimals);
+                _numSheetValue = Math.round(_numSheetValue * _nsRoundFactor) / _nsRoundFactor;
+            }
             track.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
             _renderNumSheet();
         });
@@ -863,6 +867,7 @@ function initFAQ() {
         _numSheetStep = opts.step || 1;
         _numSheetLabelStep = opts.labelStep || 10;
         _numSheetDecimals = opts.decimals || 0;
+        _numSheetRoundStep = !!opts.roundToStep;
         _numSheetOnSave = opts.onSave;
         _numSheetValue = Math.max(_numSheetMin, Math.min(_numSheetMax, opts.value ?? _numSheetMin));
 
@@ -938,7 +943,7 @@ function initFAQ() {
         'גרם':    { min: 1,    max: 1000, step: 5,    labelStep: 100, decimals: 0, default: 100 },
         'יחידות': { min: 1,    max: 20,   step: 1,    labelStep: 5,   decimals: 0, default: 1 },
         'כוסות':  { min: 0.25, max: 10,   step: 0.25, labelStep: 1,   decimals: 2, default: 1 },
-        'כפות':   { min: 0.25, max: 10,   step: 0.25, labelStep: 1,   decimals: 2, default: 1 },
+        'כפות':   { min: 0.5,  max: 10,   step: 0.5,  labelStep: 1,   decimals: 1, default: 1 },
     };
     let _amtSheetUnit = 'גרם';
     let _amtSheetValue = 100;
@@ -1013,8 +1018,7 @@ function initFAQ() {
             if (!dragging) return;
             dragging = false;
             const cfg = _AMOUNT_UNIT_CONFIG[_amtSheetUnit];
-            const _amtRoundFactor = Math.pow(10, cfg.decimals);
-            _amtSheetValue = Math.round(_amtSheetValue * _amtRoundFactor) / _amtRoundFactor;
+            _amtSheetValue = cfg.min + Math.round((_amtSheetValue - cfg.min) / cfg.step) * cfg.step;
             track.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
             _renderAmtSheet();
         });

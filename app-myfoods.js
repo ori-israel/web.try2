@@ -522,11 +522,12 @@ function openRlAmountSheet(i) {
         'גרם':    { min: 1,    max: 1000, step: 5,    labelStep: 100, decimals: 0 },
         'יחידות': { min: 1,    max: 20,   step: 1,    labelStep: 5,   decimals: 0 },
         'כוסות':  { min: 0.25, max: 10,   step: 0.25, labelStep: 1,   decimals: 2 },
-        'כפות':   { min: 0.25, max: 10,   step: 0.25, labelStep: 1,   decimals: 2 },
+        'כפות':   { min: 0.5,  max: 10,   step: 0.5,  labelStep: 1,   decimals: 1 },
     };
     const r = ranges[ing.unit] || ranges['גרם'];
     openNumberRulerSheet({
         min: r.min, max: r.max, step: r.step, labelStep: r.labelStep, decimals: r.decimals,
+        roundToStep: true,
         title: ing.name, unit: ing.unit,
         value: parseFloat(ing.amount) || r.min,
         onSave: (val) => {
