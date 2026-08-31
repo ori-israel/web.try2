@@ -844,7 +844,10 @@ function initFAQ() {
             const maxOffset = _numSheetOffsetFor(_numSheetMin);
             let newOffset = startOffset + (pointerX(e) - startX);
             newOffset = Math.max(minOffset, Math.min(maxOffset, newOffset));
-            _numSheetValue = _numSheetMin + (-newOffset / _NUM_SHEET_TICK_GAP) * _numSheetStep;
+            const raw = _numSheetMin + (-newOffset / _NUM_SHEET_TICK_GAP) * _numSheetStep;
+            _numSheetValue = _numSheetRoundStep
+                ? _numSheetMin + Math.round((raw - _numSheetMin) / _numSheetStep) * _numSheetStep
+                : raw;
             _renderNumSheet();
         });
         window.addEventListener('pointerup', () => {
@@ -1011,7 +1014,8 @@ function initFAQ() {
             const maxOffset = _amtSheetOffsetFor(cfg.min);
             let newOffset = startOffset + (pointerX(e) - startX);
             newOffset = Math.max(minOffset, Math.min(maxOffset, newOffset));
-            _amtSheetValue = cfg.min + (-newOffset / _NUM_SHEET_TICK_GAP) * cfg.step;
+            const raw = cfg.min + (-newOffset / _NUM_SHEET_TICK_GAP) * cfg.step;
+            _amtSheetValue = cfg.min + Math.round((raw - cfg.min) / cfg.step) * cfg.step;
             _renderAmtSheet();
         });
         window.addEventListener('pointerup', () => {
