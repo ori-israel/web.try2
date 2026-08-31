@@ -845,10 +845,16 @@ function initFAQ() {
             let newOffset = startOffset + (pointerX(e) - startX);
             newOffset = Math.max(minOffset, Math.min(maxOffset, newOffset));
             const raw = _numSheetMin + (-newOffset / _NUM_SHEET_TICK_GAP) * _numSheetStep;
-            _numSheetValue = _numSheetRoundStep
-                ? _numSheetMin + Math.round((raw - _numSheetMin) / _numSheetStep) * _numSheetStep
-                : raw;
-            _renderNumSheet();
+            if (_numSheetRoundStep) {
+                _numSheetValue = _numSheetMin + Math.round((raw - _numSheetMin) / _numSheetStep) * _numSheetStep;
+                // הקו עוקב אחרי האצבע ברציפות; רק המספר המוצג מתעגל לצעד (אחרת הגרירה "קופצת")
+                track.style.transform = `translateX(${newOffset}px)`;
+                const valEl = document.getElementById('num-sheet-value');
+                if (valEl) valEl.textContent = _numSheetDecimals > 0 ? _numSheetValue.toFixed(_numSheetDecimals) : Math.round(_numSheetValue);
+            } else {
+                _numSheetValue = raw;
+                _renderNumSheet();
+            }
         });
         window.addEventListener('pointerup', () => {
             if (!dragging) return;
@@ -1016,7 +1022,10 @@ function initFAQ() {
             newOffset = Math.max(minOffset, Math.min(maxOffset, newOffset));
             const raw = cfg.min + (-newOffset / _NUM_SHEET_TICK_GAP) * cfg.step;
             _amtSheetValue = cfg.min + Math.round((raw - cfg.min) / cfg.step) * cfg.step;
-            _renderAmtSheet();
+            // הקו עוקב אחרי האצבע ברציפות; רק המספר המוצג מתעגל לצעד (אחרת הגרירה "קופצת")
+            track.style.transform = `translateX(${newOffset}px)`;
+            const valEl = document.getElementById('amount-sheet-value');
+            if (valEl) valEl.textContent = cfg.decimals > 0 ? _amtSheetValue.toFixed(cfg.decimals) : Math.round(_amtSheetValue);
         });
         window.addEventListener('pointerup', () => {
             if (!dragging) return;
