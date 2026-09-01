@@ -90,26 +90,34 @@ async function migrateProfiles() {
 
 async function migratePerformanceLog() {
     console.log('\n--- workout_performance_log ---');
+
+    const { data: rows, error } = await db
+        .from('workout_performance_log')
+        .select('exercise_name');
+    if (error) {
+        console.error('שגיאה בקריאת workout_performance_log:', JSON.stringify(error));
+        return;
+    }
+
+    const counts = {};
+    (rows || []).forEach(r => { counts[r.exercise_name] = (counts[r.exercise_name] || 0) + 1; });
+
     let totalRows = 0;
+    const toUpdate = RENAME_PAIRS.filter(([oldName]) => counts[oldName] > 0);
 
-    for (const [oldName, newName] of RENAME_PAIRS) {
-        const { count, error: countErr } = await db
-            .from('workout_performance_log')
-            .select('id', { count: 'exact', head: true })
-            .eq('exercise_name', oldName);
-        if (countErr) { console.error('שגיאה בספירה עבור', oldName, countErr.message); continue; }
-        if (!count) continue;
+    for (const [oldName, newName] of toUpdate) {
+        console.log(`"${oldName}" → "${newName}": ${counts[oldName]} רשומות`);
+        totalRows += counts[oldName];
+    }
 
-        totalRows += count;
-        console.log(`"${oldName}" → "${newName}": ${count} רשומות`);
-
-        if (APPLY) {
+    if (APPLY) {
+        for (const [oldName, newName] of toUpdate) {
             const { error: updErr } = await db
                 .from('workout_performance_log')
                 .update({ exercise_name: newName })
                 .eq('exercise_name', oldName);
-            if (updErr) console.error('  שגיאה בעדכון:', updErr.message);
-            else console.log('  עודכן.');
+            if (updErr) console.error(`  שגיאה בעדכון "${oldName}":`, JSON.stringify(updErr));
+            else console.log(`  עודכן: "${oldName}"`);
         }
     }
 
