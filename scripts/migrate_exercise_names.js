@@ -118,7 +118,14 @@ async function migratePerformanceLog() {
 
 (async () => {
     console.log(APPLY ? '=== מצב ביצוע בפועל ===' : '=== מצב DRY-RUN (לא נוגע ב-DB) ===');
-    await migrateProfiles();
-    await migratePerformanceLog();
-    if (!APPLY) console.log('\nזה היה dry-run. כדי לבצע בפועל: הרץ שוב עם --apply');
+    try {
+        await migrateProfiles();
+        await migratePerformanceLog();
+        if (!APPLY) console.log('\nזה היה dry-run. כדי לבצע בפועל: הרץ שוב עם --apply');
+    } catch (err) {
+        console.error('\nשגיאה:', err.message || err);
+        if (err.details) console.error('פרטים:', err.details);
+        if (err.hint) console.error('רמז:', err.hint);
+        process.exit(1);
+    }
 })();
