@@ -257,7 +257,8 @@ async function _renderFoodLogPastDay(dateStr) {
             meal.items.forEach((r, ri) => {
                 const hasRecipe = r.recipe_items && r.recipe_items.length;
                 const detId = `fld-past-${meal.mealNumber}-${ri}`;
-                html+=`<div class="fl-card"><div class="fl-card-body"${hasRecipe ? ` onclick="toggleFoodLogRecipeDetails('${detId}')" style="cursor:pointer;"` : ''}>
+                const kcal = (typeof entryKcal === 'function') ? Math.round(entryKcal(r)) : 0;
+                html+=`<div class="fl-card"><div class="fl-kcal-tag"><b>${kcal}</b><span>קל׳</span></div><div class="fl-card-body"${hasRecipe ? ` onclick="toggleFoodLogRecipeDetails('${detId}')" style="cursor:pointer;"` : ''}>
                     <div class="fl-card-name">${_esc(r.food)}${hasRecipe ? ' <span style="color:var(--text-muted);font-size:11px;">(פרטים ›)</span>' : ''}</div>
                     <div class="fl-card-macros">${r.grams?`<span class="g">${r.grams}g</span>`:''}${r.protein_g?`<span class="fl-m-p">${r.protein_g}g חלבון</span>`:''}${r.carbs_g?`<span class="fl-m-c">${r.carbs_g}g פחמימה</span>`:''}${r.fat_g?`<span class="fl-m-f">${r.fat_g}g שומן</span>`:''}${r.alcohol_g?`<span class="fl-m-a">${r.alcohol_g}g אלכוהול</span>`:''}
                     </div>
@@ -371,7 +372,9 @@ function renderFoodLog() {
         html += `<div class="fl-meal"><div class="fl-dot"></div><div class="fl-time">${meal.time || ''} · ארוחה ${meal.mealNumber}</div>`;
         meal.items.forEach(e => {
             const hasRecipe = e.recipe_items && e.recipe_items.length;
+            const kcal = (typeof entryKcal === 'function') ? Math.round(entryKcal(e)) : 0;
             html += `<div class="fl-card">
+                <div class="fl-kcal-tag"><b>${kcal}</b><span>קל׳</span></div>
                 <div class="fl-card-body"${hasRecipe ? ` onclick="toggleFoodLogRecipeDetails('fld-${e._idx}')" style="cursor:pointer;"` : ''}>
                     <div class="fl-card-name">${_esc(e.name)}${hasRecipe ? ' <span style="color:var(--text-muted);font-size:11px;">(פרטים ›)</span>' : ''}</div>
                     <div class="fl-card-macros">${e.grams ? `<span class="g">${e.grams}g</span>` : ''}${e.protein_g ? `<span class="fl-m-p">${e.protein_g}g חלבון</span>` : ''}${e.carbs_g ? `<span class="fl-m-c">${e.carbs_g}g פחמימה</span>` : ''}${e.fat_g ? `<span class="fl-m-f">${e.fat_g}g שומן</span>` : ''}${e.alcohol_g ? `<span class="fl-m-a">${e.alcohol_g}g אלכוהול</span>` : ''}
