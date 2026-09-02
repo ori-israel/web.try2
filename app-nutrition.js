@@ -453,7 +453,7 @@ function undoDeleteItem() {
 function editItemGrams(idx, el) {
     const current = Math.round(scannedItems[idx].grams);
     openNumberRulerSheet({
-        min: 1, max: 1000, step: 5, labelStep: 100,
+        min: 1, max: 1000, step: 1, labelStep: 100,
         title: 'כמות', unit: 'גרם',
         value: current,
         onSave: (val) => {

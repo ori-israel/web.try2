@@ -519,7 +519,7 @@ function _renderRecipeLogItems() {
 function openRlAmountSheet(i) {
     const ing = _rlItems[i];
     const ranges = {
-        'גרם':    { min: 1,    max: 1000, step: 5,    labelStep: 100, decimals: 0 },
+        'גרם':    { min: 1,    max: 1000, step: 1,    labelStep: 100, decimals: 0 },
         'יחידות': { min: 1,    max: 20,   step: 1,    labelStep: 5,   decimals: 0 },
         'כוסות':  { min: 0.25, max: 10,   step: 0.25, labelStep: 1,   decimals: 2 },
         'כפות':   { min: 0.5,  max: 10,   step: 0.5,  labelStep: 1,   decimals: 1 },

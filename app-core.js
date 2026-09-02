@@ -949,7 +949,7 @@ function initFAQ() {
 
     // ── כמות+יחידה — בוטום שיט עם צ'יפים+סרגל (רכיב עצמאי, לא משתף DOM עם num-sheet) ──
     const _AMOUNT_UNIT_CONFIG = {
-        'גרם':    { min: 1,    max: 1000, step: 5,    labelStep: 100, decimals: 0, default: 100 },
+        'גרם':    { min: 1,    max: 1000, step: 1,    labelStep: 100, decimals: 0, default: 100 },
         'יחידות': { min: 1,    max: 20,   step: 1,    labelStep: 5,   decimals: 0, default: 1 },
         'כוסות':  { min: 0.25, max: 10,   step: 0.25, labelStep: 1,   decimals: 2, default: 1 },
         'כפות':   { min: 0.5,  max: 10,   step: 0.5,  labelStep: 1,   decimals: 1, default: 1 },
