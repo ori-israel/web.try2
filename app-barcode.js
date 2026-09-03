@@ -94,7 +94,7 @@ async function onBarcodeDetected(barcode) {
 
         let macros = null;
         if (row.protein_g != null) {
-            macros = { protein_g: row.protein_g, carbs_g: row.carbs_g, fat_g: row.fat_g, alcohol_g: row.alcohol_g };
+            macros = { protein_g: row.protein_g, carbs_g: row.carbs_g, fat_g: row.fat_g, alcohol_g: row.alcohol_g, kcal_g: row.kcal_g };
         } else {
             _bcSetLoadingText('מחפשים ערכים תזונתיים...');
             macros = await _bcFetchFromOpenFoodFacts(barcode);
@@ -129,6 +129,8 @@ async function _bcFetchFromOpenFoodFacts(barcode) {
             carbs_g:   n.carbohydrates_100g || 0,
             fat_g:     n.fat_100g || 0,
             alcohol_g: n.alcohol_100g || 0,
+            // הקלוריות המודפסות בפועל על האריזה - עדיפות על חישוב עצמי מהמאקרו
+            kcal_g:    n['energy-kcal_100g'] ?? null,
         };
     } catch (_) {
         return null;
@@ -157,7 +159,7 @@ async function resolveBarcodeProductMacros(barcode) {
     const row = await sbLookupBarcode(barcode);
     if (!row) return null;
     if (row.protein_g != null) {
-        return { protein_g: row.protein_g, carbs_g: row.carbs_g, fat_g: row.fat_g, alcohol_g: row.alcohol_g };
+        return { protein_g: row.protein_g, carbs_g: row.carbs_g, fat_g: row.fat_g, alcohol_g: row.alcohol_g, kcal_g: row.kcal_g };
     }
     const macros = await _bcFetchFromOpenFoodFacts(barcode);
     if (macros) sbSaveBarcodeMacros(barcode, macros).catch(() => {});
@@ -172,7 +174,9 @@ function updateBarcodeConfirmTotals() {
     const c = Math.round(_bcProduct.carbs_g   * ratio * 10) / 10;
     const f = Math.round(_bcProduct.fat_g     * ratio * 10) / 10;
     const a = Math.round((_bcProduct.alcohol_g || 0) * ratio * 10) / 10;
-    const kcal = Math.round(p * 4 + c * 4 + f * 9 + a * 7);
+    const kcal = _bcProduct.kcal_g != null
+        ? Math.round(_bcProduct.kcal_g * ratio)
+        : Math.round(p * 4 + c * 4 + f * 9 + a * 7);
 
     document.getElementById('bc-kcal-val').textContent = kcal;
     document.getElementById('bc-kcal-lbl').textContent = `קלוריות ב-${amount} גרם`;
@@ -200,6 +204,7 @@ async function confirmBarcodeAdd() {
     const carbs_g   = Math.round(_bcProduct.carbs_g   * ratio * 10) / 10;
     const fat_g     = Math.round(_bcProduct.fat_g     * ratio * 10) / 10;
     const alcohol_g = Math.round((_bcProduct.alcohol_g || 0) * ratio * 10) / 10;
+    const kcal_g = _bcProduct.kcal_g != null ? Math.round(_bcProduct.kcal_g * ratio) : null;
 
     if (typeof addFoodLogEntry === 'function') {
         addFoodLogEntry({
@@ -211,6 +216,7 @@ async function confirmBarcodeAdd() {
             carbs_g:   carbs_g   || null,
             fat_g:     fat_g     || null,
             alcohol_g: alcohol_g || null,
+            kcal_g:    kcal_g,
         });
     }
 
@@ -220,7 +226,8 @@ async function confirmBarcodeAdd() {
             protein_g: _bcProduct.protein_g,
             carbs_g:   _bcProduct.carbs_g,
             fat_g:     _bcProduct.fat_g,
-            alcohol_g: _bcProduct.alcohol_g
+            alcohol_g: _bcProduct.alcohol_g,
+            kcal_g:    _bcProduct.kcal_g
         });
         if (!savedId) {
             if (typeof showAlert === 'function') showAlert('הפריט נוסף ליומן, אבל השמירה ב"מאכלים שלי" נכשלה. אפשר לנסות שוב מתוך "המזונות שלי".');

@@ -357,7 +357,8 @@ async function confirmAddItem() {
                 protein_g: Math.round(macros.protein_g * ratio * 10) / 10,
                 fat_g: Math.round(macros.fat_g * ratio * 10) / 10,
                 carbs_g: Math.round(macros.carbs_g * ratio * 10) / 10,
-                alcohol_g: Math.round((macros.alcohol_g || 0) * ratio * 10) / 10
+                alcohol_g: Math.round((macros.alcohol_g || 0) * ratio * 10) / 10,
+                kcal_g: macros.kcal_g != null ? Math.round(macros.kcal_g * ratio) : null
             });
             updateScannedTotals();
             renderScanDetails();
@@ -469,7 +470,8 @@ function editItemGrams(idx, el) {
                     protein_g: Math.round((item.protein_g || 0) * ratio * 10) / 10,
                     fat_g: Math.round((item.fat_g || 0) * ratio * 10) / 10,
                     carbs_g: Math.round((item.carbs_g || 0) * ratio * 10) / 10,
-                    alcohol_g: Math.round((item.alcohol_g || 0) * ratio * 10) / 10
+                    alcohol_g: Math.round((item.alcohol_g || 0) * ratio * 10) / 10,
+                    kcal_g: item.kcal_g != null ? Math.round(item.kcal_g * ratio) : null
                 };
                 // אותה תקרת בטיחות פיזית כמו ב-enrichItemMacros — לא תלוית מקור
                 const proteinCap = updated.grams * 0.9;

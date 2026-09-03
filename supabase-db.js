@@ -402,7 +402,7 @@ async function sbDeleteCustomRecipe(id) {
 async function sbLookupBarcode(barcode) {
     const { data, error } = await db
         .from('barcode_products')
-        .select('barcode, name, protein_g, carbs_g, fat_g, alcohol_g')
+        .select('barcode, name, protein_g, carbs_g, fat_g, alcohol_g, kcal_g')
         .eq('barcode', barcode)
         .maybeSingle();
     if (error) { console.warn('sbLookupBarcode:', error.message); return null; }
@@ -417,6 +417,7 @@ async function sbSaveBarcodeMacros(barcode, macros) {
             carbs_g:   macros.carbs_g   || 0,
             fat_g:     macros.fat_g     || 0,
             alcohol_g: macros.alcohol_g || 0,
+            kcal_g:    macros.kcal_g ?? null,
         })
         .eq('barcode', barcode);
     if (error) console.warn('sbSaveBarcodeMacros:', error.message);
