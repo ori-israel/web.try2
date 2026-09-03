@@ -481,6 +481,56 @@ function _validateFoodMacros(foodData) {
     return fixed;
 }
 
+// חיפוש מוצר ממותג לפי שם ב-OpenFoodFacts (מאגר ציבורי אמין) — לפני שסומכים על ניחוש ה-AI.
+// דורש חפיפת מילים משמעותית בין השם שחיפשנו לשם שחזר, אחרת מתעלמים מהתוצאה (למניעת התאמת שווא).
+async function _offNameLookupMacros(name) {
+    if (!name) return null;
+    try {
+        const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(name)}&search_simple=1&action=process&json=1&page_size=1&fields=product_name,product_name_he,nutriments`;
+        const resp = await fetch(url);
+        if (!resp.ok) return null;
+        const data = await resp.json();
+        const p = data.products?.[0];
+        if (!p || !p.nutriments) return null;
+        const pname = (p.product_name_he || p.product_name || '').trim();
+        if (!pname) return null;
+        const nameWords = name.replace(/[()״׳,.?!]/g, ' ').split(/\s+/).filter(w => w.length > 1);
+        const overlap = nameWords.filter(w => pname.includes(w)).length;
+        if (overlap < Math.max(1, Math.ceil(nameWords.length / 2))) return null;
+        const n = p.nutriments;
+        if (n.proteins_100g == null && n.carbohydrates_100g == null && n.fat_100g == null) return null;
+        return {
+            protein_g: n.proteins_100g || 0,
+            carbs_g:   n.carbohydrates_100g || 0,
+            fat_g:     n.fat_100g || 0,
+            kcal_g:    n['energy-kcal_100g'] ?? null,
+        };
+    } catch (_) {
+        return null;
+    }
+}
+
+// שכבת אימות מלאה ל-FOOD_ADD: קודם רשת הביטחון המקומית (USDA), ואז ניסיון למצוא את המוצר
+// הספציפי (אם זה מוצר ממותג) ב-OpenFoodFacts — נתונים אמיתיים עדיפים על ניחוש, גם אם הניחוש סביר.
+async function _validateAndEnrichFoodMacros(foodData) {
+    let fixed = _validateFoodMacros(foodData);
+    const grams = foodData.grams || 0;
+    if (grams > 0) {
+        const off = await _offNameLookupMacros(foodData.name);
+        if (off) {
+            const ratio = grams / 100;
+            fixed = {
+                ...fixed,
+                protein_g: Math.round(off.protein_g * ratio * 10) / 10,
+                carbs_g:   Math.round(off.carbs_g   * ratio * 10) / 10,
+                fat_g:     Math.round(off.fat_g     * ratio * 10) / 10,
+                kcal_g:    off.kcal_g != null ? Math.round(off.kcal_g * ratio) : null,
+            };
+        }
+    }
+    return fixed;
+}
+
 // מסיר עד 2 אותיות יחס/חיבור בתחילת מילה (ו,ה,ב,ל,מ,ש,כ) כדי שצורות כמו
 // "ולחלבון"/"בפחמימות" יתאימו למילת המפתח הבסיסית "חלבון"/"פחמימות".
 // לא נוגע בהתאמת הביטוי המדויק (score+10) — רק בשכבות ההתאמה החלקית, כדי לא להגדיל סיכון להתאמות שווא.
@@ -744,7 +794,7 @@ async function sendAIMessage() {
             if (foodAddMatches.length > 0) {
                 try {
                     for (const foodAddMatch of foodAddMatches) {
-                    const foodData = _validateFoodMacros(JSON.parse(foodAddMatch[1]));
+                    const foodData = await _validateAndEnrichFoodMacros(JSON.parse(foodAddMatch[1]));
                     const protein_g = foodData.protein_g || 0;
                     const carbs_g   = foodData.carbs_g   || 0;
                     const fat_g     = foodData.fat_g     || 0;
@@ -755,7 +805,8 @@ async function sendAIMessage() {
                         protein_g: protein_g || null,
                         carbs_g:   carbs_g   || null,
                         fat_g:     fat_g     || null,
-                        alcohol_g: alcohol_g || null
+                        alcohol_g: alcohol_g || null,
+                        kcal_g:    foodData.kcal_g ?? null
                     });
                     }
                     if (typeof addFoodMacros === 'function') addFoodMacros();
@@ -969,7 +1020,7 @@ async function buildSystemPrompt() {
 אלרגיות: ${allergies} | לא אוהב: ${dislikedFoods} | אוהב: ${likedFoods}
 לוח אימונים: ${workoutsCompact}
 כללים: שאלות_רפואיות/פציעה_חמורה/מצוקה_נפשית→המלץ_בעדינות_לפנות_לאיש_מקצוע_מתאים_לפי_ההקשר_(רופא/אורתופד/תזונאי/פסיכולוג/פיזיותרפיסט_או_כל_בעל_מקצוע_רלוונטי_אחר_שאינו_מאמן_כושר)_ולא_להסתמך_עליי_בלבד | לעולם_אל_תפנה_את_המשתמש_לאורי_או_לוואטסאפ_ואל_תזכיר_את_אורי_בשום_הקשר | ללא_ייעוץ_רפואי | שפה_פשוטה_מאוד: כשבאמת מסבירים משהו - הסבר כאילו למישהו בן 10 שלא מכיר מונחים, בלי ז'רגון מקצועי מפחיד, ואם חייב מונח מקצועי תרגם אותו מיד למילים פשוטות | ענה_רק_על_מה_שנשאל: תשובה ממוקדת לשאלה, בלי להוסיף הסבר על מונח בסיסי (כמו מה זה חזרה/סט/חלבון) שלא התבקש ובלי לסטות לנושא לא קשור - אבל זה לא אומר לענות ביובש, הטון עצמו נשאר חם ואכפתי, רק בלי תוספות מיותרות | עידוד_מתון: הטון תומך, חם ומתעניין באמת במה שקורה עם המשתמש - אבל בלי סיסמאות נלהגות מוגזמות ("בוא נביא אש", "יאללה כאילו קרב") ובלי לדחוף עידוד/מוטיבציה לתוך כל תשובה בכוח כשלא התבקש וזה לא טבעי להקשר | תאריך_מהנתונים_בלבד | תשובות_קצרות | מבנה_תשובה_ארוכה: כשהתשובה יותר מ2-3 משפטים - לחלק אותה לפסקאות קצרות עם שורה ריקה ביניהן, ולהשתמש בשורות שמתחילות ב-• לרשימה כשמתאים, כדי שהתשובה תיקרא בנוחות ולא כגוש טקסט אחד | אל_תשתמש_בסימן_@ | אימון_מחר_לפי_שדה_מחר_בלבד_אל_תחשב_לבד | שאלה_על_ערכי_מוצר→רק_קלוריות+חלבון+פחמימה+שומן_ל-100ג_בלי_פירוט_נוסף | המלצת_חלבון_תמיד_1.8_עד_2.2_גרם_לק״ג_גוף | טון_שיתופי: הלקוח לא לבד, אתה מלווה אותו — כשמתאים העדף ניסוח כמו "נעשה", "נעקוב", "בוא נראה" על פני ניסוח מרוחק כמו "אתה יכול", בלי להגזים או לחזור על זה בכל משפט
-הוספה_ליומן: אם קיים בהודעה בלוק [נתוני USDA] — חובה להשתמש בדיוק בערכים משם למאכל התואם, לא בידע הפנימי שלך, במיוחד להיזהר מבלבול בין גולמי למבושל (למשל אורז/פסטה/קטניות משנים משמעותית ערכים בין המצבים) | כשמשתמש מבקש להוסיף מאכל ליומן — קודם שאל לאישור בפורמט הזה בדיוק (כל מאכל בשורה נפרדת):
+הוספה_ליומן: אם קיים בהודעה בלוק [נתוני USDA] — חובה להשתמש בדיוק בערכים משם למאכל התואם, לא בידע הפנימי שלך, במיוחד להיזהר מבלבול בין גולמי למבושל (למשל אורז/פסטה/קטניות משנים משמעותית ערכים בין המצבים) | אם בתשובתך אתה מציין מספר קלוריות למאכל (בפירוש או בסיכום) — הוא חייב להיות תוצאה של חישוב מדויק מהחלבון/פחמימה/שומן שאתה בעצמך נותן (חלבון כפול 4, פחמימה כפול 4, שומן כפול 9), לא מספר עגול שהערכת בנפרד; ודא זאת לפני שאתה כותב את התשובה | כשמשתמש מבקש להוסיף מאכל ליומן — קודם שאל לאישור בפורמט הזה בדיוק (כל מאכל בשורה נפרדת):
 "אוסיף:
 • [שם] [כמות] — חלבון Xג, פחמימות Xג, שומן Xג
 • [שם] [כמות] — חלבון Xג, פחמימות Xג, שומן Xג
