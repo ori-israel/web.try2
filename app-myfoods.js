@@ -622,7 +622,11 @@ function _rlPortionSwitchUnit(unit) {
         ? (_rlTotalWeight > 0 ? _rlPortionSheetValue / _rlTotalWeight : 0)
         : (_rlPortionSheetValue / 10);
     _rlPortionSheetUnit = unit;
-    _rlPortionSheetValue = unit === 'גרם' ? (_rlTotalWeight * ratio) : (ratio * 10);
+    const rawValue = unit === 'גרם' ? (_rlTotalWeight * ratio) : (ratio * 10);
+    // מעגלים מיד לרשת הצעדים של היחידה החדשה - אחרת המספר שמוצג (מעוגל) לא תואם
+    // לערך הפנימי שנשמר בפועל בלחיצה על "שמירה" (שני מספרים שונים שנראים זהים)
+    const cfg = _RL_PORTION_CONFIG[unit];
+    _rlPortionSheetValue = cfg.min + Math.round((rawValue - cfg.min) / cfg.step) * cfg.step;
     document.querySelectorAll('.rl-portion-sheet-overlay .amount-unit-chip').forEach(c => c.classList.toggle('sel', c.dataset.u === unit));
     document.getElementById('rl-portion-sheet-unit-label').textContent = unit;
     const track = document.getElementById('rl-portion-sheet-track');
@@ -634,7 +638,9 @@ function _rlPortionSwitchUnit(unit) {
 
 function openRlPortionSheet() {
     _rlPortionSheetUnit = _rlPortionMode;
-    _rlPortionSheetValue = _rlPortionMode === 'גרם' ? _rlPortionGrams : (_rlTotalWeight > 0 ? (_rlPortionGrams / _rlTotalWeight) * 10 : 0);
+    const rawValue = _rlPortionMode === 'גרם' ? _rlPortionGrams : (_rlTotalWeight > 0 ? (_rlPortionGrams / _rlTotalWeight) * 10 : 0);
+    const cfg = _RL_PORTION_CONFIG[_rlPortionSheetUnit];
+    _rlPortionSheetValue = cfg.min + Math.round((rawValue - cfg.min) / cfg.step) * cfg.step;
     document.querySelectorAll('.rl-portion-sheet-overlay .amount-unit-chip').forEach(c => c.classList.toggle('sel', c.dataset.u === _rlPortionSheetUnit));
     document.getElementById('rl-portion-sheet-unit-label').textContent = _rlPortionSheetUnit;
     const track = document.getElementById('rl-portion-sheet-track');
