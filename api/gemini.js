@@ -96,8 +96,8 @@ export default async function handler(req, res) {
         .lt('created_at', new Date(Date.now() - 2 * 60 * 1000).toISOString())
         .then(() => {}, () => {});
 
-    // זיהוי חיפוש (צ'אט או מאקרו) — משמש להעברת google_search ל-Gemini
-    const isSearch = Array.isArray(payload.tools)
+    // האם הלקוח ביקש שהכלי יהיה זמין (לא אומר שבפועל יחפש — זו החלטה של המודל עצמו)
+    let wantsSearchTool = Array.isArray(payload.tools)
         && payload.tools.some(t => t && (t.google_search || t.googleSearch));
 
     // Rate limit: 10 סריקות תמונה בשעה למשתמש (לא חל על צ'אט)
@@ -128,27 +128,28 @@ export default async function handler(req, res) {
     }
 
     // ── מגבלות צ'אט יומיות (אכיפה בשרת, מתאפס בחצות ישראל) ──────
-    // צ'אט בלבד (לא סריקת תמונה, לא בירור מאקרו, לא הצעות צ'יפים). 50 הודעות/יום, 20 חיפושים/יום.
+    // צ'אט בלבד (לא סריקת תמונה, לא בירור מאקרו, לא הצעות צ'יפים). 50 הודעות/יום, 20 חיפושים אמיתיים/יום.
     let messagesRemaining = null; // מועבר ללקוח בכותרת התשובה, כדי שאפשר להראות רמז לפני שנגמר לגמרי
+    let today = null, curSearch = 0; // נדרשים אחרי הסטרימינג כדי לעדכן searches רק אם באמת חיפש
     if (!isScan && kind !== 'macro' && kind !== 'quick_chips') {
         // תאריך לפי שעון ישראל → איפוס אוטומטי בחצות מקומית
-        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
+        today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
 
         const { data: usage } = await db.from('daily_usage')
             .select('messages, searches').eq('user_id', user.id).eq('date', today).maybeSingle();
         const curMsg = usage?.messages || 0;
-        const curSearch = usage?.searches || 0;
+        curSearch = usage?.searches || 0;
 
         if (curMsg >= 50)
             return res.status(429).json({ error: 'הגעת למגבלת ההודעות היומית (50). נסה שוב מחר.' });
-        if (isSearch && curSearch >= 20)
-            return res.status(429).json({ error: 'הגעת למגבלת החיפושים היומית (20). נסה שוב מחר.' });
+        // מגבלת החיפושים היומית לא חוסמת את הצ'אט — רק שוללת מהמאמן את אפשרות החיפוש להודעה הזו
+        if (curSearch >= 20) wantsSearchTool = false;
 
         await db.from('daily_usage').upsert({
             user_id: user.id,
             date: today,
             messages: curMsg + 1,
-            searches: curSearch + (isSearch ? 1 : 0),
+            searches: curSearch,
         }, { onConflict: 'user_id,date' });
         messagesRemaining = 50 - (curMsg + 1);
 
@@ -164,7 +165,7 @@ export default async function handler(req, res) {
 
     // Only forward known-safe fields — block safetySettings overrides
     // tools: רק google_search מותר (חוסם הזרקת tools אחרים)
-    const safeTools = isSearch ? [{ google_search: {} }] : null;
+    const safeTools = wantsSearchTool ? [{ google_search: {} }] : null;
     const safePayload = {
         contents: payload.contents,
         ...(payload.system_instruction ? { system_instruction: payload.system_instruction } : {}),
@@ -206,10 +207,21 @@ export default async function handler(req, res) {
 
     const reader = geminiRes.body.getReader();
     const decoder = new TextDecoder();
+    let usedSearch = false;
     while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        res.write(decoder.decode(value, { stream: true }));
+        const chunk = decoder.decode(value, { stream: true });
+        if (!usedSearch && chunk.includes('groundingMetadata')) usedSearch = true;
+        res.write(chunk);
     }
     res.end();
+
+    // עדכון מונה החיפושים היומי — רק אם המאמן באמת חיפש בפועל (לא כי הכלי היה זמין לו).
+    // update() ולא upsert() — השורה כבר קיימת מהעדכון למעלה, וכך לא נוגעים בעמודת messages.
+    if (usedSearch && today) {
+        db.from('daily_usage').update({ searches: curSearch + 1 })
+            .eq('user_id', user.id).eq('date', today)
+            .then(() => {}, () => {});
+    }
 }
