@@ -125,15 +125,15 @@
             <button class="close-btn" onclick="closeRecipeLogAdjust()">&times;</button>
         </div>
         <p style="font-size:12px;color:var(--text-secondary);margin:0 0 10px;">אפשר לכוונן כמות לכל מרכיב להיום, המתכון השמור לא ישתנה</p>
-        <div class="rl-total-row">
-            <span>משקל המתכון המלא</span>
-            <b id="rl-total-weight">0 גרם</b>
+        <div class="profile-row">
+            <label>כמה גרם יש במתכון</label>
+            <b id="rl-total-weight" style="font-size:14.5px;font-weight:800;font-variant-numeric:tabular-nums;">0 גרם</b>
         </div>
-        <div class="rl-portion-label">כמה אכלת מהמתכון?</div>
-        <div class="rl-portion-tap" onclick="openRlPortionSheet()">
-            <b id="rl-portion-val">0</b><span id="rl-portion-unit">גרם</span>
+        <div class="profile-row" onclick="openRlPortionSheet()" style="cursor:pointer;">
+            <label>כמה גרם אכלת מהמתכון</label>
+            <span class="entry-pill-amt-tap" style="padding:0;font-size:14.5px;"><b id="rl-portion-val">0</b> <span id="rl-portion-unit">גרם</span></span>
         </div>
-        <div id="rl-ingredients-list"></div>
+        <div id="rl-ingredients-list" style="margin-top:14px;"></div>
         <div class="cf-macro-row">
             <div class="cf-macro-box p"><div style="font-size:14px;font-weight:800;" id="rl-sum-protein">0</div><div class="lbl">חלבון</div></div>
             <div class="cf-macro-box c"><div style="font-size:14px;font-weight:800;" id="rl-sum-carbs">0</div><div class="lbl">פחמימה</div></div>

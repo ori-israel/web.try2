@@ -1202,14 +1202,6 @@ body:has(#ai-chat-input:focus) .tabs {
 .recipe-ing-pill .ing-amt { flex-shrink: 0; }
 .recipe-ing-pill .ing-remove { color: var(--text-muted); font-size: 15px; padding: 0 2px; cursor: pointer; flex-shrink: 0; background: none; border: none; font-family: inherit; }
 
-.rl-total-row { display: flex; justify-content: space-between; align-items: baseline; background: var(--bg-card-alt); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 10px; font-size: 12.5px; color: var(--text-secondary); }
-.rl-total-row b { font-size: 15px; color: var(--text-primary); font-weight: 800; font-variant-numeric: tabular-nums; }
-.rl-portion-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; margin: 2px 0 6px; }
-.rl-portion-tap { display: flex; align-items: baseline; justify-content: center; gap: 6px; background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 6px; cursor: pointer; margin-bottom: 14px; transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1); }
-.rl-portion-tap:active { transform: scale(0.98); }
-.rl-portion-tap b { font-size: 22px; color: var(--accent); font-weight: 800; font-variant-numeric: tabular-nums; }
-.rl-portion-tap span { font-size: 12.5px; color: var(--text-secondary); font-weight: 600; }
-
 .cr-name-headline {
     width: 100%;
     background: transparent;
