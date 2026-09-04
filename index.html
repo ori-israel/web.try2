@@ -1425,6 +1425,21 @@
   </div>
 </div>
 
+<div class="weight-sheet-overlay rl-portion-sheet-overlay" id="rl-portion-sheet-overlay" onclick="if(event.target===this)closeRlPortionSheet()">
+  <div class="weight-sheet">
+    <div class="weight-sheet-handle"></div>
+    <div class="weight-sheet-label">כמה אכלת</div>
+    <div class="amount-unit-chips">
+      <button type="button" class="amount-unit-chip" data-u="גרם" onclick="_rlPortionSwitchUnit('גרם')">גרם</button>
+      <button type="button" class="amount-unit-chip" data-u="יחידות" onclick="_rlPortionSwitchUnit('יחידות')">יחידות</button>
+    </div>
+    <div class="weight-ruler-value" id="rl-portion-sheet-value">0</div>
+    <div class="weight-ruler-unit" id="rl-portion-sheet-unit-label">גרם</div>
+    <div class="weight-ruler-wrap" id="rl-portion-sheet-wrap"><div class="weight-ruler-track" id="rl-portion-sheet-track"></div><div class="weight-ruler-needle"></div></div>
+    <button class="weight-sheet-save-btn" onclick="saveRlPortionSheet()">שמירה <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
+  </div>
+</div>
+
 <script src="/supabase.js"></script>
 <script src="bmr.js"></script>
 <script src="client.js"></script>
@@ -1582,6 +1597,14 @@
             <button class="close-btn" onclick="closeRecipeLogAdjust()">&times;</button>
         </div>
         <p style="font-size:12px;color:var(--text-secondary);margin:0 0 10px;">אפשר לכוונן כמות לכל מרכיב להיום, המתכון השמור לא ישתנה</p>
+        <div class="rl-total-row">
+            <span>משקל המתכון המלא</span>
+            <b id="rl-total-weight">0 גרם</b>
+        </div>
+        <div class="rl-portion-label">כמה אכלת מהמתכון?</div>
+        <div class="rl-portion-tap" onclick="openRlPortionSheet()">
+            <b id="rl-portion-val">0</b><span id="rl-portion-unit">גרם</span>
+        </div>
         <div id="rl-ingredients-list"></div>
         <div class="cf-macro-row">
             <div class="cf-macro-box p"><div style="font-size:14px;font-weight:800;" id="rl-sum-protein">0</div><div class="lbl">חלבון</div></div>

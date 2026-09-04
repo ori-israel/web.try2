@@ -125,6 +125,14 @@
             <button class="close-btn" onclick="closeRecipeLogAdjust()">&times;</button>
         </div>
         <p style="font-size:12px;color:var(--text-secondary);margin:0 0 10px;">אפשר לכוונן כמות לכל מרכיב להיום, המתכון השמור לא ישתנה</p>
+        <div class="rl-total-row">
+            <span>משקל המתכון המלא</span>
+            <b id="rl-total-weight">0 גרם</b>
+        </div>
+        <div class="rl-portion-label">כמה אכלת מהמתכון?</div>
+        <div class="rl-portion-tap" onclick="openRlPortionSheet()">
+            <b id="rl-portion-val">0</b><span id="rl-portion-unit">גרם</span>
+        </div>
         <div id="rl-ingredients-list"></div>
         <div class="cf-macro-row">
             <div class="cf-macro-box p"><div style="font-size:14px;font-weight:800;" id="rl-sum-protein">0</div><div class="lbl">חלבון</div></div>

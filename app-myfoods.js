@@ -13,6 +13,9 @@ let _crIngredients = []; // מרכיבי המתכון הנבנה כרגע
 
 let _rlRecipe = null;    // המתכון שנבחר לרישום
 let _rlItems = [];       // מרכיבי המתכון עם כמויות מכווננות לרישום הנוכחי
+let _rlTotalWeight = 0;  // משקל המתכון המלא בגרם (סכום מרכיבים שנמדדים בגרם)
+let _rlPortionMode = 'גרם';   // מצב תצוגה של "כמה אכלת" - גרם, או יחידות (עשיריות מהמתכון)
+let _rlPortionGrams = 0;      // כמה גרם נבחרו לאכילה (המקור לחישוב היחס שמוחל על כל המרכיבים)
 
 async function _loadMyFoodsData() {
     const uid = getActiveUserId();
@@ -477,6 +480,10 @@ function openRecipeLogAdjust(recipeId) {
     _rlRecipe = recipe;
     _rlItems = JSON.parse(JSON.stringify(recipe.ingredients || []));
     document.getElementById('rl-title').textContent = recipe.name;
+    // משקל כולל - סכום המרכיבים שנמדדים בגרם (יחידות/כוסות/כפות לא נכללות בסכום המשקל)
+    _rlTotalWeight = recipe.ingredients.reduce((s, ing) => s + (ing.unit === 'גרם' ? (ing.amount || 0) : 0), 0);
+    document.getElementById('rl-total-weight').textContent = Math.round(_rlTotalWeight) + ' גרם';
+    _rlSetPortion(_rlTotalWeight, 'גרם');
     _renderRecipeLogItems();
     const m = document.getElementById('recipe-log-modal');
     m.classList.remove('hidden');
@@ -499,6 +506,158 @@ function _renderRecipeLogItems() {
             <span class="ing-amt">${_esc(ing.unit)}</span>
         </div>`).join('');
     _rlUpdateSummary();
+}
+
+// עדכון "כמה אכלת" גלובלי - מחיל את אותו יחס על כל המרכיבים ביחד (לפי המשקל הכולל שנבחר),
+// ומעדכן את התצוגה. אפשר עדיין לכוונן מרכיב בודד לאחר מכן (openRlAmountSheet).
+function _rlSetPortion(grams, mode) {
+    _rlPortionGrams = Math.max(0, grams);
+    _rlPortionMode = mode;
+    // אם אין במתכון שום מרכיב שנמדד בגרם, אין בסיס לחשב יחס - משאירים את הכמויות כמו שהן
+    const ratio = _rlTotalWeight > 0 ? (_rlPortionGrams / _rlTotalWeight) : 1;
+    _rlRecipe.ingredients.forEach((_, i) => {
+        const original = _rlRecipe.ingredients[i];
+        _rlUpdateAmount(i, (original.amount || 0) * ratio);
+    });
+    const valEl = document.getElementById('rl-portion-val');
+    const unitEl = document.getElementById('rl-portion-unit');
+    if (mode === 'גרם') {
+        valEl.textContent = Math.round(_rlPortionGrams);
+        unitEl.textContent = 'גרם';
+    } else {
+        valEl.textContent = Math.round(ratio * 10 * 10) / 10;
+        unitEl.textContent = 'יחידות';
+    }
+}
+
+// ── "כמה אכלת" — בוטום שיט עם צ'יפים (גרם/יחידות) + סרגל, בדיוק כמו סרגל הכמות הרגיל ──
+const _RL_PORTION_TICK_GAP = 14;
+const _RL_PORTION_CONFIG = {
+    'גרם':    { min: 0, max: 1000, step: 1,   labelStep: 100 },
+    'יחידות': { min: 0, max: 10,   step: 0.5, labelStep: 1 } // "יחידות" = עשיריות מהמתכון (0-10), לא ספירת פריטים
+};
+let _rlPortionSheetUnit = 'גרם';
+let _rlPortionSheetValue = 0;
+let _rlPortionSheetReady = false;
+
+function _rlPortionOffsetFor(v) {
+    const cfg = _RL_PORTION_CONFIG[_rlPortionSheetUnit];
+    return -((v - cfg.min) / cfg.step) * _RL_PORTION_TICK_GAP - _RL_PORTION_TICK_GAP / 2;
+}
+
+function _rlPortionBuildTicks() {
+    const track = document.getElementById('rl-portion-sheet-track');
+    if (!track) return;
+    const cfg = _RL_PORTION_CONFIG[_rlPortionSheetUnit];
+    track.innerHTML = '';
+    const n = Math.round((cfg.max - cfg.min) / cfg.step);
+    for (let i = 0; i <= n; i++) {
+        const v = cfg.min + i * cfg.step;
+        const isMajor = Math.abs(v - Math.round(v)) < 0.001 && Math.round(v) % cfg.labelStep === 0;
+        const t = document.createElement('div');
+        t.className = 'weight-ruler-tick' + (isMajor ? ' major' : '');
+        const line = document.createElement('div');
+        line.className = 'weight-ruler-tick-line';
+        t.appendChild(line);
+        if (isMajor) {
+            const lbl = document.createElement('div');
+            lbl.className = 'weight-ruler-tick-label';
+            lbl.textContent = Math.round(v);
+            t.appendChild(lbl);
+        }
+        track.appendChild(t);
+    }
+}
+
+function _rlPortionRenderSheet() {
+    const track = document.getElementById('rl-portion-sheet-track');
+    const valEl = document.getElementById('rl-portion-sheet-value');
+    if (!track || !valEl) return;
+    const cfg = _RL_PORTION_CONFIG[_rlPortionSheetUnit];
+    track.style.transform = `translateX(${_rlPortionOffsetFor(_rlPortionSheetValue)}px)`;
+    valEl.textContent = cfg.step < 1 ? _rlPortionSheetValue.toFixed(1) : Math.round(_rlPortionSheetValue);
+}
+
+function _rlPortionInitDrag() {
+    if (_rlPortionSheetReady) return;
+    _rlPortionSheetReady = true;
+    const wrap = document.getElementById('rl-portion-sheet-wrap');
+    const track = document.getElementById('rl-portion-sheet-track');
+    if (!wrap || !track) return;
+    let dragging = false, startX = 0, startOffset = 0;
+    const pointerX = e => e.touches ? e.touches[0].clientX : e.clientX;
+
+    wrap.addEventListener('pointerdown', e => {
+        dragging = true;
+        track.style.transition = 'none';
+        startX = pointerX(e);
+        startOffset = _rlPortionOffsetFor(_rlPortionSheetValue);
+    });
+    window.addEventListener('pointermove', e => {
+        if (!dragging) return;
+        const cfg = _RL_PORTION_CONFIG[_rlPortionSheetUnit];
+        const minOffset = _rlPortionOffsetFor(cfg.max);
+        const maxOffset = _rlPortionOffsetFor(cfg.min);
+        let newOffset = startOffset + (pointerX(e) - startX);
+        newOffset = Math.max(minOffset, Math.min(maxOffset, newOffset));
+        const raw = cfg.min + (-newOffset / _RL_PORTION_TICK_GAP) * cfg.step;
+        _rlPortionSheetValue = cfg.min + Math.round((raw - cfg.min) / cfg.step) * cfg.step;
+        track.style.transform = `translateX(${newOffset}px)`;
+        const valEl = document.getElementById('rl-portion-sheet-value');
+        if (valEl) valEl.textContent = cfg.step < 1 ? _rlPortionSheetValue.toFixed(1) : Math.round(_rlPortionSheetValue);
+    });
+    window.addEventListener('pointerup', () => {
+        if (!dragging) return;
+        dragging = false;
+        const cfg = _RL_PORTION_CONFIG[_rlPortionSheetUnit];
+        _rlPortionSheetValue = cfg.min + Math.round((_rlPortionSheetValue - cfg.min) / cfg.step) * cfg.step;
+        track.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+        _rlPortionRenderSheet();
+    });
+}
+
+function _rlPortionSwitchUnit(unit) {
+    // ממירים את הערך הנוכחי ליחידה החדשה כך שהיחס שנבחר (החלק מהמתכון) לא משתנה מעצם ההחלפה
+    const ratio = _rlPortionSheetUnit === 'גרם'
+        ? (_rlTotalWeight > 0 ? _rlPortionSheetValue / _rlTotalWeight : 0)
+        : (_rlPortionSheetValue / 10);
+    _rlPortionSheetUnit = unit;
+    _rlPortionSheetValue = unit === 'גרם' ? (_rlTotalWeight * ratio) : (ratio * 10);
+    document.querySelectorAll('.rl-portion-sheet-overlay .amount-unit-chip').forEach(c => c.classList.toggle('sel', c.dataset.u === unit));
+    document.getElementById('rl-portion-sheet-unit-label').textContent = unit;
+    const track = document.getElementById('rl-portion-sheet-track');
+    if (track) track.style.transition = 'none';
+    _rlPortionBuildTicks();
+    _rlPortionRenderSheet();
+    _rlPortionInitDrag();
+}
+
+function openRlPortionSheet() {
+    _rlPortionSheetUnit = _rlPortionMode;
+    _rlPortionSheetValue = _rlPortionMode === 'גרם' ? _rlPortionGrams : (_rlTotalWeight > 0 ? (_rlPortionGrams / _rlTotalWeight) * 10 : 0);
+    document.querySelectorAll('.rl-portion-sheet-overlay .amount-unit-chip').forEach(c => c.classList.toggle('sel', c.dataset.u === _rlPortionSheetUnit));
+    document.getElementById('rl-portion-sheet-unit-label').textContent = _rlPortionSheetUnit;
+    const track = document.getElementById('rl-portion-sheet-track');
+    if (track) track.style.transition = 'none';
+    _rlPortionBuildTicks();
+    _rlPortionRenderSheet();
+    _rlPortionInitDrag();
+    document.getElementById('rl-portion-sheet-overlay').classList.add('open');
+    window._dynamicOverlayOpen();
+}
+
+function closeRlPortionSheet() {
+    const overlay = document.getElementById('rl-portion-sheet-overlay');
+    if (!overlay || !overlay.classList.contains('open')) return;
+    overlay.classList.remove('open');
+    window._dynamicOverlayClosed();
+}
+
+function saveRlPortionSheet() {
+    const grams = _rlPortionSheetUnit === 'גרם' ? _rlPortionSheetValue : (_rlPortionSheetValue / 10) * _rlTotalWeight;
+    _rlSetPortion(grams, _rlPortionSheetUnit);
+    _renderRecipeLogItems();
+    closeRlPortionSheet();
 }
 
 function openRlAmountSheet(i) {
