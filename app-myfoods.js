@@ -194,7 +194,13 @@ async function aiEstimateCustomFood() {
     const name = document.getElementById('cf-name').value.trim();
     const amount = parseFloat(document.getElementById('cf-amount').value) || 100;
     const unit = document.getElementById('cf-unit').value;
-    if (!name) { document.getElementById('cf-name').focus(); return; }
+    if (!name) {
+        const err = document.getElementById('cf-error');
+        err.textContent = 'קודם צריך למלא שם.';
+        err.style.display = 'block';
+        document.getElementById('cf-name').focus();
+        return;
+    }
     const btn = document.getElementById('cf-ai-btn');
     const prevText = btn.innerHTML;
     btn.innerHTML = 'מעריך...';
