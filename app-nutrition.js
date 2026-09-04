@@ -222,8 +222,12 @@ function renderFoodSuggestions(query) {
     window._selectedFoodSource = null; // מתאפס בכל הקלדה - נקבע מחדש רק בבחירה מהרשימה
     if (q.length < 2) { if (typeof renderQuickPicks === 'function') renderQuickPicks(); else box.innerHTML = ''; return; }
     const qLow = q.toLowerCase();
+    const isJournalSearch = typeof _scannerMode === 'undefined' || _scannerMode === 'journal';
 
-    const recipeMatches = (typeof _myRecipes !== 'undefined' ? _myRecipes : [])
+    // מתכונים אישיים מוצגים כתוצאת חיפוש רק ביומן - בהוספת "מאכל אישי חדש"/"מרכיב למתכון"
+    // התוצאה הייתה פותחת בטעות את מסך "רישום מתכון ליומן" (ראו selectFoodSuggestion), ובנוסף
+    // מתכון בתוך מתכון לא נתמך - בדיוק כמו שהיה מכוון ידנית בעבר במנוע החיפוש הישן שהוחלף
+    const recipeMatches = (isJournalSearch && typeof _myRecipes !== 'undefined' ? _myRecipes : [])
         .filter(r => r.name.includes(q))
         .slice(0, 3)
         .map(r => {
@@ -275,7 +279,8 @@ function selectFoodSuggestion(i) {
     if (!match) return;
     const box = document.getElementById('add-item-suggestions');
 
-    if (match.type === 'recipe') {
+    // מתכון אישי כתוצאת חיפוש רלוונטי רק ביומן - ראו הערה ב-renderFoodSuggestions
+    if (match.type === 'recipe' && (typeof _scannerMode === 'undefined' || _scannerMode === 'journal')) {
         if (box) box.innerHTML = '';
         document.getElementById('add-item-name').value = '';
         if (typeof openRecipeLogAdjust === 'function') openRecipeLogAdjust(match.ref.id);

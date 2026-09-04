@@ -71,6 +71,17 @@ function closeBarcodeScanner() {
     _bcTorchOn = false;
 }
 
+// ביטול מפורש ע"י המשתמש (X / קליק בחוץ) - בשונה מקריאות פנימיות ל-closeBarcodeScanner()
+// (אישור, מעבר לשיטה אחרת) שממשיכות את הזרימה בעצמן. openBarcodeScanner() מסתיר את
+// food-scanner-modal לגמרי, אז ביטול נטו צריך להחזיר גם אותו - ובהקשר "מאכל אישי חדש"/
+// "הוספת מרכיב למתכון" גם למסך המקור (myfoods/מתכון), במקום שהכל פשוט ייעלם
+function cancelBarcodeScanner() {
+    closeBarcodeScanner();
+    if (typeof _scannerMode !== 'undefined' && _scannerMode !== 'journal' && typeof closeFoodScanner === 'function') {
+        closeFoodScanner();
+    }
+}
+
 let _bcTorchOn = false;
 function toggleBarcodeTorch() {
     if (!_bcControls || typeof _bcControls.switchTorch !== 'function') return;
@@ -199,7 +210,7 @@ async function confirmBarcodeAdd() {
     if (typeof _scannerMode !== 'undefined' && _scannerMode !== 'journal') {
         if (_scannerMode === 'new-food') {
             if (typeof _myFoods !== 'undefined' && typeof MYFOODS_MAX_FOODS !== 'undefined' && _myFoods.length >= MYFOODS_MAX_FOODS) {
-                showAlert('הגעת למגבלה של 60 מאכלים אישיים שמורים. כדי לשמור מאכל חדש, אפשר למחוק אחד ישן קודם.');
+                if (typeof showAlert === 'function') showAlert('הגעת למגבלה של 60 מאכלים אישיים שמורים. כדי לשמור מאכל חדש, אפשר למחוק אחד ישן קודם.');
                 return;
             }
             await sbAddCustomFood({
@@ -469,7 +480,7 @@ async function confirmLabelAdd() {
     // אם זו הגיעה מ"דיווח על נתון שגוי" בברקוד - עדיין מדווחים את התיקון, בנוסף לניתוב
     if (typeof _scannerMode !== 'undefined' && _scannerMode !== 'journal') {
         if (!name) {
-            showAlert('צריך למלא שם.');
+            if (typeof showAlert === 'function') showAlert('צריך למלא שם.');
             return;
         }
         if (reportedBarcode) {
@@ -482,7 +493,7 @@ async function confirmLabelAdd() {
         }
         if (_scannerMode === 'new-food') {
             if (typeof _myFoods !== 'undefined' && typeof MYFOODS_MAX_FOODS !== 'undefined' && _myFoods.length >= MYFOODS_MAX_FOODS) {
-                showAlert('הגעת למגבלה של 60 מאכלים אישיים שמורים. כדי לשמור מאכל חדש, אפשר למחוק אחד ישן קודם.');
+                if (typeof showAlert === 'function') showAlert('הגעת למגבלה של 60 מאכלים אישיים שמורים. כדי לשמור מאכל חדש, אפשר למחוק אחד ישן קודם.');
                 return;
             }
             await sbAddCustomFood({

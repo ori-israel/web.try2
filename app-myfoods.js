@@ -370,25 +370,44 @@ async function _finalizeScannerAsNewFood() {
         return;
     }
 
-    let protein_g = 0, carbs_g = 0, fat_g = 0, alcohol_g = 0, grams = 0;
-    scannedItems.forEach(it => {
-        protein_g += it.protein_g || 0;
-        carbs_g   += it.carbs_g   || 0;
-        fat_g     += it.fat_g     || 0;
-        alcohol_g += it.alcohol_g || 0;
-        grams     += it.grams || it.unit_amount || 0;
-    });
+    let payload;
+    if (scannedItems.length === 1) {
+        // פריט בודד (הנתיב הנפוץ - חיפוש) - שומרים את היחידה המקורית שלו כמו שהיא
+        // (יכולה להיות "יחידות"/"כוסות"/"כפות", לא רק גרם), בלי לעוות אותה לגרם
+        const it = scannedItems[0];
+        payload = {
+            name,
+            unit: it.unit || 'גרם',
+            unit_amount: it.unit_amount || it.grams || 100,
+            protein_g: Math.round((it.protein_g || 0) * 10) / 10,
+            carbs_g:   Math.round((it.carbs_g   || 0) * 10) / 10,
+            fat_g:     Math.round((it.fat_g     || 0) * 10) / 10,
+            alcohol_g: Math.round((it.alcohol_g || 0) * 10) / 10,
+            kcal_g: null
+        };
+    } else {
+        // כמה פריטים (בעיקר צילום/גלריה של צלחת) - כל הפריטים שם תמיד בגרמים, מסכמים למאכל אחד
+        let protein_g = 0, carbs_g = 0, fat_g = 0, alcohol_g = 0, grams = 0;
+        scannedItems.forEach(it => {
+            protein_g += it.protein_g || 0;
+            carbs_g   += it.carbs_g   || 0;
+            fat_g     += it.fat_g     || 0;
+            alcohol_g += it.alcohol_g || 0;
+            grams     += it.grams || (it.unit === 'גרם' ? it.unit_amount : 0) || 0;
+        });
+        payload = {
+            name,
+            unit: 'גרם',
+            unit_amount: Math.round(grams) || 100,
+            protein_g: Math.round(protein_g * 10) / 10,
+            carbs_g:   Math.round(carbs_g   * 10) / 10,
+            fat_g:     Math.round(fat_g     * 10) / 10,
+            alcohol_g: Math.round(alcohol_g * 10) / 10,
+            kcal_g: null
+        };
+    }
 
-    await sbAddCustomFood({
-        name,
-        unit: 'גרם',
-        unit_amount: Math.round(grams) || 100,
-        protein_g: Math.round(protein_g * 10) / 10,
-        carbs_g:   Math.round(carbs_g   * 10) / 10,
-        fat_g:     Math.round(fat_g     * 10) / 10,
-        alcohol_g: Math.round(alcohol_g * 10) / 10,
-        kcal_g: null
-    });
+    await sbAddCustomFood(payload);
     await _loadMyFoodsData();
     closeFoodScanner();
     renderMyFoodsList();
