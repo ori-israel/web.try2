@@ -525,16 +525,17 @@ function _rlSetPortion(grams, mode) {
         valEl.textContent = Math.round(_rlPortionGrams);
         unitEl.textContent = 'גרם';
     } else {
-        valEl.textContent = Math.round(ratio * 10 * 10) / 10;
+        valEl.textContent = Math.round(ratio * 10) / 10;
         unitEl.textContent = 'יחידות';
     }
 }
 
 // ── "כמה אכלת" — בוטום שיט עם צ'יפים (גרם/יחידות) + סרגל, בדיוק כמו סרגל הכמות הרגיל ──
+// "יחידות" = כפולות של המתכון השלם: 1 יחידה = המתכון כולו (משקלו המלא), 0.5 = חצי מתכון וכו'
 const _RL_PORTION_TICK_GAP = 14;
 const _RL_PORTION_CONFIG = {
     'גרם':    { min: 0, max: 1000, step: 1,   labelStep: 100 },
-    'יחידות': { min: 0, max: 10,   step: 0.5, labelStep: 1 } // "יחידות" = עשיריות מהמתכון (0-10), לא ספירת פריטים
+    'יחידות': { min: 0, max: 10,   step: 0.5, labelStep: 1 }
 };
 let _rlPortionSheetUnit = 'גרם';
 let _rlPortionSheetValue = 0;
@@ -620,9 +621,9 @@ function _rlPortionSwitchUnit(unit) {
     // ממירים את הערך הנוכחי ליחידה החדשה כך שהיחס שנבחר (החלק מהמתכון) לא משתנה מעצם ההחלפה
     const ratio = _rlPortionSheetUnit === 'גרם'
         ? (_rlTotalWeight > 0 ? _rlPortionSheetValue / _rlTotalWeight : 0)
-        : (_rlPortionSheetValue / 10);
+        : _rlPortionSheetValue;
     _rlPortionSheetUnit = unit;
-    const rawValue = unit === 'גרם' ? (_rlTotalWeight * ratio) : (ratio * 10);
+    const rawValue = unit === 'גרם' ? (_rlTotalWeight * ratio) : ratio;
     // מעגלים מיד לרשת הצעדים של היחידה החדשה - אחרת המספר שמוצג (מעוגל) לא תואם
     // לערך הפנימי שנשמר בפועל בלחיצה על "שמירה" (שני מספרים שונים שנראים זהים)
     const cfg = _RL_PORTION_CONFIG[unit];
@@ -638,7 +639,7 @@ function _rlPortionSwitchUnit(unit) {
 
 function openRlPortionSheet() {
     _rlPortionSheetUnit = _rlPortionMode;
-    const rawValue = _rlPortionMode === 'גרם' ? _rlPortionGrams : (_rlTotalWeight > 0 ? (_rlPortionGrams / _rlTotalWeight) * 10 : 0);
+    const rawValue = _rlPortionMode === 'גרם' ? _rlPortionGrams : (_rlTotalWeight > 0 ? (_rlPortionGrams / _rlTotalWeight) : 0);
     const cfg = _RL_PORTION_CONFIG[_rlPortionSheetUnit];
     _rlPortionSheetValue = cfg.min + Math.round((rawValue - cfg.min) / cfg.step) * cfg.step;
     document.querySelectorAll('.rl-portion-sheet-overlay .amount-unit-chip').forEach(c => c.classList.toggle('sel', c.dataset.u === _rlPortionSheetUnit));
@@ -660,7 +661,7 @@ function closeRlPortionSheet() {
 }
 
 function saveRlPortionSheet() {
-    const grams = _rlPortionSheetUnit === 'גרם' ? _rlPortionSheetValue : (_rlPortionSheetValue / 10) * _rlTotalWeight;
+    const grams = _rlPortionSheetUnit === 'גרם' ? _rlPortionSheetValue : _rlPortionSheetValue * _rlTotalWeight;
     _rlSetPortion(grams, _rlPortionSheetUnit);
     _renderRecipeLogItems();
     closeRlPortionSheet();
@@ -687,11 +688,19 @@ function openRlAmountSheet(i) {
     });
 }
 
+// דיוק תצוגה לכל יחידה - כמו בסרגלי הכמות בשאר האתר (גרם/יחידות שלמים, כוסות/כפות עם עשרוני)
+const _RL_AMOUNT_DECIMALS = { 'גרם': 0, 'יחידות': 0, 'כוסות': 2, 'כפות': 1 };
+
 function _rlUpdateAmount(i, value) {
     const ing = _rlItems[i];
     const original = (_rlRecipe.ingredients[i]) || ing;
-    const newAmount = parseFloat(value) || 0;
-    const ratio = original.amount ? newAmount / original.amount : 0;
+    const rawAmount = parseFloat(value) || 0;
+    const ratio = original.amount ? rawAmount / original.amount : 0;
+    // מעגלים לדיוק סביר לפי היחידה - היחס הכללי (מ"כמה אכלת") לא תמיד "עגול", ובלי זה
+    // הכמות המוצגת לכל מרכיב הייתה נראית מבולגנת (למשל 66.83000000000001 גרם)
+    const decimals = _RL_AMOUNT_DECIMALS[ing.unit] != null ? _RL_AMOUNT_DECIMALS[ing.unit] : 0;
+    const factor = Math.pow(10, decimals);
+    const newAmount = Math.round(rawAmount * factor) / factor;
     ing.amount = newAmount;
     ing.protein_g = Math.round((original.protein_g || 0) * ratio * 10) / 10;
     ing.carbs_g   = Math.round((original.carbs_g   || 0) * ratio * 10) / 10;
