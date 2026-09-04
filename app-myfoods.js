@@ -10,7 +10,6 @@ let _myFoodsLoaded = false;
 let _cfEditId = null;   // מאכל אישי בעריכה, null = חדש
 let _crEditId = null;   // מתכון בעריכה, null = חדש
 let _crIngredients = []; // מרכיבי המתכון הנבנה כרגע
-let _crIngPending = null; // התאמה שנבחרה מההצעות בהוספת מרכיב
 
 let _rlRecipe = null;    // המתכון שנבחר לרישום
 let _rlItems = [];       // מרכיבי המתכון עם כמויות מכווננות לרישום הנוכחי
@@ -74,7 +73,7 @@ function renderMyFoodsList() {
     const fab = document.getElementById('myfoods-fab');
 
     if (_myFoodsTab === 'foods') {
-        fab.setAttribute('onclick', 'openCustomFoodForm()');
+        fab.setAttribute('onclick', 'openFoodScannerForNewFood()');
         if (!_myFoods.length) {
             list.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:16px 0;font-size:13px;">עוד לא נוספו מאכלים אישיים</div>`;
             return;
@@ -275,8 +274,6 @@ function openCustomRecipeForm(id = null) {
     _crIngredients = recipe ? JSON.parse(JSON.stringify(recipe.ingredients || [])) : [];
     document.getElementById('cr-error').style.display = 'none';
     renderRecipeIngredientsList();
-    document.getElementById('cr-step-add').style.display = 'none';
-    document.getElementById('cr-step-list').style.display = '';
 
     document.getElementById('myfoods-modal').style.display = 'none';
     const m = document.getElementById('custom-recipe-modal');
@@ -339,113 +336,82 @@ function removeRecipeIngredient(i) {
     renderRecipeIngredientsList();
 }
 
-function openRecipeIngredientPicker() {
-    document.getElementById('cr-step-list').style.display = 'none';
-    document.getElementById('cr-step-add').style.display = '';
-    document.getElementById('cr-ing-amount').value = 100;
-    document.getElementById('cr-ing-unit').value = 'גרם';
-    document.getElementById('cr-ing-amount-tap').textContent = '100 גרם';
-    document.getElementById('cr-ing-name').value = '';
-    document.getElementById('cr-ing-suggestions').innerHTML = '';
-    _crIngPending = null;
-    document.getElementById('cr-ing-name').focus();
+// הוספת מאכל אישי חדש / מרכיב למתכון - נעשית באותו מודל "הוספת אוכל" (5 השיטות),
+// עם ניתוב תוצאה שונה לפי _scannerMode במקום הוספה ליומן. ראו app-nutrition.js/_applyScannerModeUI
+// ואת הענף ב-addScannedPortions (app-nutrition-journal.js).
+
+function openFoodScannerForNewFood() {
+    document.querySelector('.hamburger-menu')?.classList.remove('open');
+    document.getElementById('myfoods-modal').style.display = 'none';
+    _scannerMode = 'new-food';
+    if (typeof openFoodScanner === 'function') openFoodScanner();
 }
 
-function backToRecipeList() {
-    document.getElementById('cr-step-add').style.display = 'none';
-    document.getElementById('cr-step-list').style.display = '';
+function openFoodScannerForRecipeIngredient() {
+    const m = document.getElementById('custom-recipe-modal');
+    m.classList.add('hidden');
+    m.style.display = 'none';
+    _scannerMode = 'recipe-ingredient';
+    if (typeof openFoodScanner === 'function') openFoodScanner();
 }
 
-// חיפוש מרכיב להוספה למתכון — ממאגר האפליקציה + מאכלים אישיים (לא כולל מתכונים, כדי לא ליצור מתכון בתוך מתכון)
-document.addEventListener('DOMContentLoaded', function () {
-    const ingInput = document.getElementById('cr-ing-name');
-    if (ingInput) ingInput.addEventListener('input', function () { _renderRecipeIngSuggestions(this.value); });
-});
-
-function _renderRecipeIngSuggestions(query) {
-    const box = document.getElementById('cr-ing-suggestions');
-    const q = (query || '').trim();
-    _crIngPending = null;
-    if (q.length < 2) { box.innerHTML = ''; return; }
-    const qLow = q.toLowerCase();
-
-    const usdaMatches = (typeof USDA_TABLE !== 'undefined' ? USDA_TABLE : [])
-        .filter(r => r.name.includes(q) || r.name_en.toLowerCase().includes(qLow))
-        .slice(0, 4)
-        .map(r => ({ type: 'usda', ref: r, label: r.name, kcal: Math.round((r.protein || 0) * 4 + (r.carbs || 0) * 4 + (r.fat || 0) * 9 + (r.alcohol || 0) * 7) + ' קל\' / 100 גרם' }));
-
-    const foodMatches = _myFoods
-        .filter(f => f.name.includes(q))
-        .slice(0, 4)
-        .map(f => ({ type: 'custom', ref: f, label: f.name, kcal: `מאכל שלי · ל-${f.unit_amount} ${f.unit}` }));
-
-    const matches = [...foodMatches, ...usdaMatches].slice(0, 6);
-    if (!matches.length) { box.innerHTML = ''; return; }
-    window._recipeIngSuggestions = matches;
-    box.innerHTML = matches.map((m, i) => `
-        <div onclick="selectRecipeIngSuggestion(${i})" style="display:flex;justify-content:space-between;align-items:center;padding:8px 6px;background:var(--bg-card-alt);border-radius:8px;cursor:pointer;font-size:13.5px;">
-            <span>${_esc(m.label)}</span>
-            <span style="color:var(--text-muted);font-size:11px;">${m.kcal}</span>
-        </div>`).join('');
-}
-
-function selectRecipeIngSuggestion(i) {
-    const m = (window._recipeIngSuggestions || [])[i];
-    if (!m) return;
-    _crIngPending = m;
-    document.getElementById('cr-ing-name').value = m.label;
-    document.getElementById('cr-ing-suggestions').innerHTML = '';
-    if (m.type === 'custom') {
-        document.getElementById('cr-ing-unit').value = m.ref.unit;
-        document.getElementById('cr-ing-amount').value = m.ref.unit_amount;
-    } else {
-        document.getElementById('cr-ing-unit').value = 'גרם';
+// מסכם את רשימת הפריטים שנבנתה בסורק (חיפוש/צילום/גלריה) לפריט אחד, ושומר כמאכל אישי חדש
+async function _finalizeScannerAsNewFood() {
+    const name = (document.getElementById('scan-food-name')?.value || '').trim() ||
+        (scannedItems.length === 1 ? scannedItems[0].name : '') ||
+        document.getElementById('add-item-name')?.value.trim();
+    if (!name || !scannedItems.length) {
+        if (typeof showAlert === 'function') showAlert('צריך למצוא/לזהות לפחות פריט אחד לפני השמירה.');
+        return;
     }
-    document.getElementById('cr-ing-amount-tap').textContent =
-        document.getElementById('cr-ing-amount').value + ' ' + document.getElementById('cr-ing-unit').value;
-    openCrIngAmountSheet();
-}
+    if (_myFoods.length >= MYFOODS_MAX_FOODS) {
+        closeFoodScanner();
+        showAlert('הגעת למגבלה של 60 מאכלים אישיים שמורים. כדי לשמור מאכל חדש, אפשר למחוק אחד ישן קודם.');
+        return;
+    }
 
-function openCrIngAmountSheet() {
-    openAmountUnitSheet({
-        amount: parseFloat(document.getElementById('cr-ing-amount').value) || 100,
-        unit: document.getElementById('cr-ing-unit').value,
-        onSave: (amt, unit) => {
-            document.getElementById('cr-ing-amount').value = amt;
-            document.getElementById('cr-ing-unit').value = unit;
-            document.getElementById('cr-ing-amount-tap').textContent = amt + ' ' + unit;
-        }
+    let protein_g = 0, carbs_g = 0, fat_g = 0, alcohol_g = 0, grams = 0;
+    scannedItems.forEach(it => {
+        protein_g += it.protein_g || 0;
+        carbs_g   += it.carbs_g   || 0;
+        fat_g     += it.fat_g     || 0;
+        alcohol_g += it.alcohol_g || 0;
+        grams     += it.grams || it.unit_amount || 0;
     });
+
+    await sbAddCustomFood({
+        name,
+        unit: 'גרם',
+        unit_amount: Math.round(grams) || 100,
+        protein_g: Math.round(protein_g * 10) / 10,
+        carbs_g:   Math.round(carbs_g   * 10) / 10,
+        fat_g:     Math.round(fat_g     * 10) / 10,
+        alcohol_g: Math.round(alcohol_g * 10) / 10,
+        kcal_g: null
+    });
+    await _loadMyFoodsData();
+    closeFoodScanner();
+    renderMyFoodsList();
 }
 
-function confirmAddRecipeIngredient() {
-    const name   = document.getElementById('cr-ing-name').value.trim();
-    const amount = parseFloat(document.getElementById('cr-ing-amount').value) || 0;
-    const unit   = document.getElementById('cr-ing-unit').value;
-    if (!name || !amount) return;
-
-    let macros = { protein_g: 0, carbs_g: 0, fat_g: 0, alcohol_g: 0 };
-    if (_crIngPending && _crIngPending.label === name && _crIngPending.type === 'custom') {
-        macros = _customFoodMacrosForAmount(_crIngPending.ref, amount);
-    } else if (unit === 'גרם') {
-        const usda = (_crIngPending && _crIngPending.type === 'usda' && _crIngPending.label === name)
-            ? _crIngPending.ref
-            : findInUSDA(name);
-        if (usda) {
-            const ratio = amount / 100;
-            macros = {
-                protein_g: Math.round(usda.protein * ratio * 10) / 10,
-                carbs_g:   Math.round(usda.carbs   * ratio * 10) / 10,
-                fat_g:     Math.round(usda.fat     * ratio * 10) / 10,
-                alcohol_g: Math.round((usda.alcohol || 0) * ratio * 10) / 10
-            };
-        }
+// מוסיף את כל הפריטים שנבנו בסורק כמרכיבים נפרדים למתכון הנוכחי (custom-recipe-modal, כבר פתוח ברקע)
+function _finalizeScannerAsRecipeIngredients() {
+    if (!scannedItems.length) {
+        if (typeof showAlert === 'function') showAlert('צריך למצוא/לזהות לפחות מרכיב אחד לפני ההוספה.');
+        return;
     }
-
-    // מתכון מחושב תמיד מסכום המרכיבים (אין תווית יצרן אחת לכל המתכון) — לא לשמור kcal_g למרכיב
-    const { kcal_g: _drop, ...macrosNoKcal } = macros;
-    _crIngredients.push({ name, amount, unit, ...macrosNoKcal });
-    backToRecipeList();
+    scannedItems.forEach(it => {
+        _crIngredients.push({
+            name: it.name,
+            amount: it.unit_amount || it.grams || 0,
+            unit: it.unit || 'גרם',
+            protein_g: it.protein_g || 0,
+            carbs_g:   it.carbs_g   || 0,
+            fat_g:     it.fat_g     || 0,
+            alcohol_g: it.alcohol_g || 0
+        });
+    });
+    closeFoodScanner();
     renderRecipeIngredientsList();
 }
 

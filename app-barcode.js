@@ -192,19 +192,53 @@ async function confirmBarcodeAdd() {
     const nameEl = document.getElementById('bc-product-name');
     const name = (nameEl.value || '').trim() || _bcProduct.name;
     const saveToMyFoods = document.getElementById('bc-save-myfoods').checked;
+    const amount = parseFloat(document.getElementById('bc-amount').value) || 0;
+    const ratio = amount / 100;
 
-    if (saveToMyFoods && typeof _myFoods !== 'undefined' && typeof MYFOODS_MAX_FOODS !== 'undefined' && _myFoods.length >= MYFOODS_MAX_FOODS) {
-        if (typeof showAlert === 'function') showAlert('הגעת למגבלה של 60 מאכלים אישיים שמורים. כדי לשמור מאכל חדש, אפשר למחוק אחד ישן קודם.');
+    // הקשר "מאכל אישי חדש" / "הוספת מרכיב למתכון" - לא נכנס ליומן, מנותב למקום המקורי
+    if (typeof _scannerMode !== 'undefined' && _scannerMode !== 'journal') {
+        if (_scannerMode === 'new-food') {
+            if (typeof _myFoods !== 'undefined' && typeof MYFOODS_MAX_FOODS !== 'undefined' && _myFoods.length >= MYFOODS_MAX_FOODS) {
+                showAlert('הגעת למגבלה של 60 מאכלים אישיים שמורים. כדי לשמור מאכל חדש, אפשר למחוק אחד ישן קודם.');
+                return;
+            }
+            await sbAddCustomFood({
+                name, unit: 'גרם', unit_amount: amount || 100,
+                protein_g: Math.round(_bcProduct.protein_g * ratio * 10) / 10,
+                carbs_g:   Math.round(_bcProduct.carbs_g   * ratio * 10) / 10,
+                fat_g:     Math.round(_bcProduct.fat_g     * ratio * 10) / 10,
+                alcohol_g: Math.round((_bcProduct.alcohol_g || 0) * ratio * 10) / 10,
+                kcal_g:    _bcProduct.kcal_g != null ? Math.round(_bcProduct.kcal_g * ratio) : null
+            });
+            await _loadMyFoodsData();
+            closeBarcodeScanner();
+            closeFoodScanner();
+            renderMyFoodsList();
+        } else if (_scannerMode === 'recipe-ingredient') {
+            _crIngredients.push({
+                name, amount: amount || 100, unit: 'גרם',
+                protein_g: Math.round(_bcProduct.protein_g * ratio * 10) / 10,
+                carbs_g:   Math.round(_bcProduct.carbs_g   * ratio * 10) / 10,
+                fat_g:     Math.round(_bcProduct.fat_g     * ratio * 10) / 10,
+                alcohol_g: Math.round((_bcProduct.alcohol_g || 0) * ratio * 10) / 10
+            });
+            closeBarcodeScanner();
+            closeFoodScanner();
+            renderRecipeIngredientsList();
+        }
         return;
     }
 
-    const amount = parseFloat(document.getElementById('bc-amount').value) || 0;
-    const ratio = amount / 100;
     const protein_g = Math.round(_bcProduct.protein_g * ratio * 10) / 10;
     const carbs_g   = Math.round(_bcProduct.carbs_g   * ratio * 10) / 10;
     const fat_g     = Math.round(_bcProduct.fat_g     * ratio * 10) / 10;
     const alcohol_g = Math.round((_bcProduct.alcohol_g || 0) * ratio * 10) / 10;
     const kcal_g = _bcProduct.kcal_g != null ? Math.round(_bcProduct.kcal_g * ratio) : null;
+
+    if (saveToMyFoods && typeof _myFoods !== 'undefined' && typeof MYFOODS_MAX_FOODS !== 'undefined' && _myFoods.length >= MYFOODS_MAX_FOODS) {
+        if (typeof showAlert === 'function') showAlert('הגעת למגבלה של 60 מאכלים אישיים שמורים. כדי לשמור מאכל חדש, אפשר למחוק אחד ישן קודם.');
+        return;
+    }
 
     if (typeof addFoodLogEntry === 'function') {
         addFoodLogEntry({
@@ -429,6 +463,54 @@ async function confirmLabelAdd() {
     const name = document.getElementById('label-name-input').value.trim();
     const amount = parseFloat(document.getElementById('label-amount').value) || 0;
     const saveToMyFoods = document.getElementById('label-save-myfoods').checked;
+    const ratio = amount / 100;
+
+    // הקשר "מאכל אישי חדש" / "הוספת מרכיב למתכון" - לא נכנס ליומן, מנותב למקום המקורי.
+    // אם זו הגיעה מ"דיווח על נתון שגוי" בברקוד - עדיין מדווחים את התיקון, בנוסף לניתוב
+    if (typeof _scannerMode !== 'undefined' && _scannerMode !== 'journal') {
+        if (!name) {
+            showAlert('צריך למלא שם.');
+            return;
+        }
+        if (reportedBarcode) {
+            sbSaveBarcodeMacros(reportedBarcode, {
+                protein_g: _labelMacros.protein_g,
+                carbs_g:   _labelMacros.carbs_g,
+                fat_g:     _labelMacros.fat_g,
+                alcohol_g: _labelMacros.alcohol_g,
+            }).catch(() => {});
+        }
+        if (_scannerMode === 'new-food') {
+            if (typeof _myFoods !== 'undefined' && typeof MYFOODS_MAX_FOODS !== 'undefined' && _myFoods.length >= MYFOODS_MAX_FOODS) {
+                showAlert('הגעת למגבלה של 60 מאכלים אישיים שמורים. כדי לשמור מאכל חדש, אפשר למחוק אחד ישן קודם.');
+                return;
+            }
+            await sbAddCustomFood({
+                name, unit: 'גרם', unit_amount: 100,
+                protein_g: _labelMacros.protein_g,
+                carbs_g:   _labelMacros.carbs_g,
+                fat_g:     _labelMacros.fat_g,
+                alcohol_g: _labelMacros.alcohol_g,
+                kcal_g:    _labelMacros.kcal_100
+            });
+            await _loadMyFoodsData();
+            closeLabelConfirm();
+            closeFoodScanner();
+            renderMyFoodsList();
+        } else if (_scannerMode === 'recipe-ingredient') {
+            _crIngredients.push({
+                name, amount: amount || 100, unit: 'גרם',
+                protein_g: Math.round(_labelMacros.protein_g * ratio * 10) / 10,
+                carbs_g:   Math.round(_labelMacros.carbs_g   * ratio * 10) / 10,
+                fat_g:     Math.round(_labelMacros.fat_g     * ratio * 10) / 10,
+                alcohol_g: Math.round((_labelMacros.alcohol_g || 0) * ratio * 10) / 10
+            });
+            closeLabelConfirm();
+            closeFoodScanner();
+            renderRecipeIngredientsList();
+        }
+        return;
+    }
 
     if (saveToMyFoods && !name) {
         if (typeof showAlert === 'function') showAlert('כדי לשמור ב"מאכלים שלי" צריך למלא שם.');
@@ -439,7 +521,6 @@ async function confirmLabelAdd() {
         return;
     }
 
-    const ratio = amount / 100;
     const protein_g = Math.round(_labelMacros.protein_g * ratio * 10) / 10;
     const carbs_g   = Math.round(_labelMacros.carbs_g   * ratio * 10) / 10;
     const fat_g     = Math.round(_labelMacros.fat_g     * ratio * 10) / 10;

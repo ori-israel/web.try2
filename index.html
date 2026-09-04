@@ -1127,7 +1127,7 @@
 
     <div id="scanner-step-2" class="hidden">
       <p id="scan-food-label" style="font-size:12px; color:var(--text-secondary); margin:0 0 4px;">זוהה:</p>
-      <p id="scan-food-name" style="font-weight:bold; font-size:18px; margin:0 0 12px;"></p>
+      <input id="scan-food-name" type="text" readonly style="display:block;width:100%;font-weight:bold; font-size:18px; margin:0 0 12px;font-family:inherit;color:var(--text-primary);outline:none;box-sizing:border-box;" />
       <div id="scan-portions" style="margin:8px 0;"></div>
       <div id="scan-details-box" style="font-size:13px;color:var(--text-secondary);margin:6px 0 4px;display:flex;flex-direction:column;gap:2px;"></div>
       <div id="scan-correction-row" style="margin-top:10px;">
@@ -1196,7 +1196,7 @@
         <div class="macro-progress-nums"><span id="label-alcohol-val">0</span> גרם</div>
       </div>
     </div>
-    <label style="display:flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:var(--text-secondary);cursor:pointer;">
+    <label id="label-save-myfoods-row" style="display:flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:var(--text-secondary);cursor:pointer;">
       <input id="label-save-myfoods" type="checkbox" style="width:15px;height:15px;margin:0;">
       לשמור גם ב"מאכלים שלי" לפעם הבאה
     </label>
@@ -1267,7 +1267,7 @@
           <div class="macro-progress-nums"><span id="bc-alcohol-val">0</span> גרם</div>
         </div>
       </div>
-      <label style="display:flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:var(--text-secondary);cursor:pointer;">
+      <label id="bc-save-myfoods-row" style="display:flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:var(--text-secondary);cursor:pointer;">
         <input id="bc-save-myfoods" type="checkbox" style="width:15px;height:15px;margin:0;">
         לשמור גם ב"מאכלים שלי" לפעם הבאה
       </label>
@@ -1507,7 +1507,7 @@
             <button class="myfoods-tab" data-tab="recipes" onclick="selectMyFoodsTab('recipes', this)">מתכונים (<span id="myfoods-count-recipes">0/30</span>)</button>
         </div>
         <div id="myfoods-list" style="max-height:50vh;overflow-y:auto;"></div>
-        <button class="myfoods-fab" id="myfoods-fab" onclick="openCustomFoodForm()" aria-label="הוספה"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button class="myfoods-fab" id="myfoods-fab" onclick="openFoodScannerForNewFood()" aria-label="הוספה"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     </div>
 </div>
 
@@ -1560,7 +1560,7 @@
             </div>
             <input id="cr-name" type="text" placeholder="שם המתכון" autocomplete="off" class="cr-name-headline">
             <div id="cr-ingredients-list"></div>
-            <button class="ai-help-btn" onclick="openRecipeIngredientPicker()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> הוספת מרכיב</button>
+            <button class="ai-help-btn" onclick="openFoodScannerForRecipeIngredient()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> הוספת מרכיב</button>
             <div class="cf-macro-row" id="cr-macro-summary">
                 <div class="cf-macro-box p"><span class="cf-macro-tap" id="cr-sum-protein">0</span><div class="lbl">חלבון</div></div>
                 <div class="cf-macro-box c"><span class="cf-macro-tap" id="cr-sum-carbs">0</span><div class="lbl">פחמימה</div></div>
@@ -1569,29 +1569,6 @@
             </div>
             <div id="cr-error" style="color:#ef4444;font-size:12.5px;margin-top:4px;display:none;"></div>
             <button class="calc-btn" style="width:100%;margin-top:8px;" onclick="saveCustomRecipe()">שמירת מתכון</button>
-        </div>
-
-        <div id="cr-step-add" style="display:none;">
-            <div class="profile-header">
-                <h2>הוספת מרכיב</h2>
-                <button class="close-btn" onclick="backToRecipeList()">&times;</button>
-            </div>
-            <div class="entry-pill">
-                <button class="entry-pill-btn entry-pill-cancel" onclick="backToRecipeList()" aria-label="חזרה"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-                <div class="entry-pill-div"></div>
-                <span class="entry-pill-amt-tap" id="cr-ing-amount-tap" onclick="openCrIngAmountSheet()">100 גרם</span>
-                <input id="cr-ing-amount" type="hidden" value="100" />
-                <select id="cr-ing-unit" class="entry-pill-unit">
-                    <option value="גרם">גרם</option>
-                    <option value="יחידות">יחידות</option>
-                    <option value="כוסות">כוסות</option>
-                    <option value="כפות">כפות</option>
-                </select>
-                <div class="entry-pill-div"></div>
-                <input id="cr-ing-name" type="text" placeholder="חיפוש מרכיב..." autocomplete="off" class="entry-pill-search" />
-                <button class="entry-pill-btn entry-pill-confirm" onclick="confirmAddRecipeIngredient()" aria-label="אישור"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
-            </div>
-            <div id="cr-ing-suggestions" style="display:flex;flex-direction:column;gap:1px;margin-top:6px;"></div>
         </div>
 
     </div>

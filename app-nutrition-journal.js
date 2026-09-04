@@ -571,6 +571,21 @@ async function addScannedPortions() {
     const btn = document.querySelector('.scan-action-btn.primary');
     if (btn && btn.disabled) return;
 
+    // הקשר "מאכל אישי חדש" / "הוספת מרכיב למתכון" - התוצאה לא נכנסת ליומן,
+    // אלא חוזרת למסך המקור (ראו app-myfoods.js)
+    if (typeof _scannerMode !== 'undefined' && _scannerMode !== 'journal') {
+        if (btn) btn.disabled = true;
+        const pendingInput = document.getElementById('add-item-name');
+        if (pendingInput && pendingInput.value.trim()) await confirmAddItem();
+        if (_scannerMode === 'new-food' && typeof _finalizeScannerAsNewFood === 'function') {
+            await _finalizeScannerAsNewFood();
+        } else if (_scannerMode === 'recipe-ingredient' && typeof _finalizeScannerAsRecipeIngredients === 'function') {
+            _finalizeScannerAsRecipeIngredients();
+        }
+        if (btn) btn.disabled = false;
+        return;
+    }
+
     // שמירה כמתכון אישי: שם חובה אם הצ'קבוקס מסומן - בודקים לפני כל פעולה אחרת
     const saveAsRecipe = document.getElementById('scan-save-recipe')?.checked;
     const recipeName = document.getElementById('scan-recipe-name')?.value.trim() || '';

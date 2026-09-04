@@ -111,6 +111,54 @@ let _deletedItem = null;
 let _deletedIdx = null;
 let _undoTimer = null;
 
+// מצב שימוש נוכחי של מודל "הוספת אוכל" - נקבע לפני openFoodScanner() על ידי נקודת הכניסה:
+// 'journal' (הוספה ליומן, ברירת מחדל) | 'new-food' (מאכל אישי חדש) | 'recipe-ingredient' (הוספת מרכיב למתכון)
+let _scannerMode = 'journal';
+
+// מתאים את כותרת המודל, טקסט כפתורי הפעולה ושורות "לשמור גם..." למצב הנוכחי -
+// כדי שאותו מודל (5 שיטות) ישרת גם יומן, גם מאכל אישי חדש וגם הוספת מרכיב למתכון
+function _applyScannerModeUI() {
+    const titleEl = document.getElementById('scanner-modal-title');
+    const nameInput = document.getElementById('scan-food-name');
+    const searchBtn = document.querySelector('#scanner-step-2 .scan-action-btn.primary');
+    const bcBtn = document.querySelector('#bc-confirm-step .bc-add-btn');
+    const labelBtn = document.querySelector('#label-confirm-modal .bc-add-btn');
+    const saveRecipeRow = document.getElementById('scan-save-recipe-row');
+    const bcSaveRow = document.getElementById('bc-save-myfoods-row');
+    const labelSaveRow = document.getElementById('label-save-myfoods-row');
+
+    const isJournal = _scannerMode === 'journal';
+    const titleTexts = {
+        'journal': ' הוספת אוכל',
+        'new-food': ' מאכל אישי חדש',
+        'recipe-ingredient': ' הוספת מרכיב למתכון'
+    };
+    const btnTexts = {
+        'journal': 'הוספה ליומן',
+        'new-food': 'שמירה כמאכל אישי',
+        'recipe-ingredient': 'הוספת המרכיב למתכון'
+    };
+    if (titleEl) {
+        const icon = titleEl.querySelector('svg');
+        titleEl.textContent = titleTexts[_scannerMode] || titleTexts.journal;
+        if (icon) titleEl.prepend(icon);
+    }
+    const checkIcon = '<span style="display:inline-flex;width:18px;height:18px;border-radius:50%;background:#22c55e;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>';
+    [searchBtn, bcBtn, labelBtn].forEach(btn => {
+        if (btn) btn.innerHTML = (btnTexts[_scannerMode] || btnTexts.journal) + ' ' + checkIcon;
+    });
+    if (saveRecipeRow) saveRecipeRow.style.display = isJournal ? '' : 'none';
+    if (bcSaveRow) bcSaveRow.style.display = isJournal ? '' : 'none';
+    if (labelSaveRow) labelSaveRow.style.display = isJournal ? '' : 'none';
+    if (nameInput) {
+        nameInput.readOnly = isJournal;
+        nameInput.style.border = isJournal ? 'none' : '1px solid var(--border)';
+        nameInput.style.background = isJournal ? 'none' : 'var(--bg-card-alt)';
+        nameInput.style.borderRadius = isJournal ? '0' : '8px';
+        nameInput.style.padding = isJournal ? '0' : '4px 8px';
+    }
+}
+
 function renderScanDetails() {
     const detailsBox = document.getElementById('scan-details-box');
     const itemsHtml = scannedItems.map((item, i) =>
@@ -123,6 +171,16 @@ function renderScanDetails() {
     detailsBox.innerHTML = itemsHtml + `<div id="add-item-row" style="margin-top:6px;">
         <button onclick="showAddItemForm()" style="background:none;border:none;color:var(--text-secondary);font-size:15px;cursor:pointer;padding:8px 0;width:100%;text-align:right;">+ הוספת פריט</button>
     </div>`;
+
+    // בהקשר "מאכל אישי חדש"/"הוספת מרכיב" (לא יומן) - מציגים שם ניתן לעריכה גם כשההוספה
+    // הייתה דרך חיפוש (לא רק צילום AI), כדי שתמיד אפשר לתת שם למאכל/למרכיב לפני השמירה
+    if (typeof _scannerMode !== 'undefined' && _scannerMode !== 'journal' && scannedItems.length) {
+        const nameEl = document.getElementById('scan-food-name');
+        const labelEl = document.getElementById('scan-food-label');
+        if (nameEl && !nameEl.value.trim()) nameEl.value = scannedItems[0].name;
+        if (nameEl) nameEl.style.display = '';
+        if (labelEl) labelEl.style.display = '';
+    }
 }
 
 function showAddItemForm() {
@@ -616,6 +674,7 @@ function openFoodScanner() {
     document.getElementById('food-preview').classList.add('hidden');
     // ברירת המחדל בפתיחה היא מסך החיפוש - אין צורך ללחוץ על טאב כדי לראות אותו
     openTextEntry();
+    _applyScannerModeUI();
 }
 
 // פותח את הצ'אט עם המאמן AI ושולח אוטומטית בקשה לרעיון לארוחה
@@ -638,6 +697,7 @@ function openTextEntry() {
     document.getElementById('scanner-error').classList.add('hidden');
     document.getElementById('scan-food-label').style.display = 'none';
     document.getElementById('scan-food-name').style.display = 'none';
+    document.getElementById('scan-food-name').value = '';
     document.getElementById('scan-portions').innerHTML = '';
     document.getElementById('scan-details-box').innerHTML = '<div id="add-item-row"></div>';
     const _scanCorr = document.getElementById('scan-correction');
@@ -657,6 +717,15 @@ function openTextEntry() {
 
 function closeFoodScanner() {
     document.getElementById('food-scanner-modal').classList.add('hidden');
+    // ביטול לפני שסיימו (X / קליק בחוץ) בהקשר "מאכל אישי חדש"/"הוספת מרכיב" - חוזרים למסך המקור
+    if (_scannerMode === 'new-food') {
+        const m = document.getElementById('myfoods-modal');
+        if (m) { m.classList.remove('hidden'); m.style.display = 'flex'; }
+    } else if (_scannerMode === 'recipe-ingredient') {
+        const m = document.getElementById('custom-recipe-modal');
+        if (m) { m.classList.remove('hidden'); m.style.display = 'flex'; }
+    }
+    _scannerMode = 'journal';
 }
 
 function handleFoodImageFile(file) {
@@ -834,11 +903,7 @@ async function analyzeFood(base64, mimeType, correction) {
 
         document.getElementById('scan-food-label').style.display = '';
         document.getElementById('scan-food-name').style.display = '';
-        {
-            const _foodNameEl = document.getElementById('scan-food-name');
-            _foodNameEl.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M5.5 3v6M8 3v6M10.5 3v6"/><path d="M5.5 9c0 1.8 2.5 1.8 2.5 1.8S10.5 10.8 10.5 9"/><path d="M8 10.8v10.2"/><path d="M17 3l2 6-2 3"/><path d="M17 3v18"/></svg> ';
-            _foodNameEl.appendChild(document.createTextNode(result.food));
-        }
+        document.getElementById('scan-food-name').value = result.food;
         renderScanGramsSummary();
 
         renderScanDetails();
@@ -915,11 +980,7 @@ ${itemsList}
             alcohol: Math.round(scannedItems.reduce((s, i) => s + (i.alcohol_g || 0), 0))
         };
 
-        {
-            const _foodNameEl = document.getElementById('scan-food-name');
-            _foodNameEl.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M5.5 3v6M8 3v6M10.5 3v6"/><path d="M5.5 9c0 1.8 2.5 1.8 2.5 1.8S10.5 10.8 10.5 9"/><path d="M8 10.8v10.2"/><path d="M17 3l2 6-2 3"/><path d="M17 3v18"/></svg> ';
-            _foodNameEl.appendChild(document.createTextNode(result.food));
-        }
+        document.getElementById('scan-food-name').value = result.food;
         renderScanGramsSummary();
         renderScanDetails();
         const _sc = document.getElementById('scan-correction');
