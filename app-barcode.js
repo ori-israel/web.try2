@@ -209,22 +209,17 @@ async function confirmBarcodeAdd() {
     // הקשר "מאכל אישי חדש" / "הוספת מרכיב למתכון" - לא נכנס ליומן, מנותב למקום המקורי
     if (typeof _scannerMode !== 'undefined' && _scannerMode !== 'journal') {
         if (_scannerMode === 'new-food') {
-            if (typeof _myFoods !== 'undefined' && typeof MYFOODS_MAX_FOODS !== 'undefined' && _myFoods.length >= MYFOODS_MAX_FOODS) {
-                if (typeof showAlert === 'function') showAlert('הגעת למגבלה של 60 מאכלים אישיים שמורים. כדי לשמור מאכל חדש, אפשר למחוק אחד ישן קודם.');
-                return;
+            if (typeof _populateCustomFoodFields === 'function') {
+                _populateCustomFoodFields({
+                    name, unit: 'גרם', unit_amount: amount || 100,
+                    protein_g: Math.round(_bcProduct.protein_g * ratio * 10) / 10,
+                    carbs_g:   Math.round(_bcProduct.carbs_g   * ratio * 10) / 10,
+                    fat_g:     Math.round(_bcProduct.fat_g     * ratio * 10) / 10,
+                    alcohol_g: Math.round((_bcProduct.alcohol_g || 0) * ratio * 10) / 10
+                });
             }
-            await sbAddCustomFood({
-                name, unit: 'גרם', unit_amount: amount || 100,
-                protein_g: Math.round(_bcProduct.protein_g * ratio * 10) / 10,
-                carbs_g:   Math.round(_bcProduct.carbs_g   * ratio * 10) / 10,
-                fat_g:     Math.round(_bcProduct.fat_g     * ratio * 10) / 10,
-                alcohol_g: Math.round((_bcProduct.alcohol_g || 0) * ratio * 10) / 10,
-                kcal_g:    _bcProduct.kcal_g != null ? Math.round(_bcProduct.kcal_g * ratio) : null
-            });
-            await _loadMyFoodsData();
             closeBarcodeScanner();
             closeFoodScanner();
-            renderMyFoodsList();
         } else if (_scannerMode === 'recipe-ingredient') {
             _crIngredients.push({
                 name, amount: amount || 100, unit: 'גרם',
@@ -492,22 +487,17 @@ async function confirmLabelAdd() {
             }).catch(() => {});
         }
         if (_scannerMode === 'new-food') {
-            if (typeof _myFoods !== 'undefined' && typeof MYFOODS_MAX_FOODS !== 'undefined' && _myFoods.length >= MYFOODS_MAX_FOODS) {
-                if (typeof showAlert === 'function') showAlert('הגעת למגבלה של 60 מאכלים אישיים שמורים. כדי לשמור מאכל חדש, אפשר למחוק אחד ישן קודם.');
-                return;
+            if (typeof _populateCustomFoodFields === 'function') {
+                _populateCustomFoodFields({
+                    name, unit: 'גרם', unit_amount: amount || 100,
+                    protein_g: Math.round(_labelMacros.protein_g * ratio * 10) / 10,
+                    carbs_g:   Math.round(_labelMacros.carbs_g   * ratio * 10) / 10,
+                    fat_g:     Math.round(_labelMacros.fat_g     * ratio * 10) / 10,
+                    alcohol_g: Math.round((_labelMacros.alcohol_g || 0) * ratio * 10) / 10
+                });
             }
-            await sbAddCustomFood({
-                name, unit: 'גרם', unit_amount: 100,
-                protein_g: _labelMacros.protein_g,
-                carbs_g:   _labelMacros.carbs_g,
-                fat_g:     _labelMacros.fat_g,
-                alcohol_g: _labelMacros.alcohol_g,
-                kcal_g:    _labelMacros.kcal_100
-            });
-            await _loadMyFoodsData();
             closeLabelConfirm();
             closeFoodScanner();
-            renderMyFoodsList();
         } else if (_scannerMode === 'recipe-ingredient') {
             _crIngredients.push({
                 name, amount: amount || 100, unit: 'גרם',

@@ -135,7 +135,7 @@ function _applyScannerModeUI() {
     };
     const btnTexts = {
         'journal': 'הוספה ליומן',
-        'new-food': 'שמירה כמאכל אישי',
+        'new-food': 'שימוש בזיהוי הזה',
         'recipe-ingredient': 'הוספת המרכיב למתכון'
     };
     if (titleEl) {
@@ -724,7 +724,7 @@ function closeFoodScanner() {
     document.getElementById('food-scanner-modal').classList.add('hidden');
     // ביטול לפני שסיימו (X / קליק בחוץ) בהקשר "מאכל אישי חדש"/"הוספת מרכיב" - חוזרים למסך המקור
     if (_scannerMode === 'new-food') {
-        const m = document.getElementById('myfoods-modal');
+        const m = document.getElementById('custom-food-modal');
         if (m) { m.classList.remove('hidden'); m.style.display = 'flex'; }
     } else if (_scannerMode === 'recipe-ingredient') {
         const m = document.getElementById('custom-recipe-modal');

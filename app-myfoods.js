@@ -76,7 +76,7 @@ function renderMyFoodsList() {
     const fab = document.getElementById('myfoods-fab');
 
     if (_myFoodsTab === 'foods') {
-        fab.setAttribute('onclick', 'openFoodScannerForNewFood()');
+        fab.setAttribute('onclick', 'openCustomFoodForm()');
         if (!_myFoods.length) {
             list.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:16px 0;font-size:13px;">עוד לא נוספו מאכלים אישיים</div>`;
             return;
@@ -343,11 +343,30 @@ function removeRecipeIngredient(i) {
 // עם ניתוב תוצאה שונה לפי _scannerMode במקום הוספה ליומן. ראו app-nutrition.js/_applyScannerModeUI
 // ואת הענף ב-addScannedPortions (app-nutrition-journal.js).
 
+// נפתח מתוך מסך "מאכל אישי חדש" (custom-food-modal) - הסורק הוא רק כלי עזר לזיהוי,
+// לא שומר כלום בעצמו. התוצאה חוזרת וממלאת את השדות של אותו מסך (ראו _finalizeScannerAsNewFood),
+// והמשתמש הוא זה שלוחץ "שמירה" בפועל - בדיוק כמו "הוספת מרכיב" במתכון.
 function openFoodScannerForNewFood() {
-    document.querySelector('.hamburger-menu')?.classList.remove('open');
-    document.getElementById('myfoods-modal').style.display = 'none';
+    const m = document.getElementById('custom-food-modal');
+    m.classList.add('hidden');
+    m.style.display = 'none';
     _scannerMode = 'new-food';
     if (typeof openFoodScanner === 'function') openFoodScanner();
+}
+
+// ממלא את שדות מסך "מאכל אישי חדש" (שם/כמות/יחידה/מאקרו) לפי מה שהסורק זיהה
+function _populateCustomFoodFields(f) {
+    document.getElementById('cf-name').value = f.name || '';
+    const amount = f.unit_amount || 100;
+    const unit = f.unit || 'גרם';
+    document.getElementById('cf-amount').value = amount;
+    document.getElementById('cf-unit').value = unit;
+    document.getElementById('cf-amount-tap').textContent = amount + ' ' + unit;
+    _setCfMacro('cf-protein', f.protein_g || 0);
+    _setCfMacro('cf-carbs',   f.carbs_g   || 0);
+    _setCfMacro('cf-fat',     f.fat_g     || 0);
+    _setCfMacro('cf-alcohol', f.alcohol_g || 0);
+    _setCfAlcoholOn(!!(f.alcohol_g));
 }
 
 function openFoodScannerForRecipeIngredient() {
@@ -358,18 +377,15 @@ function openFoodScannerForRecipeIngredient() {
     if (typeof openFoodScanner === 'function') openFoodScanner();
 }
 
-// מסכם את רשימת הפריטים שנבנתה בסורק (חיפוש/צילום/גלריה) לפריט אחד, ושומר כמאכל אישי חדש
-async function _finalizeScannerAsNewFood() {
+// מסכם את רשימת הפריטים שנבנתה בסורק (חיפוש/צילום/גלריה) לפריט אחד, וממלא בו את מסך
+// "מאכל אישי חדש" - לא שומר בפועל. השמירה בפועל (וגם בדיקת המגבלה של 60 מאכלים) קורית
+// כשהמשתמש לוחץ "שמירה" באותו מסך (saveCustomFood), בדיוק כמו בזרימת המתכון
+function _finalizeScannerAsNewFood() {
     const name = (document.getElementById('scan-food-name')?.value || '').trim() ||
         (scannedItems.length === 1 ? scannedItems[0].name : '') ||
         document.getElementById('add-item-name')?.value.trim();
     if (!name || !scannedItems.length) {
-        if (typeof showAlert === 'function') showAlert('צריך למצוא/לזהות לפחות פריט אחד לפני השמירה.');
-        return;
-    }
-    if (_myFoods.length >= MYFOODS_MAX_FOODS) {
-        closeFoodScanner();
-        showAlert('הגעת למגבלה של 60 מאכלים אישיים שמורים. כדי לשמור מאכל חדש, אפשר למחוק אחד ישן קודם.');
+        if (typeof showAlert === 'function') showAlert('צריך למצוא/לזהות לפחות פריט אחד לפני ההוספה.');
         return;
     }
 
@@ -410,10 +426,8 @@ async function _finalizeScannerAsNewFood() {
         };
     }
 
-    await sbAddCustomFood(payload);
-    await _loadMyFoodsData();
+    _populateCustomFoodFields(payload);
     closeFoodScanner();
-    renderMyFoodsList();
 }
 
 // מוסיף את כל הפריטים שנבנו בסורק כמרכיבים נפרדים למתכון הנוכחי (custom-recipe-modal, כבר פתוח ברקע)
