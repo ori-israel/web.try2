@@ -613,6 +613,7 @@ async function sendAIMessage() {
     if (usdaCtx)      msgWithUSDA += `\n\n[נתוני USDA: ${usdaCtx}]`;
     if (knowledgeCtx) msgWithUSDA += `\n\n[ידע מקצועי רלוונטי, בסיס להתבסס עליו בתשובה. אל תצטט אותו כמו שהוא, נסח בשפה פשוטה ובקצרה מה שרלוונטי לשאלה בלבד: ${knowledgeCtx}]`;
     else if (!usdaCtx) _sbLogKnowledgeGap(msg); // לא נמצאה שום התאמה בבסיס הידע — שווה לבדוק בעתיד
+    if (window.aiWebSearch) msgWithUSDA += `\n\n[המשתמש הדליק ידנית חיפוש באינטרנט להודעה הזו — חובה לחפש ולהתבסס על התוצאות]`;
 
     const loadingId = addLoadingMessage();
 
@@ -665,7 +666,7 @@ async function sendAIMessage() {
                         system_instruction: { parts: [{ text: await buildSystemPrompt() }] },
                         generation_config: { response_modalities: ["TEXT"] },
                         contents: messages,
-                        ...(window.aiWebSearch ? { tools: [{ google_search: {} }] } : {})
+                        tools: [{ google_search: {} }]
                     }
                 })
             });
@@ -703,21 +704,24 @@ async function sendAIMessage() {
 
         const loadingEl = document.getElementById(loadingId);
         let replyTextDiv = null;
+        let replyIcon = null;
         if (loadingEl) {
             loadingEl.className = '';
             loadingEl.style.cssText = bubbleStyle;
-            const icon = document.createElement('span');
-            icon.style.cssText = 'font-size: 16px; flex-shrink: 0; margin-top: 2px;';
-            icon.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10.5h.01"/><path d="M12 10.5h.01"/><path d="M16 10.5h.01"/></svg>';
+            replyIcon = document.createElement('span');
+            replyIcon.style.cssText = 'font-size: 16px; flex-shrink: 0; margin-top: 2px;';
+            replyIcon.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10.5h.01"/><path d="M12 10.5h.01"/><path d="M16 10.5h.01"/></svg>';
             replyTextDiv = document.createElement('div');
+            replyTextDiv.innerHTML = '<span class="typing-dots"><span></span><span></span><span></span></span>';
             loadingEl.innerHTML = '';
-            loadingEl.appendChild(icon);
+            loadingEl.appendChild(replyIcon);
             loadingEl.appendChild(replyTextDiv);
         }
 
         let fullText = '';
         let buffer = '';
         let lastGrounding = null;
+        let searchModeShown = false;
 
         while (true) {
             let _readResult;
@@ -740,13 +744,18 @@ async function sendAIMessage() {
                 if (!jsonStr || jsonStr === '[DONE]') continue;
                 try {
                     const parsed = JSON.parse(jsonStr);
+                    const gm = parsed.candidates?.[0]?.groundingMetadata;
+                    if (gm) lastGrounding = gm;
+                    if (gm && !fullText && !searchModeShown && replyTextDiv) {
+                        searchModeShown = true;
+                        if (replyIcon) replyIcon.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--accent-dark)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>';
+                        replyTextDiv.innerHTML = '<span style="color:var(--accent-dark);font-weight:600;font-size:14px;">מחפש באינטרנט</span> <span class="typing-dots" style="color:var(--accent-dark);"><span></span><span></span><span></span></span>';
+                    }
                     const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                     if (text) {
                         fullText += text;
                         if (replyTextDiv) replyTextDiv.textContent = fullText;
                     }
-                    const gm = parsed.candidates?.[0]?.groundingMetadata;
-                    if (gm) lastGrounding = gm;
                 } catch {}
             }
         }
@@ -784,8 +793,13 @@ async function sendAIMessage() {
                 })
                 .join(' · ');
             if (links) {
+                const searchTag = document.createElement('div');
+                searchTag.style.cssText = 'display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:4px 9px;border-radius:20px;background:var(--accent-light);color:var(--accent-dark);font-size:11px;font-weight:600;';
+                searchTag.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> חיפשתי באינטרנט';
+                replyTextDiv.appendChild(searchTag);
+
                 const sourcesDiv = document.createElement('div');
-                sourcesDiv.style.cssText = 'font-size:12px;margin-top:8px;color:var(--text-muted);';
+                sourcesDiv.style.cssText = 'font-size:12px;margin-top:6px;color:var(--text-muted);';
                 sourcesDiv.innerHTML = `מקורות: ${links}`;
                 replyTextDiv.appendChild(sourcesDiv);
             }
@@ -1019,7 +1033,7 @@ async function buildSystemPrompt() {
 יעד פגישה: ${CLIENT.coachingGoal} | זום הבא: ${nextMeetingStr}
 אלרגיות: ${allergies} | לא אוהב: ${dislikedFoods} | אוהב: ${likedFoods}
 לוח אימונים: ${workoutsCompact}
-כללים: שאלות_רפואיות/פציעה_חמורה/מצוקה_נפשית→המלץ_בעדינות_לפנות_לאיש_מקצוע_מתאים_לפי_ההקשר_(רופא/אורתופד/תזונאי/פסיכולוג/פיזיותרפיסט_או_כל_בעל_מקצוע_רלוונטי_אחר_שאינו_מאמן_כושר)_ולא_להסתמך_עליי_בלבד | לעולם_אל_תפנה_את_המשתמש_לאורי_או_לוואטסאפ_ואל_תזכיר_את_אורי_בשום_הקשר | ללא_ייעוץ_רפואי | שפה_פשוטה_מאוד: כשבאמת מסבירים משהו - הסבר כאילו למישהו בן 10 שלא מכיר מונחים, בלי ז'רגון מקצועי מפחיד, ואם חייב מונח מקצועי תרגם אותו מיד למילים פשוטות | ענה_רק_על_מה_שנשאל: תשובה ממוקדת לשאלה, בלי להוסיף הסבר על מונח בסיסי (כמו מה זה חזרה/סט/חלבון) שלא התבקש ובלי לסטות לנושא לא קשור - אבל זה לא אומר לענות ביובש, הטון עצמו נשאר חם ואכפתי, רק בלי תוספות מיותרות | עידוד_מתון: הטון תומך, חם ומתעניין באמת במה שקורה עם המשתמש - אבל בלי סיסמאות נלהגות מוגזמות ("בוא נביא אש", "יאללה כאילו קרב") ובלי לדחוף עידוד/מוטיבציה לתוך כל תשובה בכוח כשלא התבקש וזה לא טבעי להקשר | תאריך_מהנתונים_בלבד | תשובות_קצרות | מבנה_תשובה_ארוכה: כשהתשובה יותר מ2-3 משפטים - לחלק אותה לפסקאות קצרות עם שורה ריקה ביניהן, ולהשתמש בשורות שמתחילות ב-• לרשימה כשמתאים, כדי שהתשובה תיקרא בנוחות ולא כגוש טקסט אחד | אל_תשתמש_בסימן_@ | אימון_מחר_לפי_שדה_מחר_בלבד_אל_תחשב_לבד | שאלה_על_ערכי_מוצר→רק_קלוריות+חלבון+פחמימה+שומן_ל-100ג_בלי_פירוט_נוסף | המלצת_חלבון_תמיד_1.8_עד_2.2_גרם_לק״ג_גוף | טון_שיתופי: הלקוח לא לבד, אתה מלווה אותו — כשמתאים העדף ניסוח כמו "נעשה", "נעקוב", "בוא נראה" על פני ניסוח מרוחק כמו "אתה יכול", בלי להגזים או לחזור על זה בכל משפט
+כללים: שאלות_רפואיות/פציעה_חמורה/מצוקה_נפשית→המלץ_בעדינות_לפנות_לאיש_מקצוע_מתאים_לפי_ההקשר_(רופא/אורתופד/תזונאי/פסיכולוג/פיזיותרפיסט_או_כל_בעל_מקצוע_רלוונטי_אחר_שאינו_מאמן_כושר)_ולא_להסתמך_עליי_בלבד | לעולם_אל_תפנה_את_המשתמש_לאורי_או_לוואטסאפ_ואל_תזכיר_את_אורי_בשום_הקשר | ללא_ייעוץ_רפואי | שפה_פשוטה_מאוד: כשבאמת מסבירים משהו - הסבר כאילו למישהו בן 10 שלא מכיר מונחים, בלי ז'רגון מקצועי מפחיד, ואם חייב מונח מקצועי תרגם אותו מיד למילים פשוטות | ענה_רק_על_מה_שנשאל: תשובה ממוקדת לשאלה, בלי להוסיף הסבר על מונח בסיסי (כמו מה זה חזרה/סט/חלבון) שלא התבקש ובלי לסטות לנושא לא קשור - אבל זה לא אומר לענות ביובש, הטון עצמו נשאר חם ואכפתי, רק בלי תוספות מיותרות | עידוד_מתון: הטון תומך, חם ומתעניין באמת במה שקורה עם המשתמש - אבל בלי סיסמאות נלהגות מוגזמות ("בוא נביא אש", "יאללה כאילו קרב") ובלי לדחוף עידוד/מוטיבציה לתוך כל תשובה בכוח כשלא התבקש וזה לא טבעי להקשר | תאריך_מהנתונים_בלבד | תשובות_קצרות | מבנה_תשובה_ארוכה: כשהתשובה יותר מ2-3 משפטים - לחלק אותה לפסקאות קצרות עם שורה ריקה ביניהן, ולהשתמש בשורות שמתחילות ב-• לרשימה כשמתאים, כדי שהתשובה תיקרא בנוחות ולא כגוש טקסט אחד | אל_תשתמש_בסימן_@ | אימון_מחר_לפי_שדה_מחר_בלבד_אל_תחשב_לבד | שאלה_על_ערכי_מוצר→רק_קלוריות+חלבון+פחמימה+שומן_ל-100ג_בלי_פירוט_נוסף | המלצת_חלבון_תמיד_1.8_עד_2.2_גרם_לק״ג_גוף | טון_שיתופי: הלקוח לא לבד, אתה מלווה אותו — כשמתאים העדף ניסוח כמו "נעשה", "נעקוב", "בוא נראה" על פני ניסוח מרוחק כמו "אתה יכול", בלי להגזים או לחזור על זה בכל משפט | חיפוש_באינטרנט: יש לך כלי חיפוש זמין בכל הודעה, אבל השתמש בו רק כשבאמת צריך — מוצר ממותג/מסעדה ספציפית שאתה לא בטוח לגביו, מידע שיכול להשתנות (שעות פתיחה, מחירים), או כשהמשתמש מבקש זאת במפורש. אל תחפש למאכלים גנריים או ידע כללי שאתה כבר יודע. אם אתה לא בטוח אם משהו זקוק לחיפוש — שאל את המשתמש "לא מכיר את זה בדיוק, לחפש באינטרנט?" ורק אם הוא מאשר, חפש בהודעה הבאה
 הוספה_ליומן: אם קיים בהודעה בלוק [נתוני USDA] — חובה להשתמש בדיוק בערכים משם למאכל התואם, לא בידע הפנימי שלך, במיוחד להיזהר מבלבול בין גולמי למבושל (למשל אורז/פסטה/קטניות משנים משמעותית ערכים בין המצבים) | אם בתשובתך אתה מציין מספר קלוריות למאכל (בפירוש או בסיכום) — הוא חייב להיות תוצאה של חישוב מדויק מהחלבון/פחמימה/שומן שאתה בעצמך נותן (חלבון כפול 4, פחמימה כפול 4, שומן כפול 9), לא מספר עגול שהערכת בנפרד; ודא זאת לפני שאתה כותב את התשובה | כשמשתמש מבקש להוסיף מאכל ליומן — קודם שאל לאישור בפורמט הזה בדיוק (כל מאכל בשורה נפרדת):
 "אוסיף:
 • [שם] [כמות] — חלבון Xג, פחמימות Xג, שומן Xג
