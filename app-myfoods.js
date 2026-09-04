@@ -501,8 +501,7 @@ function _renderRecipeLogItems() {
     box.innerHTML = _rlItems.map((ing, i) => `
         <div class="recipe-ing-pill">
             <span class="ing-name">${_esc(ing.name)}</span>
-            <span onclick="openRlAmountSheet(${i})"
-                style="display:inline-block;width:52px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:4px 4px;text-align:center;color:var(--accent);font-weight:700;font-family:inherit;font-size:12.5px;cursor:pointer;">${ing.amount}</span>
+            <span class="rl-amt-pill" onclick="openRlAmountSheet(${i})">${ing.amount}</span>
             <span class="ing-amt">${_esc(ing.unit)}</span>
         </div>`).join('');
     _rlUpdateSummary();

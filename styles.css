@@ -1201,6 +1201,7 @@ body:has(#ai-chat-input:focus) .tabs {
 .recipe-ing-pill .ing-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .recipe-ing-pill .ing-amt { flex-shrink: 0; }
 .recipe-ing-pill .ing-remove { color: var(--text-muted); font-size: 15px; padding: 0 2px; cursor: pointer; flex-shrink: 0; background: none; border: none; font-family: inherit; }
+.rl-amt-pill { display: inline-block; min-width: 52px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 4px 4px; text-align: center; color: var(--accent); font-weight: 700; font-family: inherit; font-size: 12.5px; cursor: pointer; font-variant-numeric: tabular-nums; }
 
 .cr-name-headline {
     width: 100%;
