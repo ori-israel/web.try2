@@ -4836,8 +4836,9 @@ legend { padding: 0; display: block; width: 100%; }
 }
 .cwe-cat-row {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
     width: 100%;
     background: var(--bg-card-alt);
     border: 0.5px solid rgba(59, 130, 246, 0.35);
@@ -4848,6 +4849,7 @@ legend { padding: 0; display: block; width: 100%; }
     cursor: pointer;
     text-align: right;
 }
+.cwe-cat-row-top { display: flex; align-items: center; justify-content: space-between; }
 .cwe-cat-row-name { font-size: 13px; font-weight: 700; }
 .cwe-cat-row-arrow {
     width: 26px;

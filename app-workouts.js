@@ -1101,16 +1101,25 @@ function selectExerciseCategory(cat) {
     const body = document.getElementById('cwe-gallery-body');
     if (!body) return;
     _cweCategoryExerciseNames = Object.keys(exerciseBank).filter(n => exerciseCategories[n] === cat);
-    const rows = _cweCategoryExerciseNames.map((name, i) => `
-        <button class="cwe-cat-row" onclick="addExerciseToCustomWorkout(${i})">
-            <span class="cwe-cat-row-name">${name}</span>
-            <span class="cwe-cat-row-arrow">+</span>
-        </button>`).join('');
+    const rows = _cweCategoryExerciseNames.map((name, i) => {
+        const bankUrl = exerciseBank[name];
+        return `
+        <div class="cwe-cat-row" onclick="addExerciseToCustomWorkout(${i})">
+            <div class="cwe-cat-row-top">
+                <span class="cwe-cat-row-name">${name}</span>
+                <span class="cwe-cat-row-arrow">+</span>
+            </div>
+            ${bankUrl ? `<button class="accord-video-btn" data-video-url="${encodeURIComponent(bankUrl)}" onclick="event.stopPropagation()">▶ צפייה בסרטון</button>` : ''}
+        </div>`;
+    }).join('');
     body.innerHTML = `
         <div class="cwe-cb-picker">
             <button class="cwe-cb-cat-back" onclick="_renderCategoryChips()">‹ חזרה לקבוצות שרירים</button>
             <div class="cwe-cat-list">${rows}</div>
         </div>`;
+    body.querySelectorAll('.cwe-cat-row .accord-video-btn').forEach(btn => {
+        btn.addEventListener('click', () => openVideoModal(decodeURIComponent(btn.dataset.videoUrl)));
+    });
 }
 
 function addExerciseToCustomWorkout(idx) {
